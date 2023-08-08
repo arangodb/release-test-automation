@@ -141,7 +141,7 @@ def dump_runner(queue, resq, dump, progressive_timeout):
             print(job)
             print("starting my dump task! " + str(job["args"]) + str(job["dir"]))
             res = dump.run_dump_monitored(
-                basepath=str(dump.cfg.test_data_dir.resolve() / job["dir"]),
+                basepath=str(dump.cfg.base_test_dir.resolve() / job["dir"]),
                 args=job["args"],
                 result_line_handler=result_line,
                 progressive_timeout=progressive_timeout,
@@ -166,9 +166,9 @@ def restore_runner(queue, resq, restore, progressive_timeout):
         try:
             # all tasks are already there. if done:
             job = queue.get(timeout=0.1)
-            print("starting my arangosh task! " + str(job["args"]) + str(job["script"]))
+            print("starting my arangosh task! " + str(job["args"]) + str(job["dir"]))
             res = restore.run_restore_monitored(
-                basepath=str(restore.cfg.test_data_dir.resolve() / job["dir"]),
+                basepath=str(restore.cfg.base_test_dir.resolve() / job["dir"]),
                 args=job["args"],
                 result_line_handler=result_line,
                 progressive_timeout=progressive_timeout,
@@ -291,6 +291,12 @@ class ClusterPerf(Single):
         for one_job in self.scenario.dump_jobs:
             self.jobs.put(one_job)
 
+    def _generate_restore_jobs(self):
+        """generate the workers instructions including offsets against overlapping"""
+        print(self.scenario.restore_jobs)
+        for one_job in self.scenario.restore_jobs:
+            self.jobs.put(one_job)
+
     def _start_makedata_workers(self, frontends):
         """launch the worker threads"""
         # self.makedata_instances = self.starter_instances[:]
@@ -383,8 +389,8 @@ class ClusterPerf(Single):
         print("restore instances")
         while len(self.restore_workers) < self.scenario.parallelity:
             starter = frontends[len(self.restore_workers) % len(frontends)]
-            assert starter.arango_restore, "no starter associated arangosh!"
-            arango_restore = starter.arangosh
+            assert starter.arango_restore, "no starter associated arangorestore!"
+            arango_restore = starter.arango_restore
             self.restore_workers.append(
                 Thread(
                     target=restore_runner,
@@ -428,6 +434,14 @@ class ClusterPerf(Single):
             worker.join()
         for worker in self.restore_workers:
             worker.join()
+
+    def _test_dump(self, frontends):
+        if "dump" in self.scenario.phase:
+            print('dump')
+            self._generate_dump_jobs()
+            self._start_dump_workers(frontends)
+            time.sleep(30)
+            print('xxxx')
 
     def starter_prepare_env_impl(self, sm=None):
         self.cfg.index = 0
@@ -501,13 +515,7 @@ class ClusterPerf(Single):
         self._prolongue_backup_timeout()
         count = 0
         frontends = self.get_frontend_starters()
-        print(self.scenario.phase)
-        if "dump" in self.scenario.phase:
-            print('dump')
-            self._generate_dump_jobs()
-            self._start_dump_workers(frontends)
-            time.sleep(30)
-            print('xxxx')
+        self._test_dump(frontends)
         if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
             count += 1
@@ -595,8 +603,8 @@ class ClusterPerf(Single):
         #    raise ex
         if "dump" in self.scenario.phase:
             print('dump')
-            self._generate_dump_jobs()
-            self._start_dump_workers(frontends)
+            self._generate_restore_jobs()
+            self._start_restore_workers(frontends)
             time.sleep(30)
             print('xxxx')
 
