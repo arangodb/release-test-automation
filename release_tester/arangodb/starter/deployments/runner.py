@@ -925,14 +925,17 @@ class Runner(ABC):
             starter.hb_instance.validate_local_backup(starter.basedir, name)
 
     @step
-    def search_for_warnings(self):
+    def search_for_warnings(self, print_lines=True):
         """search for any warnings in any logfiles and dump them to the screen"""
+        ret = False
         for starter in self.starter_instances:
             print("Ww" * 40)
             starter.search_for_warnings()
             for instance in starter.all_instances:
                 print("w" * 80)
-                instance.search_for_warnings()
+                if instance.search_for_warnings(print_lines):
+                    ret = True
+        return ret
 
     @step
     def zip_test_dir(self):

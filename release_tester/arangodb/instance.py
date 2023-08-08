@@ -387,23 +387,31 @@ class Instance(ABC):
         """it returns true if the line from logs should be printed"""
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
-    def search_for_warnings(self):
+    def is_line_fatal(self, line):
+        """it returns true if the line from logs should be printed"""
+        return "FATAL" in line or "{crash}" in line
+
+    def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""
         if not self.logfile.exists():
             print(str(self.logfile) + " doesn't exist, skipping.")
-            return
+            return False
         count = 0
+        found_fatal = False
         for logfile in [self.logfile] + self.logfiles:
             print(str(logfile))
             with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     if self.is_line_relevant(line):
+                        if self.is_line_fatal(line):
+                            return True
                         if self.is_suppressed_log_line(line):
                             count += 1
-                        else:
+                        elif print_lines:
                             print(line.rstrip())
-        if count > 0:
+        if count > 0 and print_lines:
             print(" %d lines suppressed by filters" % count)
+        return False
 
     @step
     def add_logfile_to_report(self):
@@ -910,7 +918,18 @@ class SyncInstance(Instance):
         if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
             # logs from arangosync v1
             return True
-        if " FTL " in line or " ERR " in line or " WRN " in line:
+        if " FTL " in line or " ERR " in line or " WRN " in line or 'panic:' in line:
+            # logs from arangosync v2
+            return True
+
+        return False
+
+    def is_line_fatal(self, line):
+        """it returns true if the line from logs should be printed"""
+        if "|FATAL|" in line:
+            # logs from arangosync v1
+            return True
+        if " FTL " in line or 'panic:' in line:
             # logs from arangosync v2
             return True
 
