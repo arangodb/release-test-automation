@@ -614,7 +614,7 @@ class Dc2Dc(Runner):
         self.progress(True, "stopping sync")
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
-        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
+        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data("_DC2")
         ret = self.cluster1["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
         if not ret[0]:
             raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
@@ -635,8 +635,8 @@ class Dc2Dc(Runner):
 
         self.progress(True, "checking whether volatile data has been removed from both DCs")
         if (
-            not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data()
-            or not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()
+            not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2")
+            or not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2")
         ):
             raise Exception("expected data created on disconnected follower DC to be gone!")
 
