@@ -45,4 +45,35 @@ dump_jobs:
     - --overwrite
     - "true"
   dir: blarg5
+restore_jobs:
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg1
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg2
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg3
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg4
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg5
 bench_jobs:
