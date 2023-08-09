@@ -572,6 +572,11 @@ class ArangodInstance(Instance):
                     reply = requests.get(self.get_local_url("") + "/_api/version", headers=request_headers, timeout=20)
                 if reply.status_code == 200:
                     return
+                elif reply.status_code == 503 and self.instance_type == InstanceType.RESILIENT_SINGLE:
+                    body = reply.json()
+                    if 'errorNum' in body and body['errorNum'] == 1495:
+                        print("Leadership challenge ongoin, prolonging timeout")
+                        until += timeout / 10
                 print(f'{self.get_local_url("")} got {reply} - {reply.content}')
             except requests.exceptions.ConnectionError:
                 print("&")
