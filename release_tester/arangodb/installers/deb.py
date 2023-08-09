@@ -240,7 +240,8 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
             raise ex
-        self.instance.search_for_warnings()
+        if self.instance is not None:
+            self.instance.search_for_warnings()
 
     @step
     def install_debug_package_impl(self):
