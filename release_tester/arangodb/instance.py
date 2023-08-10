@@ -397,7 +397,6 @@ class Instance(ABC):
             print(str(self.logfile) + " doesn't exist, skipping.")
             return False
         count = 0
-        found_fatal = False
         for logfile in [self.logfile] + self.logfiles:
             print(str(logfile))
             with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
@@ -573,6 +572,11 @@ class ArangodInstance(Instance):
                     reply = requests.get(self.get_local_url("") + "/_api/version", headers=request_headers, timeout=20)
                 if reply.status_code == 200:
                     return
+                elif reply.status_code == 503 and self.instance_type == InstanceType.RESILIENT_SINGLE:
+                    body = reply.json()
+                    if 'errorNum' in body and body['errorNum'] == 1495:
+                        print("Leadership challenge ongoin, prolonging timeout")
+                        until += timeout / 10
                 print(f'{self.get_local_url("")} got {reply} - {reply.content}')
             except requests.exceptions.ConnectionError:
                 print("&")
@@ -860,12 +864,17 @@ class SyncInstance(Instance):
             pass
 
         logfile_parameter_raw = ""
-        if self.logfile_parameter == "--log.file":
-            # newer starters will use '--foo bar' instead of '--foo=bar'
-            logfile_parameter_raw = self.instance_arguments[self.instance_arguments.index("--log.file") + 1]
-            self.logfile_parameter = "--log.file=" + logfile_parameter_raw
-        else:
-            logfile_parameter_raw = self.logfile_parameter.split("=")[1]
+        try:
+            if self.logfile_parameter == "--log.file":
+                # newer starters will use '--foo bar' instead of '--foo=bar'
+                logfile_parameter_raw = self.instance_arguments[self.instance_arguments.index("--log.file") + 1]
+                self.logfile_parameter = "--log.file=" + logfile_parameter_raw
+            else:
+                logfile_parameter_raw = self.logfile_parameter.split("=")[1]
+        except IndexError as ex:
+            print(f"failed to extract the logfile parameter from {self.logfile_parameter}")
+            raise ex
+
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress("v")
