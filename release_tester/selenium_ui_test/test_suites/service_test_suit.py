@@ -7,7 +7,7 @@ import traceback
 
 
 class ServiceTestSuite(BaseSeleniumTestSuite):
-    """analyzer page testsuite"""
+    """service page testsuite"""
 
     @testcase
     def test_service(self):
