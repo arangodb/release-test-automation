@@ -574,7 +574,7 @@ class BasePage:
         """It will check for any red bar error notification"""
         try:
             notification = 'noty_body'
-            notification = (self.locator_finder_by_class(notification))
+            notification = self.locator_finder_by_class(notification)
             time.sleep(2)
             print("*" * 100)
             print(notification.text)

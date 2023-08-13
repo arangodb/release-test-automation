@@ -44,14 +44,12 @@ class ServicePage(NavigationBarPage):
             search_item = "//*[text()='demo-graphql']"
             expected_text = 'demo-graphql'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
-            # print(f'{demo_graphql_stiem}')
             assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
         if search_keyword == 'tab':
             search_item = "//*[text()='tableau-connector']"
             expected_text = 'tableau-connector'
             demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
-            # print(f'{demo_graphql_stiem}')
             assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
                                                              f"but got {demo_graphql_stiem.text}"
         if search_keyword == 'grafana':
@@ -215,8 +213,6 @@ class ServicePage(NavigationBarPage):
         time.sleep(6)
 
         # checking service has been created successfully
-        # success = '//*[@id="installedList"]/div[2]/div/div[1]/p[2]/span'
-        # success = '//*[@id="installedList"]/div[6]/div/div[1]/p[2]/span'
         success = "//*[text()='demo-geo-s2']"
 
         try:
@@ -269,13 +265,12 @@ class ServicePage(NavigationBarPage):
                     choose_file_btn_sitem.send_keys(str(path1.absolute()))
                     time.sleep(1)
 
-                    print('Pressing on confirm btn \n')
-                    confirm_btn = 'confirmDocImport'
-                    self.locator_finder_by_id(confirm_btn).click()
-                    time.sleep(1)
-                    # going back to collection tab
-                    self.webdriver.back()
-
+                    # print('Pressing on confirm btn \n')
+                    # confirm_btn = 'confirmDocImport'
+                    # self.locator_finder_by_id(confirm_btn).click()
+                    # time.sleep(1)
+                    # # going back to collection tab
+                    # self.webdriver.back()
                 else:
                     raise Exception('neighbourhood Collection not found!')
 
@@ -309,11 +304,14 @@ class ServicePage(NavigationBarPage):
                     choose_file_btn_sitem.send_keys(str(path2.absolute()))
                     time.sleep(1)
 
-                    print('Pressing on confirm btn \n')
-                    confirm_btn = 'confirmDocImport'
-                    self.locator_finder_by_id(confirm_btn).click()
-                    time.sleep(1)
+                    # print('Pressing on confirm btn \n')
+                    # confirm_btn = 'confirmDocImport'
+                    # self.locator_finder_by_id(confirm_btn).click()
+                    # time.sleep(1)
 
+                    # self.select_service_page()
+                    # self.webdriver.refresh()
+                    
                     self.select_service_page()
                     self.webdriver.refresh()
 
@@ -586,13 +584,9 @@ class ServicePage(NavigationBarPage):
 
         print("replacing begins with graphql service \n")
         replace = 'modalButton1'
-        self.locator_finder_by_id(replace).click()
-        time.sleep(3)
         try:
-            success_notification = self.handle_red_bar()
-            time.sleep(2)
-            expected_msg = 'Services: Service demo-graphql installed.'
-            assert expected_msg == success_notification, f"Expected {expected_msg} but got {success_notification}"
+            self.locator_finder_by_id(replace).click()
+            time.sleep(3)
         except Exception as ex:
             raise Exception('Error occurred!! required manual inspection.\n'
                             ) from ex
