@@ -41,14 +41,14 @@ class ReplicationPage(NavigationBarPage):
         more_lines = True
         table_head = []
         for i in column_indices:
-            table_head.append(self.webdriver.find_element_by_xpath(self.REPL_LF_TABLES[which][0] % i).text)
+            table_head.append(self.locator_finder_by_xpath(self.REPL_LF_TABLES[which][0] % i).text)
         follower_table.append(table_head)
         count = 1
         while more_lines:
             try:
                 row_data = []
                 for i in column_indices:
-                    cell = self.webdriver.find_element_by_xpath(self.REPL_LF_TABLES[which][1] % (count, i))
+                    cell = self.locator_finder_by_xpath(self.REPL_LF_TABLES[which][1] % (count, i))
                     row_data.append(cell.text)
                 follower_table.append(row_data)
             except NoSuchElementException:
