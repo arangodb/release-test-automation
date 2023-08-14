@@ -393,21 +393,21 @@ class Instance(ABC):
 
     def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""
-        if not self.logfile.exists():
-            print(str(self.logfile) + " doesn't exist, skipping.")
-            return False
         count = 0
         for logfile in [self.logfile] + self.logfiles:
-            print(str(logfile))
-            with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
-                for line in log_fh:
-                    if self.is_line_relevant(line):
-                        if self.is_line_fatal(line):
-                            return True
-                        if self.is_suppressed_log_line(line):
-                            count += 1
-                        elif print_lines:
-                            print(line.rstrip())
+            if not logfile.exists():
+                print(str(self.logfile) + " doesn't exist, skipping.")
+            else:
+                print(str(logfile))
+                with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                    for line in log_fh:
+                        if self.is_line_relevant(line):
+                            if self.is_line_fatal(line):
+                                return True
+                            if self.is_suppressed_log_line(line):
+                                count += 1
+                            elif print_lines:
+                                print(line.rstrip())
         if count > 0 and print_lines:
             print(" %d lines suppressed by filters" % count)
         return False

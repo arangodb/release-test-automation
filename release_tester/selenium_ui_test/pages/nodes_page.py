@@ -62,7 +62,7 @@ class NodesPage(NavigationBarPage):
                         if row[column_names[table_column - 1]] is None:
                             row[column_names[table_column - 1]] = table_cell_elm.get_property("title")
                     else:
-                        table_cell_elm = elm.find_element_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
+                        table_cell_elm = elm.webdriver.find_elements(By.XPATH("div[%d]/div[%d]" % (table_row_num, table_column)))
                         row[column_names[table_column - 1]] = table_cell_elm.text
         pretty_table = BeautifulTable(maxwidth=160)
         for row in table:

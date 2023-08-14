@@ -60,8 +60,8 @@ class NavigationBarPage(UserBarPage):
         count = 0
         while True:
             try:
-                elem = self.webdriver.find_element_by_id("currentVersion")
-                enterprise_elem = self.webdriver.find_element_by_class_name("logo.big")
+                elem = self.locator_finder_by_id("currentVersion")
+                enterprise_elem = self.locator_finder_by_class("logo.big")
                 ret = {"version": elem.text, "enterprise": enterprise_elem.text}
                 self.progress("check_version (%s) (%s)" % (ret["version"], ret["enterprise"]))
                 if (len(ret["version"]) > 0) and (len(ret["enterprise"]) > 0):
