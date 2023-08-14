@@ -393,7 +393,6 @@ class Instance(ABC):
 
     def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""
-            return False
         count = 0
         for logfile in [self.logfile] + self.logfiles:
             if not logfile.exists():
