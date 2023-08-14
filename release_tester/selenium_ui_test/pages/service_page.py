@@ -265,12 +265,6 @@ class ServicePage(NavigationBarPage):
                     choose_file_btn_sitem.send_keys(str(path1.absolute()))
                     time.sleep(1)
 
-                    # print('Pressing on confirm btn \n')
-                    # confirm_btn = 'confirmDocImport'
-                    # self.locator_finder_by_id(confirm_btn).click()
-                    # time.sleep(1)
-                    # # going back to collection tab
-                    # self.webdriver.back()
                 else:
                     raise Exception('neighbourhood Collection not found!')
 
@@ -304,14 +298,6 @@ class ServicePage(NavigationBarPage):
                     choose_file_btn_sitem.send_keys(str(path2.absolute()))
                     time.sleep(1)
 
-                    # print('Pressing on confirm btn \n')
-                    # confirm_btn = 'confirmDocImport'
-                    # self.locator_finder_by_id(confirm_btn).click()
-                    # time.sleep(1)
-
-                    # self.select_service_page()
-                    # self.webdriver.refresh()
-                    
                     self.select_service_page()
                     self.webdriver.refresh()
 
