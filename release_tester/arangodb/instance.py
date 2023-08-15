@@ -872,7 +872,8 @@ class SyncInstance(Instance):
             else:
                 logfile_parameter_raw = self.logfile_parameter.split("=")[1]
         except IndexError as ex:
-            print(f"failed to extract the logfile parameter from {self.logfile_parameter}")
+            print(f"""{self} - failed to extract the logfile parameter from:
+            {self.logfile_parameter} - {self.instance_arguments}""")
             raise ex
 
         # wait till the process has startet writing its logfile:
