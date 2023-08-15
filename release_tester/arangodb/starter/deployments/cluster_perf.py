@@ -444,6 +444,30 @@ class ClusterPerf(Cluster):
             time.sleep(30)
             print('xxxx')
 
+    def _test_dump_sequential(self, frontends):
+        if "jam_dump_sequential" in self.scenario.phase:
+            print('dump')
+            self._generate_dump_jobs()
+            count = 0
+            while True:
+                try:
+                    dump_job = self.resultq.get(timeout=0.1)
+                    dump = frontends[count % len(frontends)].arango_dump
+                    print("starting my dump task! " + str(dump_job["args"]) + str(dump_job["dir"]))
+                    t_start = time.time()
+                    res = dump.run_dump_monitored(
+                        basepath=str(dump.cfg.base_test_dir.resolve() / dump_job["dir"]),
+                        args=dump_job["args"],
+                        result_line_handler=result_line,
+                        progressive_timeout=self.scenario.progressive_timeout,
+                    )
+                    count += 1
+                    t_end = time.time()
+                    print(f"Res: {res} Duration: {str(t_start - t_end)}")
+                except Empty:
+                    print("done")
+                    break
+
     def _test_restore(self, frontends):
         if "restore" in self.scenario.phase:
             print('restore')
@@ -455,7 +479,6 @@ class ClusterPerf(Cluster):
     def _makedata_stress(self, frontends):
         if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
-            count += 1
             self._generate_makedata_jobs(frontends)
             self._start_makedata_workers(frontends)
             # Let the test heat up before we continue with the backup:
@@ -492,10 +515,6 @@ class ClusterPerf(Cluster):
         for one_backup in all_backups:
             frontends[count % len(frontends)].hb_instance.restore(one_backup)
             self.wait_for_restore_impl(frontends[count % len(frontends)])
-            frontends = self.get_frontend_starters()
-            starter = frontends[0]
-            assert starter.arangosh, "no starter associated arangosh!"
-            arangosh = starter.arangosh
             count += 1
 
     def _create_defined_backup_data(self, frontends, number):
@@ -511,7 +530,7 @@ class ClusterPerf(Cluster):
             progressive_timeout=self.scenario.progressive_timeout,
             deadline=self.scenario.progressive_timeout * self.scenario.data_multiplier * self.scenario.db_count
         )
-        frontends[0].hb_instance.create(f"AFTER_LOAD")
+        frontends[0].hb_instance.create("AFTER_LOAD")
         return makedata_job_params
 
     def _check_defined_data(self, makedata_job_params):
@@ -524,7 +543,7 @@ class ClusterPerf(Cluster):
             result_line_handler=result_line
         )
 
-    def _restore_defined_hb(self, all_backups, makedata_job_params):
+    def _restore_defined_hb(self, frontends, all_backups, makedata_job_params):
         count = 0
         for one_backup in all_backups:
             if one_backup.find("AFTER_LOAD") >= 0:
@@ -594,8 +613,9 @@ class ClusterPerf(Cluster):
     def jam_attempt_impl(self):
         if "jam_makedata" in self.scenario.phase:
             logging.info("jamming: starting data stress")
-            self._generate_makedata_jobs()
-            self._start_makedata_workers()
+            frontends = self.get_frontend_starters()
+            self._generate_makedata_jobs(frontends)
+            self._start_makedata_workers(frontends)
 
             while self.tcount < self.thread_count:
                 res_line = self.resultq.get()
@@ -606,12 +626,22 @@ class ClusterPerf(Cluster):
             self._shutdown_load_workers()
         if "jam_dump" in self.scenario.phase:
             frontends = self.get_frontend_starters()
-            makedata_job_params = self._create_defined_backup_data(frontends, 9999)
             self._test_dump(frontends)
             self._makedata_stress(frontends)
             self._test_defined_jobs(frontends)
             self._bench_stress(frontends)
             self._shutdown_load_workers()
+            ti.prompt_user(self.cfg, "press any key to resume to restore.")
+            self._test_restore(frontends)
+
+        if "jam_dump_sequential" in self.scenario.phase:
+            frontends = self.get_frontend_starters()
+            makedata_job_params = self._create_defined_backup_data(frontends, 9999)
+            self._makedata_stress(frontends)
+            self._bench_stress(frontends)
+            self._test_defined_jobs(frontends)
+            self._shutdown_load_workers()
+            self._test_dump_sequential(frontends)
             ti.prompt_user(self.cfg, "press any key to resume to restore.")
             self._test_restore(frontends)
             self._check_defined_data(makedata_job_params)
@@ -637,7 +667,7 @@ class ClusterPerf(Cluster):
             self._shutdown_load_workers()
 
             all_backups = self.list_backup()
-            self._restore_defined_hb(all_backups, makedata_job_params)
+            self._restore_defined_hb(frontends, all_backups, makedata_job_params)
             self._restore_many_hb(frontends, all_backups)
         except Exception as ex:
             print(ex)
