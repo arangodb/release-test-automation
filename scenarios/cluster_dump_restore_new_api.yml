@@ -5,10 +5,10 @@ phase:
 collection_multiplier: 1
 data_multiplier: 10
 db_count: 2
-db_count_chunks: 5
+db_count_chunks: 2
 max_replication_factor: 3
 min_replication_factor: 2
-launch_delay: 1.3
+launch_delay: 0.25
 parallelity: 9
 db_offset: 0
 progressive_timeout: 1000
