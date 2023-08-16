@@ -13,6 +13,7 @@ import psutil
 
 # import statsd
 import yaml
+from beautifultable import BeautifulTable
 
 # from tools.asciiprint import print_progress as progress
 import tools.interact as ti
@@ -449,24 +450,29 @@ class ClusterPerf(Cluster):
             print('dump')
             self._generate_dump_jobs()
             count = 0
-            while True:
-                try:
-                    dump_job = self.resultq.get(timeout=0.1)
-                    dump = frontends[count % len(frontends)].arango_dump
-                    print("starting my dump task! " + str(dump_job["args"]) + str(dump_job["dir"]))
-                    t_start = time.time()
-                    res = dump.run_dump_monitored(
-                        basepath=str(dump.cfg.base_test_dir.resolve() / dump_job["dir"]),
-                        args=dump_job["args"],
-                        result_line_handler=result_line,
-                        progressive_timeout=self.scenario.progressive_timeout,
-                    )
-                    count += 1
-                    t_end = time.time()
-                    print(f"Res: {res} Duration: {str(t_start - t_end)}")
-                except Empty:
-                    print("done")
-                    break
+            table = BeautifulTable(maxwidth=140)
+            for dump_job in self.scenario.dump_jobs:
+                dump = frontends[count % len(frontends)].arango_dump
+                print("starting my dump task! " + str(dump_job["args"]) + str(dump_job["dir"]))
+                t_start = time.time()
+                res = dump.run_dump_monitored(
+                    basepath=str(dump.cfg.base_test_dir.resolve() / dump_job["dir"]),
+                    args=dump_job["args"],
+                    result_line_handler=result_line,
+                    progressive_timeout=self.scenario.progressive_timeout,
+                )
+                count += 1
+                t_end = time.time()
+                table.rows.append([dump_job["dir"], t_end - t_start, res])
+                print(f"Res: {res} Duration: {str(t_end - t_start)}")
+
+            table.columns.header = [
+                "Dump run",
+                "Time used",
+                "Result"]
+            tablestr = str(table)
+            Path("testtimes.txt").write_text(tablestr, encoding="utf8")
+            print(tablestr)
 
     def _test_restore(self, frontends):
         if "restore" in self.scenario.phase:
@@ -479,7 +485,7 @@ class ClusterPerf(Cluster):
     def _makedata_stress(self, frontends):
         if "backup" in self.scenario.phase:
             logging.info("backup: starting data stress")
-            self._generate_makedata_jobs(frontends)
+            self._generate_makedata_jobs()
             self._start_makedata_workers(frontends)
             # Let the test heat up before we continue with the backup:
             time.sleep(120)
@@ -614,7 +620,7 @@ class ClusterPerf(Cluster):
         if "jam_makedata" in self.scenario.phase:
             logging.info("jamming: starting data stress")
             frontends = self.get_frontend_starters()
-            self._generate_makedata_jobs(frontends)
+            self._generate_makedata_jobs()
             self._start_makedata_workers(frontends)
 
             while self.tcount < self.thread_count:
