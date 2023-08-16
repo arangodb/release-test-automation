@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
+import copy
 import logging
 import time
 import traceback
@@ -290,8 +291,11 @@ class ClusterPerf(Cluster):
     def _generate_dump_jobs(self):
         """generate the workers instructions including offsets against overlapping"""
         print(self.scenario.dump_jobs)
-        for one_job in self.scenario.dump_jobs:
-            self.jobs.put(one_job)
+        for i in range(self.scenario.db_count_chunks):
+            for one_job in self.scenario.dump_jobs:
+                job = copy.deepcopy(one_job)
+                job['dir'] = f"{job['dir']}_{i}"
+                self.jobs.put(job, i)
 
     def _generate_restore_jobs(self):
         """generate the workers instructions including offsets against overlapping"""
@@ -438,8 +442,8 @@ class ClusterPerf(Cluster):
             worker.join()
 
     def _test_dump(self, frontends):
-        if "dump" in self.scenario.phase:
-            print('dump')
+        if "jam_dump" in self.scenario.phase or "dump" in self.scenario.phase:
+            print('jam_dump')
             self._generate_dump_jobs()
             self._start_dump_workers(frontends)
             time.sleep(30)
@@ -448,7 +452,6 @@ class ClusterPerf(Cluster):
     def _test_dump_sequential(self, frontends):
         if "jam_dump_sequential" in self.scenario.phase:
             print('dump')
-            self._generate_dump_jobs()
             count = 0
             table = BeautifulTable(maxwidth=140)
             for dump_job in self.scenario.dump_jobs:
@@ -630,15 +633,6 @@ class ClusterPerf(Cluster):
                 else:
                     self.tcount += 1
             self._shutdown_load_workers()
-        if "jam_dump" in self.scenario.phase:
-            frontends = self.get_frontend_starters()
-            self._test_dump(frontends)
-            self._makedata_stress(frontends)
-            self._test_defined_jobs(frontends)
-            self._bench_stress(frontends)
-            self._shutdown_load_workers()
-            ti.prompt_user(self.cfg, "press any key to resume to restore.")
-            self._test_restore(frontends)
 
         if "jam_dump_sequential" in self.scenario.phase:
             frontends = self.get_frontend_starters()
@@ -651,6 +645,16 @@ class ClusterPerf(Cluster):
             ti.prompt_user(self.cfg, "press any key to resume to restore.")
             self._test_restore(frontends)
             self._check_defined_data(makedata_job_params)
+
+        if "jam_dump" in self.scenario.phase:
+            frontends = self.get_frontend_starters()
+            self._test_dump(frontends)
+            self._makedata_stress(frontends)
+            self._test_defined_jobs(frontends)
+            self._bench_stress(frontends)
+            self._shutdown_load_workers()
+            ti.prompt_user(self.cfg, "press any key to resume to restore.")
+            self._test_restore(frontends)
 
         ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
 
