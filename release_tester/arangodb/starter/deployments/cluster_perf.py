@@ -495,6 +495,7 @@ class ClusterPerf(Cluster):
 
     def _bench_stress(self, frontends):
         if "backupbench" in self.scenario.phase:
+            count = 0
             for bench_job in self.scenario.bench_jobs:
                 self.arangobench_workers.append(frontends[count % len(frontends)].launch_arangobench(bench_job))
                 time.sleep(0.1)
@@ -503,6 +504,7 @@ class ClusterPerf(Cluster):
 
     def _test_defined_jobs(self, frontends):
         if "backuparangosh" in self.scenario.phase:
+            count = 0
             for arangosh_job in self.scenario.arangosh_jobs:
                 self.jobs.put(
                     {
@@ -516,7 +518,7 @@ class ClusterPerf(Cluster):
     def _create_many_hb(self, frontends):
         count = 0
         while count < 100:
-            frontends[count % len(frontends)].hb_instance.create(f"ABC{count}")
+            frontends[count % len(frontends)].hb_instance.create(f"ABC{count}", progressive_timeout=1800)
             count += 1
 
     def _restore_many_hb(self, frontends, all_backups):
@@ -539,7 +541,7 @@ class ClusterPerf(Cluster):
             progressive_timeout=self.scenario.progressive_timeout,
             deadline=self.scenario.progressive_timeout * self.scenario.data_multiplier * self.scenario.db_count
         )
-        frontends[0].hb_instance.create("AFTER_LOAD")
+        frontends[0].hb_instance.create("AFTER_LOAD", progressive_timeout=1800)
         return makedata_job_params
 
     def _check_defined_data(self, makedata_job_params):
@@ -557,7 +559,7 @@ class ClusterPerf(Cluster):
         for one_backup in all_backups:
             if one_backup.find("AFTER_LOAD") >= 0:
                 print(one_backup)
-                self.upload_backup(one_backup)
+                self.upload_backup(one_backup, progressive_timeout=1800)
                 self.delete_backup(one_backup)
                 print("Listing after locally deleting:")
                 self.list_backup()
