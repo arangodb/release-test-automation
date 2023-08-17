@@ -15,6 +15,7 @@ progressive_timeout: 1000
 single_shard: false
 hot_backup: true
 system_makedata: true
+makedata_args: []
 bench_jobs:
 - cluster_upgrade_scenario_1
 - cluster_upgrade_scenario_2
@@ -28,3 +29,5 @@ arangosh_jobs:
 - stress/transaction_write_load.js
 - stress/smart_graph.js
 - stress/views.js
+dump_jobs: []
+restore_jobs: []
