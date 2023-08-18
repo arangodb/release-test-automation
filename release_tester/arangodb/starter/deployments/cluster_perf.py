@@ -559,7 +559,7 @@ class ClusterPerf(Cluster):
         for one_backup in all_backups:
             if one_backup.find("AFTER_LOAD") >= 0:
                 print(one_backup)
-                self.upload_backup(one_backup, progressive_timeout=1800)
+                self.upload_backup(one_backup, timeout=1800)
                 self.delete_backup(one_backup)
                 print("Listing after locally deleting:")
                 self.list_backup()
