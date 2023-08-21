@@ -369,10 +369,11 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.selenium.test_wait_for_upgrade()
 
     def shutdown_impl(self):
+        ret = False
         for node in self.starter_instances:
-            node.terminate_instance()
-
+            ret = ret or node.terminate_instance()
         logging.info("test ended")
+        return ret
 
     def before_backup_create_impl(self):
         pass

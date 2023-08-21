@@ -149,7 +149,7 @@ class StarterManager:
                     self.expect_instance_count += 2  # syncmaster + syncworker
 
         semversion = semver.VersionInfo.parse(self.cfg.version)
-        self.supportsExtendedNames = (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
+        self.supports_extended_names = (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
         self.username = "root"
         self.passvoid = ""
 
@@ -199,7 +199,7 @@ class StarterManager:
         semversion = semver.VersionInfo.parse(version)
 
         # Extended database names were introduced in 3.9.0
-        if self.supportsExtendedNames:
+        if self.supports_extended_names:
             result += ["--args.all.database.extended-names-databases=true"]
 
         # Telemetry was introduced in 3.11.0
@@ -600,11 +600,17 @@ class StarterManager:
             for i in self.all_instances:
                 i.pid = None
                 i.ppid = None
-        else:
-            # Clear instances as they have been stopped and the logfiles
-            # have been moved.
-            self.is_leader = False
-            self.all_instances = []
+            return False
+        # Clear instances as they have been stopped and the logfiles
+        # have been moved.
+        ret = False
+        for instance in self.all_instances:
+            print("u" * 80)
+            if instance.search_for_warnings(True):
+                ret = True
+        self.is_leader = False
+        self.all_instances = []
+        return ret
 
     @step
     def kill_instance(self):
