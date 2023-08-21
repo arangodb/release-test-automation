@@ -646,7 +646,10 @@ class Runner(ABC):
     def starter_shutdown(self):
         """stop everything"""
         self.progress(True, "{0}{1} - shutdown".format(self.versionstr, str(self.name)))
+        warnings_found  = self.search_for_warnings():
         self.shutdown_impl()
+        if warnings_found:
+            raise Exception("warnings found during shutdown")
 
     @abstractmethod
     def shutdown_impl(self):
