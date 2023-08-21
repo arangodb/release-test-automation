@@ -606,7 +606,7 @@ class StarterManager:
         ret = False
         for instance in self.all_instances:
             print("u" * 80)
-            if instance.search_for_warnings(print_lines):
+            if instance.search_for_warnings(True):
                 ret = True
         self.is_leader = False
         self.all_instances = []
