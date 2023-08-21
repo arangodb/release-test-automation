@@ -48,7 +48,7 @@ def main(**kwargs):
             kwargs["starter_mode"],
             [semver.VersionInfo.parse(kwargs["new_version"])],
             # pylint: disable=too-many-function-args
-            RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"], kwargs["replication2"]),
+            RunProperties(kwargs["enterprise"], True, kwargs["encryption_at_rest"], kwargs["ssl"], kwargs["replication2"]),
         )
         print("V" * 80)
         status = True
