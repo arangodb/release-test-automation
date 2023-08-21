@@ -657,8 +657,8 @@ class Dc2Dc(Runner):
         self._get_in_sync(20)
 
     def shutdown_impl(self):
-        self.cluster1["instance"].terminate_instance()
-        self.cluster2["instance"].terminate_instance()
+        return (self.cluster1["instance"].terminate_instance() or
+                self.cluster2["instance"].terminate_instance())
 
     def before_backup_create_impl(self):
         pass

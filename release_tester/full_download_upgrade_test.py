@@ -65,11 +65,13 @@ def upgrade_package_test(
                 props = copy(default_props)
                 if props.directory_suffix not in editions:
                     continue
+                dl_opt = deepcopy(dl_opts)
+                dl_opt.force_dl = dl_opts.force_dl and props.force_dl
                 props.testrun_name = "test_" + props.testrun_name
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
                 res = Download(
-                    dl_opts,
+                    dl_opt,
                     test_driver.base_config.hb_cli_cfg,
                     version_name,
                     props.enterprise,

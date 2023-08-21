@@ -159,11 +159,12 @@ class Single(Runner):
 
     @step
     def shutdown_impl(self):
-        self.starter_instance.terminate_instance()
+        ret = self.starter_instance.terminate_instance()
         pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info("test ended")
+        return ret
 
     def before_backup_create_impl(self):
         pass

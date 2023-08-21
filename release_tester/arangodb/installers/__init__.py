@@ -465,6 +465,7 @@ class RunProperties:
     def __init__(
         self,
         enterprise: bool,
+        force_dl: bool = True,
         encryption_at_rest: bool = False,
         ssl: bool = False,
         replication2: bool = False,
@@ -473,6 +474,7 @@ class RunProperties:
     ):
         """set the values for this testrun"""
         self.enterprise = enterprise
+        self.force_dl = force_dl
         self.encryption_at_rest = encryption_at_rest
         self.ssl = ssl
         self.testrun_name = testrun_name
@@ -503,9 +505,9 @@ directory_suffix: {0.directory_suffix}""".format(
 
 # pylint: disable=too-many-function-args
 EXECUTION_PLAN = [
-    RunProperties(True, True, True, False, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, False, False, False, "Enterprise", "EP"),
-    RunProperties(False, False, False, False, "Community", "C"),
+    RunProperties(True, True, True, True, False, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, False, False, False, "Enterprise", "EP"),
+    RunProperties(False, True,  False, False, False, "Community", "C"),
 ]
 
 

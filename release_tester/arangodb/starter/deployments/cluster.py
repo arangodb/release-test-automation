@@ -437,9 +437,11 @@ db.testCollection.save({test: "document"})
             self.selenium.jam_step_2()
 
     def shutdown_impl(self):
+        ret = False
         for node in self.starter_instances:
-            node.terminate_instance()
+            ret = ret or node.terminate_instance()
         logging.info("test ended")
+        return ret
 
     def before_backup_impl(self):
         pass

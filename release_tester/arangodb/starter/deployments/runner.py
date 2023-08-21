@@ -646,8 +646,7 @@ class Runner(ABC):
     def starter_shutdown(self):
         """stop everything"""
         self.progress(True, "{0}{1} - shutdown".format(self.versionstr, str(self.name)))
-        warnings_found  = self.search_for_warnings():
-        self.shutdown_impl()
+        warnings_found = self.shutdown_impl()
         if warnings_found:
             raise Exception("warnings found during shutdown")
 
@@ -963,6 +962,11 @@ class Runner(ABC):
         )
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
+            if self.cfg.log_dir.exists():
+                logfile = self.cfg.log_dir / 'arangod.log'
+                if logfile.exists():
+                    print(f"copying {str(logfile)} => {str(self.cfg.base_test_dir)} so it cat be in the report")
+                    shutil.copyfile(str(logfile), str(self.cfg.base_test_dir))
             # for installer_set in self.installers:
             #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
