@@ -20,6 +20,8 @@ makedata_args:
   - "true"
 dump_jobs:
 - args:
+    - '--include-system-collections'
+    - 'true'
     - '--overwrite'
     - 'true'
     - '--use-experimental-dump'
@@ -36,6 +38,8 @@ dump_jobs:
     - 'true'
   dir: all_features_enabled
 - args:
+    - '--include-system-collections'
+    - 'true'
     - '--overwrite'
     - 'true'
     - '--use-experimental-dump'
@@ -50,6 +54,8 @@ dump_jobs:
     - '20'
   dir: most_features_enabled
 - args:
+    - '--include-system-collections'
+    - 'true'
     - '--overwrite'
     - 'true'
     - '--use-experimental-dump'
