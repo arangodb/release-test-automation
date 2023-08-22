@@ -54,6 +54,11 @@ def package_test(
         props.replication2 = replication2
         if props.directory_suffix not in editions:
             continue
+<<<<<<< Updated upstream
+=======
+        dl_opt = deepcopy(dl_opts)
+        dl_opt.force = dl_opts.force and props.force_dl
+>>>>>>> Stashed changes
         dl_new = Download(
             dl_opts,
             test_driver.base_config.hb_cli_cfg,
