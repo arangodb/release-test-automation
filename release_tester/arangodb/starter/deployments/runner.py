@@ -965,7 +965,7 @@ class Runner(ABC):
             if self.cfg.log_dir.exists():
                 logfile = self.cfg.log_dir / 'arangod.log'
                 if logfile.exists():
-                    print(f"copying {str(logfile)} => {str(self.cfg.base_test_dir)} so it cat be in the report")
+                    print(f"copying {str(logfile)} => {str(self.cfg.base_test_dir)} so it can be in the report")
                     shutil.copyfile(str(logfile), str(self.cfg.base_test_dir / 'arangod.log'))
             # for installer_set in self.installers:
             #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
