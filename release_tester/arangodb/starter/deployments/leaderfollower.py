@@ -348,12 +348,13 @@ process.exit(0);
 
     @step
     def shutdown_impl(self):
-        self.leader_starter_instance.terminate_instance()
-        self.follower_starter_instance.terminate_instance()
+        ret = (self.leader_starter_instance.terminate_instance() or
+               self.follower_starter_instance.terminate_instance())
         pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info("test ended")
+        return ret
 
     def before_backup_impl(self):
         pass

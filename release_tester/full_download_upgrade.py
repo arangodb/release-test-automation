@@ -43,13 +43,10 @@ def upgrade_package_test(
         if props.directory_suffix not in editions:
             continue
         # pylint: disable=unused-variable
-<<<<<<< Updated upstream
-=======
         dl_opt = deepcopy(dl_opts)
         dl_opt.force = dl_opts.force and props.force_dl
->>>>>>> Stashed changes
         dl_old = Download(
-            dl_opts,
+            dl_opt,
             test_driver.base_config.hb_cli_cfg,
             old_version,
             props.enterprise,
@@ -61,7 +58,7 @@ def upgrade_package_test(
             git_version,
         )
         dl_new = Download(
-            dl_opts,
+            dl_opt,
             test_driver.base_config.hb_cli_cfg,
             new_version,
             props.enterprise,
