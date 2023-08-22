@@ -44,7 +44,7 @@ def upgrade_package_test(
             continue
         # pylint: disable=unused-variable
         dl_opt = deepcopy(dl_opts)
-        dl_opt.force_dl = dl_opts.force_dl and props.force_dl
+        dl_opt.force = dl_opts.force and props.force_dl
         dl_old = Download(
             dl_opt,
             test_driver.base_config.hb_cli_cfg,

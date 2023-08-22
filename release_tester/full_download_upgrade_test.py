@@ -66,7 +66,7 @@ def upgrade_package_test(
                 if props.directory_suffix not in editions:
                     continue
                 dl_opt = deepcopy(dl_opts)
-                dl_opt.force_dl = dl_opts.force_dl and props.force_dl
+                dl_opt.force = dl_opts.force and props.force_dl
                 props.testrun_name = "test_" + props.testrun_name
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
