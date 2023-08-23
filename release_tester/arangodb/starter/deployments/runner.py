@@ -964,9 +964,10 @@ class Runner(ABC):
             print("zipping test dir")
             if self.cfg.log_dir.exists():
                 logfile = self.cfg.log_dir / 'arangod.log'
+                targetfile = self.cfg.base_test_dir / self.basedir / 'arangod.log'
                 if logfile.exists():
-                    print(f"copying {str(logfile)} => {str(self.basedir)} so it can be in the report")
-                    shutil.copyfile(str(logfile), str(self.basedir / 'arangod.log'))
+                    print(f"copying {str(logfile)} => {str(targetfile)} so it can be in the report")
+                    shutil.copyfile(str(logfile), str(targetfile))
             # for installer_set in self.installers:
             #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
