@@ -29,8 +29,10 @@ LOG_BLACKLIST = [
     "1afb1",  # -> unlicensed enterprise instance
     "9afd3",  # -> Warning while instantiation of icu::Collator
     "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
-    "ec732",
-    "7e050"
+    "7e050",  # -> heartbeat could not connect to agency endpoints
+    "3e342",  # -> option has been renamed
+    "2c0c6",  # -> extended names
+    "de8f3",  # -> extended names
 ]
 
 # log tokens we ignore in system ugprades...
