@@ -315,7 +315,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def create_test_data(self, testname, args=None, result_line_handler=default_line_result, progressive_timeout=100):
+    def create_test_data(self, testname, args=None, result_line_handler=default_line_result, progressive_timeout=100, deadline=100):
         """deploy testdata into the instance"""
         if args is None:
             args = []
@@ -334,6 +334,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             args=args + ["--progress", "true", "--passvoid", self.cfg.passvoid] + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
+            deadline=deadline,
         )
 
         return ret

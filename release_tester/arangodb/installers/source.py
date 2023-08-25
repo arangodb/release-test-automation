@@ -93,7 +93,7 @@ class InstallerSource(InstallerArchive):
         ]
         self.cfg.default_restore_args = [
             "-c",
-            str(self.cfg.cfgdir / "arangoimport.conf"),
+            str(self.cfg.cfgdir / "arangorestore.conf"),
         ]
 
     def supports_hot_backup(self):

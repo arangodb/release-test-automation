@@ -203,10 +203,10 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         return output
 
     @step
-    def create(self, backup_name):
+    def create(self, backup_name, progressive_timeout=120):
         """create a hot backup"""
         args = ["create", "--label", backup_name, "--max-wait-for-lock", "180"]
-        out = self._run_backup(args, backup_name, progressive_timeout=120)
+        out = self._run_backup(args, backup_name, progressive_timeout=progressive_timeout)
         for line in out.split("\n"):
             match = re.match(r".*identifier '(.*)'", str(line))
             if match:

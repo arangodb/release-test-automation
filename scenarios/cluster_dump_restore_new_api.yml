@@ -1,0 +1,73 @@
+!!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
+phase:
+  - jam_dump_sequential
+  - jam_dump
+collection_multiplier: 1
+data_multiplier: 10
+db_count: 2
+db_count_chunks: 2
+max_replication_factor: 3
+min_replication_factor: 2
+launch_delay: 0.25
+parallelity: 9
+db_offset: 0
+progressive_timeout: 1000
+single_shard: false
+hot_backup: false 
+system_makedata: false
+makedata_args:
+  - --bigDoc
+  - "true"
+dump_jobs:
+- args:
+    - '--include-system-collections'
+    - 'true'
+    - '--overwrite'
+    - 'true'
+    - '--use-experimental-dump'
+    - 'true'
+    - '--server.database'
+    - '_system'
+    - '--local-writer-threads'
+    - '5'
+    - '--local-network-threads'
+    - '10'
+    - '--dbserver-prefetch-batches'
+    - '20'
+    - '--split-files'
+    - 'true'
+  dir: all_features_enabled
+- args:
+    - '--include-system-collections'
+    - 'true'
+    - '--overwrite'
+    - 'true'
+    - '--use-experimental-dump'
+    - 'true'
+    - '--server.database'
+    - '_system'
+    - '--local-writer-threads'
+    - '5'
+    - '--local-network-threads'
+    - '10'
+    - '--dbserver-prefetch-batches'
+    - '20'
+  dir: most_features_enabled
+- args:
+    - '--include-system-collections'
+    - 'true'
+    - '--overwrite'
+    - 'true'
+    - '--use-experimental-dump'
+    - 'true'
+    - '--server.database'
+    - '_system'
+  dir: only_exp_features_enabled
+restore_jobs:
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg1
+bench_jobs:
