@@ -929,25 +929,27 @@ class SyncInstance(Instance):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
-            # logs from arangosync v1
-            return True
-        if " FTL " in line or " ERR " in line or " WRN " in line or 'panic:' in line:
-            # logs from arangosync v2
-            return True
-
-        return False
+        #return False# TODO: GT-472
+        #if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
+        #    # logs from arangosync v1
+        #    return True
+        #if " FTL " in line or " ERR " in line or " WRN " in line or 'panic:' in line:
+        #    # logs from arangosync v2
+        #    return True
+        #
+        #return False
 
     def is_line_fatal(self, line):
         """it returns true if the line from logs should be printed"""
-        if "|FATAL|" in line:
-            # logs from arangosync v1
-            return True
-        if " FTL " in line or 'panic:' in line:
-            # logs from arangosync v2
-            return True
-
-        return False
+        return False# TODO: GT-472
+        #if "|FATAL|" in line:
+        #    # logs from arangosync v1
+        #    return True
+        #if " FTL " in line or 'panic:' in line:
+        #    # logs from arangosync v2
+        #    return True
+        #
+        #return False
 
     def get_public_plain_url(self):
         """get the public connect URL"""
