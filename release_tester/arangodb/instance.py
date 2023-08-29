@@ -402,11 +402,13 @@ class Instance(ABC):
             if not logfile.exists():
                 print(str(self.logfile) + " doesn't exist, skipping.")
             else:
-                print(str(logfile))
+                print(f"analyzing {str(logfile)}")
                 with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                     for line in log_fh:
                         if self.is_line_relevant(line):
                             if self.is_line_fatal(line):
+                                if print_lines:
+                                    print(F"FATAL LINE FOUND: {line.rstrip()}")
                                 return True
                             if self.is_suppressed_log_line(line):
                                 count += 1
