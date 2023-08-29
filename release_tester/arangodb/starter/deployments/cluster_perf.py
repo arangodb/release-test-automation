@@ -32,30 +32,6 @@ from tools.timestamp import timestamp
 # from arangodb.starter.deployments.activefailover import ActiveFailover
 
 # pylint: disable=global-statement
-class TestConfig:
-    """this represents one tests configuration"""
-
-    # pylint: disable=too-many-instance-attributes disable=too-few-public-methods
-    def __init__(self):
-        self.phase = "jam"
-        self.parallelity = 3
-        self.db_count = 100
-        self.db_count_chunks = 5
-        self.min_replication_factor = 2
-        self.max_replication_factor = 3
-        self.data_multiplier = 4
-        self.collection_multiplier = 1
-        self.launch_delay = 1.3
-        self.single_shard = False
-        self.db_offset = 0
-        self.progressive_timeout = 10000
-        self.hot_backup = False
-        self.bench_jobs = []
-        self.arangosh_jobs = []
-        self.dump_jobs = []
-        self.restore_jobs = []
-        self.system_makedata = False
-        self.makedata_args = []
 
 
 # pylint: disable=global-variable-not-assigned
@@ -86,109 +62,8 @@ def result_line(wait, line, params):
     return True
 
 
-def makedata_runner(queue, resq, arangosh, progressive_timeout):
-    """operate one makedata instance"""
-    while True:
-        try:
-            # all tasks are already there. if done:
-            job = queue.get(timeout=0.1)
-            print("starting my task! " + str(job["args"]))
-            res = arangosh.create_test_data(
-                "xx", args=job["args"], result_line_handler=result_line, progressive_timeout=progressive_timeout
-            )
-            if not res[0]:
-                print("error executing test - giving up.")
-                print(res[1])
-                resq.put(1)
-                break
-            resq.put(res)
-        except Exception as ex:
-            print("No more work!" + str(ex))
-            resq.put(-1)
-            break
 
 
-def arangosh_runner(queue, resq, arangosh, progressive_timeout):
-    """operate one arangosh instance"""
-    while True:
-        try:
-            # all tasks are already there. if done:
-            job = queue.get(timeout=0.1)
-            print("starting my arangosh task! " + str(job["args"]) + str(job["script"]))
-            res = arangosh.run_script_monitored(
-                [
-                    "stress job",
-                    arangosh.cfg.test_data_dir.resolve() / job["script"],
-                ],
-                args=job["args"],
-                result_line_handler=result_line,
-                progressive_timeout=progressive_timeout,
-            )
-            if not res[0]:
-                print("error executing test - giving up.")
-                print(res[1])
-                resq.put(1)
-                break
-            resq.put(res)
-        except Exception as ex:
-            print("No more work!" + str(ex))
-            resq.put(-1)
-            break
-
-def dump_runner(queue, resq, dump, progressive_timeout):
-    """operate one arangosh instance"""
-    while True:
-        try:
-            # all tasks are already there. if done:
-            job = queue.get(timeout=0.1)
-            print(job)
-            print("starting my dump task! " + str(job["args"]) + str(job["dir"]))
-            res = dump.run_dump_monitored(
-                basepath=str(dump.cfg.base_test_dir.resolve() / job["dir"]),
-                args=job["args"],
-                result_line_handler=result_line,
-                progressive_timeout=progressive_timeout,
-            )
-            if not res[0]:
-                print("error executing test - giving up.")
-                print(res[1])
-                resq.put(1)
-                break
-            resq.put(res)
-        except Empty as ex:
-            print("No more work!" + str(ex))
-            resq.put(-1)
-            break
-        except Exception as ex:
-            print("".join(traceback.TracebackException.from_exception(ex).format()))
-            break
-
-def restore_runner(queue, resq, restore, progressive_timeout):
-    """operate one arangosh instance"""
-    while True:
-        try:
-            # all tasks are already there. if done:
-            job = queue.get(timeout=0.1)
-            print("starting my arangosh task! " + str(job["args"]) + str(job["dir"]))
-            res = restore.run_restore_monitored(
-                basepath=str(restore.cfg.base_test_dir.resolve() / job["dir"]),
-                args=job["args"],
-                result_line_handler=result_line,
-                progressive_timeout=progressive_timeout,
-            )
-            if not res[0]:
-                print("error executing test - giving up.")
-                print(res[1])
-                resq.put(1)
-                break
-            resq.put(res)
-        except Empty as ex:
-            print("No more work!" + str(ex))
-            resq.put(-1)
-            break
-        except Exception as ex:
-            print("".join(traceback.TracebackException.from_exception(ex).format()))
-            break
 
 
 #class ClusterPerf(Single):
@@ -260,33 +135,33 @@ class ClusterPerf(Cluster):
         for starter in self.starter_instances:
             starter.hb_config.hb_timeout = 200000
 
-    def _get_one_makedata_job(self, count):
+    def _get_one_makedata_job(self, count, scenario, no_dbs):
         return {
             "args": [
                 "TESTDB",
                 "--minReplicationFactor",
-                str(self.scenario.min_replication_factor),
+                str(scenario.min_replication_factor),
                 "--maxReplicationFactor",
-                str(self.scenario.max_replication_factor),
+                str(scenario.max_replication_factor),
                 "--dataMultiplier",
-                str(self.scenario.data_multiplier),
+                str(scenario.data_multiplier),
                 "--numberOfDBs",
-                str(self.no_dbs),
+                str(no_dbs),
                 "--countOffset",
-                str((count + self.scenario.db_offset) * self.no_dbs + 1),
+                str((count + scenario.db_offset) * no_dbs + 1),
                 "--collectionMultiplier",
-                str(self.scenario.collection_multiplier),
+                str(scenario.collection_multiplier),
                 "--singleShard",
-                "true" if self.scenario.single_shard else "false",
+                "true" if scenario.single_shard else "false",
                 "--progress",
                 "true",
-            ] + self.scenario.makedata_args
+            ] + scenario.makedata_args
         }
 
     def _generate_makedata_jobs(self):
         """generate the workers instructions including offsets against overlapping"""
         for i in range(self.scenario.db_count_chunks):
-            self.jobs.put(self._get_one_makedata_job(i))
+            self.jobs.put(self._get_one_makedata_job(i, self.scenario, self.no_dbs))
 
     def _generate_dump_jobs(self):
         """generate the workers instructions including offsets against overlapping"""
@@ -529,7 +404,7 @@ class ClusterPerf(Cluster):
             count += 1
 
     def _create_defined_backup_data(self, frontends, number):
-        makedata_job_params = self._get_one_makedata_job(number)  # TODO calculate number
+        makedata_job_params = self._get_one_makedata_job(number, self.scenario, self.no_dbs)  # TODO calculate number
 
         starter = frontends[0]
         assert starter.arangosh, "no starter associated arangosh!"
