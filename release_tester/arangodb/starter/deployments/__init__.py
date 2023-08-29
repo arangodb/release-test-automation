@@ -31,7 +31,7 @@ runner_strings = {
     RunnerType.CLUSTER: "Cluster",
     RunnerType.DC2DC: "DC 2 DC",
     RunnerType.DC2DCENDURANCE: "DC 2 DC endurance",
-    RunnerType.TESTING: "Testing"
+    RunnerType.TESTING: "Testing",
 }
 
 STARTER_MODES = {
@@ -83,6 +83,7 @@ def make_runner(
         selenium_driver_args,
         runner_properties.testrun_name,
         runner_properties.ssl,
+        runner_properties.replication2,
         use_auto_certs,
     )
 

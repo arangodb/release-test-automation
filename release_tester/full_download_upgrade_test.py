@@ -65,11 +65,13 @@ def upgrade_package_test(
                 props = copy(default_props)
                 if props.directory_suffix not in editions:
                     continue
+                dl_opt = deepcopy(dl_opts)
+                dl_opt.force = dl_opts.force and props.force_dl
                 props.testrun_name = "test_" + props.testrun_name
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
                 res = Download(
-                    dl_opts,
+                    dl_opt,
                     test_driver.base_config.hb_cli_cfg,
                     version_name,
                     props.enterprise,
@@ -181,7 +183,6 @@ def upgrade_package_test(
                     )
                 )
 
-    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -218,18 +219,21 @@ def main(**kwargs):
 
     test_driver = TestDriver(**kwargs)
 
-    return upgrade_package_test(
-        dl_opts,
-        kwargs['new_version'],
-        kwargs['source'],
-        kwargs['upgrade_matrix'],
-        kwargs['other_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        kwargs['run_test'],
-        kwargs['run_test_suites'],
-        test_driver
-    )
+    try:
+        return upgrade_package_test(
+            dl_opts,
+            kwargs['new_version'],
+            kwargs['source'],
+            kwargs['upgrade_matrix'],
+            kwargs['other_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            kwargs['run_test'],
+            kwargs['run_test_suites'],
+            test_driver
+        )
+    finally:
+        test_driver.destructor()
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

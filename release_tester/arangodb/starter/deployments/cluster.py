@@ -33,13 +33,14 @@ class Cluster(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 400, 600, True, ssl, use_auto_certs, 6),
+            RunnerProperties("CLUSTER", 400, 600, True, ssl, replication2, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -58,7 +59,13 @@ db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
 db.testCollection.save({test: "document"})
 """,
         )
-
+        common_opts = []
+        if self.replication2:
+            common_opts += [
+                "--dbservers.database.default-replication-version=2",
+                "--coordinators.database.default-replication-version=2",
+                "--all.log.level=replication2=debug",
+            ]
         node1_opts = []
         node2_opts = ["--starter.join", "127.0.0.1:9528"]
         node3_opts = ["--starter.join", "127.0.0.1:9528"]
@@ -75,6 +82,7 @@ db.testCollection.save({test: "document"})
             node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
             node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
 
+        # pylint: disable=invalid-name
         def add_starter(name, port, opts, sm):
             if sm is None:
                 sm = StarterManager
@@ -95,9 +103,9 @@ db.testCollection.save({test: "document"})
                 )
             )
 
-        add_starter("node1", 9528, node1_opts, sm)
-        add_starter("node2", 9628, node2_opts, sm)
-        add_starter("node3", 9728, node3_opts, sm)
+        add_starter("node1", 9528, node1_opts + common_opts, sm)
+        add_starter("node2", 9628, node2_opts + common_opts, sm)
+        add_starter("node3", 9728, node3_opts + common_opts, sm)
 
         for instance in self.starter_instances:
             instance.is_leader = True
@@ -147,13 +155,18 @@ db.testCollection.save({test: "document"})
         self.starter_instances[0].arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
-            ['true'],
+            ["true"],
         )
 
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:
             for dbserver in starter.get_dbservers():
                 dbserver.detect_restore_restart()
+        self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ["true"],
+        )
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
@@ -184,12 +197,10 @@ db.testCollection.save({test: "document"})
         retval = self.starter_instances[0].arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
-            ['true'],
+            ["true"],
         )
         if not retval:
-            raise Exception(
-                "Failed to ensure the cluster is in sync: %s" % (retval)
-            )
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
         print("all in sync.")
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
@@ -254,12 +265,10 @@ db.testCollection.save({test: "document"})
         retval = self.starter_instances[0].arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
-            ['true'],
+            ["true"],
         )
         if not retval:
-            raise Exception(
-                "Failed to ensure the cluster is in sync: %s" % (retval)
-            )
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
         print("all in sync.")
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
@@ -318,22 +327,8 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.test_wait_for_upgrade()  # * 5s
 
-    @step
-    def jam_attempt_impl(self):
-        # pylint: disable=too-many-statements
-        # this is simply to slow to be worth wile:
-        # collections = self.get_collection_list()
-        lh.subsubsection("wait for all shards to be in sync - Jamming")
-        retval = self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ['true'],
-        )
-        if not retval:
-            raise Exception(
-                "Failed to ensure the cluster is in sync: %s" % (retval)
-            )
-        print("all in sync.")
+
+    def _jam_stop_one_db_server(self):
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
         survive_instance = 1
@@ -384,7 +379,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
         self.set_frontend_instances()
 
-        logging.info("jamming: Starting instance without jwt")
+    def _jam_launch_unauthicanted_starter(self):
         moreopts = ["--starter.join", "127.0.0.1:9528"]
         curr_cfg = {}
         if self.new_cfg is not None:
@@ -424,22 +419,45 @@ db.testCollection.save({test: "document"})
             time.sleep(10)
         logging.info(str(dead_instance.instance.wait(timeout=320)))
         logging.info("dead instance is dead?")
-
         prompt_user(curr_cfg, "cluster should be up")
+
+    @step
+    def jam_attempt_impl(self):
+        # pylint: disable=too-many-statements disable=too-many-branches
+        # this is simply to slow to be worth wile:
+        # collections = self.get_collection_list()
+        lh.subsubsection("wait for all shards to be in sync - Jamming")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ["true"],
+        )
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        print("all in sync.")
+        self._jam_stop_one_db_server()
+
+        logging.info("jamming: Starting instance without jwt")
+        self._jam_launch_unauthicanted_starter()
         if self.selenium:
             self.selenium.jam_step_2()
 
     def shutdown_impl(self):
+        ret = False
         for node in self.starter_instances:
-            node.terminate_instance()
+            ret = ret or node.terminate_instance()
         logging.info("test ended")
+        return ret
 
     def before_backup_impl(self):
         pass
+
     def after_backup_impl(self):
         pass
+
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
 

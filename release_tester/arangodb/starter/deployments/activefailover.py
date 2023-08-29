@@ -15,6 +15,7 @@ from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
 
+
 class ActiveFailover(Runner):
     """This launches an active failover setup"""
 
@@ -28,13 +29,14 @@ class ActiveFailover(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, use_auto_certs, 3),
+            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, replication2, use_auto_certs, 3),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -52,6 +54,8 @@ class ActiveFailover(Runner):
             for node in self.starter_instances:
                 if node.detect_leader():
                     self.leader = node
+            time.sleep(0.5)
+            print(".")
         self.leader.wait_for_version_reply()
         self.follower_nodes = []
         for node in self.starter_instances:
@@ -272,7 +276,7 @@ class ActiveFailover(Runner):
             self.selenium.test_wait_for_upgrade()
 
     def jam_attempt_impl(self):
-        # pylint: disable=too-many-statements       
+        # pylint: disable=too-many-statements
         agency_leader = self.agency_get_leader()
         if self.leader.have_this_instance(agency_leader):
             print("AFO-Leader and agency leader are attached by the same starter!")
@@ -282,7 +286,7 @@ class ActiveFailover(Runner):
 
         logging.info("relaunching agent!")
         self.leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
-        
+
         logging.info("waiting for new leader...")
         curr_leader = None
 
@@ -365,15 +369,18 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.selenium.test_wait_for_upgrade()
 
     def shutdown_impl(self):
+        ret = False
         for node in self.starter_instances:
-            node.terminate_instance()
-
+            ret = ret or node.terminate_instance()
         logging.info("test ended")
+        return ret
 
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
+
     def before_backup_impl(self):
         """put into maintainance mode according to
         https://www.arangodb.com/docs/3.10/programs-arangobackup-limitations.html#active-failover-special-limitations

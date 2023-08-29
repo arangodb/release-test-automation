@@ -32,6 +32,7 @@ from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
+from arangodb.dump import ArangoDumpExecutor
 from arangodb.bench import ArangoBenchManager
 
 from tools.asciiprint import print_progress as progress
@@ -148,6 +149,8 @@ class StarterManager:
                 if "--starter.sync" in moreopts:
                     self.expect_instance_count += 2  # syncmaster + syncworker
 
+        semversion = semver.VersionInfo.parse(self.cfg.version)
+        self.supports_extended_names = (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
         self.username = "root"
         self.passvoid = ""
 
@@ -159,6 +162,7 @@ class StarterManager:
         self.is_leader = False
         self.arangosh = None
         self.arango_importer = None
+        self.arango_dump = None
         self.arango_restore = None
         self.arangobench = None
         self.executor = None  # meaning?
@@ -197,7 +201,7 @@ class StarterManager:
         semversion = semver.VersionInfo.parse(version)
 
         # Extended database names were introduced in 3.9.0
-        if (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3):
+        if self.supports_extended_names:
             result += ["--args.all.database.extended-names-databases=true"]
 
         # Telemetry was introduced in 3.11.0
@@ -598,11 +602,17 @@ class StarterManager:
             for i in self.all_instances:
                 i.pid = None
                 i.ppid = None
-        else:
-            # Clear instances as they have been stopped and the logfiles
-            # have been moved.
-            self.is_leader = False
-            self.all_instances = []
+            return False
+        # Clear instances as they have been stopped and the logfiles
+        # have been moved.
+        ret = False
+        for instance in self.all_instances:
+            print("u" * 80)
+            if instance.search_for_warnings(True):
+                ret = True
+        self.is_leader = False
+        self.all_instances = []
+        return ret
 
     @step
     def kill_instance(self):
@@ -805,7 +815,7 @@ class StarterManager:
                 node.detect_restore_restart()
 
     @step
-    def tcp_ping_nodes(self):
+    def tcp_ping_nodes(self, timeout=20.0):
         """
         tries to wait for the server to restart after the 'restore' command
         """
@@ -815,7 +825,7 @@ class StarterManager:
                 InstanceType.SINGLE,
                 InstanceType.DBSERVER,
             ]:
-                node.check_version_request(20.0)
+                node.check_version_request(timeout)
 
     @step
     def respawn_instance(self, version, moreargs=None, wait_for_logfile=True):
@@ -936,6 +946,7 @@ class StarterManager:
     def detect_instances(self):
         """see which arangods where spawned and inspect their logfiles"""
         lh.subsection("Instance Detection for {0.name}".format(self))
+        jwt = self.get_jwt_header()
         self.all_instances = []
         logging.debug("waiting for frontend")
         logfiles = set()  # logfiles that can be used for debugging
@@ -985,6 +996,7 @@ class StarterManager:
                             self.cfg.ssl,
                             self.cfg.version,
                             self.enterprise,
+                            jwt=jwt,
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
@@ -1049,6 +1061,7 @@ class StarterManager:
             self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
+            self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
                 self.hb_instance = HotBackupManager(
                     config,
@@ -1130,7 +1143,7 @@ class StarterManager:
         if self.is_leader:
             url = self.get_frontend().get_local_url("")
             reply = requests.get(url, auth=requests.auth.HTTPBasicAuth("root", self.passvoid), timeout=120)
-            print(str(reply))
+            print(f"{url} =>  {str(reply)}")
             if reply.status_code == 503:
                 self.is_leader = False
         return self.is_leader

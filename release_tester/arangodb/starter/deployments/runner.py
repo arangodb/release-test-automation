@@ -88,6 +88,7 @@ class RunnerProperties:
         disk_usage_enterprise: int,
         supports_hotbackup: bool,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
         no_arangods_non_agency: int,
     ):
@@ -96,6 +97,7 @@ class RunnerProperties:
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
         self.ssl = ssl
+        self.replication2 = replication2
         self.use_auto_certs = use_auto_certs
         self.no_arangods_non_agency = no_arangods_non_agency
 
@@ -229,6 +231,16 @@ class Runner(ABC):
                 os.environ["TEMP"] = str(tmpdir)
             else:
                 os.environ["TMPDIR"] = str(tmpdir)
+            # only enable replication2 for clean installation tests
+            # of versions 3.12.0 and above, and if it requested with CLI param
+            self.replication2 = (
+                properties.replication2
+                and (
+                    (self.old_installer.semver.major == 3 and self.old_installer.semver.minor >= 12)
+                    or self.old_installer.semver.major > 3
+                )
+                and self.new_installer is None
+            )
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
@@ -634,7 +646,9 @@ class Runner(ABC):
     def starter_shutdown(self):
         """stop everything"""
         self.progress(True, "{0}{1} - shutdown".format(self.versionstr, str(self.name)))
-        self.shutdown_impl()
+        warnings_found = self.shutdown_impl()
+        if warnings_found:
+            raise Exception("warnings found during shutdown")
 
     @abstractmethod
     def shutdown_impl(self):
@@ -684,6 +698,16 @@ class Runner(ABC):
                 continue
             for frontend in starter.get_frontends():
                 frontends.append(frontend)
+        return frontends
+
+    def get_frontend_starters(self):
+        """fetch all frontend instances"""
+        frontends = []
+        for starter in self.starter_instances:
+            if not starter.is_leader:
+                continue
+            if len(starter.get_frontends()) > 0:
+                frontends.append(starter)
         return frontends
 
     @step
@@ -874,14 +898,17 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     @step
-    def upload_backup(self, name):
+    def upload_backup(self, name, timeout=120):
         """upload a backup from the installation to a remote site"""
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
             assert starter.hb_instance, "upload backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
-            return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count)
+            return starter.hb_instance.upload_status(name,
+                                                     hb_id,
+                                                     self.backup_instance_count,
+                                                     timeout=timeout)
         raise Exception("no frontend found.")
 
     @step
@@ -903,14 +930,17 @@ class Runner(ABC):
             starter.hb_instance.validate_local_backup(starter.basedir, name)
 
     @step
-    def search_for_warnings(self):
+    def search_for_warnings(self, print_lines=True):
         """search for any warnings in any logfiles and dump them to the screen"""
+        ret = False
         for starter in self.starter_instances:
             print("Ww" * 40)
             starter.search_for_warnings()
             for instance in starter.all_instances:
                 print("w" * 80)
-                instance.search_for_warnings()
+                if instance.search_for_warnings(print_lines):
+                    ret = True
+        return ret
 
     @step
     def zip_test_dir(self):
@@ -932,8 +962,14 @@ class Runner(ABC):
         )
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
+            if self.cfg.log_dir.exists():
+                logfile = self.cfg.log_dir / 'arangod.log'
+                targetfile = self.cfg.base_test_dir / self.basedir / 'arangod.log'
+                if logfile.exists():
+                    print(f"copying {str(logfile)} => {str(targetfile)} so it can be in the report")
+                    shutil.copyfile(str(logfile), str(targetfile))
             # for installer_set in self.installers:
-            #    installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
+            #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
@@ -1058,38 +1094,29 @@ class Runner(ABC):
                 # We skip one starter and all its agency dump attempts now.
                 print("Error during an agency dump: " + str(ex))
 
-    @step
-    def agency_set_debug_logging(self):
-        """turns on logging on the agency"""
+    def _set_logging(self, instance_type):
+        """ turn on logging for all of instance_type """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.AGENT,
+                instance_type,
                 requests.put,
                 "/_admin/log/level",
                 '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
+    @step
+    def agency_set_debug_logging(self):
+        """turns on logging on the agency"""
+        self._set_logging(InstanceType.AGENT)
 
     @step
     def dbserver_set_debug_logging(self):
         """turns on logging on the dbserver"""
-        for starter_mgr in self.starter_instances:
-            starter_mgr.send_request(
-                InstanceType.DBSERVER,
-                requests.put,
-                "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
-            )
+        self._set_logging(InstanceType.DBSERVER)
 
     @step
     def coordinator_set_debug_logging(self):
         """turns on logging on the coordinator"""
-        for starter_mgr in self.starter_instances:
-            starter_mgr.send_request(
-                InstanceType.COORDINATOR,
-                requests.put,
-                "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
-            )
+        self._set_logging(InstanceType.COORDINATOR)
 
     @step
     def get_collection_list(self):

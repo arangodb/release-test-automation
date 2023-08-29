@@ -29,6 +29,10 @@ LOG_BLACKLIST = [
     "1afb1",  # -> unlicensed enterprise instance
     "9afd3",  # -> Warning while instantiation of icu::Collator
     "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
+    "7e050",  # -> heartbeat could not connect to agency endpoints
+    "3e342",  # -> option has been renamed
+    "2c0c6",  # -> extended names
+    "de8f3",  # -> extended names
 ]
 
 # log tokens we ignore in system ugprades...
@@ -79,7 +83,18 @@ class Instance(ABC):
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(
-        self, instance_type, port, basedir, localhost, publicip, passvoid, instance_string, ssl, version, enterprise
+        self,
+        instance_type,
+        port,
+        basedir,
+        localhost,
+        publicip,
+        passvoid,
+        instance_string,
+        ssl,
+        version,
+        enterprise,
+        jwt="",
     ):
         self.instance_type = INSTANCE_TYPE_STRING_MAP[instance_type]
         self.is_system = False
@@ -102,7 +117,7 @@ class Instance(ABC):
         self.version = version
         self.enterprise = enterprise
         self.logfiles = []
-
+        self.jwt = jwt
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
@@ -376,23 +391,32 @@ class Instance(ABC):
         """it returns true if the line from logs should be printed"""
         return "FATAL" in line or "ERROR" in line or "WARNING" in line or "{crash}" in line
 
-    def search_for_warnings(self):
+    def is_line_fatal(self, line):
+        """it returns true if the line from logs should be printed"""
+        return "FATAL" in line or "{crash}" in line
+
+    def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""
-        if not self.logfile.exists():
-            print(str(self.logfile) + " doesn't exist, skipping.")
-            return
         count = 0
         for logfile in [self.logfile] + self.logfiles:
-            print(str(logfile))
-            with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
-                for line in log_fh:
-                    if self.is_line_relevant(line):
-                        if self.is_suppressed_log_line(line):
-                            count += 1
-                        else:
-                            print(line.rstrip())
-        if count > 0:
+            if not logfile.exists():
+                print(str(self.logfile) + " doesn't exist, skipping.")
+            else:
+                print(f"analyzing {str(logfile)}")
+                with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
+                    for line in log_fh:
+                        if self.is_line_relevant(line):
+                            if self.is_line_fatal(line):
+                                if print_lines:
+                                    print(F"FATAL LINE FOUND: {line.rstrip()}")
+                                return True
+                            if self.is_suppressed_log_line(line):
+                                count += 1
+                            elif print_lines:
+                                print(line.rstrip())
+        if count > 0 and print_lines:
             print(" %d lines suppressed by filters" % count)
+        return False
 
     @step
     def add_logfile_to_report(self):
@@ -437,8 +461,10 @@ class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, is_system=False):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise)
+    def __init__(
+        self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, is_system=False, jwt=""
+    ):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
         self.is_system = is_system
 
     def __repr__(self):
@@ -532,15 +558,36 @@ class ArangodInstance(Instance):
     def check_version_request(self, timeout):
         """wait for the instance to reply with 200 to api/version"""
         until = time.time() + timeout
-        while until < time.time():
+        request_headers = {}
+        if self.jwt != "":
+            request_headers["Authorization"] = "Bearer " + str(self.jwt)
+        while True:
             reply = None
             try:
-                reply = requests.get(self.get_local_url("") + "/_api/version", timeout=20)
+                reply = {}
+                if self.is_frontend():
+                    print("fetch frontend version")
+                    reply = requests.get(
+                        self.get_local_url("") + "/_api/version",
+                        auth=HTTPBasicAuth("root", self.passvoid),
+                        headers=request_headers,
+                        timeout=20,
+                    )
+                else:
+                    print("fetch backend version")
+                    reply = requests.get(self.get_local_url("") + "/_api/version", headers=request_headers, timeout=20)
                 if reply.status_code == 200:
                     return
-                print("*")
+                elif reply.status_code == 503 and self.instance_type == InstanceType.RESILIENT_SINGLE:
+                    body = reply.json()
+                    if 'errorNum' in body and body['errorNum'] == 1495:
+                        print("Leadership challenge ongoin, prolonging timeout")
+                        until += timeout / 10
+                print(f'{self.get_local_url("")} got {reply} - {reply.content}')
             except requests.exceptions.ConnectionError:
                 print("&")
+            if time.time() > until:
+                raise TimeoutError("the host would not respond to the version requests on time")
             time.sleep(0.5)
 
     def get_afo_state(self):
@@ -765,16 +812,16 @@ class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, jwt=""):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
 
 
 class SyncInstance(Instance):
     """represent one arangosync instance"""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise):
-        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version, enterprise)
+    def __init__(self, typ, port, localhost, publicip, basedir, passvoid, ssl, version, enterprise, jwt=""):
+        super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangosync", ssl, version, enterprise, jwt)
         self.logfile_parameter = ""
         self.pid_file = None
 
@@ -823,12 +870,18 @@ class SyncInstance(Instance):
             pass
 
         logfile_parameter_raw = ""
-        if self.logfile_parameter == "--log.file":
-            # newer starters will use '--foo bar' instead of '--foo=bar'
-            logfile_parameter_raw = self.instance_arguments[self.instance_arguments.index("--log.file") + 1]
-            self.logfile_parameter = "--log.file=" + logfile_parameter_raw
-        else:
-            logfile_parameter_raw = self.logfile_parameter.split("=")[1]
+        try:
+            if self.logfile_parameter == "--log.file":
+                # newer starters will use '--foo bar' instead of '--foo=bar'
+                logfile_parameter_raw = self.instance_arguments[self.instance_arguments.index("--log.file") + 1]
+                self.logfile_parameter = "--log.file=" + logfile_parameter_raw
+            else:
+                logfile_parameter_raw = self.logfile_parameter.split("=")[1]
+        except IndexError as ex:
+            print(f"""{self} - failed to extract the logfile parameter from:
+            {self.logfile_parameter} - {self.instance_arguments}""")
+            raise ex
+
         # wait till the process has startet writing its logfile:
         while not self.logfile.exists():
             progress("v")
@@ -878,14 +931,27 @@ class SyncInstance(Instance):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
-            # logs from arangosync v1
-            return True
-        if " FTL " in line or " ERR " in line or " WRN " in line:
-            # logs from arangosync v2
-            return True
+        #return False# TODO: GT-472
+        #if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
+        #    # logs from arangosync v1
+        #    return True
+        #if " FTL " in line or " ERR " in line or " WRN " in line or 'panic:' in line:
+        #    # logs from arangosync v2
+        #    return True
+        #
+        #return False
 
-        return False
+    def is_line_fatal(self, line):
+        """it returns true if the line from logs should be printed"""
+        return False# TODO: GT-472
+        #if "|FATAL|" in line:
+        #    # logs from arangosync v1
+        #    return True
+        #if " FTL " in line or 'panic:' in line:
+        #    # logs from arangosync v2
+        #    return True
+        #
+        #return False
 
     def get_public_plain_url(self):
         """get the public connect URL"""

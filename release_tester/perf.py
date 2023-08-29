@@ -14,6 +14,7 @@ from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseCon
 
 from write_result_table import write_table
 
+
 @click.command()
 @click.option(
     "--mode",
@@ -48,26 +49,26 @@ def main(**kwargs):
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
-
-    test_driver.set_r_limits()
-    results = test_driver.run_perf_test(
-        kwargs["mode"],
-        [semver.VersionInfo.parse(kwargs["new_version"])],
-        # pylint: disable=too-many-function-args
-        kwargs['frontends'],
-        kwargs['scenario'],
-        RunProperties(kwargs['enterprise'],
-                      kwargs['encryption_at_rest'],
-                      kwargs['ssl']))
-    print("V" * 80)
-    status = True
-    test_driver.destructor()
+    try:
+        test_driver.set_r_limits()
+        results = test_driver.run_perf_test(
+            kwargs["mode"],
+            [semver.VersionInfo.parse(kwargs["new_version"])],
+            # pylint: disable=too-many-function-args
+            kwargs["frontends"],
+            kwargs["scenario"],
+            RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
+        )
+        print("V" * 80)
+    finally:
+        test_driver.destructor()
     print("V" * 80)
     print(results)
     if not write_table([results]):
         print("exiting with failure")
         return 1
     return 0
+
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

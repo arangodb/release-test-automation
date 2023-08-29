@@ -215,6 +215,7 @@ def common_options(
     interactive=True,
     test_data_dir="/tmp/",
     support_multi_version=False,
+    test_suites_default_value=True,
 ):
     """these options are common to most scripts
     most => arangodb.installers.InstallerBaseConfig"""
@@ -314,6 +315,19 @@ def common_options(
             default=True,
             help="enable hardware resources monitoring",
         )(function)
+        function = click.option(
+            "--replication2/--no-replication2",
+            is_flag=True,
+            default=False,
+            help="use replication v.2 where applicable(only for clean installation tests of versions 3.12.0+)",
+        )(function)
+        function = click.option(
+            "--run-test-suites/--do-not-run-test-suites",
+            "run_test_suites",
+            is_flag=True,
+            default=test_suites_default_value,
+            help="Run test suites for each version pair.",
+        )(function)
         return function
 
     return inner_func
@@ -381,7 +395,7 @@ def download_options(default_source="public", double_source=False, other_source=
     return inner_func
 
 
-def matrix_options(test_default_value=True, test_suites_default_value=True):
+def matrix_options(test_default_value=True):
     """these are options available in scripts running upgrade matrices"""
 
     def func(function):
@@ -396,13 +410,6 @@ def matrix_options(test_default_value=True, test_suites_default_value=True):
             is_flag=True,
             default=test_default_value,
             help="Run clean installation test for primary version.",
-        )(function)
-        function = click.option(
-            "--run-test-suites/--do-not-run-test-suites",
-            "run_test_suites",
-            is_flag=True,
-            default=test_suites_default_value,
-            help="Run test suites for each version pair.",
         )(function)
         return function
 

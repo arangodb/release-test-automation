@@ -60,6 +60,13 @@ def init(
         required_height = driver.execute_script("return document.body.parentNode.scrollHeight")
         driver.set_window_size(required_width, required_height)
 
+    if runner_type == RunnerType.SINGLE:
+        from arangodb.starter.deployments.selenium_deployments.single import (
+            Single,
+        )
+
+        return Single(driver, is_headless, testrun_name, ssl)
+
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import (
             LeaderFollower,

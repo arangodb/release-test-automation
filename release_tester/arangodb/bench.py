@@ -73,7 +73,10 @@ class ArangoBenchManager:
 
     def kill(self):
         """command to exit"""
-        self.instance.kill()
+        try:
+            self.instance.kill()
+        except psutil.NoSuchProcess:
+            pass
 
     def wait(self):
         """wait for our instance to finish"""

@@ -19,7 +19,16 @@ from tools.killall import list_all_processes
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
-def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version, editions, test_driver):
+def package_test(
+    dl_opts: DownloadOptions,
+    new_version,
+    new_dlstage,
+    git_version,
+    editions,
+    run_test_suites,
+    replication2,
+    test_driver,
+):
     """process fetch & tests"""
 
     test_driver.set_r_limits()
@@ -37,11 +46,18 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
 
     print("Cleanup done")
 
-    for props in EXECUTION_PLAN:
+    # pylint: disable=fixme
+    # FIXME: replication2 parameter must be passed from CLI to the runner class
+    # in every entrypoint script without need for manual fixes like this one
+    for init_props in EXECUTION_PLAN:
+        props = deepcopy(init_props)
+        props.replication2 = replication2
         if props.directory_suffix not in editions:
             continue
+        dl_opt = deepcopy(dl_opts)
+        dl_opt.force = dl_opts.force and props.force_dl
         dl_new = Download(
-            dl_opts,
+            dl_opt,
             test_driver.base_config.hb_cli_cfg,
             new_version,
             props.enterprise,
@@ -63,28 +79,28 @@ def package_test(dl_opts: DownloadOptions, new_version, new_dlstage, git_version
 
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
-    enterprise_packages_are_present = "EE" in editions or "EP" in editions
-    community_packages_are_present = "C" in editions
-    params = deepcopy(test_driver.cli_test_suite_params)
-    params.new_version = dl_new.cfg.version
-    if enterprise_packages_are_present:
-        params.enterprise = True
-        results.append(
-            test_driver.run_test_suites(
-                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
-                params=params,
+    if run_test_suites:
+        enterprise_packages_are_present = "EE" in editions or "EP" in editions
+        community_packages_are_present = "C" in editions
+        params = deepcopy(test_driver.cli_test_suite_params)
+        params.new_version = dl_new.cfg.version
+        if enterprise_packages_are_present:
+            params.enterprise = True
+            results.append(
+                test_driver.run_test_suites(
+                    include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
+                    params=params,
+                )
             )
-        )
-    if community_packages_are_present:
-        params.enterprise = False
-        results.append(
-            test_driver.run_test_suites(
-                include_suites=("DebuggerTestSuite",),
-                params=params,
+        if community_packages_are_present:
+            params.enterprise = False
+            results.append(
+                test_driver.run_test_suites(
+                    include_suites=("DebuggerTestSuite",),
+                    params=params,
+                )
             )
-        )
 
-    test_driver.destructor()
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
@@ -118,15 +134,19 @@ def main(**kwargs):
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
-
-    return package_test(
-        dl_opts,
-        kwargs['new_version'],
-        kwargs['new_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        test_driver
-    )
+    try:
+        return package_test(
+            dl_opts,
+            kwargs['new_version'],
+            kwargs['new_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            kwargs['run_test_suites'],
+            kwargs['replication2'],
+            test_driver
+        )
+    finally:
+        test_driver.destructor()
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

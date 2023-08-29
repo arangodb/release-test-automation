@@ -98,6 +98,9 @@ class TestDriver:
 
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
 
+    def __del__(self):
+        self.destructor()
+
     def destructor(self):
         """shutdown this environment"""
         self._stop_monitor()
@@ -148,7 +151,7 @@ class TestDriver:
         if self.installer_type:
             return self.installer_type
         installers = create_config_installer_set(
-            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False), False
+            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False), False
         )
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
@@ -537,7 +540,8 @@ class TestDriver:
             self.selenium,
             self.selenium_driver_args,
             "perf",
-            run_props,
+            run_props.ssl,
+            run_props.replication2,
             use_auto_certs=self.use_auto_certs
         )
         runner.do_install = do_install
@@ -555,11 +559,13 @@ class TestDriver:
                 })
         except Exception as ex:
             failed = True
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
             results.append({
                 "testrun name": runner.testrun_name,
                 "testscenario": runner_strings[RunnerType.CLUSTER],
                 "success": False,
                 "messages": [str(ex)],
+                "trace": "".join(traceback.TracebackException.from_exception(ex).format()),
                 "progress": "",
             })
         if len(frontends) == 0:

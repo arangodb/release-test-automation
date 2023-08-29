@@ -28,13 +28,14 @@ class LeaderFollower(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("LeaderFollower", 400, 500, False, ssl, use_auto_certs, 2),
+            RunnerProperties("LeaderFollower", 400, 500, False, ssl, replication2, use_auto_certs, 2),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -347,19 +348,23 @@ process.exit(0);
 
     @step
     def shutdown_impl(self):
-        self.leader_starter_instance.terminate_instance()
-        self.follower_starter_instance.terminate_instance()
+        ret = (self.leader_starter_instance.terminate_instance() or
+               self.follower_starter_instance.terminate_instance())
         pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info("test ended")
+        return ret
 
     def before_backup_impl(self):
         pass
+
     def after_backup_impl(self):
         pass
+
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
 

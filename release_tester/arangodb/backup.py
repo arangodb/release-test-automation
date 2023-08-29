@@ -3,6 +3,7 @@
 
 import logging
 import json
+import os
 import re
 import time
 import copy
@@ -53,13 +54,16 @@ class HotBackupConfig:
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
             and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
         ):
+            endpoint = "http://minio1:9000"
+            if 'ENDPOINT' in os.environ:
+                endpoint = os.environ['ENDPOINT']
             self.name = "S3"
             config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "minio"
             config["env_auth"] = "false"
             config["access_key_id"] = "minio"
             config["secret_access_key"] = "minio123"
-            config["endpoint"] = "http://minio1:9000"
+            config["endpoint"] = endpoint
             config["region"] = "us-east-1"
         elif (
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
@@ -199,10 +203,10 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         return output
 
     @step
-    def create(self, backup_name):
+    def create(self, backup_name, progressive_timeout=120):
         """create a hot backup"""
         args = ["create", "--label", backup_name, "--max-wait-for-lock", "180"]
-        out = self._run_backup(args, backup_name, progressive_timeout=120)
+        out = self._run_backup(args, backup_name, progressive_timeout=progressive_timeout)
         for line in out.split("\n"):
             match = re.match(r".*identifier '(.*)'", str(line))
             if match:

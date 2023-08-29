@@ -105,13 +105,14 @@ class Dc2Dc(Runner):
         selenium_driver_args,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("DC2DC", 0, 4500, True, ssl, use_auto_certs, 12),
+            RunnerProperties("DC2DC", 0, 4500, True, ssl, replication2, use_auto_certs, 12),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -201,6 +202,7 @@ class Dc2Dc(Runner):
                     # '--all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',
                     '--args.syncworkers.log.level=debug',
+                    '--args.sync.log.stderr=false',
                     '--starter.sync',
                     '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
@@ -241,10 +243,18 @@ class Dc2Dc(Runner):
             if port == 7528:
                 val["instance"].is_leader = True
 
-        _add_starter(self.cluster1, port=7528)
+        common_opts = []
+        if self.replication2:
+            common_opts += [
+                "--dbservers.database.default-replication-version=2",
+                "--coordinators.database.default-replication-version=2",
+                "--all.log.level=replication2=debug",
+            ]
+        _add_starter(self.cluster1, port=7528, moreopts=common_opts)
         _add_starter(
             self.cluster2,
-            port=9528  # ,
+            port=9528,
+            moreopts=common_opts
             # moreopts=['--args.dbservers.log', 'request=trace']
         )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
@@ -605,7 +615,7 @@ class Dc2Dc(Runner):
         self.progress(True, "stopping sync")
         self._stop_sync()
         self.progress(True, "creating volatile data on secondary DC")
-        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
+        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data("_DC2")
         ret = self.cluster1["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
         if not ret[0]:
             raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
@@ -626,8 +636,8 @@ class Dc2Dc(Runner):
 
         self.progress(True, "checking whether volatile data has been removed from both DCs")
         if (
-            not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data()
-            or not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()
+            not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2")
+            or not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2")
         ):
             raise Exception("expected data created on disconnected follower DC to be gone!")
 
@@ -647,13 +657,15 @@ class Dc2Dc(Runner):
         self._get_in_sync(20)
 
     def shutdown_impl(self):
-        self.cluster1["instance"].terminate_instance()
-        self.cluster2["instance"].terminate_instance()
+        return (self.cluster1["instance"].terminate_instance() or
+                self.cluster2["instance"].terminate_instance())
 
     def before_backup_create_impl(self):
         pass
+
     def after_backup_create_impl(self):
         pass
+
     def before_backup_impl(self):
         self.sync_manager.abort_sync()
 

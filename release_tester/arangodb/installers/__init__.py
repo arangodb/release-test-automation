@@ -107,7 +107,7 @@ class OptionGroup:
     def from_dict(cls, **options):
         """invoke init from kwargs"""
         # these members will be added by derivative classes:
-        # pylint: disable=no-member
+        # pylint: disable=no-member disable=fixme
         # TODO: after we upgrade to python 3.10, we should replace this with {}|{} operator
         dict1 = {key: value for key, value in options.items() if key in cls.__dataclass_fields__}
         dict2 = {
@@ -276,6 +276,7 @@ test filter: {0.test}
             self
         )
 
+    # pylint: disable=attribute-defined-outside-init
     def set_from(self, other_cfg):
         """copy constructor"""
         try:
@@ -354,6 +355,7 @@ test filter: {0.test}
         raise NotImplementedError()
         # self.passvoid = 'cde'
 
+    # pylint: disable=too-many-branches
     @step
     def set_directories(self, other):
         """set all directories from the other object"""
@@ -463,23 +465,28 @@ class RunProperties:
     def __init__(
         self,
         enterprise: bool,
+        force_dl: bool = True,
         encryption_at_rest: bool = False,
         ssl: bool = False,
+        replication2: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
     ):
         """set the values for this testrun"""
         self.enterprise = enterprise
+        self.force_dl = force_dl
         self.encryption_at_rest = encryption_at_rest
         self.ssl = ssl
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
+        self.replication2 = replication2
 
     def __repr__(self):
         return """{0.__class__.__name__}
 enterprise: {0.enterprise}
 encryption_at_rest: {0.encryption_at_rest}
 ssl: {0.ssl}
+replication2: {0.replication2}
 testrun_name: {0.testrun_name}
 directory_suffix: {0.directory_suffix}""".format(
             self
@@ -498,9 +505,9 @@ directory_suffix: {0.directory_suffix}""".format(
 
 # pylint: disable=too-many-function-args
 EXECUTION_PLAN = [
-    RunProperties(True, True, True, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, False, False, "Enterprise", "EP"),
-    RunProperties(False, False, False, "Community", "C"),
+    RunProperties(True, True, True, True, False, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, False, False, False, "Enterprise", "EP"),
+    RunProperties(False, True,  False, False, False, "Community", "C"),
 ]
 
 
