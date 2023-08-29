@@ -277,10 +277,10 @@ class ActiveFailover(Runner):
 
     def jam_attempt_impl(self):
         # pylint: disable=too-many-statements
-        agency_leader = self.agency_get_leader()
+        agency_leader = self.agency.get_leader()
         if self.leader.have_this_instance(agency_leader):
             print("AFO-Leader and agency leader are attached by the same starter!")
-            self.agency_trigger_leader_relection(agency_leader)
+            self.agency.trigger_leader_relection(agency_leader)
 
         self.leader.terminate_instance(keep_instances=True)
 
