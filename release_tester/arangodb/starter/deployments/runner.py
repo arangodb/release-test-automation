@@ -1094,38 +1094,29 @@ class Runner(ABC):
                 # We skip one starter and all its agency dump attempts now.
                 print("Error during an agency dump: " + str(ex))
 
-    @step
-    def agency_set_debug_logging(self):
-        """turns on logging on the agency"""
+    def _set_logging(self, instance_type):
+        """ turn on logging for all of instance_type """
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
-                InstanceType.AGENT,
+                instance_type,
                 requests.put,
                 "/_admin/log/level",
                 '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
+    @step
+    def agency_set_debug_logging(self):
+        """turns on logging on the agency"""
+        self._set_logging(InstanceType.AGENT)
 
     @step
     def dbserver_set_debug_logging(self):
         """turns on logging on the dbserver"""
-        for starter_mgr in self.starter_instances:
-            starter_mgr.send_request(
-                InstanceType.DBSERVER,
-                requests.put,
-                "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
-            )
+        self._set_logging(InstanceType.DBSERVER)
 
     @step
     def coordinator_set_debug_logging(self):
         """turns on logging on the coordinator"""
-        for starter_mgr in self.starter_instances:
-            starter_mgr.send_request(
-                InstanceType.COORDINATOR,
-                requests.put,
-                "/_admin/log/level",
-                '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
-            )
+        self._set_logging(InstanceType.COORDINATOR)
 
     @step
     def get_collection_list(self):
