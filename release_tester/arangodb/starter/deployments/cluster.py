@@ -327,20 +327,8 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.test_wait_for_upgrade()  # * 5s
 
-    @step
-    def jam_attempt_impl(self):
-        # pylint: disable=too-many-statements disable=too-many-branches
-        # this is simply to slow to be worth wile:
-        # collections = self.get_collection_list()
-        lh.subsubsection("wait for all shards to be in sync - Jamming")
-        retval = self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ["true"],
-        )
-        if not retval:
-            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
-        print("all in sync.")
+
+    def _jam_stop_one_db_server(self):
         agency_leader = self.agency_get_leader()
         terminate_instance = 2
         survive_instance = 1
@@ -391,7 +379,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
         self.set_frontend_instances()
 
-        logging.info("jamming: Starting instance without jwt")
+    def _jam_launch_unauthicanted_starter(self):
         moreopts = ["--starter.join", "127.0.0.1:9528"]
         curr_cfg = {}
         if self.new_cfg is not None:
@@ -431,8 +419,26 @@ db.testCollection.save({test: "document"})
             time.sleep(10)
         logging.info(str(dead_instance.instance.wait(timeout=320)))
         logging.info("dead instance is dead?")
-
         prompt_user(curr_cfg, "cluster should be up")
+
+    @step
+    def jam_attempt_impl(self):
+        # pylint: disable=too-many-statements disable=too-many-branches
+        # this is simply to slow to be worth wile:
+        # collections = self.get_collection_list()
+        lh.subsubsection("wait for all shards to be in sync - Jamming")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ["true"],
+        )
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        print("all in sync.")
+        self._jam_stop_one_db_server()
+
+        logging.info("jamming: Starting instance without jwt")
+        self._jam_launch_unauthicanted_starter()
         if self.selenium:
             self.selenium.jam_step_2()
 
