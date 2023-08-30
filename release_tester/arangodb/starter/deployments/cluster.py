@@ -329,7 +329,7 @@ db.testCollection.save({test: "document"})
 
 
     def _jam_stop_one_db_server(self):
-        agency_leader = self.agency_get_leader()
+        agency_leader = self.agency.get_leader()
         terminate_instance = 2
         survive_instance = 1
         if self.starter_instances[terminate_instance].have_this_instance(agency_leader):
