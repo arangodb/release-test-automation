@@ -267,14 +267,14 @@ class Instance(ABC):
         """to ease further analysis, move old logfile out of our way"""
         number = len(self.logfiles) + 1
         logfile = str(self.logfile)
-        new_logfile = Path(logfile + suffix + "." + str(number))
+        old_logfile = Path(logfile + suffix + "." + str(number))
         msg = ""
-        if new_logfile.exists():
-            new_logfile.unlink()
+        if old_logfile.exists():
+            old_logfile.unlink()
             msg = "removed old"
-        logging.info("renaming instance logfile: %s -> %s" + msg, logfile, str(new_logfile))
-        self.logfile.rename(new_logfile)
-        self.logfiles.append(new_logfile)
+        logging.info("renaming instance logfile: %s -> %s " + msg, logfile, str(old_logfile))
+        self.logfile.rename(old_logfile)
+        self.logfiles.append(old_logfile)
 
     @step
     def kill_instance(self):
