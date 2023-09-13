@@ -971,8 +971,8 @@ class Runner(ABC):
                 if logfile.exists():
                     print(f"copying {str(logfile)} => {str(targetfile)} so it can be in the report")
                     shutil.copyfile(str(logfile), str(targetfile))
-            # for installer_set in self.installers:
-            #   installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
+            for installer_set in self.installers:
+                installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
