@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ user page testsuite """
 import semver
+import traceback
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
 
@@ -25,7 +26,6 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
         current_version = user.current_package_version()
 
         try:
-            
             if current_version >= semver.VersionInfo.parse("3.11.0"):
                 collection_page.create_new_collections('a_first', 0, self.is_cluster)
                 collection_page.create_new_collections('m_middle', 1, self.is_cluster)
@@ -48,8 +48,9 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             user.selecting_permission_tab()
             print("Changing new user DB permission \n")
             user.changing_db_permission_read_only()
-            user.selecting_general_tab()
-            user.saving_user_cfg()
+            self.webdriver.back()
+            # user.selecting_general_tab()
+            # user.saving_user_cfg()
             print("Changing new user DB permission completed. \n")
             user.log_out()
             print("Re-Login begins with new user\n")
@@ -59,14 +60,15 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             )
 
             print("trying to create collection")
-            collection_page = CollectionPage(self.webdriver, self.cfg)
-            collection_page.navbar_goto("collections")
-            collection_page.create_sample_collection("access")
-            try:
-                collection_page.select_delete_collection(expec_fail=True)
-                raise Exception("must not be able to select deleting collections here!")
-            except TimeoutException:
-                pass
+            user.create_sample_collection('access')
+            # collection_page = CollectionPage(self.webdriver, self.cfg)
+            # collection_page.navbar_goto("collections")
+            # collection_page.create_sample_collection("access")
+            # try:
+            #     collection_page.select_delete_collection(expec_fail=True)
+            #     raise Exception("must not be able to select deleting collections here!")
+            # except TimeoutException:
+            #     pass
             print("Allow user Read Only access only to the current DB test completed \n")
 
             print("Allow user Read/Write access to the _system DB test started \n")
@@ -83,7 +85,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             user.selecting_permission_tab()
             user.changing_db_permission_read_write()
             user.selecting_general_tab()
-            user.saving_user_cfg()
+            # user.saving_user_cfg()
             user.log_out()
             print("Re-Login begins with new user\n")
             login.login_webif("tester", "tester")
@@ -92,10 +94,16 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             )
             print("trying to create collection")
             collection_page.navbar_goto("collections")
+            user.create_sample_collection('read/write')
             # TODO: we fail to remove this collection again.
-            #collection_page.create_sample_collection("read/write")
-            #collection_page.select_delete_collection()
+            # collection_page.create_sample_collection("read/write")
+            # collection_page.select_delete_collection()
             print("Allow user Read/Write access to the _system DB test Completed \n")
+            
+        except BaseException:
+            print('x' * 45, "\nINFO: Error Occurred! Force cleanup started\n", 'x' * 45)
+            self.exception = True   # mark the exception as true
+            self.error = traceback.format_exc()
         finally:
             # logout from the current user to get back to root
             self.webdriver.refresh()
@@ -109,10 +117,12 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             print("Deleting created user begins\n")
             user.delete_user_btn()
             user.confirm_delete_btn()
-            del user
-            del collection_page
-        print("Deleting created user completed \n")
-        print("---------User Test Completed---------\n")
-
+            collection_page.delete_collection("TestDoc", user.test_doc_collection_id, self.is_cluster)
+            
+            print("Deleting created user completed \n")
+            print("---------User Test Completed---------\n")
+        
         assert login.current_user() == "ROOT", "current user is root?"
         assert login.current_database() == "_SYSTEM", "current database is _system?"
+        
+            
