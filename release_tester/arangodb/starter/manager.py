@@ -44,7 +44,7 @@ from reporting.reporting_utils import attach_table, step, attach_http_request_to
 
 IS_WINDOWS = sys.platform == "win32"
 
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
     """manages one starter instance"""
 
@@ -97,6 +97,7 @@ class StarterManager:
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.basedir.mkdir(parents=True, exist_ok=True)
         self.log_file = self.basedir / "arangodb.log"
+        self.log_files = [self.log_file]
 
         # arg port - can be set - otherwise it is read from the log later
         self.starter_port = port
@@ -565,32 +566,37 @@ class StarterManager:
         """terminate the instance of this starter
         (it should kill all its managed services)"""
 
-        lh.subsubsection("terminating instances for: " + str(self.name))
+        lh.subsubsection(f"terminating instances {self.instance} for: {str(self.name)} ")
         logging.info(
             "StarterManager: Terminating starter instance: %s", str(self.default_starter_args + self.arguments)
         )
 
         logging.info("This should terminate all child processes")
         self.instance.terminate()
-        logging.info("StarterManager: waiting for process to exit")
+        logging.info(F"StarterManager: waiting for process {self.instance.pid} to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
         # workaround BTS-815: starter exits 15 on the wintendo:
-        if IS_WINDOWS and exit_code == 15:
-            exit_code = 0
+        # if IS_WINDOWS and exit_code == 15:
+        #    exit_code = 0
 
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
+        number = len(self.log_files) + 1
+        logfile = str(self.log_file)
+        old_log = Path(logfile + ".old." + str(number))
+        msg = ""
+        if old_log.exists():
+            old_log.unlink()
+            msg = "removed old"
 
-        old_log = self.basedir / "arangodb.log.old"
         logging.info(
-            "StarterManager: done - moving logfile from %s to %s",
+            "StarterManager: done - moving logfile from %s to %s " + msg,
             str(self.log_file),
             str(old_log),
         )
-        if old_log.exists():
-            old_log.unlink()
         self.log_file.rename(old_log)
+        self.log_files.append(old_log)
 
         for instance in self.all_instances:
             instance.rename_logfile()
@@ -945,6 +951,7 @@ class StarterManager:
     @step
     def detect_instances(self):
         """see which arangods where spawned and inspect their logfiles"""
+        # pylint: disable=too-many-locals
         lh.subsection("Instance Detection for {0.name}".format(self))
         jwt = self.get_jwt_header()
         self.all_instances = []
@@ -1049,6 +1056,8 @@ class StarterManager:
         """scan all instances for `FATAL` statements"""
         for instance in self.all_instances:
             instance.detect_fatal_errors()
+        if self.search_for_warnings():
+            raise Exception("Starter: Fatal error found!")
 
     @step
     def detect_arangosh_instances(self, config, old_version):
@@ -1190,17 +1199,23 @@ class StarterManager:
     def search_for_warnings(self):
         """dump out instance args, and what could be fishy in my log"""
         log = str()
-        print(self.default_starter_args + self.arguments)
-        if not self.log_file.exists():
-            print(str(self.log_file) + " not there. Skipping search")
-            return
-        print(str(self.log_file))
-        with self.log_file.open(errors="backslashreplace") as log_f:
-            for line in log_f.readline():
-                if "WARN" in line or "ERROR" in line:
-                    print(line.rstrip())
-                    log += line.rstrip()
-        attach(log, "WARN or ERROR lines from starter log")
+        fatal_found = False
+        print(f"{str(self)}: Scanning logfiles")
+        for log_file in self.log_files:
+            if not log_file.exists():
+                print(str(log_file) + " not there. Skipping search")
+                continue
+            print(str(log_file))
+            with log_file.open(errors="backslashreplace") as log_f:
+                for line in log_f:
+                    if "WARN" in line or "ERROR" in line:
+                        print(line.rstrip())
+                        log += line.rstrip()
+                    if "segmentation fault" in line:
+                        print(f"FATAL LINE FOUND: {line.rstrip()}")
+                        fatal_found = True
+                attach(log, "WARN or ERROR lines from starter log")
+        return fatal_found
 
     @step
     def add_logfile_to_report(self):

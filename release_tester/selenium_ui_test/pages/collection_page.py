@@ -536,7 +536,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
 
         element = self.locator_finder_by_xpath(f"//*[contains(text(), '{index_name}')]")
-        actions = ActionChains(self.driver)
+        actions = ActionChains(self.webdriver)
         # Move the mouse pointer to the element containing the text
         actions.move_to_element(element)
         # Perform a click action
@@ -639,7 +639,7 @@ class CollectionPage(NavigationBarPage):
             ttl_expire_sitem.send_keys(1000)
 
         elif index_name == 'Inverted Index':
-            action = ActionChains(self.driver)
+            action = ActionChains(self.webdriver)
             self.select_desired_index_from_the_list('Inverted Index')
 
             fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"

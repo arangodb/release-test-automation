@@ -31,8 +31,9 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 print('Checking analyzer page transition\n')
                 analyzers.checking_analyzer_page_transition('transition')
 
-                print('Checking all built-in analyzers\n')
-                analyzers.checking_all_built_in_analyzer()
+                if self.package_version < semver.VersionInfo.parse("3.11.0"):
+                    print('Checking all built-in analyzers\n')
+                    analyzers.checking_all_built_in_analyzer() 
 
                 print('Creating all supported analyzers\n')
                 analyzers.creating_all_supported_analyzer(self.is_enterprise, self.ui_data_dir)

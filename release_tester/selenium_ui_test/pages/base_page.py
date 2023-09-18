@@ -411,7 +411,11 @@ class BasePage:
             locator_sitem.send_keys(Keys.TAB)
             time.sleep(2)
             
-            create_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[2]'
+            
+            if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                create_btn = "//*[text()='Create']"
+            else:
+                create_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[2]'
             create_btn_sitem = self.locator_finder_by_xpath(create_btn)
             create_btn_sitem.click()
             time.sleep(2)

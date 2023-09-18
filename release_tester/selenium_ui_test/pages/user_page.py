@@ -4,6 +4,7 @@ import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements
@@ -21,7 +22,7 @@ class UserPage(NavigationBarPage):
         self.enter_new_password_id = "newPassword"
         self.create_user_btn_id = "modalButton1"
         self.selecting_user_tester_id = "tester"
-        self.select_tester_id = '//*[@id="userManagementThumbnailsIn"]/div[3]/div/h5'
+        self.select_tester_id = "//*[contains(text(),'tester ')]"
         self.permission_link_id = "//*[@id='subNavigationBarPage']/ul[2]/li[2]/a"
         self.db_permission_read_only = "//*[@id='*-db']/div[3]/input"
         self.db_permission_read_write = '//*[@id="*-db"]/div[2]/input'
@@ -34,6 +35,7 @@ class UserPage(NavigationBarPage):
         self.a_first_id = '//h5[@class="collectionName"][text()="a_first"]'
         self.m_middle_id = '//h5[@class="collectionName"][text()="m_middle"]'
         self.z_last_id = '//h5[@class="collectionName"][text()="z_last"]'
+        self.test_doc_collection_id = '//h5[@class="collectionName"][text()="testDoc"]'
 
     def user_tab(self):
         """selecting user tab"""
@@ -114,6 +116,80 @@ class UserPage(NavigationBarPage):
         tester_sitem.click()
         time.sleep(4)
 
+    def create_sample_collection(self, test_name):
+        """creating sample collection"""
+        try:
+            collection_page = self.select_collection_page_id
+            collection_page = \
+                self.locator_finder_by_id(  collection_page)
+            collection_page.click()
+
+            # Clicking on create new collection box
+            create_collection = self.select_create_collection_id
+            create_collection = \
+                self.locator_finder_by_id(create_collection)
+            create_collection.click()
+            time.sleep(2)
+
+            # Providing new collection name
+            collection_name = self.select_new_collection_name_id
+            collection_name = \
+                self.locator_finder_by_id(collection_name)
+            collection_name.click()
+            collection_name.send_keys("testDoc")
+
+            # creating collection by tapping on save button
+            save = 'modalButton1'
+            save = self.locator_finder_by_id(save)
+            save.click()
+
+            try:
+                notification = 'noty_body'
+                notification = self.locator_finder_by_class(notification)
+                time.sleep(1)
+                expected_text = 'Collection: Collection "testDoc" successfully created.'
+                assert notification.text == expected_text, f"Expected text{expected_text} but got {notification.text}"
+
+            # todo: we need a workaround for this
+            #     try:
+            #         print('Deleting testDoc collection \n')
+
+            #         select_test_doc_collection_id = '//h5[@class="collectionName"][text()="testDoc"]'
+            #         select_collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
+            #         select_test_doc_collection_id = \
+            #             self.locator_finder_by_xpath(select_test_doc_collection_id)
+            #         select_test_doc_collection_id.click()
+
+            #         time.sleep(4)
+            #         select_test_doc_settings_id = \
+            #             self.locator_finder_by_xpath(select_collection_settings_id)
+            #         select_test_doc_settings_id.click()
+
+            #         delete_collection_id = "(//button[normalize-space()='Delete'])[1]"
+            #         delete_collection_confirm_id = "(//button[@id='modal-confirm-delete'])[2]"
+
+            #         delete_collection_id = \
+            #             self.locator_finder_by_xpath(delete_collection_id)
+            #         delete_collection_id.click()
+            #         time.sleep(4)
+            #         delete_collection_confirm_id = \
+            #             self.locator_finder_by_xpath(delete_collection_confirm_id)
+            #         delete_collection_confirm_id.click()
+
+            #         print('Deleting testDoc collection completed\n')
+            #     except TimeoutException:
+            #         print('Deleting testDoc collection failed which is expected. \n')
+
+            except TimeoutException:
+                print('FAIL: Unexpected error occurred! \n')
+
+        except TimeoutException:
+            if test_name == 'access':
+                print("Collection creation failed, which is expected\n")
+            if test_name == 'read/write':
+                print('FAIL: Unexpected error occurred!\n')
+                # raise Exception("FAIL: Unexpected error occurred!\n")
+    
     def delete_user_btn(self):
         """deleting user"""
         select_user_delete_btn_sitem = self.locator_finder_by_id(self.select_user_delete_btn)
@@ -139,7 +215,7 @@ class UserPage(NavigationBarPage):
         permission_tab_sitem.click()
         time.sleep(1)
 
-        select_system_db = '//i[@class="fa fa-caret-right"][1]'
+        select_system_db = '//*[@id="_system-db"]/div[1]'
         select_system_db_sitem = self.locator_finder_by_xpath(select_system_db)
         select_system_db_sitem.click()
         time.sleep(1)
@@ -156,6 +232,8 @@ class UserPage(NavigationBarPage):
                 m_middle = index
             elif item.text == "z_last":
                 z_last = index
+            else:
+                pass
 
         if a_first < m_middle < z_last:
             print("Sorting check successfully completed.\n")

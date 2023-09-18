@@ -276,7 +276,8 @@ class TestDriver:
                                     one_result["messages"].append(str(ex))
                                     one_result["progress"] += runner.get_progress()
                                     runner.take_screenshot()
-                                    runner.agency_acquire_dump()
+                                    if runner.agency:
+                                        runner.agency.acquire_dump()
                                     runner.search_for_warnings()
                                     runner.quit_selenium()
                                     kill_all_processes()
@@ -439,7 +440,8 @@ class TestDriver:
                         one_result["messages"].append(str(ex))
                         one_result["progress"] += runner.get_progress()
                         runner.take_screenshot()
-                        runner.agency_acquire_dump()
+                        if runner.agency:
+                            runner.agency.acquire_dump()
                         runner.search_for_warnings()
                         runner.quit_selenium()
                         kill_all_processes()

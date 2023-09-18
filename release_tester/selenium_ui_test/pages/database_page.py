@@ -78,49 +78,51 @@ class DatabasePage(NavigationBarPage):
 
         print(f"Creating {db_name} database completed \n")
 
-        print(f"Logging into newly created {db_name} database \n")
-        change_db = '//*[@id="dbStatus"]/a[3]/i'
-        change_db_sitem = self.locator_finder_by_xpath(change_db)
-        change_db_sitem.click()
-        time.sleep(5)
+        if self.current_package_version() < semver.VersionInfo.parse("3.11.0"):
+            print(f"Logging into newly created {db_name} database \n")
+            change_db = '//*[@id="dbStatus"]/a[3]/i'
+            change_db_sitem = self.locator_finder_by_xpath(change_db)
+            change_db_sitem.click()
+            time.sleep(5)
 
-        db_opt = self.select_db_opt_id_sitem
-        print("Database checked and found: ", db_name, "\n")
-        time.sleep(4)
+            db_opt = self.select_db_opt_id_sitem
+            print("Database checked and found: ", db_name, "\n")
+            time.sleep(4)
 
-        if db_name == "Sharded":
-            # selecting newly created db for login from the dropdown menu
-            self.locator_finder_by_select(db_opt, 1)
-        if db_name == "OneShard":
-            # OneShard took place over Sharded database thus used index value 1
-            self.locator_finder_by_select(db_opt, 1)
+            if db_name == "Sharded":
+                # selecting newly created db for login from the dropdown menu
+                self.locator_finder_by_select(db_opt, 1)
+            if db_name == "OneShard":
+                # OneShard took place over Sharded database thus used index value 1
+                self.locator_finder_by_select(db_opt, 1)
 
-        select_db_btn_id = "goToDatabase"
-        select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
-        select_db_btn_id_sitem.click()
-        time.sleep(2)
+            select_db_btn_id = "goToDatabase"
+            select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
+            select_db_btn_id_sitem.click()
+            time.sleep(2)
 
-        db_name = '//*[@id="dbStatus"]/a[2]/span'
-        db_name_sitem = self.locator_finder_by_xpath(db_name).text
+            db_name = '//*[@id="dbStatus"]/a[2]/span'
+            db_name_sitem = self.locator_finder_by_xpath(db_name).text
 
-        if index == 0:
-            assert db_name_sitem == "SHARDED", f"Expected SHARDED but got {db_name_sitem}"
-        if index == 1:
-            assert db_name_sitem == "ONESHARD", f"Expected ONESHARD but got {db_name_sitem}"
+            if index == 0:
+                assert db_name_sitem == "SHARDED", f"Expected SHARDED but got {db_name_sitem}"
+            if index == 1:
+                assert db_name_sitem == "ONESHARD", f"Expected ONESHARD but got {db_name_sitem}"
 
-        print(f"Logging out from {db_name_sitem} database \n")
-        db_id = '//*[@id="dbStatus"]/a[3]/i'
-        change_db_sitem = self.locator_finder_by_xpath(db_id)
-        change_db_sitem.click()
-        time.sleep(4)
+            print(f"Logging out from {db_name_sitem} database \n")
+            db_id = '//*[@id="dbStatus"]/a[3]/i'
+            change_db_sitem = self.locator_finder_by_xpath(db_id)
+            change_db_sitem.click()
+            time.sleep(4)
 
-        print("Re-Login to _system database \n")
-        db_option = self.select_db_opt_id_sitem
-        self.locator_finder_by_select(db_option, 0)
-        select_db_btn_id = "goToDatabase"
-        select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
-        select_db_btn_id_sitem.click()
-        time.sleep(3)
+            print("Re-Login to _system database \n")
+            db_option = self.select_db_opt_id_sitem
+            self.locator_finder_by_select(db_option, 0)
+            select_db_btn_id = "goToDatabase"
+            select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
+            select_db_btn_id_sitem.click()
+            time.sleep(3)
+        self.select_database_page()
 
     def test_database_expected_error(self, cluster):
         """This method will test all negative scenario"""

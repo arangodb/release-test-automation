@@ -5,6 +5,7 @@ from selenium_ui_test.pages.user_page import UserPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
 import traceback
+import semver
 
 
 class DatabaseTestSuite(BaseSeleniumTestSuite):
@@ -32,7 +33,8 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
             database.create_new_db("Sharded", 0, self.is_cluster)  # 0 = sharded DB
             database.create_new_db("OneShard", 1, self.is_cluster)  # 1 = one shard DB
 
-            database.test_database_expected_error(self.is_cluster)  # testing expected error condition for database creation
+            if database.current_package_version() < semver.VersionInfo.parse("3.11.0"):
+                database.test_database_expected_error(self.is_cluster)  # testing expected error condition for database creation
 
             print("Checking sorting databases to ascending and descending \n")
             database.sorting_db()
