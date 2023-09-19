@@ -150,8 +150,6 @@ class StarterManager:
                 if "--starter.sync" in moreopts:
                     self.expect_instance_count += 2  # syncmaster + syncworker
 
-        semversion = semver.VersionInfo.parse(self.cfg.version)
-        self.supports_extended_names = (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
         self.username = "root"
         self.passvoid = ""
 
@@ -196,13 +194,17 @@ class StarterManager:
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
 
+    def supports_extended_names(self):
+        semversion = semver.VersionInfo.parse(self.cfg.version)
+        return (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
+
     def get_version_specific_arguments(self, version: str):
         """list starter arguments that must be applied conditionally based on version"""
         result = []
         semversion = semver.VersionInfo.parse(version)
 
         # Extended database names were introduced in 3.9.0
-        if self.supports_extended_names:
+        if self.supports_extended_names():
             result += ["--args.all.database.extended-names-databases=true"]
 
         # Telemetry was introduced in 3.11.0
