@@ -426,8 +426,9 @@ class TestDriver:
                     # install on first run:
                     runner.do_install = (count == 1) and do_install
                     # only uninstall after the last test:
-                    runner.do_uninstall = (count == len(
-                        STARTER_MODES[deployment_mode])) and do_uninstall
+                    must_uninstall_after_this_run = (count == len(
+                        STARTER_MODES[deployment_mode]))
+                    runner.do_uninstall = must_uninstall_after_this_run and do_uninstall
                     runner.do_starter_test = do_tests
 
                     try:
@@ -452,19 +453,22 @@ class TestDriver:
                                                                        trace="".join(
                                                                            traceback.TracebackException.from_exception(
                                                                                ex).format()))
-                        lh.section("uninstall on error")
-                        installers[0][1].un_install_debug_package()
-                        installers[0][1].un_install_server_package()
-                        installers[0][1].cleanup_system()
+                        if must_uninstall_after_this_run and do_uninstall:
+                            lh.section("uninstall on error")
+                            installers[0][1].un_install_debug_package()
+                            installers[0][1].un_install_server_package()
+                            installers[0][1].cleanup_system()
+                            lh.section("uninstall on error")
                         if self.abort_on_error:
                             raise ex
                         traceback.print_exc()
-                        lh.section("uninstall on error")
                         try:
                             runner.cleanup()
                         finally:
                             pass
                         results.append(one_result)
+                        kill_all_processes()
+                        count += 1
                         continue
 
                     if runner.ui_tests_failed:
