@@ -322,6 +322,7 @@ process.exit(0);
         for node in instances:
             node.respawn_instance(version)
             node.detect_instances()
+            node.detect_instance_pids()
             node.wait_for_version_reply()
         if self.selenium:
             self.selenium.test_after_install()
