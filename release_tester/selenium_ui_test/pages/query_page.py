@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ query page object """
 import time
+import semver
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -111,6 +112,7 @@ class QueryPage(NavigationBarPage):
 
     def execute_insert_query(self):
         """This method will run an insert query"""
+        self.clear_query_area()
 
         query = """
 for i IN 1..10000
@@ -154,6 +156,7 @@ RETURN c
     def explain_query(self):
         """Explaining query"""
         self.wait_for_ajax()
+        self.driver.refresh()
         explain_query_sitem = self.locator_finder_by_id(self.explain_query_id)
         explain_query_sitem.click()
         time.sleep(2)
@@ -331,30 +334,33 @@ FOR doc IN Characters
 
         self.scroll()
 
-        json = "//*[text()='JSON']"
-        table = "//*[text()='Table']"
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+            print("Json/table toggle check is skipped for 3.11.0+")
+        else:
+            json = "//*[text()='JSON']"
+            table = "//*[text()='Table']"
 
-        print("Changing execution format JSON format to Table format\n")
-        json = self.locator_finder_by_xpath(json)
-        json.click()
-        time.sleep(3)
+            print("Changing execution format JSON format to Table format\n")
+            json = self.locator_finder_by_xpath(json)
+            json.click()
+            time.sleep(3)
 
-        print("Changing execution format Table format to JSON format\n")
-        table = self.locator_finder_by_xpath(table)
-        table.click()
-        time.sleep(3)
+            print("Changing execution format Table format to JSON format\n")
+            table = self.locator_finder_by_xpath(table)
+            table.click()
+            time.sleep(3)
 
-        print("Switch output to JSON format \n")
-        output_switch_json = "json-switch"
-        output_switch_json = self.locator_finder_by_id(output_switch_json)
-        output_switch_json.click()
-        time.sleep(3)
+            print("Switch output to JSON format \n")
+            output_switch_json = "json-switch"
+            output_switch_json = self.locator_finder_by_id(output_switch_json)
+            output_switch_json.click()
+            time.sleep(3)
 
-        print("Switch output to Table format \n")
-        output_switch_table = "table-switch"
-        output_switch_table = self.locator_finder_by_id(output_switch_table)
-        output_switch_table.click()
-        time.sleep(3)
+            print("Switch output to Table format \n")
+            output_switch_table = "table-switch"
+            output_switch_table = self.locator_finder_by_id(output_switch_table)
+            output_switch_table.click()
+            time.sleep(3)
 
         # clear the execution area
         self.clear_query_area()

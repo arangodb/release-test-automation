@@ -406,18 +406,33 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_id(default_view).click()
 
         print('inspecting documentation through Foxx and leaflet \n')
-        template_str = lambda leaflet: f'//*[@id="operations-default-GET_{leaflet}"]/div/span[1]'
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+            template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
+            id_list = [
+                template_str("/restaurants"),
+                template_str("/neighborhoods"),
+                template_str("/pointsInNeighborhood"),
+                template_str("/geoContainsBenchmark"),
+                template_str("/geoIntersection"),
+                template_str("/geoDistanceNearest"),
+                template_str("/geoDistanceBetween"),
+                template_str("/geoDistance"),
+                template_str("/geoDistanceBenchmark"),
+                template_str("/geoNearBenchmark"),
+            ]
+        else:
+            template_str = lambda leaflet: f'//*[@id="operations-default-GET_{leaflet}"]/div/span[1]'
 
-        id_list = [template_str('restaurants'),
-                   template_str('neighborhoods'),
-                   template_str('pointsInNeighborhood_id'),
-                   template_str('geoContainsBenchmark_count'),
-                   template_str('geoIntersection'),
-                   template_str('geoDistanceNearest'),
-                   template_str('geoDistanceBetween'),
-                   template_str('geoDistance'),
-                   template_str('geoDistanceBenchmark_count'),
-                   template_str('geoNearBenchmark_count')]
+            id_list = [template_str('restaurants'),
+                    template_str('neighborhoods'),
+                    template_str('pointsInNeighborhood_id'),
+                    template_str('geoContainsBenchmark_count'),
+                    template_str('geoIntersection'),
+                    template_str('geoDistanceNearest'),
+                    template_str('geoDistanceBetween'),
+                    template_str('geoDistance'),
+                    template_str('geoDistanceBenchmark_count'),
+                    template_str('geoNearBenchmark_count')]
 
         self.checking_function_for_fox_leaflet(id_list)
 
@@ -528,8 +543,12 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_id(default_view).click()
 
         print('inspecting documentation through Foxx and leaflet \n')
-        first = '//*[@id="operations-default-get"]/div/span[1]'
-        second = '//*[@id="operations-default-post"]/div/span[1]'
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+            first = '//*[@id="operations-default-get"]/div/button[1]/div'
+            second = '//*[@id="operations-default-post"]/div/button[1]/div'
+        else:    
+            first = '//*[@id="operations-default-get"]/div/span[1]'
+            second = '//*[@id="operations-default-post"]/div/span[1]'
 
         id_list = [first, second]
         self.checking_function_for_fox_leaflet(id_list)
