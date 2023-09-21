@@ -669,7 +669,10 @@ class CollectionPage(NavigationBarPage):
             search_fields_sitem.click()
             time.sleep(1)
 
-            general_name = "//*[text()='Name']"
+            if self.current_package_version() > semver.VersionInfo.parse("3.11.0"):
+                general_name_sitem = self.locator_finder_by_id('name')
+            else:
+                general_name = "//*[text()='Name']"
             general_name_sitem = self.locator_finder_by_xpath(general_name)
             general_name_sitem.click()
             action.send_keys('Inverted').perform()
@@ -978,14 +981,23 @@ class CollectionPage(NavigationBarPage):
     
     def delete_index(self, index):
         """this method will delete all the indexes one by one"""
-        delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[{index}]"
-        delete_sitem = self.locator_finder_by_xpath(delete)
-        delete_sitem.click()
-        time.sleep(1)
-        delete_confirmation = "//*[text()='Delete']"
-        delete_confirmation_stiem = self.locator_finder_by_xpath(delete_confirmation)
-        delete_confirmation_stiem.click()
-        time.sleep(1)
+        try:
+            delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[{index}]"
+            delete_sitem = self.locator_finder_by_xpath(delete)
+            delete_sitem.click()
+            time.sleep(1)
+            delete_confirmation = "//*[text()='Delete']"
+            delete_confirmation_stiem = self.locator_finder_by_xpath(delete_confirmation)
+            delete_confirmation_stiem.click()
+            time.sleep(1)
+        except TimeoutException as e:
+            print('Something went wrong', e, '\n')
+            print("Trying again to delete the inverted index")
+            self.driver.refresh()
+            self.select_collection_page()
+            self.select_doc_collection()
+            self.select_index_menu()
+            self.delete_index(3)
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
