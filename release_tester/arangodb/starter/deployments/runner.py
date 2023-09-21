@@ -48,12 +48,12 @@ def detect_file_ulimit():
         import resource
 
         nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-        if nofd < 65535:
+        if nofd < 2304000:
             raise Exception(
                 "please use ulimit -n <count>"
                 " to adjust the number of allowed"
                 " filedescriptors to a value greater"
-                " or equal 65535. Currently you have"
+                " or equal 2304000. Currently you have"
                 " set the limit to: " + str(nofd)
             )
         giga_byte = 2**30

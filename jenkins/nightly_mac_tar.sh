@@ -40,7 +40,7 @@ fi
 git submodule init
 git submodule update
 
-ulimit -n 65535
+ulimit -n 2304000
 
 python3 $(pwd)/release_tester/full_download_upgrade.py \
       --version-state-tar "${WORKSPACE}/${VERSION_TAR_NAME}" \
