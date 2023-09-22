@@ -901,7 +901,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     @step
-    def upload_backup(self, name, timeout=120):
+    def upload_backup(self, name, timeout=1200):
         """upload a backup from the installation to a remote site"""
         for starter in self.makedata_instances:
             if not starter.is_leader:
