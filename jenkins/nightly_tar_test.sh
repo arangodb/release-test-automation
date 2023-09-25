@@ -37,6 +37,8 @@ mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
+sudo sysctl -w "vm.max_map_count=$((`nproc`*8*8000))"
+
 DOCKER_TAR_NAME=release-test-automation-tar
 
 DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
