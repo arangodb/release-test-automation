@@ -37,8 +37,6 @@ mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
-ulimit -n 2304000
-
 DOCKER_TAR_NAME=release-test-automation-tar
 
 DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
@@ -86,6 +84,7 @@ docker run -d \
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
+       --ulimit nofile=2304000:2304000 \
        -v "$(pwd):/home/release-test-automation" \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
