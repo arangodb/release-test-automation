@@ -95,9 +95,11 @@ if winver[0]:
                 # only here on the wintendo:
                 # pylint: disable=no-member
                 self.send_signal(signal.CTRL_BREAK_EVENT)
-                self.wait()
-                # restore original handler
-                signal.signal(signal.SIGINT, original_sigint_handler)
+                try:
+                    self.wait(600)
+                finally:
+                    # restore original handler
+                    signal.signal(signal.SIGINT, original_sigint_handler)
 
     Process.terminate = ProcessMonkey.terminate
     # pylint: disable=super-init-not-called disable=consider-using-with

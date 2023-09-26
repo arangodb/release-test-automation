@@ -901,7 +901,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     @step
-    def upload_backup(self, name, timeout=120):
+    def upload_backup(self, name, timeout=1200):
         """upload a backup from the installation to a remote site"""
         for starter in self.makedata_instances:
             if not starter.is_leader:
@@ -915,14 +915,14 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     @step
-    def download_backup(self, name):
+    def download_backup(self, name, timeout=1200):
         """download a backup to the installation from remote"""
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
             assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.download(name, starter.hb_config, "12345")
-            return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count)
+            return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count, timeout)
         raise Exception("no frontend found.")
 
     @step
