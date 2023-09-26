@@ -208,18 +208,39 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
 
         print('Clicking on create new collection box \n')
-        select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            select_create_collection_id = "//*[text()='Add collection']"
+            select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id)
+        else:
+            select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
         select_create_collection_sitem.click()
         time.sleep(1)
 
         print('Selecting new collection name \n')
-        select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            select_new_collection_name_sitem = self.locator_finder_by_id("name")
+        else:
+            select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
         select_new_collection_name_sitem.click()
         select_new_collection_name_sitem.send_keys(name)
         time.sleep(1)
 
         print(f'Selecting collection type for {name} \n')  # collection Document type where # '2' = Document, '3' = Edge
-        self.locator_finder_by_select(self.select_collection_type_id, doc_type)
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            if doc_type == 1:
+                # type dropdown menu
+                type_dropdown = "(//div[@class=' css-nmh171'])[1]"
+                type_dropdown_sitem = self.locator_finder_by_xpath(type_dropdown)
+                type_dropdown_sitem.click()
+                time.sleep(3)
+
+                # choosing type
+                chosen_type = "//*[text()='Edge']"
+                chosen_type_sitem = self.locator_finder_by_xpath(chosen_type)
+                chosen_type_sitem.click()
+                time.sleep(1)
+        else:
+            self.locator_finder_by_select(self.select_collection_type_id, doc_type)
         time.sleep(1)
 
         if is_cluster:
@@ -239,18 +260,28 @@ class CollectionPage(NavigationBarPage):
             rf_sitem.send_keys(3)
             time.sleep(2)
 
-        print(f'Selecting collection advance options for {name} \n')
-        select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
-        select_advance_option_sitem.click()
-        time.sleep(1)
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            print(f'Selecting wait for sync options for {name} \n')
+            wait_for_sync = "(//span[@class='chakra-switch__track css-ddil6j'])[1]"
+            self.locator_finder_by_xpath(wait_for_sync).click()
+        else:
+            print(f'Selecting collection advance options for {name} \n')
+            select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
+            select_advance_option_sitem.click()
+            time.sleep(1)
 
-        # Selecting collection wait type where value # 0 = YES, '1' = NO)
-        self.locator_finder_by_select(self.wait_for_sync_id, 0)
+            # Selecting collection wait type where value # 0 = YES, '1' = NO)
+            self.locator_finder_by_select(self.wait_for_sync_id, 0)
         time.sleep(1)
 
         print(f'Selecting create button for {name} \n')
-        create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
-        create_new_collection_btn_sitem.click()
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            create_button = "(//button[normalize-space()='Create'])[1]"
+            create_button_sitem = self.locator_finder_by_xpath(create_button)
+            create_button_sitem.click()
+        else:
+            create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
+            create_new_collection_btn_sitem.click()
         time.sleep(3)
         self.webdriver.refresh()
 
