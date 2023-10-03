@@ -542,6 +542,12 @@ class CollectionPage(NavigationBarPage):
         # Perform a click action
         actions.click().perform()
     
+    def select_testdoc_collection(self):
+        print('Selecting TestDoc Collection \n')
+        select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
+        select_doc_collection_sitem.click()
+        time.sleep(1)
+    
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         print(f"Creating {index_name} index started \n")
@@ -670,11 +676,9 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
 
             if self.current_package_version() > semver.VersionInfo.parse("3.11.0"):
-                general_name_sitem = self.locator_finder_by_id('name')
+                self.locator_finder_by_xpath("//*[text()='Name']").click()
             else:
-                general_name = "//*[text()='Name']"
-            general_name_sitem = self.locator_finder_by_xpath(general_name)
-            general_name_sitem.click()
+                self.locator_finder_by_xpath("//*[text()='Name']").click()
             action.send_keys('Inverted').perform()
             time.sleep(1)
 
@@ -995,7 +999,7 @@ class CollectionPage(NavigationBarPage):
             print("Trying again to delete the inverted index")
             self.driver.refresh()
             self.select_collection_page()
-            self.select_doc_collection()
+            self.select_testdoc_collection()
             self.select_index_menu()
             self.delete_index(3)
 
@@ -1091,7 +1095,10 @@ class CollectionPage(NavigationBarPage):
         """ Testing computed value feature for v3.10.x"""
         self.navbar_goto("collections")
         print("Selecting computed values collections. \n")
-        col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            col = "//*[text()='ComputedValueCol']"
+        else:
+            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
 
