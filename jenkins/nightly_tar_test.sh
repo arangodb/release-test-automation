@@ -37,6 +37,11 @@ mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
+echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
+echo "Setting maximum number of memory mappings per process to: $((`nproc`*8*8000))"
+sudo sysctl -w "vm.max_map_count=$((`nproc`*8*8000))"
+echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
+
 DOCKER_TAR_NAME=release-test-automation-tar
 
 DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
@@ -80,6 +85,10 @@ docker run -d \
   -e "MINIO_ROOT_PASSWORD=minio123" \
   quay.io/minio/minio server /data --console-address ":9001"
 
+echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
+echo "Setting maximum number of memory mappings per process to: $((`nproc`*8*8000))"
+sudo sysctl -w "vm.max_map_count=$((`nproc`*8*8000))"
+echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
 
 # we need --init since our upgrade leans on zombies not happening:
 docker run \

@@ -5,6 +5,7 @@ import sys
 # pylint: disable=duplicate-code
 from copy import deepcopy
 from pathlib import Path
+import traceback
 
 import click
 
@@ -38,7 +39,8 @@ def upgrade_package_test(
     print("Cleanup done")
 
     versions = []
-
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions
+    community_packages_are_present = "C" in editions
     for props in EXECUTION_PLAN:
         if props.directory_suffix not in editions:
             continue
@@ -72,16 +74,21 @@ def upgrade_package_test(
         if not dl_new.is_different() or not dl_old.is_different():
             print("we already tested this version. bye.")
             return 0
-        dl_old.get_packages(dl_old.is_different())
-        dl_new.get_packages(dl_new.is_different())
+        try:
+            dl_old.get_packages(dl_old.is_different())
+            dl_new.get_packages(dl_new.is_different())
 
-        this_test_dir = test_dir / props.directory_suffix
-        test_driver.reset_test_data_dir(this_test_dir)
+            this_test_dir = test_dir / props.directory_suffix
+            test_driver.reset_test_data_dir(this_test_dir)
 
-        results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
-        versions.append([dl_new.cfg.version, dl_old.cfg.version])
-    enterprise_packages_are_present = "EE" in editions or "EP" in editions
-    community_packages_are_present = "C" in editions
+            results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+            versions.append([dl_new.cfg.version, dl_old.cfg.version])
+        except PermissionError as ex:
+            enterprise_packages_are_present = False
+            community_packages_are_present = False
+            print(f"Failed to download file: {ex} ")
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
+            results.append(f"Failed to download file: {ex} ")
 
     params = deepcopy(test_driver.cli_test_suite_params)
     params.new_version = dl_new.cfg.version
