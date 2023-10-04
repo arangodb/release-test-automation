@@ -815,31 +815,38 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
 
         else:
-            self.navbar_goto("collections")
-            print("Selecting computed values collections. \n")
-            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
-            self.locator_finder_by_xpath(col).click()
-            time.sleep(1)
+            try:
+                self.navbar_goto("collections")
+                print("Selecting computed values collections. \n")
+                col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+                self.locator_finder_by_xpath(col).click()
+                time.sleep(1)
 
-            self.select_index_menu()
+                self.select_index_menu()
 
-            create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
-            create_new_index_btn_sitem.click()
-            time.sleep(2)
+                create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
+                create_new_index_btn_sitem.click()
+                time.sleep(2)
 
-            print('ZKD Index (EXPERIMENTAL)')
-            zkd_field = "/html//input[@id='fields']"
-            zkd_field = self.locator_finder_by_xpath(zkd_field)
-            zkd_field.click()
-            zkd_field.send_keys('x,y')
+                print('ZKD Index (EXPERIMENTAL)')
+                zkd_field = "/html//input[@id='fields']"
+                zkd_field = self.locator_finder_by_xpath(zkd_field)
+                zkd_field.click()
+                zkd_field.send_keys('x,y')
 
-            # selecting ZKD index's name
-            zkd_name = "/html//input[@id='name']"
-            zkd_name_sitem = self.locator_finder_by_xpath(zkd_name)
-            zkd_name_sitem.click()
-            zkd_name_sitem.send_keys(index_name)
-
-
+                # selecting ZKD index's name
+                zkd_name = "/html//input[@id='name']"
+                zkd_name_sitem = self.locator_finder_by_xpath(zkd_name)
+                zkd_name_sitem.click()
+                zkd_name_sitem.send_keys(index_name)
+            except Exception as e:
+                print(e)
+                # retry
+                self.webdriver.refresh()
+                self.create_index('ZKD')
+            finally:
+                pass
+    
         # create the index
         create_btn = "//*[text()='Create']"
         create_btn_sitem = self.locator_finder_by_xpath(create_btn)
