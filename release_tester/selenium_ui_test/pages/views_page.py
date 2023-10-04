@@ -597,6 +597,115 @@ class ViewsPage(NavigationBarPage):
         sort_sitem.click()
         time.sleep(1)
 
+    def select_desired_primary_sort(self, sort):
+        """this method will find the desired views from the list using given locator"""
+        select_view = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
+        select_index_sitem = self.locator_finder_by_xpath(select_view)
+        select_index_sitem.click()
+        time.sleep(1)
+
+        element = self.locator_finder_by_xpath(f"//*[contains(text(), '{sort}')]")
+        actions = ActionChains(self.webdriver)
+        # Move the mouse pointer to the element containing the text
+        actions.move_to_element(element)
+        # Perform a click action
+        actions.click().perform()
+    
+    def select_desired_views_from_the_list(self, view_type_name):
+        """this method will find the desired views from the list using given locator"""
+        select_view = "(//*[name()='svg'][@class='css-8mmkcg'])[1]"
+        select_index_sitem = self.locator_finder_by_xpath(select_view)
+        select_index_sitem.click()
+        time.sleep(1)
+
+        element = self.locator_finder_by_xpath(
+            f"//*[contains(text(), '{view_type_name}')]"
+        )
+        actions = ActionChains(self.webdriver)
+        # Move the mouse pointer to the element containing the text
+        actions.move_to_element(element)
+        # Perform a click action
+        actions.click().perform()
+    
+    
+    def create_improved_views_311(self, view_name, types, variation):
+        """This method will create the improved views for v3.11+"""
+        print("Selecting views create button \n")
+        create_new_views = "//*[contains(text(),'Add View')]"
+        create_new_views_id = self.locator_finder_by_xpath(create_new_views)
+        create_new_views_id.click()
+        time.sleep(2)
+
+        print(f"Select name for the {view_name} \n")
+        name_id_sitem = self.locator_finder_by_id("name")
+        name_id_sitem.click()
+        name_id_sitem.clear()
+        name_id_sitem.send_keys(view_name)
+        time.sleep(2)
+
+        print(f"Select view's type")
+        if types == "search-alias":
+            self.select_desired_views_from_the_list("search-alias")
+
+        # this will change the type of the views
+        if types == "arangosearch" and variation == 1:
+            self.select_desired_primary_sort("None")
+
+        if types == "arangosearch":
+            print(f"Select primary sort for {view_name} \n")
+            primary_sort = "//*[text()='Primary Sort']"
+            primary_sort_sitem = self.locator_finder_by_xpath(primary_sort)
+            primary_sort_sitem.click()
+            time.sleep(2)
+
+            print(f"Select primary field for {view_name} \n")
+            primary_field = "//*[text()='Field']"
+            primary_field_sitem = self.locator_finder_by_xpath(primary_field)
+            primary_field_sitem.click()
+            self.send_key_action("attr")
+            time.sleep(2)
+
+            print(f"Closing primary sort for {view_name}\n")
+            primary_sort = "//*[text()='Primary Sort']"
+            primary_sort_sitem = self.locator_finder_by_xpath(primary_sort)
+            primary_sort_sitem.click()
+            time.sleep(1)
+
+            print(f"Select stored value for {view_name} \n")
+            sorted_value = "//*[text()='Stored Values']"
+            sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
+            sorted_value_sitem.click()
+            time.sleep(1)
+
+            field = "//*[text()='Fields']"
+            field_sitem = self.locator_finder_by_xpath(field)
+            field_sitem.click()
+
+            print(f"Closing stored value for {view_name} \n")
+            sorted_value = "//*[text()='Stored Values']"
+            sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
+            sorted_value_sitem.click()
+            time.sleep(1)
+
+            print(f"Select advance options for {view_name} \n")
+            advance_option = "//*[text()='Advanced']"
+            advance_option_sitem = self.locator_finder_by_xpath(advance_option)
+            advance_option_sitem.click()
+            time.sleep(1)
+
+            print(f"Close advance options for {view_name} \n")
+            advance_option = "//*[text()='Advanced']"
+            advance_option_sitem = self.locator_finder_by_xpath(advance_option)
+            advance_option_sitem.click()
+            time.sleep(1)
+
+        print(f"Selecting creation button for {view_name} \n")
+        create = '//*[@id="chakra-modal-3"]/form/footer/div/button[2]'
+        create_sitem = self.locator_finder_by_xpath(create)
+        create_sitem.click()
+        time.sleep(3)
+        self.webdriver.refresh()
+    
     def checking_improved_views_for_v310(self, name, locator, is_cluster):
         """This method will check improved views for v3.10.x"""
         print(f'Checking {name} started \n')
@@ -912,8 +1021,7 @@ class ViewsPage(NavigationBarPage):
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
 
-    
-    def delete_new_views(self, name):
+    def delete_views_310(self, name):
         """this method will delete all the newer version views"""
         self.wait_for_ajax()
         self.select_views_tab()
@@ -958,3 +1066,43 @@ class ViewsPage(NavigationBarPage):
         except Exception:
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
+    
+    def delete_views_312(self, name):
+        """this method will delete all the newer version views > 3.11"""
+        self.select_views_tab()
+        print(f"{name} start deleting \n")
+        try:
+            views = ""
+            if name == "arangosearch_view_3121":
+                views = "//*[text()='arangosearch_view_3121']"
+            elif name == "arangosearch_view_3122":
+                views = "//*[text()='arangosearch_view_3122']"
+            elif name == "search_alias":
+                views = "//*[text()='search_alias']"
+
+            views_sitem = self.locator_finder_by_xpath(views)
+            views_sitem.click()
+            time.sleep(2)
+
+            delete = "(//button[normalize-space()='Delete'])[1]"
+            delete_sitem = self.locator_finder_by_xpath(delete)
+            delete_sitem.click()
+            time.sleep(2)
+
+            if name == "search_alias":
+                confirm_delete_btn = '//*[@id="chakra-modal-2"]/footer/div/button[2]'
+            else:
+                confirm_delete_btn = "(//button[@class='button-danger'])[1]"
+            confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
+            confirm_delete_btn_sitem.click()
+            time.sleep(2)
+
+            self.webdriver.refresh()
+
+        except TimeoutException:
+            print("TimeoutException occurred! \n")
+            print(f"Info: {name} has already been deleted or never created. \n")
+        except Exception:
+            traceback.print_exc()
+            raise Exception("Critical Error occurred and need manual inspection!! \n")
+

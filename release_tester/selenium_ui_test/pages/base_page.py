@@ -201,8 +201,12 @@ class BasePage:
 
     def query_execution_btn(self):
         """Clicking execute query button"""
-        execute = "executeQuery"
-        execute = self.locator_finder_by_id(execute)
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+            execute = "//*[text()='Execute']"
+            execute = self.locator_finder_by_xpath(execute)
+        else:
+            execute = 'executeQuery'
+            execute = self.locator_finder_by_id(execute)
         execute.click()
         time.sleep(2)
 
