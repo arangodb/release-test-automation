@@ -54,7 +54,7 @@ class NodesPage(NavigationBarPage):
                 for table_column in [1, 2, 3, 4, 5]:
                     table_cell_elm = None
                     if table_column == 5:
-                        table_cell_elm = elm.find_element_by_xpath("div[%d]/div[%d]/i" % (table_row_num, table_column))
+                        table_cell_elm = self.locator_finder_by_xpath("div[%d]/div[%d]/i" % (table_row_num, table_column))
                         try:
                             row[column_names[table_column - 1]] = table_cell_elm.get_attribute("data-original-title")
                         except NoSuchElementException:
@@ -62,7 +62,7 @@ class NodesPage(NavigationBarPage):
                         if row[column_names[table_column - 1]] is None:
                             row[column_names[table_column - 1]] = table_cell_elm.get_property("title")
                     else:
-                        table_cell_elm = elm.webdriver.find_elements(By.XPATH("div[%d]/div[%d]" % (table_row_num, table_column)))
+                        table_cell_elm = self.locator_finder_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
                         row[column_names[table_column - 1]] = table_cell_elm.text
         pretty_table = BeautifulTable(maxwidth=160)
         for row in table:

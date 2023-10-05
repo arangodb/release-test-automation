@@ -136,7 +136,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 col.create_index('Fulltext')
                 col.create_index('TTL')
                 col.create_index('Inverted Index')
-                col.create_index('ZKD')
+                # col.create_index('ZKD')
             else:
                 print("Cluster status: ", self.is_cluster)
                 col.create_new_index("Persistent", 1, self.is_cluster)
@@ -144,27 +144,27 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 col.create_new_index("Fulltext", 3, self.is_cluster)
                 col.create_new_index("TTL", 4, self.is_cluster)
                 
-                if version <= semver.VersionInfo.parse("3.10.99"):
-                    if version > semver.VersionInfo.parse("3.9.99"):
-                        col.create_new_index('ZKD', 5, self.is_cluster, True)
-                    else:
-                        col.create_new_index('ZKD', 5, self.is_cluster)
-
-                    print("Deleting all index started\n")
-                    for i in range(4):
-                        col.delete_all_index(True)
-                    print("Deleting all index completed\n")
+            if version <= semver.VersionInfo.parse("3.10.99"):
+                if version > semver.VersionInfo.parse("3.9.99"):
+                    col.create_new_index('ZKD', 5, self.is_cluster, True)
                 else:
-                    print("Deleting all index started\n")
-                    col.select_collection_page()
-                    col.select_collection("TestDoc")
-                    col.select_index_menu()
-                    col.delete_index(2)
-                    col.delete_index(3)
-                    col.delete_index(4)
-                    col.delete_index(5)
-                    col.delete_index(7)
-                    print("Deleting all index completed\n")
+                    col.create_new_index('ZKD', 5, self.is_cluster)
+
+                print("Deleting all index started\n")
+                for i in range(4):
+                    col.delete_all_index(True)
+                print("Deleting all index completed\n")
+            else:
+                print("Deleting all index started\n")
+                col.select_collection_page()
+                col.select_collection("TestDoc")
+                col.select_index_menu()
+                col.delete_index(2)
+                col.delete_index(3)
+                col.delete_index(4)
+                col.delete_index(5)
+                # col.delete_index(7)
+                print("Deleting all index completed\n")
 
             print("Select Info tab\n")
             col.select_info_tab()

@@ -722,7 +722,7 @@ class GraphPage(NavigationBarPage):
         type5 = self.select_edge_type_id
         type6 = self.select_edge_type_id
 
-        self.webdriver.find_element_by_xpath(tip1).click()
+        self.locator_finder_by_xpath(tip1).click()
         self.scroll(1)
         time.sleep(2)
         restore1 = self.locator_finder_by_xpath(restore1)
@@ -733,7 +733,7 @@ class GraphPage(NavigationBarPage):
         self.locator_finder_by_select(type1, 0)
         time.sleep(5)
 
-        self.webdriver.find_element_by_xpath(tip2).click()
+        self.locator_finder_by_xpath(tip2).click()
         self.scroll(1)
         time.sleep(2)
         restore2 = self.locator_finder_by_xpath(restore2)
@@ -744,7 +744,7 @@ class GraphPage(NavigationBarPage):
         self.locator_finder_by_select(type3, 2)
         time.sleep(5)
 
-        self.webdriver.find_element_by_xpath(tip4).click()
+        self.locator_finder_by_xpath(tip4).click()
         self.scroll(1)
         time.sleep(2)
         restore4 = self.locator_finder_by_xpath(restore4)
@@ -755,7 +755,7 @@ class GraphPage(NavigationBarPage):
         self.locator_finder_by_select(type4, 3)
         time.sleep(5)
 
-        self.webdriver.find_element_by_xpath(tip5).click()
+        self.locator_finder_by_xpath(tip5).click()
         self.scroll(1)
         time.sleep(2)
         restore5 = self.locator_finder_by_xpath(restore5)
@@ -766,7 +766,7 @@ class GraphPage(NavigationBarPage):
         self.locator_finder_by_select(type5, 4)
         time.sleep(5)
 
-        self.webdriver.find_element_by_xpath(tip6).click()
+        self.locator_finder_by_xpath(tip6).click()
         self.scroll(1)
         time.sleep(2)
         restore6 = self.locator_finder_by_xpath(restore6)

@@ -10,6 +10,7 @@ from allure_commons.types import AttachmentType
 from selenium.common.exceptions import InvalidSessionIdException
 from semver import VersionInfo
 
+from selenium.webdriver.common.by import By
 from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -181,7 +182,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name("body")
+                elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
                 screenshot = elmnt.screenshot_as_png()
             else:
                 self.progress("taking screenshot")
