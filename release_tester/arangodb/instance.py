@@ -34,7 +34,9 @@ LOG_BLACKLIST = [
     "2c0c6",  # -> extended names
     "de8f3",  # -> extended names
 ]
-
+FATAL_BLACKLIST = [
+    "11ca3",  # -> SIGTERM received during shutdown sequence
+]
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
 IS_WINDOWS = bool(platform.win32_ver()[0])
@@ -393,7 +395,12 @@ class Instance(ABC):
 
     def is_line_fatal(self, line):
         """it returns true if the line from logs should be printed"""
-        return "FATAL" in line or "{crash}" in line
+        if "FATAL" in line or "{crash}" in line:
+            for blacklist_item in FATAL_BLACKLIST:
+                if blacklist_item in line:
+                    return True
+        return False
+
 
     def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""

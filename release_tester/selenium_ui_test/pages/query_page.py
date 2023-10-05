@@ -156,7 +156,7 @@ RETURN c
     def explain_query(self):
         """Explaining query"""
         self.wait_for_ajax()
-        self.driver.refresh()
+        self.webdriver.refresh()
         explain_query_sitem = self.locator_finder_by_id(self.explain_query_id)
         explain_query_sitem.click()
         time.sleep(2)

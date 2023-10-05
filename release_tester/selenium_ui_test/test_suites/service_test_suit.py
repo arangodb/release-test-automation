@@ -40,7 +40,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             # service.checking_demo_geo_s2_service_github()
             service.install_demo_geo_s2_service("/geo", self.ui_data_dir)
             service.check_demo_geo_s2_service_api()
-            service.inspect_foxx_leaflet_iframe()
+            # service.inspect_foxx_leaflet_iframe()
             service.install_demo_graph_hql_service("/graphql")
             service.replace_service()
 

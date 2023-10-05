@@ -5,6 +5,7 @@ import logging
 import re
 import time
 
+from selenium.webdriver.common.by import By
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from reporting.reporting_utils import step
@@ -123,7 +124,7 @@ class SeleniumRunner(ABC):
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name("body")
+                elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
                 screenshot = elmnt.screenshot_as_png()
             else:
                 self.progress("taking screenshot")

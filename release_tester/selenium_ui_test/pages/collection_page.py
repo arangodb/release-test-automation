@@ -542,6 +542,12 @@ class CollectionPage(NavigationBarPage):
         # Perform a click action
         actions.click().perform()
     
+    def select_testdoc_collection(self):
+        print('Selecting TestDoc Collection \n')
+        select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
+        select_doc_collection_sitem.click()
+        time.sleep(1)
+    
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         print(f"Creating {index_name} index started \n")
@@ -670,11 +676,9 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
 
             if self.current_package_version() > semver.VersionInfo.parse("3.11.0"):
-                general_name_sitem = self.locator_finder_by_id('name')
+                self.locator_finder_by_xpath("//*[text()='Name']").click()
             else:
-                general_name = "//*[text()='Name']"
-            general_name_sitem = self.locator_finder_by_xpath(general_name)
-            general_name_sitem.click()
+                self.locator_finder_by_xpath("//*[text()='Name']").click()
             action.send_keys('Inverted').perform()
             time.sleep(1)
 
@@ -811,31 +815,38 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
 
         else:
-            self.navbar_goto("collections")
-            print("Selecting computed values collections. \n")
-            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
-            self.locator_finder_by_xpath(col).click()
-            time.sleep(1)
+            try:
+                self.navbar_goto("collections")
+                print("Selecting computed values collections. \n")
+                col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+                self.locator_finder_by_xpath(col).click()
+                time.sleep(1)
 
-            self.select_index_menu()
+                self.select_index_menu()
 
-            create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
-            create_new_index_btn_sitem.click()
-            time.sleep(2)
+                create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
+                create_new_index_btn_sitem.click()
+                time.sleep(2)
 
-            print('ZKD Index (EXPERIMENTAL)')
-            zkd_field = "/html//input[@id='fields']"
-            zkd_field = self.locator_finder_by_xpath(zkd_field)
-            zkd_field.click()
-            zkd_field.send_keys('x,y')
+                print('ZKD Index (EXPERIMENTAL)')
+                zkd_field = "/html//input[@id='fields']"
+                zkd_field = self.locator_finder_by_xpath(zkd_field)
+                zkd_field.click()
+                zkd_field.send_keys('x,y')
 
-            # selecting ZKD index's name
-            zkd_name = "/html//input[@id='name']"
-            zkd_name_sitem = self.locator_finder_by_xpath(zkd_name)
-            zkd_name_sitem.click()
-            zkd_name_sitem.send_keys(index_name)
-
-
+                # selecting ZKD index's name
+                zkd_name = "/html//input[@id='name']"
+                zkd_name_sitem = self.locator_finder_by_xpath(zkd_name)
+                zkd_name_sitem.click()
+                zkd_name_sitem.send_keys(index_name)
+            except Exception as e:
+                print(e)
+                # retry
+                self.webdriver.refresh()
+                self.create_index('ZKD')
+            finally:
+                pass
+    
         # create the index
         create_btn = "//*[text()='Create']"
         create_btn_sitem = self.locator_finder_by_xpath(create_btn)
@@ -995,7 +1006,7 @@ class CollectionPage(NavigationBarPage):
             print("Trying again to delete the inverted index")
             self.driver.refresh()
             self.select_collection_page()
-            self.select_doc_collection()
+            self.select_testdoc_collection()
             self.select_index_menu()
             self.delete_index(3)
 
@@ -1091,7 +1102,10 @@ class CollectionPage(NavigationBarPage):
         """ Testing computed value feature for v3.10.x"""
         self.navbar_goto("collections")
         print("Selecting computed values collections. \n")
-        col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
+            col = "//*[text()='ComputedValueCol']"
+        else:
+            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
 

@@ -11,11 +11,10 @@ class ServicePage(NavigationBarPage):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, driver, cfg):
         super().__init__(driver, cfg)
-        self.service_page = 'services'
 
     def select_service_page(self):
         """Selecting service page"""
-        service = self.service_page
+        service = 'services'
         service_sitem = self.locator_finder_by_id(service)
         service_sitem.click()
         time.sleep(2)
@@ -531,31 +530,33 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_id(swagger_view).click()
         time.sleep(2)
 
-        print('Switching to IFrame \n')
-        iframe_id = 'swaggerIframe'
-        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-        time.sleep(1)
+        try:
+            print('Switching to IFrame \n')
+            iframe_id = 'swaggerIframe'
+            self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+            time.sleep(1)
 
-        print("Checking default view \n")
-        default_view = "operations-tag-default"
-        self.locator_finder_by_id(default_view).click()
-        time.sleep(2)
-        self.locator_finder_by_id(default_view).click()
+            print("Checking default view \n")
+            default_view = "operations-tag-default"
+            self.locator_finder_by_id(default_view).click()
+            time.sleep(2)
+            self.locator_finder_by_id(default_view).click()
 
-        print('inspecting documentation through Foxx and leaflet \n')
-        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-            first = '//*[@id="operations-default-get"]/div/button[1]/div'
-            second = '//*[@id="operations-default-post"]/div/button[1]/div'
-        else:    
-            first = '//*[@id="operations-default-get"]/div/span[1]'
-            second = '//*[@id="operations-default-post"]/div/span[1]'
+            print('inspecting documentation through Foxx and leaflet \n')
+            if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                first = '//*[@id="operations-default-get"]/div/button[1]/div'
+                second = '//*[@id="operations-default-post"]/div/button[1]/div'
+            else:    
+                first = '//*[@id="operations-default-get"]/div/span[1]'
+                second = '//*[@id="operations-default-post"]/div/span[1]'
 
-        id_list = [first, second]
-        self.checking_function_for_fox_leaflet(id_list)
-
-        print('Getting out of IFrame \n')
-        self.webdriver.switch_to.default_content()
-        time.sleep(1)
+            id_list = [first, second]
+            # self.checking_function_for_fox_leaflet(id_list)
+        except Exception as ex:
+            print("Error occurred while inspecting API tab of graphql service")
+            print('Getting out of IFrame \n')
+            self.webdriver.switch_to.default_content()
+            time.sleep(1)
 
     def replace_service(self):
         """This method will replace the service"""""

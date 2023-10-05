@@ -156,10 +156,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     print("Deleting all index completed\n")
                 else:
                     print("Deleting all index started\n")
-                    collection = "collections"
-                    collection_sitem = self.locator_finder_by_id(collection)
-                    collection_sitem.click()
-
+                    col.select_collection_page()
                     col.select_collection("TestDoc")
                     col.select_index_menu()
                     col.delete_index(2)
