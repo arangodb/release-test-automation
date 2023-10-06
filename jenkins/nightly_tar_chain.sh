@@ -82,7 +82,7 @@ docker run -d \
   -v $(pwd)/test_dir/miniodata:/data \
   -e "MINIO_ROOT_USER=minio" \
   -e "MINIO_ROOT_PASSWORD=minio123" \
-  quay.io/minio/minio server /data --console-address ":9001"
+  quay.io/minio/minio server /data --console-address ":9001" || exit 1
 
 echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
 echo "Setting maximum number of memory mappings per process to: $((`nproc`*8*8000))"

@@ -89,7 +89,7 @@ docker run -d \
   -v "$(pwd)/test_dir/miniodata:/data" \
   -e "MINIO_ROOT_USER=minio" \
   -e "MINIO_ROOT_PASSWORD=minio123" \
-  quay.io/minio/minio server /data --console-address ":9001"
+  quay.io/minio/minio server /data --console-address ":9001" || exit 1
 
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
