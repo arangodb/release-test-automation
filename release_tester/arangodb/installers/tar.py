@@ -70,7 +70,10 @@ class InstallerTAR(InstallerArchive):
         print(self.desc)
         self.debug_package = None
 
-        self.server_package = "arangodb3{ep}-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
+        if self.supports_server():
+            self.server_package = "arangodb3{ep}-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
+        else:
+            self.server_package = None
         self.client_package = "arangodb3{ep}-client-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
         self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
         self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
