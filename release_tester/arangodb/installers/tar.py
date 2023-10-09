@@ -67,6 +67,7 @@ class InstallerTAR(InstallerArchive):
             "dashus": self.dash,
             "ext": self.extension,
         }
+        self.reset_version(version)
         print(self.desc)
         self.debug_package = None
 
