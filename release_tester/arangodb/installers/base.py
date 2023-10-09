@@ -193,7 +193,7 @@ class BinaryDescription:
         """check whether the file exists and is a symlink (if)"""
         for link in self.symlink:
             if not link.is_symlink():
-                Exception("{0} is not a symlink".format(str(link)))
+                raise Exception("{0} is not a symlink".format(str(link)))
 
 
 ### main class
@@ -250,19 +250,22 @@ class InstallerBase(ABC):
     def copy_binaries(self):
         """store arangod binary for probable later analysis"""
         eps = "E_" if self.cfg.enterprise else ""
-        self.backup_arangod_name = str(self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}")
-        arangod_src = str(self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}")
-        if not self.backup_arangod_name in self.arangods:
+        self.backup_arangod_name = self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}"
+        arangod_src = self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}"
+        if not str(self.backup_arangod_name) in self.arangods:
             self.arangods.append(self.backup_arangod_name)
-            print("copying " + arangod_src + " to " + self.backup_arangod_name)
-            shutil.copy(arangod_src, self.backup_arangod_name)
+            print("copying " + str(arangod_src) + " to " + str(self.backup_arangod_name))
+            shutil.copy(str(arangod_src), str(self.backup_arangod_name))
 
     @step
     def get_arangod_binary(self, target_dir):
         """adding arangod binary to report tarball"""
         print(f"copying {self.backup_arangod_name} => {target_dir}")
         if self.backup_arangod_name is not None:
-            shutil.copy(self.backup_arangod_name, target_dir)
+            if self.backup_arangod_name.exists():
+                shutil.copy(str(self.backup_arangod_name), target_dir)
+            else:
+                print(f"{str(self.backup_arangod_name)} is not there")
 
     @step
     def un_install_server_package(self):
