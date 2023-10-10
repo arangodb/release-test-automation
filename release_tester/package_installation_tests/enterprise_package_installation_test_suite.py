@@ -39,6 +39,9 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         BasePackageInstallationTestSuite.client_package_is_not_present,
         "Test case is skipped because client package is not present for given installer type.",
     )
+    disable_for_dmg = disable_if_returns_true_at_runtime(
+        BasePackageInstallationTestSuite.is_dmg, "This test case is not applicable to DMG packages."
+    )
 
     @disable_for_debian_bts_684
     @disable_for_windows
@@ -122,6 +125,7 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         check_if_client_package_can_be_installed_over_server_package(self.new_inst_e, self.new_inst_e, False)
 
     @disable_if_client_package_is_not_present
+    @disable_for_dmg
     @testcase
     def test10(self):
         """Check that enterprise client package can be installed/uninstalled."""

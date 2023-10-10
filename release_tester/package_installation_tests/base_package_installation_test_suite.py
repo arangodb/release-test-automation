@@ -11,6 +11,7 @@ from test_suites_core.base_test_suite import (
     run_after_suite,
     run_after_each_testcase,
     collect_crash_data,
+    os_is_mac,
 )
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 
@@ -47,6 +48,10 @@ class BasePackageInstallationTestSuite(CliStartedTestSuite):
     # pylint: disable=missing-function-docstring
     def is_zip(self):
         return self.zip_package
+
+    # pylint: disable=missing-function-docstring
+    def is_dmg(self) -> bool:
+        return os_is_mac() and not self.is_zip()
 
     # pylint: disable=missing-function-docstring
     def client_package_is_present(self) -> bool:
