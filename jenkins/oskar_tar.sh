@@ -48,7 +48,7 @@ rm -rf test_dir/miniodata/home/test_dir/*
 mkdir -p allure-results
 
 
-DOCKER_TAR_NAME=release-test-automation-tar
+DOCKER_TAR_NAME=release-test-automation-tar-oskar
 
 DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
 
@@ -66,7 +66,7 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}"; then
     echo "using ready built container"
 else
-    docker build "containers/docker_tar${ARCH}" -t "${DOCKER_TAR_TAG}" || exit
+    docker build "containers/docker_tar_oskar${ARCH}" -t "${DOCKER_TAR_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
 
@@ -89,7 +89,7 @@ docker run -d \
   -v "$(pwd)/test_dir/miniodata:/data" \
   -e "MINIO_ROOT_USER=minio" \
   -e "MINIO_ROOT_PASSWORD=minio123" \
-  quay.io/minio/minio server /data --console-address ":9001"
+  quay.io/minio/minio server /data --console-address ":9001" || exit 1
 
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
@@ -123,6 +123,7 @@ docker run \
        --env="AWS_REGION=$AWS_REGION" \
        --env="AWS_ACL=$AWS_ACL" \
        --env="BASE_DIR=/oskar" \
+       --env='LSAN_OPTIONS=suppressions=/oskar/work/ArangoDB/lsan_arangodb_suppressions.txt:print_suppressions=0' \
        \
        --network=minio-bridge \
        --name="${DOCKER_TAR_NAME}" \
