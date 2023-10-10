@@ -44,8 +44,8 @@ class BinaryDescription:
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
         self.stripped = strip
-        self.version_min = vmin
-        self.version_max = vmax
+        self.version_min =  semver.VersionInfo.parse(vmin)
+        self.version_max =  semver.VersionInfo.parse(vmax)
         self.symlink = sym
         self.binary_type = binary_type
 
@@ -94,14 +94,13 @@ class BinaryDescription:
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
         """check all attributes of this file in reality"""
-        if check_notarized:
-            self._validate_notarization(enterprise)
         attach(str(self), "file info")
-        if semver.compare(self.version_min, version) == 1:
+        if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
+        if check_notarized:
+            self._validate_notarization(enterprise)
         self.check_path(enterprise)
-
         if not enterprise and self.enterprise:
             # checks do not need to continue in this case
             return
@@ -712,7 +711,7 @@ class InstallerBase(ABC):
         for binary in self.arango_binaries:
             progress("S" if binary.stripped else "s")
             binary.check_installed(
-                self.cfg.version, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized
+                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
