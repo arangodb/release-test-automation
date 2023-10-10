@@ -232,7 +232,7 @@ class InstallerBase(ABC):
         self.copy_for_result = True
 
     def supports_server(self):
-        return not IS_MAC or self.semver >= semver.VersionInfo.parse("3.11.0")
+        return not IS_MAC or self.semver < semver.VersionInfo.parse("3.11.0")
 
     def reset_version(self, version):
         """re-configure the version we work with"""
