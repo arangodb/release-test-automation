@@ -121,7 +121,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         """Check that new enterprise client package cannot be installed when server package is installed"""
         check_if_client_package_can_be_installed_over_server_package(self.new_inst_e, self.new_inst_e, False)
 
-    @disable_for_mac
     @disable_if_client_package_is_not_present
     @testcase
     def test10(self):
