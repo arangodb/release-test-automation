@@ -123,7 +123,10 @@ docker run \
        --env="AWS_REGION=$AWS_REGION" \
        --env="AWS_ACL=$AWS_ACL" \
        --env="BASE_DIR=/oskar" \
-       --env='LSAN_OPTIONS=suppressions=/oskar/work/ArangoDB/lsan_arangodb_suppressions.txt:print_suppressions=0' \
+       --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
+       --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
+       --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
+       --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
        \
        --network=minio-bridge \
        --name="${DOCKER_TAR_NAME}" \
