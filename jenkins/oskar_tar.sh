@@ -160,7 +160,7 @@ docker run \
        -v "$(pwd)/../../:/oskar" \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/* /oskar/work/*
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/ /oskar/work/
 
 docker run \
        -v /tmp/tmp:/tmp/ \
