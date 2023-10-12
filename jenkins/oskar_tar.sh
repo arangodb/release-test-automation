@@ -40,7 +40,6 @@ else
     force_arg+=(--remote-host 172.17.4.0)
 fi
 
-VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
@@ -99,15 +98,16 @@ if test ! -d "${ALLURE_DIR}"; then
     mkdir -p "${ALLURE_DIR}"
 fi
 
-echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
-echo "Setting maximum number of memory mappings per process to: $((`nproc`*8*8000))"
-sudo sysctl -w "vm.max_map_count=$((`nproc`*8*8000))"
-echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
+echo "Maximum number of memory mappings per process is: $(cat /proc/sys/vm/max_map_count)"
+echo "Setting maximum number of memory mappings per process to: $(($(nproc)*8*8000))"
+sudo sysctl -w "vm.max_map_count=$(($(nproc)*8*8000))"
+echo "Maximum number of memory mappings per process is: $(cat /proc/sys/vm/max_map_count)"
 
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
        -v "$(pwd)/../../:/oskar" \
+       -v "$(pwd)/../:/work" \
        -v "$(pwd):/home/release-test-automation" \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$ALLURE_DIR:/home/allure-results" \
@@ -157,9 +157,10 @@ docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$ALLURE_DIR:/home/allure-results" \
        -v "$(pwd)/test_dir/miniodata:/data" \
+       -v "$(pwd)/../../:/oskar" \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
+       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/* /oskar/work/*
 
 docker run \
        -v /tmp/tmp:/tmp/ \
@@ -167,7 +168,16 @@ docker run \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        rm -f /tmp/config.yml 
 
-if [ `ls -1 "$(pwd)/test_dir/core"* 2>/dev/null | wc -l ` -gt 0 ]; then
+if [ "$(find "$(pwd)/../" -name "*san*.log*" | wc -l )" -gt 0 ]; then
+    7z a sanlogs "$(pwd)/../*san*.log*"
+    printf "\nSan logs found after testrun:\n $(ls -l "$(pwd)/../"*san*.log*)\n" >> "$(pwd)/test_dir/testfailures.txt"
+    rm -f "$(pwd)/../"*san*.log*
+    mv sanlogs.7z "$(pwd)/test_dir/"
+    echo "FAILED BY SAN-LOGS FOUND!"
+    exit 1
+fi
+
+if [ "$(find "$(pwd)/test_dir/" -name "core*" | wc -l )" -gt 0 ]; then
     7z a coredumps "$(pwd)/test_dir/core*"
     printf "\nCoredumps found after testrun:\n $(ls -l "$(pwd)/test_dir/core"*)\n" >> "$(pwd)/test_dir/testfailures.txt"
     rm -f "$(pwd)/test_dir/core"*
