@@ -3,7 +3,6 @@
 # pylint: disable=too-many-lines
 from abc import abstractmethod, ABC
 import copy
-import datetime
 import json
 import logging
 import os
@@ -782,7 +781,7 @@ class Runner(ABC):
                 if not self.cfg.verbose:
                     print(exc.execution_result[1])
                 self.ask_continue_or_exit(
-                    "check_data has data failed for {0.name}".format(self), exc.execution_result[1], False, exc
+                    f"check_data has data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
                 )
 
     @step
@@ -908,10 +907,7 @@ class Runner(ABC):
                 continue
             assert starter.hb_instance, "upload backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
-            return starter.hb_instance.upload_status(name,
-                                                     hb_id,
-                                                     self.backup_instance_count,
-                                                     timeout=timeout)
+            return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count, timeout=timeout)
         raise Exception("no frontend found.")
 
     @step
@@ -966,8 +962,8 @@ class Runner(ABC):
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
             if self.cfg.log_dir.exists():
-                logfile = self.cfg.log_dir / 'arangod.log'
-                targetfile = self.cfg.base_test_dir / self.basedir / 'arangod.log'
+                logfile = self.cfg.log_dir / "arangod.log"
+                targetfile = self.cfg.base_test_dir / self.basedir / "arangod.log"
                 if logfile.exists():
                     print(f"copying {str(logfile)} => {str(targetfile)} so it can be in the report")
                     shutil.copyfile(str(logfile), str(targetfile))
@@ -996,7 +992,7 @@ class Runner(ABC):
                 del os.environ["TMPDIR"]
 
     def _set_logging(self, instance_type):
-        """ turn on logging for all of instance_type """
+        """turn on logging for all of instance_type"""
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
                 instance_type,
@@ -1004,6 +1000,7 @@ class Runner(ABC):
                 "/_admin/log/level",
                 '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
+
     @step
     def agency_set_debug_logging(self):
         """turns on logging on the agency"""

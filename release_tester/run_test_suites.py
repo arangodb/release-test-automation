@@ -22,6 +22,7 @@ def main(**kwargs):
     """main"""
     kwargs["interactive"] = False
     kwargs["abort_on_error"] = False
+    kwargs["monitoring"] = False
     kwargs["package_dir"] = Path(kwargs["package_dir"])
     kwargs["test_data_dir"] = Path(kwargs["test_data_dir"])
     kwargs["alluredir"] = Path(kwargs["alluredir"])

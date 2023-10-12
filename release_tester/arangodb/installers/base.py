@@ -44,8 +44,8 @@ class BinaryDescription:
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
         self.stripped = strip
-        self.version_min = vmin
-        self.version_max = vmax
+        self.version_min =  semver.VersionInfo.parse(vmin)
+        self.version_max =  semver.VersionInfo.parse(vmax)
         self.symlink = sym
         self.binary_type = binary_type
 
@@ -94,14 +94,13 @@ class BinaryDescription:
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
         """check all attributes of this file in reality"""
-        if check_notarized:
-            self._validate_notarization(enterprise)
         attach(str(self), "file info")
-        if semver.compare(self.version_min, version) == 1:
+        if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
+        if check_notarized:
+            self._validate_notarization(enterprise)
         self.check_path(enterprise)
-
         if not enterprise and self.enterprise:
             # checks do not need to continue in this case
             return
@@ -193,7 +192,7 @@ class BinaryDescription:
         """check whether the file exists and is a symlink (if)"""
         for link in self.symlink:
             if not link.is_symlink():
-                Exception("{0} is not a symlink".format(str(link)))
+                raise Exception("{0} is not a symlink".format(str(link)))
 
 
 ### main class
@@ -250,19 +249,22 @@ class InstallerBase(ABC):
     def copy_binaries(self):
         """store arangod binary for probable later analysis"""
         eps = "E_" if self.cfg.enterprise else ""
-        self.backup_arangod_name = str(self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}")
-        arangod_src = str(self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}")
-        if not self.backup_arangod_name in self.arangods:
+        self.backup_arangod_name = self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}"
+        arangod_src = self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}"
+        if not str(self.backup_arangod_name) in self.arangods:
             self.arangods.append(self.backup_arangod_name)
-            print("copying " + arangod_src + " to " + self.backup_arangod_name)
-            shutil.copy(arangod_src, self.backup_arangod_name)
+            print("copying " + str(arangod_src) + " to " + str(self.backup_arangod_name))
+            shutil.copy(str(arangod_src), str(self.backup_arangod_name))
 
     @step
     def get_arangod_binary(self, target_dir):
         """adding arangod binary to report tarball"""
         print(f"copying {self.backup_arangod_name} => {target_dir}")
         if self.backup_arangod_name is not None:
-            shutil.copy(self.backup_arangod_name, target_dir)
+            if self.backup_arangod_name.exists():
+                shutil.copy(str(self.backup_arangod_name), target_dir)
+            else:
+                print(f"{str(self.backup_arangod_name)} is not there")
 
     @step
     def un_install_server_package(self):
@@ -706,7 +708,7 @@ class InstallerBase(ABC):
         for binary in self.arango_binaries:
             progress("S" if binary.stripped else "s")
             binary.check_installed(
-                self.cfg.version, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized
+                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
