@@ -52,6 +52,7 @@ class LeaderFollower(Runner):
             "beforeReplJS": (
                 "saving document before",
                 """
+print(process.env);
 db._create("testCollectionBefore");
 db.testCollectionBefore.save({"hello": "world"})
 """,
