@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
+# pylint: disable=too-many-lines
 import datetime
 import json
 import logging
@@ -191,13 +192,23 @@ class Instance(ABC):
     def load_starter_instance_control_file(self):
         """load & parse the <instance_string>_command.txt file of the starter"""
         count = 20
-        while not self.instance_control_file.exists() and count > 0:
+        # Here we check not only for file existance, but also for its size.
+        # The assumption is that if file is bigger than a certain size, it has been written completely.
+        while (
+            not self.instance_control_file.exists()
+            and not self.instance_control_file.stat().st_size > 300
+            and count > 0
+        ):
             count -= 1
             print("Instance control file not yet there?" + str(self.instance_control_file))
             time.sleep(0.5)
 
         if not self.instance_control_file.exists():
             raise FileNotFoundError("Instance control file not found! " + str(self.instance_control_file))
+        if not self.instance_control_file.stat().st_size > 300:
+            raise FileNotFoundError(
+                "Instance control file is smaller than expected! " + str(self.instance_control_file)
+            )
         self.instance_arguments = []
         with self.instance_control_file.open(errors="backslashreplace") as filedesc:
             for line in filedesc.readlines():
@@ -401,7 +412,6 @@ class Instance(ABC):
                     return True
         return False
 
-
     def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""
         count = 0
@@ -415,7 +425,7 @@ class Instance(ABC):
                         if self.is_line_relevant(line):
                             if self.is_line_fatal(line):
                                 if print_lines:
-                                    print(F"FATAL LINE FOUND: {line.rstrip()}")
+                                    print(f"FATAL LINE FOUND: {line.rstrip()}")
                                 return True
                             if self.is_suppressed_log_line(line):
                                 count += 1
@@ -587,7 +597,7 @@ class ArangodInstance(Instance):
                     return
                 elif reply.status_code == 503 and self.instance_type == InstanceType.RESILIENT_SINGLE:
                     body = reply.json()
-                    if 'errorNum' in body and body['errorNum'] == 1495:
+                    if "errorNum" in body and body["errorNum"] == 1495:
                         print("Leadership challenge ongoin, prolonging timeout")
                         until += timeout / 10
                 print(f'{self.get_local_url("")} got {reply} - {reply.content}')
@@ -885,8 +895,10 @@ class SyncInstance(Instance):
             else:
                 logfile_parameter_raw = self.logfile_parameter.split("=")[1]
         except IndexError as ex:
-            print(f"""{self} - failed to extract the logfile parameter from:
-            {self.logfile_parameter} - {self.instance_arguments}""")
+            print(
+                f"""{self} - failed to extract the logfile parameter from:
+            {self.logfile_parameter} - {self.instance_arguments}"""
+            )
             raise ex
 
         # wait till the process has startet writing its logfile:
@@ -938,27 +950,27 @@ class SyncInstance(Instance):
 
     def is_line_relevant(self, line):
         """it returns true if the line from logs should be printed"""
-        #return False# TODO: GT-472
-        #if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
+        # return False# TODO: GT-472
+        # if "|FATAL|" in line or "|ERRO|" in line or "|WARN|" in line:
         #    # logs from arangosync v1
         #    return True
-        #if " FTL " in line or " ERR " in line or " WRN " in line or 'panic:' in line:
+        # if " FTL " in line or " ERR " in line or " WRN " in line or 'panic:' in line:
         #    # logs from arangosync v2
         #    return True
         #
-        #return False
+        # return False
 
     def is_line_fatal(self, line):
         """it returns true if the line from logs should be printed"""
-        return False# TODO: GT-472
-        #if "|FATAL|" in line:
+        return False  # TODO: GT-472
+        # if "|FATAL|" in line:
         #    # logs from arangosync v1
         #    return True
-        #if " FTL " in line or 'panic:' in line:
+        # if " FTL " in line or 'panic:' in line:
         #    # logs from arangosync v2
         #    return True
         #
-        #return False
+        # return False
 
     def get_public_plain_url(self):
         """get the public connect URL"""
