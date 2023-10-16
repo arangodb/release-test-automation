@@ -3,7 +3,6 @@
 # pylint: disable=too-many-lines
 from abc import abstractmethod, ABC
 import copy
-import datetime
 import json
 import logging
 import os
@@ -782,7 +781,7 @@ class Runner(ABC):
                 if not self.cfg.verbose:
                     print(exc.execution_result[1])
                 self.ask_continue_or_exit(
-                    "check_data has data failed for {0.name}".format(self), exc.execution_result[1], False, exc
+                    f"check_data has data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
                 )
 
     @step
