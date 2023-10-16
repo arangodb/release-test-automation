@@ -52,6 +52,7 @@ class LeaderFollower(Runner):
             "beforeReplJS": (
                 "saving document before",
                 """
+print(process.env);
 db._create("testCollectionBefore");
 db.testCollectionBefore.save({"hello": "world"})
 """,
@@ -346,6 +347,7 @@ process.exit(0);
         prompt_user(self.cfg, "please test the installation.")
         if self.selenium:
             self.selenium.test_jam_attempt()
+        raise Exception('blarg')
 
     @step
     def shutdown_impl(self):

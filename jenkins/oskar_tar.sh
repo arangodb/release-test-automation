@@ -103,6 +103,12 @@ echo "Setting maximum number of memory mappings per process to: $(($(nproc)*8*80
 sudo sysctl -w "vm.max_map_count=$(($(nproc)*8*8000))"
 echo "Maximum number of memory mappings per process is: $(cat /proc/sys/vm/max_map_count)"
 
+docker run \
+       -v "$(pwd)/../:/work" \
+       --rm \
+       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
+       cat /work/ArangoDB/tsan_arangodb_suppressions.txt
+
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
