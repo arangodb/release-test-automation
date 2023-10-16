@@ -144,6 +144,389 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
+    
+    def checking_created_collections_for_312(self, collection_name):
+        """selecting collection tab"""
+        select_collection_page_sitem = self.locator_finder_by_id(
+            self.select_collection_page_id
+        )
+        select_collection_page_sitem.click()
+        time.sleep(1)
+
+        reset = "//*[text()='Reset']"
+        reset_stiem = self.locator_finder_by_xpath(reset)
+        reset_stiem.click()
+        time.sleep(1)
+
+        filters = "//*[text()='Filters']"
+        filters_stiem = self.locator_finder_by_xpath(filters)
+        filters_stiem.click()
+        time.sleep(1)
+
+        # selecting add_filter
+        add_filter = "(//button[@id='menu-button-8'])[1]"
+        add_filter_stiem = self.locator_finder_by_xpath(add_filter)
+        add_filter_stiem.click()
+        time.sleep(1)
+
+        # selecting name filter from the filter type
+        name_filter = "(//button[normalize-space()='Name'])[1]"
+        name_filter_stiem = self.locator_finder_by_xpath(name_filter)
+        name_filter_stiem.click()
+        time.sleep(1)
+
+        # selecting name filter search input field
+        selecting_search_input = "(//input[@id='name'])[1]"
+        selecting_search_input_stiem = self.locator_finder_by_xpath(
+            selecting_search_input
+        )
+        selecting_search_input_stiem.click()
+        time.sleep(1)
+        selecting_search_input_stiem.clear()
+        selecting_search_input_stiem.send_keys('knows')
+
+        if collection_name == "knows_graph":
+            knows_collection = "(//a[normalize-space()='knows'])[1]"
+            knows_collection_sitem = self.locator_finder_by_xpath(knows_collection)
+            # knows_collection_sitem.click()
+
+            expected_title = "knows"
+            try:
+                assert expected_title == knows_collection_sitem.text, f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
+            except AssertionError as ex:
+                print(f'Assertion Error occurred! for {expected_title}\n')
+    
+    
+    def create_example_graph_for_312(self, graph_name):
+        """Creating example graphs"""
+        self.select_graph_page()
+
+        select_graph = "//*[text()='Add graph']"
+        select_graph = self.locator_finder_by_xpath(self, select_graph)
+        select_graph.click()
+        time.sleep(1)
+        # Selecting example graph button
+        example_btn = "//*[text()='Examples']"
+        example_btn_sitem = self.locator_finder_by_xpath(example_btn)
+        example_btn_sitem.click()
+        time.sleep(1)
+
+        if graph_name == "Knows Graph":
+            self.select_knows_graph_id = self.locator_finder_by_xpath(
+                self.select_knows_graph_id
+            )
+            self.select_knows_graph_id.click()
+
+            print(f"Checking required collections created for {graph_name}\n")
+            self.checking_created_collections_for_312('knows_graph')
+
+        elif graph_name == 2:
+            self.select_traversal_graph_id = self.locator_finder_by_xpath(
+               self.select_traversal_graph_id
+            )
+            self.select_traversal_graph_id.click()
+        elif graph_name == 3:
+            self.select_k_shortest_path_id = self.locator_finder_by_xpath(
+               self.select_k_shortest_path_id
+            )
+            self.select_k_shortest_path_id.click()
+        elif graph_name == 4:
+            self.select_maps_graph_id = self.locator_finder_by_xpath(
+               self.select_maps_graph_id
+            )
+            self.select_maps_graph_id.click()
+        elif graph_name == 5:
+            self.select_world_graph_id = self.locator_finder_by_xpath(
+               self.select_world_graph_id
+            )
+            self.select_world_graph_id.click()
+        elif graph_name == 6:
+            self.select_social_graph_id = self.locator_finder_by_xpath(
+               self.select_social_graph_id
+            )
+            self.select_social_graph_id.click()
+        elif graph_name == 7:
+            self.select_city_graph_id = self.locator_finder_by_xpath(
+               self.select_city_graph_id
+            )
+            self.select_city_graph_id.click()
+        elif graph_name == 8:
+            self.select_connected_component_graph_id = (
+                self.locator_finder_by_xpath(
+                   self.select_connected_component_graph_id
+                )
+            )
+            self.select_connected_component_graph_id.click()
+        else:
+            print("Invalid Graph\n")
+        time.sleep(2)
+    
+    def checking_created_collections(self, graph_name):
+        """This method will check all the example graphs created collections"""
+        # todo add navigation instead
+        print(f"Checking created collections for {graph_name}")
+        select_collection_page_sitem = self.locator_finder_by_id(
+            self.select_collection_page_id
+        )
+        select_collection_page_sitem.click()
+        time.sleep(1)
+
+        if graph_name == "Knows Graph":
+            knows_collection = '//*[@id="collection_knows"]/div/h5'
+            knows_collection_sitem = self.locator_finder_by_xpath(knows_collection)
+            expected_title = "knows"
+            try:
+                assert (
+                    expected_title == knows_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            person_collection = '//*[@id="collection_persons"]/div/h5'
+            person_collection_sitem = self.locator_finder_by_xpath(person_collection)
+            expected_title = "persons"
+            try:
+                assert (
+                    expected_title == person_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {person_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+        elif graph_name == "Traversal Graph":
+            circle_collection = '//*[@id="collection_circles"]/div/h5'
+            circle_collection_sitem = self.locator_finder_by_xpath(circle_collection)
+            expected_title = "circles"
+            try:
+                assert (
+                    expected_title == circle_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {circle_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            edges_collection = '//*[@id="collection_edges"]/div/h5'
+            edges_collection_sitem = self.locator_finder_by_xpath(edges_collection)
+            expected_title = "edges"
+            try:
+                assert (
+                    expected_title == edges_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {edges_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+        elif graph_name == "k Shortest Paths Graph":
+            connections_collection = '//*[@id="collection_connections"]/div/h5'
+            connections_collection_sitem = self.locator_finder_by_xpath(
+                connections_collection
+            )
+            expected_title = "connections"
+            try:
+                assert (
+                    expected_title == connections_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {connections_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            places_collection = '//*[@id="collection_places"]/div/h5'
+            places_collection_sitem = self.locator_finder_by_xpath(places_collection)
+            expected_title = "places"
+            try:
+                assert (
+                    expected_title == places_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {places_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+        elif graph_name == "Mps Graph":
+            mps_verts_collection = '//*[@id="collection_mps_verts"]/div/h5'
+            mps_verts_collection_sitem = self.locator_finder_by_xpath(
+                mps_verts_collection
+            )
+            expected_title = "mps_verts"
+            try:
+                assert (
+                    expected_title == mps_verts_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {mps_verts_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            mps_edges_collection = '//*[@id="collection_mps_edges"]/div/h5'
+            mps_edges_collection_sitem = self.locator_finder_by_xpath(
+                mps_edges_collection
+            )
+            expected_title = "mps_edges"
+            try:
+                assert (
+                    expected_title == mps_edges_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {mps_edges_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+        elif graph_name == "World Graph":
+            worldVertices_collection = '//*[@id="collection_worldVertices"]/div/h5'
+            worldVertices_collection_sitem = self.locator_finder_by_xpath(
+                worldVertices_collection
+            )
+            expected_title = "worldVertices"
+            try:
+                assert (
+                    expected_title == worldVertices_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {worldVertices_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            worldEdges_collection = '//*[@id="collection_worldEdges"]/div/h5'
+            worldEdges_collection_sitem = self.locator_finder_by_xpath(
+                worldEdges_collection
+            )
+            expected_title = "worldEdges"
+            try:
+                assert (
+                    expected_title == worldEdges_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {worldEdges_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+        elif graph_name == "Social Graph":
+            male_collection = '//*[@id="collection_male"]/div/h5'
+            male_collection_sitem = self.locator_finder_by_xpath(male_collection)
+            expected_title = "male"
+            try:
+                assert (
+                    expected_title == male_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {male_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            female_collection = '//*[@id="collection_female"]/div/h5'
+            female_collection_sitem = self.locator_finder_by_xpath(female_collection)
+            expected_title = "female"
+            try:
+                assert (
+                    expected_title == female_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {female_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            relation_collection = '//*[@id="collection_relation"]/div/h5'
+            relation_collection_sitem = self.locator_finder_by_xpath(
+                relation_collection
+            )
+            expected_title = "relation"
+            try:
+                assert (
+                    expected_title == relation_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {relation_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+        elif graph_name == "City Graph":
+            frenchCity_collection = '//*[@id="collection_frenchCity"]/div/h5'
+            frenchCity_collection_sitem = self.locator_finder_by_xpath(
+                frenchCity_collection
+            )
+            expected_title = "frenchCity"
+            try:
+                assert (
+                    expected_title == frenchCity_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {frenchCity_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            germanCity_collection = '//*[@id="collection_germanCity"]/div/h5'
+            germanCity_collection_sitem = self.locator_finder_by_xpath(
+                germanCity_collection
+            )
+            expected_title = "germanCity"
+            try:
+                assert (
+                    expected_title == germanCity_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {germanCity_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            frenchHighway_collection = '//*[@id="collection_frenchHighway"]/div/h5'
+            frenchHighway_collection_sitem = self.locator_finder_by_xpath(
+                frenchHighway_collection
+            )
+            expected_title = "frenchHighway"
+            try:
+                assert (
+                    expected_title == frenchHighway_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {frenchHighway_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+            germanHighway_collection = '//*[@id="collection_germanHighway"]/div/h5'
+            germanHighway_collection_sitem = self.locator_finder_by_xpath(
+                germanHighway_collection
+            )
+            expected_title = "germanHighway"
+            try:
+                assert (
+                    expected_title == germanHighway_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {germanHighway_collection_sitem.text}"
+            except AssertionError as ex:
+                raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
+
+    
+    def create_example_graph(self, graph_name):
+        """This method will create all the example graphs"""
+        self.webdriver.refresh()
+        self.navbar_goto("graphs")
+        print(f"Creating {graph_name}\n")
+
+        self.locator_finder_by_id(self.select_create_graph_id).click()
+        time.sleep(1)
+        # Selecting example graph button
+        example_btn_sitem = self.locator_finder_by_id(self.select_example_graph_btn_id)
+        example_btn_sitem.click()
+        time.sleep(1)
+
+        if graph_name == "Knows Graph":
+            graph_id = "(//button[@graph-id='knows_graph'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+        elif graph_name == "Traversal Graph":
+            graph_id = "(//button[@graph-id='traversalGraph'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+        elif graph_name == "k Shortest Paths Graph":
+            graph_id = "(//button[@graph-id='kShortestPathsGraph'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+        elif graph_name == "Mps Graph":
+            graph_id = "(//button[@graph-id='mps_graph'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+        elif graph_name == "World Graph":
+            graph_id = "(//button[@graph-id='worldCountry'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+        elif graph_name == "Social Graph":
+            graph_id = "(//button[@graph-id='social'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+
+        elif graph_name == "City Graph":
+            graph_id = "(//button[@graph-id='routeplanner'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+
+        elif graph_name == "Connected Components Graph":
+            graph_id = "(//button[@graph-id='connectedComponentsGraph'])[1]"
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem.click()
+            time.sleep(3)
+            self.checking_created_collections(graph_name)
+    
     # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
@@ -821,6 +1204,46 @@ class GraphPage(NavigationBarPage):
                 if retry > 10:
                     raise exc
                 print("retrying delete " + str(retry))
+    
+    def deleting_example_graphs(self, graph_name):
+        """This method will delete all the example graphs"""
+        self.select_graph_page()
+        self.webdriver.refresh()
+
+        graph_settings_id = ""
+
+        if graph_name == "Knows Graph":
+            graph_settings_id = "(//span[@id='knows_graph_settings'])[1]"
+        elif graph_name == "Traversal Graph":
+            graph_settings_id = "(//span[@id='traversalGraph_settings'])[1]"
+        elif graph_name == "k Shortest Paths Graph":
+            graph_settings_id = "(//span[@id='kShortestPathsGraph_settings'])[1]"
+        elif graph_name == "Mps Graph":
+            graph_settings_id = "(//span[@id='mps_graph_settings'])[1]"
+        elif graph_name == "World Graph":
+            graph_settings_id = "(//span[@id='worldCountry_settings'])[1]"
+        elif graph_name == "Social Graph":
+            graph_settings_id = "(//span[@id='social_settings'])[1]"
+        elif graph_name == "City Graph":
+            graph_settings_id = "(//span[@id='routeplanner_settings'])[1]"
+
+        graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
+        graph_settings_id_sitem.click()
+
+        delete_btn = "(//button[normalize-space()='Delete'])[1]"
+        delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+        delete_btn_stiem.click()
+        time.sleep(1)
+
+        delete_with_collection = "dropGraphCollections"
+        delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+        delete_with_collection_sitem.click()
+        time.sleep(1)
+
+        delete_confirm = "modal-confirm-delete"
+        delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
+        delete_confirm_sitem.click()
+        time.sleep(1)
 
 
 GRAPH_SETS = [
