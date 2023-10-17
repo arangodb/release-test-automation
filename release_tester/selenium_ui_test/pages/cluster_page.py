@@ -29,8 +29,6 @@ class ClusterPage(NavigationBarPage):
                         + "on time %ds inspect screenshot!" % timeout,
                     )
                     elm_accepted = len(elm.text) > 0
-                # elm = self.webdriver.find_element_by_xpath(
-                #   '//*[@id="clusterCoordinators"]')
                 ret["coordinators"] = elm.text
                 elm = self.locator_finder_by_xpath('//*[@id="clusterDBServers"]')
                 ret["dbservers"] = elm.text

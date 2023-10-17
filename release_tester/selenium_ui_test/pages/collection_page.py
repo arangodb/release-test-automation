@@ -323,15 +323,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
 
     def sort_by_type(self):
-        """Sorting collection by type"""
-        # sort_by_type_sitem = self.locator_finder_by_idx(self.sort_by_type_id, 30)
-        # sort_by_type_sitem = sort_by_type_sitem.find_element_by_xpath("./..")
-        # while True:
-        #     try:
-        #         sort_by_type_sitem.click()
-        #         break
-        #     except ElementNotInteractableException:
-        #         time.sleep(1)              
+        """Sorting collection by type"""              
         if self.current_package_version() == semver.VersionInfo.parse("3.8.0"):
             sort_by_type = '//*[@id="collectionsDropdown"]/ul[3]/li[3]/a/label'
             sort_by_type_sitem = self.locator_finder_by_xpath(sort_by_type)
@@ -343,14 +335,6 @@ class CollectionPage(NavigationBarPage):
 
     def sort_by_name(self):
         """Sorting collection by name"""
-        # sort_by_name_sitem = self.locator_finder_by_idx(self.sort_by_name_id)
-        # sort_by_name_sitem = sort_by_name_sitem.find_element_by_xpath("./..")
-        # while True:
-        #     try:
-        #         sort_by_name_sitem.click()
-        #         break
-        #     except ElementNotInteractableException:
-        #         time.sleep(1)
    
         if self.current_package_version() == semver.VersionInfo.parse("3.8.0"):
             name = '//*[@id="collectionsDropdown"]/ul[3]/li[2]/a/label'
@@ -362,11 +346,6 @@ class CollectionPage(NavigationBarPage):
 
     def sort_descending(self):
         """Sorting collection by descending"""
-        # sort_descending_sitem = self.locator_finder_by_idx(self.sort_descending_id)
-        # sort_descending_sitem = sort_descending_sitem.find_element_by_xpath("./..")
-        # sort_descending_sitem.click()
-        # time.sleep(2)
-        
         if self.current_package_version() == semver.VersionInfo.parse("3.8.0"):
             sort_by_descending = '//*[@id="collectionsDropdown"]/ul[3]/li[4]/a/label/i'
             sort_descending_sitem = self.locator_finder_by_xpath(sort_by_descending)
