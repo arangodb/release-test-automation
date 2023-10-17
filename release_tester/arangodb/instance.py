@@ -195,10 +195,8 @@ class Instance(ABC):
         # Here we check not only for file existance, but also for its size.
         # The assumption is that if file is bigger than a certain size, it has been written completely.
         while (
-            not self.instance_control_file.exists()
-            and not self.instance_control_file.stat().st_size > 300
-            and count > 0
-        ):
+            not self.instance_control_file.exists() or not self.instance_control_file.stat().st_size > 300
+        ) and count > 0:
             count -= 1
             print("Instance control file not yet there?" + str(self.instance_control_file))
             time.sleep(0.5)
