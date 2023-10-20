@@ -10,11 +10,6 @@ else
 fi
 
 VERSION=$(cat VERSION.json)
-git status
-GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
-if test -z "$GIT_VERSION"; then
-    GIT_VERSION=$VERSION
-fi
 if test -z "$NEW_VERSION"; then
     NEW_VERSION=3.12.0-src
 fi
@@ -23,15 +18,6 @@ if test -z "${PACKAGE_CACHE}"; then
 fi
 
 force_arg=()
-if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
-  force_arg=(--force)
-fi
-
-if test -n "$SOURCE"; then
-    force_arg+=(--other-source "$SOURCE")
-else
-    force_arg+=(--remote-host 172.17.4.0)
-fi
 
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
@@ -133,12 +119,10 @@ docker run \
           --new-version "${NEW_VERSION}" \
           --src \
           --package-dir /work/ArangoDB \
-          --no-test \
           --do-not-run-test-suites \
           --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
-          --git-version "$GIT_VERSION" \
           "${force_arg[@]}" \
           "${@}"
 result=$?
