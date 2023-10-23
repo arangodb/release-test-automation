@@ -636,7 +636,7 @@ class Runner(ABC):
     @step
     def jam_attempt(self):
         """check resilience of setup by obstructing its instances"""
-        self.progress(True, "{0}{1} - try to jam setup".format(self.versionstr, str(self.name)))
+        self.progress(True, "{0}{1} - try to jam setup ".format(self.versionstr, str(self.name)))
         self.jam_attempt_impl()
         # After attempt of jamming, we have peer for nodeX in setup.json.
         # This peer will brake further updates because this peer is unavailable.
