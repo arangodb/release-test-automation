@@ -36,12 +36,12 @@ class RemoteClient:
         try:
             client = SSHClient()
             client.load_system_host_keys()
-            client.set_missing_host_key_policy(AutoAddPolicy())
+            # client.set_missing_host_key_policy(AutoAddPolicy())
             client.connect(
                 self.host,
                 username=self.user,
                 password=self.password,
-                key_filename=self.ssh_key_filepath,
+                # key_filename=self.ssh_key_filepath,
                 timeout=5000,
             )
             agent.AgentRequestHandler(client.get_transport().open_session())

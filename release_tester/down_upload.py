@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 # pylint: disable=duplicate-code
+import os
 from pathlib import Path
 import sys
 
@@ -44,9 +45,12 @@ def main(**kwargs):
 
     dl_opts = DownloadOptions.from_dict(**kwargs)
     lh.configure_logging(kwargs['verbose'])
+    pw = ''
+    if 'PASSVOID' in os.environ:
+        pw=os.environ['PASSVOID']
     client = RemoteClient(kwargs['push_host'],
                           kwargs['push_user'],
-                          '', # no passvoid!
+                          pw,
                           kwargs['ssh_key_file'],
                           kwargs['upload_path'])
     client.execute_commands([

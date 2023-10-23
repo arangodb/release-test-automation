@@ -41,7 +41,7 @@ FATAL_BLACKLIST = [
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
 IS_WINDOWS = bool(platform.win32_ver()[0])
-
+IS_MAC = bool(platform.mac_ver()[0] != "")
 
 class InstanceType(IntEnum):
     """type of arangod instance"""
@@ -706,6 +706,8 @@ class ArangodInstance(Instance):
         self.pid = 0
         self.ppid = ppid
         tries = 40
+        if IS_MAC:
+            tries *= 4
         t_start = ""
         while self.pid == 0 and tries:
 
