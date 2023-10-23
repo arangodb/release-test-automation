@@ -765,7 +765,7 @@ class Runner(ABC):
                     if self.cfg.verbose:
                         print(exc.execution_result[1])
                     self.ask_continue_or_exit(
-                        "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
+                        f"make_data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
         if not self.has_makedata_data:
