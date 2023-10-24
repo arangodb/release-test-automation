@@ -158,9 +158,11 @@ def upgrade_package_test(
     # STEP 2: Run test for primary version
     if run_test:
         for default_props in EXECUTION_PLAN:
+            print(default_props)
             if default_props.directory_suffix not in editions:
                 continue
             props = copy(default_props)
+            print(props)
             if props.directory_suffix not in editions:
                 continue
 
