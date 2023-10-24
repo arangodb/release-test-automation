@@ -163,10 +163,7 @@ def upgrade_package_test(
             if default_props.directory_suffix not in editions:
                 continue
             props = copy(default_props)
-            print("props")
-            print(props)
             if props.directory_suffix not in editions:
-                print("skip")
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
