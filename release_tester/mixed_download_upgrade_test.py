@@ -274,7 +274,7 @@ def upgrade_package_test(
 
 @click.command()
 @full_common_options
-@matrix_options(test_default_value=False)
+@matrix_options(test_default_value=True)
 @very_common_options()
 @hotbackup_options()
 @common_options(
@@ -282,7 +282,7 @@ def upgrade_package_test(
     support_old=False,
     interactive=False,
     test_data_dir="/home/test_dir",
-    test_suites_default_value=True,
+    test_suites_default_value=False,
 )
 @download_options(default_source="ftp:stage2", other_source=True)
 # fmt: off
