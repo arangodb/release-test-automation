@@ -282,7 +282,7 @@ def upgrade_package_test(
     support_old=False,
     interactive=False,
     test_data_dir="/home/test_dir",
-    test_suites_default_value=False,
+    test_suites_default_value=True,
 )
 @download_options(default_source="ftp:stage2", other_source=True)
 # fmt: off
