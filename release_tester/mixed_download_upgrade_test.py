@@ -157,13 +157,18 @@ def upgrade_package_test(
     params = deepcopy(test_driver.cli_test_suite_params)
     # STEP 2: Run test for primary version
     if run_test:
+        print("running tests")
         for default_props in EXECUTION_PLAN:
+            print("plan: ")
             print(default_props)
             if default_props.directory_suffix not in editions:
+                print("skip")
                 continue
+            print("props")
             props = copy(default_props)
             print(props)
             if props.directory_suffix not in editions:
+                print("skip")
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
@@ -173,6 +178,7 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
+            print("launching test")
             results.append(
                 test_driver.run_test(
                     "all",
