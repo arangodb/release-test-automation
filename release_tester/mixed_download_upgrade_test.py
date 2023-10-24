@@ -131,7 +131,7 @@ def upgrade_package_test(
                         fresh_versions,
                         git_version,
                     )
-                    packages[version_name] = ver[props.directory_suffix]
+                    packages[version_name] = ver
                     continue
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
