@@ -273,7 +273,7 @@ class TestDriver:
                                     testcase.context.status = Status.PASSED
                                 except Exception as ex:
                                     one_result["success"] = False
-                                    one_result["messages"].append(str(ex))
+                                    one_result["messages"].append('\n' + str(ex))
                                     one_result["progress"] += runner.get_progress()
                                     runner.take_screenshot()
                                     if runner.agency:
@@ -290,7 +290,7 @@ class TestDriver:
                                     )
                                     if self.abort_on_error:
                                         raise ex
-                                    one_result["progress"] += str(ex) + "".join(
+                                    one_result["progress"] += "\n -> " + str(ex) + "\n" + "".join(
                                         traceback.TracebackException.from_exception(ex).format()
                                     )
                                     traceback.print_exc()
