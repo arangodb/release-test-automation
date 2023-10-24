@@ -131,6 +131,7 @@ def upgrade_package_test(
                         fresh_versions,
                         git_version,
                     )
+                    packages[version_name] = ver[props.directory_suffix]
                     continue
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
@@ -159,13 +160,10 @@ def upgrade_package_test(
     if run_test:
         print("running tests")
         for default_props in EXECUTION_PLAN:
-            print("plan: ")
-            print(default_props)
             if default_props.directory_suffix not in editions:
-                print("skip")
                 continue
-            print("props")
             props = copy(default_props)
+            print("props")
             print(props)
             if props.directory_suffix not in editions:
                 print("skip")
