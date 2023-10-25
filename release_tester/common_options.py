@@ -411,6 +411,13 @@ def matrix_options(test_default_value=True):
             default=test_default_value,
             help="Run clean installation test for primary version.",
         )(function)
+        function = click.option(
+            "--upgrade/--no-upgrade",
+            "run_upgrade",
+            is_flag=True,
+            default=test_default_value,
+            help="Run upgrade matrix test for all versions.",
+        )(function)
         return function
 
     return func
