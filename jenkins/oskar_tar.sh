@@ -19,7 +19,7 @@ if test -z "$OLD_VERSION"; then
     OLD_VERSION=3.11.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.12.0-src
+    NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
@@ -39,7 +39,16 @@ if test -n "$SOURCE"; then
 else
     force_arg+=(--remote-host 172.17.4.0)
 fi
-
+if test "RUN_TEST"; then
+    force_arg+=(--test)
+else    
+    force_arg+=(--no-test)
+fi
+if test "RUN_UPGRADE"; then
+    force_arg+=(--upgrade)
+else    
+    force_arg+=(--no-upgrade)
+fi
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
