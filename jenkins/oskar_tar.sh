@@ -39,7 +39,16 @@ if test -n "$SOURCE"; then
 else
     force_arg+=(--remote-host 172.17.4.0)
 fi
-
+if test "RUN_TEST"; then
+    force_arg+=(--test)
+else    
+    force_arg+=(--no-test)
+fi
+if test "RUN_UPGRADE"; then
+    force_arg+=(--upgrade)
+else    
+    force_arg+=(--no-upgrade)
+fi
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
