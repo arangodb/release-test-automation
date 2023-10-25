@@ -986,13 +986,16 @@ class CollectionPage(NavigationBarPage):
             delete_confirmation_stiem.click()
             time.sleep(1)
         except TimeoutException as e:
-            print('Something went wrong', e, '\n')
-            print("Trying again to delete the inverted index")
-            self.webdriver.refresh()
-            self.select_collection_page()
-            self.select_testdoc_collection()
-            self.select_index_menu()
-            self.delete_index(3)
+            try:
+                print('Something went wrong', e, '\n')
+                print("Trying again to delete the inverted index")
+                self.webdriver.refresh()
+                self.select_collection_page()
+                self.select_testdoc_collection()
+                self.select_index_menu()
+                self.delete_index(3)
+            except BaseException as e:
+                print('Something went wrong', e, '\n')
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
