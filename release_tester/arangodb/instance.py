@@ -218,7 +218,7 @@ class Instance(ABC):
                 if line.startswith("#"):
                     continue
                 line = line.rstrip().rstrip(" \\")
-                if line.search('build/bin') > 0:
+                if line.find('build/bin') >= 0:
                     print("Source instance!")
                     self.source_instance = True
                 if len(line) > 0:
