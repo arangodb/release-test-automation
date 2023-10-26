@@ -35,6 +35,10 @@ LOG_BLACKLIST = [
     "2c0c6",  # -> extended names
     "de8f3",  # -> extended names
 ]
+LOG_MAINTAINER_BLACKLIST = [ # if we use the 'source'-Distribution, these are expected:
+    "0458b",  # -> maintainer version binary
+    "bd666",  # -> maintainer version binary
+]
 FATAL_BLACKLIST = [
     "11ca3",  # -> SIGTERM received during shutdown sequence
 ]
@@ -121,6 +125,7 @@ class Instance(ABC):
         self.enterprise = enterprise
         self.logfiles = []
         self.jwt = jwt
+        self.source_instance = False
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
@@ -213,6 +218,9 @@ class Instance(ABC):
                 if line.startswith("#"):
                     continue
                 line = line.rstrip().rstrip(" \\")
+                if line.search('build/bin') > 0:
+                    print("Source instance!")
+                    self.source_instance = True
                 if len(line) > 0:
                     self.analyze_starter_file_line(line)
                     self.instance_arguments.append(line)
@@ -392,6 +400,10 @@ class Instance(ABC):
         for blacklist_item in LOG_BLACKLIST:
             if blacklist_item in line:
                 return True
+        if self.source_instance:
+            for blacklist_item in LOG_MAINTAINER_BLACKLIST:
+                if blacklist_item in line:
+                    return True
         if self.is_system:
             for blacklist_item in LOG_SYSTEM_BLACKLIST:
                 if blacklist_item in line:
