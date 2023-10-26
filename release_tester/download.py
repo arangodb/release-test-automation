@@ -306,7 +306,9 @@ class Download:
     def get_packages(self, force):
         """download all packages for this version from the specified package source"""
         ret = []
-        self.packages = [self.inst.server_package]
+        self.packages = []
+        if self.inst.server_package is not None:
+            self.packages = [self.inst.server_package]
         if self.inst.client_package:
             self.packages.append(self.inst.client_package)
         if self.inst.debug_package:

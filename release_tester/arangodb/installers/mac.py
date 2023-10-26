@@ -206,7 +206,8 @@ class InstallerMac(InstallerBase):
 
         desc = {"ep": enterprise, "cfg": version, "arch": architecture}
 
-        self.server_package = "arangodb3{ep}-{cfg}.{arch}.dmg".format(**desc)
+        if self.supports_server():
+            self.server_package = "arangodb3{ep}-{cfg}.{arch}.dmg".format(**desc)
         self.client_package = None
         self.debug_package = None
 
