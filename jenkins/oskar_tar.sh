@@ -40,14 +40,14 @@ else
     force_arg+=(--remote-host 172.17.4.0)
 fi
 if test "RUN_TEST"; then
-    force_arg+=(--test)
+    force_arg+=(--run-test)
 else    
-    force_arg+=(--no-test)
+    force_arg+=(--no-run-test)
 fi
 if test "RUN_UPGRADE"; then
-    force_arg+=(--upgrade)
+    force_arg+=(--run-upgrade)
 else    
-    force_arg+=(--no-upgrade)
+    force_arg+=(--no-run-upgrade)
 fi
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
