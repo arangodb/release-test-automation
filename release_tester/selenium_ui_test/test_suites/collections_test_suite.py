@@ -150,20 +150,17 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 else:
                     col.create_new_index('ZKD', 5, self.is_cluster)
 
-                print("Deleting all index started\n")
+                print("Deleting all index started for < v3.11.x\n")
                 for i in range(4):
                     col.delete_all_index(True)
                 print("Deleting all index completed\n")
             else:
-                print("Deleting all index started\n")
+                print("Deleting all index started for > v3.11.x\n")
                 col.select_collection_page()
                 col.select_collection("TestDoc")
                 col.select_index_menu()
-                col.delete_index(2)
-                col.delete_index(3)
-                col.delete_index(4)
-                col.delete_index(5)
-                # col.delete_index(7)
+                for index in range(5):
+                    col.delete_index(index)
                 print("Deleting all index completed\n")
 
             print("Select Info tab\n")

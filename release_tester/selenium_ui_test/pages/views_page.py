@@ -1062,7 +1062,7 @@ class ViewsPage(NavigationBarPage):
 
         except TimeoutException as e:
             print('TimeoutException occurred! \n')
-            print('Info: Views has already been deleted or never created. \n')
+            print(f'Info: {name} has already been deleted or never created. \n')
         except Exception:
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')

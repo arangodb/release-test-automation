@@ -82,6 +82,7 @@ def upgrade_package_test(
     git_version,
     editions,
     run_test,
+    run_upgrade,
     run_test_suites,
     test_driver,
 ):
@@ -131,6 +132,7 @@ def upgrade_package_test(
                         fresh_versions,
                         git_version,
                     )
+                    packages[version_name] = ver
                     continue
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
@@ -157,6 +159,7 @@ def upgrade_package_test(
     params = deepcopy(test_driver.cli_test_suite_params)
     # STEP 2: Run test for primary version
     if run_test:
+        print("running tests")
         for default_props in EXECUTION_PLAN:
             if default_props.directory_suffix not in editions:
                 continue
@@ -171,6 +174,7 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
+            print("launching test")
             results.append(
                 test_driver.run_test(
                     "all",
@@ -181,35 +185,36 @@ def upgrade_package_test(
             )
 
     # STEP 3: Run upgrade tests
-    for scenario in upgrade_scenarios:
-        for props in EXECUTION_PLAN:
-            if props.directory_suffix not in editions:
-                continue
-            this_test_dir = test_dir / props.directory_suffix
-            print("Cleaning up" + props.testrun_name)
-            test_driver.run_cleanup(props)
-            test_driver.reset_test_data_dir(this_test_dir)
-            print("Cleanup done")
-            for i in [0, 1]:
-                if scenario[i] in map_versions:
-                    print(f"remapping {scenario[i]} to {map_versions[scenario[i]]}!")
-                    scenario[i] = map_versions[scenario[i]]
-            results.append(test_driver.run_upgrade(scenario, props))
+    if run_upgrade:
+        for scenario in upgrade_scenarios:
+            for props in EXECUTION_PLAN:
+                if props.directory_suffix not in editions:
+                    continue
+                this_test_dir = test_dir / props.directory_suffix
+                print("Cleaning up" + props.testrun_name)
+                test_driver.run_cleanup(props)
+                test_driver.reset_test_data_dir(this_test_dir)
+                print("Cleanup done")
+                for i in [0, 1]:
+                    if scenario[i] in map_versions:
+                        print(f"remapping {scenario[i]} to {map_versions[scenario[i]]}!")
+                        scenario[i] = map_versions[scenario[i]]
+                results.append(test_driver.run_upgrade(scenario, props))
 
-    upgrade_pairs = []
-    for scenario in upgrade_scenarios:
-        for i in range(len(scenario) - 1):
-            old_version = scenario[i]
-            new_version = scenario[i + 1]
-            if old_version in map_versions:
-                print(f"remapping {old_version} to {map_versions[old_version]}!")
-                old_version = map_versions[old_version]
-            if new_version in map_versions:
-                print(f"remapping {new_version} to {map_versions[new_version]}!")
-                new_version = map_versions[new_version]
-            pair = [new_version, old_version]
-            if pair not in upgrade_pairs:
-                upgrade_pairs.append(pair)
+        upgrade_pairs = []
+        for scenario in upgrade_scenarios:
+            for i in range(len(scenario) - 1):
+                old_version = scenario[i]
+                new_version = scenario[i + 1]
+                if old_version in map_versions:
+                    print(f"remapping {old_version} to {map_versions[old_version]}!")
+                    old_version = map_versions[old_version]
+                if new_version in map_versions:
+                    print(f"remapping {new_version} to {map_versions[new_version]}!")
+                    new_version = map_versions[new_version]
+                pair = [new_version, old_version]
+                if pair not in upgrade_pairs:
+                    upgrade_pairs.append(pair)
 
     # STEP 4: Run other test suites
     if run_test_suites:
@@ -266,7 +271,7 @@ def upgrade_package_test(
 
 @click.command()
 @full_common_options
-@matrix_options(test_default_value=False)
+@matrix_options(test_default_value=True)
 @very_common_options()
 @hotbackup_options()
 @common_options(
@@ -313,6 +318,7 @@ def main(**kwargs):
             kwargs['git_version'],
             kwargs['editions'],
             kwargs['run_test'],
+            kwargs['run_upgrade'],
             kwargs['run_test_suites'],
             test_driver
         )

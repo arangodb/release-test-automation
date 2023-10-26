@@ -636,7 +636,7 @@ class Runner(ABC):
     @step
     def jam_attempt(self):
         """check resilience of setup by obstructing its instances"""
-        self.progress(True, "{0}{1} - try to jam setup".format(self.versionstr, str(self.name)))
+        self.progress(True, "{0}{1} - try to jam setup ".format(self.versionstr, str(self.name)))
         self.jam_attempt_impl()
         # After attempt of jamming, we have peer for nodeX in setup.json.
         # This peer will brake further updates because this peer is unavailable.
@@ -765,7 +765,7 @@ class Runner(ABC):
                     if self.cfg.verbose:
                         print(exc.execution_result[1])
                     self.ask_continue_or_exit(
-                        "make_data failed for {0.name}".format(self), exc.execution_result[1], False, exc
+                        f"make_data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
                     )
                 self.has_makedata_data = True
         if not self.has_makedata_data:

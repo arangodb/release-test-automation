@@ -405,11 +405,18 @@ def matrix_options(test_default_value=True):
             help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'",
         )(function)
         function = click.option(
-            "--test/--no-test",
+            "--run-test/--no-run-test",
             "run_test",
             is_flag=True,
             default=test_default_value,
             help="Run clean installation test for primary version.",
+        )(function)
+        function = click.option(
+            "--run-upgrade/--no-run-upgrade",
+            "run_upgrade",
+            is_flag=True,
+            default=test_default_value,
+            help="Run upgrade matrix test for all versions.",
         )(function)
         return function
 

@@ -19,7 +19,7 @@ if test -z "$OLD_VERSION"; then
     OLD_VERSION=3.11.0-nightly
 fi
 if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.12.0-src
+    NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
 fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
@@ -39,7 +39,16 @@ if test -n "$SOURCE"; then
 else
     force_arg+=(--remote-host 172.17.4.0)
 fi
-
+if test "RUN_TEST"; then
+    force_arg+=(--run-test)
+else    
+    force_arg+=(--no-run-test)
+fi
+if test "RUN_UPGRADE"; then
+    force_arg+=(--run-upgrade)
+else    
+    force_arg+=(--no-run-upgrade)
+fi
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
@@ -103,12 +112,6 @@ echo "Setting maximum number of memory mappings per process to: $(($(nproc)*8*80
 sudo sysctl -w "vm.max_map_count=$(($(nproc)*8*8000))"
 echo "Maximum number of memory mappings per process is: $(cat /proc/sys/vm/max_map_count)"
 
-docker run \
-       -v "$(pwd)/../:/work" \
-       --rm \
-       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
-       cat /work/ArangoDB/tsan_arangodb_suppressions.txt
-
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        --ulimit core=-1 \
@@ -146,7 +149,6 @@ docker run \
           /home/release-test-automation/release_tester/mixed_download_upgrade_test.py \
           --upgrade-matrix "${UPGRADE_MATRIX}" \
           --new-version "${NEW_VERSION}" \
-          --no-test \
           --do-not-run-test-suites \
           --hb-mode s3bucket \
           --verbose \
