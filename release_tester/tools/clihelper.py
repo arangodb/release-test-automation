@@ -18,7 +18,7 @@ from arangodb.async_client import (
     CliExecutionException,
 )
 
-class runAnonProgramm(ArangoCLIprogressiveTimeoutExecutor):
+class RunAnonProgramm(ArangoCLIprogressiveTimeoutExecutor):
     """manage any program"""
     def __init__(self,  cfg):
         super().__init__(cfg, None)
