@@ -15,7 +15,7 @@ from arangodb.starter.manager import StarterManager
 from reporting.reporting_utils import step
 
 # pylint: disable=broad-except
-from tools.clihelper import run_cmd_and_log_stdout_asnyc
+from tools.clihelper import run_cmd_and_log_stdout_async
 from tools.killall import kill_all_processes
 
 
@@ -115,7 +115,7 @@ def store(cfg, pdb_filename: str, target_dir: str):
     with step(f"Store pdb file {pdb_filename} in symbol server directory"):
         print(f"Storing file {pdb_filename}")
         command = ["symstore.exe", "add", "/f", pdb_filename, "/s", target_dir, "/t", "ArangoDB", "/compress"]
-        run_cmd_and_log_stdout_asnyc(cfg, command)
+        run_cmd_and_log_stdout_async(cfg, command)
         print(f"File {pdb_filename} successfully stored to {target_dir}")
 
 
