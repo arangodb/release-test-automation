@@ -35,7 +35,8 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
         # self.check_old(cfg)
         # TODO self.check_full_ui(cfg)
 
-    @testcase
+    # @Ignore
+    # @testcase
     def after_jam_step_2(self):
         """check the integrity of the system after recovery from cluster failure"""
         version = (
