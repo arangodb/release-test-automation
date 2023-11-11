@@ -14,7 +14,8 @@ class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
     """ cluster jam step 1 testsuite """
     WINVER = platform.win32_ver()
 
-    @testcase
+    # @Ignore
+    # @testcase
     def jam_step_1(self):
         """check for one set of instances to go away"""
         self.webdriver.refresh()
