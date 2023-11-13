@@ -86,6 +86,7 @@ def upgrade_package_test(
                 res.get_packages(dl_opts.force)
                 # No server package, no install/upgrade tests for these:
                 if res.inst.server_package is None:
+                    print("skipping server package tests")
                     run_test = False
                     upgrade_scenarios = []
 
