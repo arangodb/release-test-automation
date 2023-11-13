@@ -84,6 +84,10 @@ def upgrade_package_test(
                 )
                 packages[version_name][props.directory_suffix] = res
                 res.get_packages(dl_opts.force)
+                # No server package, no install/upgrade tests for these:
+                if res.inst.server_package is None:
+                    run_test = False
+                    upgrade_scenarios = []
 
     params = deepcopy(test_driver.cli_test_suite_params)
 
