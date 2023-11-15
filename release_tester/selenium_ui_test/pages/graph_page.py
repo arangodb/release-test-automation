@@ -1229,21 +1229,27 @@ class GraphPage(NavigationBarPage):
 
         graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
         graph_settings_id_sitem.click()
+        time.sleep(1)
+        self.wait_for_ajax()
 
         delete_btn = "(//button[normalize-space()='Delete'])[1]"
         delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
         delete_btn_stiem.click()
         time.sleep(1)
+        self.wait_for_ajax()
 
-        delete_with_collection = "dropGraphCollections"
-        delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+        delete_with_collection = '//*[@id="dropGraphCollections"]'
+        delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
         delete_with_collection_sitem.click()
         time.sleep(1)
+        self.wait_for_ajax()
 
         delete_confirm = "modal-confirm-delete"
         delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
         delete_confirm_sitem.click()
         time.sleep(1)
+        self.wait_for_ajax()
+        self.webdriver.refresh()
 
 
 GRAPH_SETS = [
