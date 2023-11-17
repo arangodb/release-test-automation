@@ -102,8 +102,8 @@ class BinaryDescription:
                 language, codepage = GetFileVersionInfo(self.path, '\\VarFileInfo\\Translation')[0]
                 string_file_info = '\\StringFileInfo\\%04X%04X\\%s' % (language, codepage, "CompanyName")
                 description = GetFileVersionInfo(self.path, string_file_info)
-            except:
-                description = "unknown"
+            except Exception as ex:
+                description = f"unknown - {ex}"
             print(f"Company in '{self.path}' is set to: {description}")
             if description != "ArangoDB GmbH":
                 raise Exception(f"Company in '{self.path}' not set: {description}")
