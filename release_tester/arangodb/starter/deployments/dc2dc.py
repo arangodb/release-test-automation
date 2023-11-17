@@ -202,7 +202,7 @@ class Dc2Dc(Runner):
                     # '--all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',
                     '--args.syncworkers.log.level=debug',
-                    '--args.syncworkers.worker.max-initial-sync-tasks=8', # limit concurrency during initial-sync phase (default 16)
+                    '--args.syncworkers.worker.max-initial-sync-tasks=8', # FIXME: temp solution for BTS-1690 - limit concurrency during initial-sync phase (default 16)
                     '--args.sync.log.stderr=false',
                     '--starter.sync',
                     '--starter.local',
