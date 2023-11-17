@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 import platform
 
+import psutil
 import requests
 import semver
 from arangodb.instance import InstanceType
@@ -197,12 +198,14 @@ class Dc2Dc(Runner):
             # fmt: off
             if moreopts is None:
                 moreopts = []
+            if psutil.cpu_count() < 16:
+                # FIXME: temp solution for BTS-1690 - limit concurrency during initial-sync phase (default 16)
+                moreopts.append('--args.syncworkers.worker.max-initial-sync-tasks=8')
             opts = [
                     '--all.log.level=backup=trace',
                     # '--all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',
                     '--args.syncworkers.log.level=debug',
-                    '--args.syncworkers.worker.max-initial-sync-tasks=8', # FIXME: temp solution for BTS-1690 - limit concurrency during initial-sync phase (default 16)
                     '--args.sync.log.stderr=false',
                     '--starter.sync',
                     '--starter.local',
