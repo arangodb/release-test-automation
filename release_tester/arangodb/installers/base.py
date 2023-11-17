@@ -99,9 +99,9 @@ class BinaryDescription:
             try:
                 # pylint: disable=import-outside-toplevel
                 from win32api import GetFileVersionInfo
-                language, codepage = GetFileVersionInfo(self.path, '\\VarFileInfo\\Translation')[0]
+                language, codepage = GetFileVersionInfo(str(self.path), '\\VarFileInfo\\Translation')[0]
                 string_file_info = u'\\StringFileInfo\\%04X%04X\\%s' % (language, codepage, "CompanyName")
-                description = GetFileVersionInfo(self.path, string_file_info)
+                description = GetFileVersionInfo(str(self.path), string_file_info)
             except Exception as ex:
                 description = f"unknown - {ex}"
             print(f"Company in '{self.path}' is set to: {description}")
