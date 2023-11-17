@@ -90,6 +90,23 @@ class BinaryDescription:
                 if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
                     raise Exception("codesign didn't find signature: " + str(codesign_str))
 
+    def _validate_company_name(self, version):
+        if IS_WINDOWS:
+            if version < semver.VersionInfo.parse("3.10.12"):
+                return
+            if version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") :
+                return
+            try:
+                # pylint: disable=import-outside-toplevel
+                from win32api import GetFileVersionInfo
+                language, codepage = GetFileVersionInfo(self.path, '\\VarFileInfo\\Translation')[0]
+                string_file_info = '\\StringFileInfo\\%04X%04X\\%s' % (language, codepage, "CompanyName")
+                description = GetFileVersionInfo(self.path, string_file_info)
+            except:
+                description = "unknown"
+            if description != "ArangoDB GmbH":
+                raise Exception(f"Company in '{self.path}' not set: {description}")
+
     # pylint: disable=too-many-arguments
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
@@ -98,6 +115,7 @@ class BinaryDescription:
         if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
+        self._validate_company_name(version)
         if check_notarized:
             self._validate_notarization(enterprise)
         self.check_path(enterprise)
