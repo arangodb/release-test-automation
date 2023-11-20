@@ -419,7 +419,8 @@ class Instance(ABC):
         if "FATAL" in line or "{crash}" in line:
             for blacklist_item in FATAL_BLACKLIST:
                 if blacklist_item in line:
-                    return True
+                    return False
+            return True
         return False
 
     def search_for_warnings(self, print_lines=True):
