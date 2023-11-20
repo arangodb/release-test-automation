@@ -36,7 +36,7 @@ if platform.mac_ver()[0]:
     IS_MAC = True
 
 PROP_NAMES = {
-    'Comments': None,
+    'Comments': '@binary_version',
     'InternalName': '@binary',
     'ProductName': '@binary',
     'CompanyName': '@company_name',
@@ -111,6 +111,10 @@ class BinaryDescription:
         """ should be our name """
         return string == self.name
 
+    def _binary_version(self, version, string):
+        """ should be our name """
+        return string == f"{self.name} v{version.major}.{version.minor}"
+
     def _windows_version(self, version, version_string):
         """ funny windows version should be there """
         return f"{version.major}.{version.minor}.0.{version.patch}" == version_string
@@ -147,6 +151,8 @@ class BinaryDescription:
                         raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , {hook}, but is None - {exstr}")
                 elif hook  == '@binary':
                     check_ok = self._binary(description)
+                elif hook == '@binary_version':
+                    check_ok = self._binary_version(version, description)
                 elif hook  == '@company_name':
                     check_ok = self._company_name(version, description)
                 elif hook  == '@windows_version':
@@ -154,7 +160,7 @@ class BinaryDescription:
                 elif hook  == '@friendly_name':
                     check_ok = self._friendly_name(description)
                 else:
-                    check_ok = hook == description
+                    check_ok = re.match(hook, description) is not None
                 if not check_ok:
                     raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , {hook}, but is {description} - {exstr}")
 
