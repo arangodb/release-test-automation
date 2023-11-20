@@ -172,7 +172,8 @@ class BinaryDescription:
         if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
-        self._validate_windows_attributes(version)
+        if self.enterprise and enterprise or not enterprise:
+            self._validate_windows_attributes(version)
         if check_notarized:
             self._validate_notarization(enterprise)
         self.check_path(enterprise)
