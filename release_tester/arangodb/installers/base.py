@@ -743,6 +743,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangodb",
+                    "",
                     False,
                     False,
                     "1.0.0",
@@ -757,6 +758,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangosync",
+                    "",
                     True,
                     False,
                     "1.0.0",
@@ -770,6 +772,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "rclone-arangodb",
+                    "",
                     True,
                     True,
                     "3.5.1",
