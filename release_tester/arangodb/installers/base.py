@@ -40,7 +40,7 @@ PROP_NAMES = {
     'InternalName': '@binary',
     'ProductName': '@binary',
     'CompanyName': '@company_name',
-    'LegalCopyright': 'ArangoDB GmbH (C) Copyright 20.*',
+    'LegalCopyright': 'ArangoDB GmbH \(C\) Copyright 20.*',
     'ProductVersion': '@windows_version',
     'FileDescription': '@friendly_name',
     'LegalTrademarks': None,
