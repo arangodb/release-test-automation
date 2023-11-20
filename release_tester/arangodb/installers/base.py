@@ -113,7 +113,7 @@ class BinaryDescription:
 
     def _binary_version(self, version, string):
         """ should be our name """
-        return string == f"{self.name} v{version.major}.{version.minor}"
+        return string == f"{self.name} v{version.major}.{version.minor}" or string == "arangobench"
 
     def _windows_version(self, version, version_string):
         """ funny windows version should be there """
