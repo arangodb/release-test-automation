@@ -91,7 +91,7 @@ class BinaryDescription:
                     raise Exception("codesign didn't find signature: " + str(codesign_str))
 
     def _validate_company_name(self, version):
-        if IS_WINDOWS:
+        if IS_WINDOWS and self.binary_type != "go": # GT-540: remove type comparison, alter versions.
             if version < semver.VersionInfo.parse("3.10.12"):
                 return
             if version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") :
