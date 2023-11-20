@@ -131,8 +131,10 @@ class BinaryDescription:
         """ should find friendly name in string """
         return string == self.friendly_name
 
-    def _validate_windows_attributes(self, version):
+    def _validate_windows_attributes(self, version, enterprise):
         """ validate the windows binary header fields """
+        if not enterprise and self.enterprise:
+            return
         if IS_WINDOWS and self.binary_type != "go": # GT-540: remove type comparison, alter versions.
             for windows_field, hook in PROP_NAMES.items():
                 exstr = ''
@@ -172,8 +174,7 @@ class BinaryDescription:
         if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
-        if self.enterprise and enterprise or not enterprise:
-            self._validate_windows_attributes(version)
+        self._validate_windows_attributes(version, enterprise)
         if check_notarized:
             self._validate_notarization(enterprise)
         self.check_path(enterprise)
