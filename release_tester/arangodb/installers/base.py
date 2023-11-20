@@ -104,7 +104,6 @@ class BinaryDescription:
                 description = GetFileVersionInfo(str(self.path), string_file_info)
             except Exception as ex:
                 description = f"unknown - {ex}"
-            print(f"Company in '{self.path}' is set to: {description}")
             if description != "ArangoDB GmbH":
                 raise Exception(f"Company in '{self.path}' not set: {description}")
 
