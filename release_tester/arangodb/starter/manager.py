@@ -74,6 +74,7 @@ class StarterManager:
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
+        self.moreopts += ["--all.log.level=maintenance=trace"]
         # self.moreopts += ["--all.log.level=startup=trace"]
         # self.moreopts += ["--all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
