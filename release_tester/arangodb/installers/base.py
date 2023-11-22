@@ -126,7 +126,7 @@ class BinaryDescription:
             return True
         if (version < semver.VersionInfo.parse("3.10.12") or
             (version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") )):
-            return string is None
+            return string is None or string == ""
         return False
 
     def _friendly_name(self, string):
