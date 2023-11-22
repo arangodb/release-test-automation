@@ -123,7 +123,7 @@ class BinaryDescription:
         """ may find company name """
         # pylint: disable=chained-comparison
         if (version < semver.VersionInfo.parse("3.10.12") or
-            version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") ):
+            (version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") )):
             return string is None
         return string == "ArangoDB GmbH"
 
@@ -164,7 +164,7 @@ class BinaryDescription:
                 else:
                     check_ok = re.match(hook, description) is not None
                 if not check_ok:
-                    raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , {hook}, but is {description} - {exstr}")
+                    raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , '{hook}', but is {description} - '{exstr}'")
 
     # pylint: disable=too-many-arguments
     @step
