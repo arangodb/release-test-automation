@@ -122,10 +122,12 @@ class BinaryDescription:
     def _company_name(self, version, string):
         """ may find company name """
         # pylint: disable=chained-comparison
+        if string == "ArangoDB GmbH":
+            return True
         if (version < semver.VersionInfo.parse("3.10.12") or
             (version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") )):
             return string is None
-        return string == "ArangoDB GmbH"
+        return False
 
     def _friendly_name(self, string):
         """ should find friendly name in string """
