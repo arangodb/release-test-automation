@@ -138,13 +138,13 @@ class BinaryDescription:
         if not enterprise and self.enterprise:
             return
         if IS_WINDOWS and self.binary_type != "go": # GT-540: remove type comparison, alter versions.
+            # pylint: disable=import-outside-toplevel
+            from win32api import GetFileVersionInfo
+            language, codepage = GetFileVersionInfo(str(self.path), '\\VarFileInfo\\Translation')[0]
             for windows_field, hook in PROP_NAMES.items():
                 exstr = ''
                 check_ok = True
                 try:
-                    # pylint: disable=import-outside-toplevel
-                    from win32api import GetFileVersionInfo
-                    language, codepage = GetFileVersionInfo(str(self.path), '\\VarFileInfo\\Translation')[0]
                     string_file_info = '\\StringFileInfo\\%04X%04X\\%s' % (language, codepage, windows_field)
                     description = GetFileVersionInfo(str(self.path), string_file_info)
                 except Exception as ex:
