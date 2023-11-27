@@ -675,7 +675,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangobench",
-                    "arangobench", #  - stress test tool",
+                    "arangobench.*", #  - stress test tool",
                     False,
                     True,
                     "1.0.0",
