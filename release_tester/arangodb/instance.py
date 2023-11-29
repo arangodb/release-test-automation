@@ -40,7 +40,7 @@ LOG_MAINTAINER_BLACKLIST = [ # if we use the 'source'-Distribution, these are ex
     "bd666",  # -> maintainer version binary
 ]
 FATAL_BLACKLIST = [
-    "11ca3",  # -> SIGTERM received during shutdown sequence
+    "11ca3",  # -> SIGTERM received during shutdown sequence GT-541
 ]
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
@@ -419,7 +419,8 @@ class Instance(ABC):
         if "FATAL" in line or "{crash}" in line:
             for blacklist_item in FATAL_BLACKLIST:
                 if blacklist_item in line:
-                    return True
+                    return False
+            return True
         return False
 
     def search_for_warnings(self, print_lines=True):

@@ -112,7 +112,6 @@ class DashboardPage(NavigationBarPage):
 
             # toggle view text to table and vice-versa
             print("Changing metrics tab to table view \n")
-
             text_view = self.locator_finder_by_id(self.show_text)
             text_view.click()
             time.sleep(3)

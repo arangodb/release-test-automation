@@ -35,11 +35,25 @@ IS_MAC = False
 if platform.mac_ver()[0]:
     IS_MAC = True
 
+PROP_NAMES = {
+    'Comments': '@binary_version',
+    'InternalName': '@binary',
+    'ProductName': '@binary',
+    'CompanyName': '@company_name',
+    'LegalCopyright': '[ArangoDB GmbH ]*\(C\) Copyright 20.*',
+    'ProductVersion': '@windows_version',
+    'FileDescription': '@friendly_name',
+    'LegalTrademarks': None,
+    'PrivateBuild': None,
+    'FileVersion': '@windows_version',
+    'OriginalFilename': '@binary',
+    'SpecialBuild': None
+}
 ## helper classes
 class BinaryDescription:
     """describe the availability of an arangodb binary and its properties"""
 
-    def __init__(self, path, name, enter, strip, vmin, vmax, sym, binary_type):
+    def __init__(self, path, name, friendly, enter, strip, vmin, vmax, sym, binary_type):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
@@ -48,6 +62,8 @@ class BinaryDescription:
         self.version_max =  semver.VersionInfo.parse(vmax)
         self.symlink = sym
         self.binary_type = binary_type
+        self.name = name
+        self.friendly_name = friendly
 
         for attribute in (
             self.path,
@@ -66,6 +82,7 @@ class BinaryDescription:
     def __repr__(self):
         return """
         path:        {0.path}
+        friendly name: {0.friendly_name}
         enterprise:  {0.enterprise}
         stripped:    {0.stripped}
         version_min: {0.version_min}
@@ -90,6 +107,67 @@ class BinaryDescription:
                 if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
                     raise Exception("codesign didn't find signature: " + str(codesign_str))
 
+    def _binary(self, string):
+        """ should be our name """
+        return string == self.name
+
+    def _binary_version(self, version, string):
+        """ should be our name """
+        return string == f"{self.name} v{version.major}.{version.minor}" or string == "arangobench"
+
+    def _windows_version(self, version, version_string):
+        """ funny windows version should be there """
+        return f"{version.major}.{version.minor}.0.{version.patch}" == version_string
+
+    def _company_name(self, version, string):
+        """ may find company name """
+        # pylint: disable=chained-comparison
+        if string == "ArangoDB GmbH":
+            return True
+        if (version < semver.VersionInfo.parse("3.10.12") or
+            (version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") )):
+            return string is None or string == ""
+        return False
+
+    def _friendly_name(self, string):
+        """ should find friendly name in string """
+        return re.match(string, self.friendly_name) is not None
+
+    def _validate_windows_attributes(self, version, enterprise):
+        """ validate the windows binary header fields """
+        if not enterprise and self.enterprise:
+            return
+        if IS_WINDOWS and self.binary_type != "go": # GT-540: remove type comparison, alter versions.
+            # pylint: disable=import-outside-toplevel
+            from win32api import GetFileVersionInfo
+            language, codepage = GetFileVersionInfo(str(self.path), '\\VarFileInfo\\Translation')[0]
+            for windows_field, hook in PROP_NAMES.items():
+                exstr = ''
+                check_ok = True
+                try:
+                    string_file_info = '\\StringFileInfo\\%04X%04X\\%s' % (language, codepage, windows_field)
+                    description = GetFileVersionInfo(str(self.path), string_file_info)
+                except Exception as ex:
+                    description = None
+                    exstr = str(ex)
+                if description is None:
+                    if hook is not None:
+                        raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , {hook}, but is None - {exstr}")
+                elif hook  == '@binary':
+                    check_ok = self._binary(description)
+                elif hook == '@binary_version':
+                    check_ok = self._binary_version(version, description)
+                elif hook  == '@company_name':
+                    check_ok = self._company_name(version, description)
+                elif hook  == '@windows_version':
+                    check_ok = self._windows_version(version, description)
+                elif hook  == '@friendly_name':
+                    check_ok = self._friendly_name(description)
+                else:
+                    check_ok = re.match(hook, description) is not None
+                if not check_ok:
+                    raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , '{hook}', but is {description} - '{exstr}'")
+
     # pylint: disable=too-many-arguments
     @step
     def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
@@ -98,6 +176,7 @@ class BinaryDescription:
         if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
+        self._validate_windows_attributes(version, enterprise)
         if check_notarized:
             self._validate_notarization(enterprise)
         self.check_path(enterprise)
@@ -526,6 +605,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangosh",
+                    "arangosh - commandline client",
                     False,
                     True,
                     "1.0.0",
@@ -539,6 +619,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangoexport",
+                    "arangoexport - data exporter",
                     False,
                     True,
                     "1.0.0",
@@ -552,6 +633,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangoimport",
+                    "arangoimport - data importer",
                     False,
                     True,
                     "1.0.0",
@@ -565,6 +647,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangodump",
+                    "arangodump - data and configuration dumping tool",
                     False,
                     True,
                     "1.0.0",
@@ -578,6 +661,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangorestore",
+                    "arangrestore - data and configuration restoration tool",
                     False,
                     True,
                     "1.0.0",
@@ -591,6 +675,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangobench",
+                    "arangobench.*", #  - stress test tool",
                     False,
                     True,
                     "1.0.0",
@@ -604,6 +689,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangovpack",
+                    "arangovpack - VelocyPack formatter",
                     False,
                     True,
                     "1.0.0",
@@ -618,6 +704,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangobackup",
+                    "arangobackup - hot backup tool",
                     True,
                     True,
                     "3.5.1",
@@ -633,6 +720,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangod",
+                     "ArangoDB - the native multi-model NoSQL database",
                     False,
                     stripped_arangod,
                     "1.0.0",
@@ -650,6 +738,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangod",
+                    "ArangoDB - the native multi-model NoSQL database",
                     False,
                     stripped_arangod,
                     "1.0.0",
@@ -664,6 +753,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangodb",
+                    "",
                     False,
                     False,
                     "1.0.0",
@@ -678,6 +768,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangosync",
+                    "",
                     True,
                     False,
                     "1.0.0",
@@ -691,6 +782,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "rclone-arangodb",
+                    "",
                     True,
                     True,
                     "3.5.1",

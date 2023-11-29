@@ -22,7 +22,7 @@ import requests
 
 import tools.errorhelper as eh
 import tools.interact as ti
-from tools.clihelper import run_cmd_and_log_stdout
+from tools.clihelper import run_cmd_and_log_stdout_async
 from tools.killall import kill_all_processes
 import tools.loghelper as lh
 
@@ -1083,7 +1083,7 @@ class Runner(ABC):
         """create a certificate"""
         print(args)
         cmd = [self.cfg.real_bin_dir / "arangodb", "create"] + args
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
 
     def create_cert_dir(self):
         """create certificate directory"""

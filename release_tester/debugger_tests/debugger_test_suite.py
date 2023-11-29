@@ -245,7 +245,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
     def test_debug_symbols_symsrv_windows(self):
         """Debug arangod executable using symbol server (Windows)"""
         symsrv_dir = str(DebuggerTestSuite.SYMSRV_DIR)
-        store(str(self.installer.cfg.debug_install_prefix / "arangod.pdb"), symsrv_dir)
+        store(self.installer.cfg, str(self.installer.cfg.debug_install_prefix / "arangod.pdb"), symsrv_dir)
         exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == "arangod.exe"][0]
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):

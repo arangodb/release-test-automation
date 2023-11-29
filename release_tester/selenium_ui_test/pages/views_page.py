@@ -631,7 +631,11 @@ class ViewsPage(NavigationBarPage):
     def create_improved_views_311(self, view_name, types, variation):
         """This method will create the improved views for v3.11+"""
         print("Selecting views create button \n")
-        create_new_views = "//*[contains(text(),'Add View')]"
+        if self.current_package_version() <= semver.VersionInfo.parse("3.11.100"):
+            create_new_views = "//*[contains(text(),'Add View')]"
+        else:
+            create_new_views = '//*[@id="content-react"]/div/div[1]/button'
+
         create_new_views_id = self.locator_finder_by_xpath(create_new_views)
         create_new_views_id.click()
         time.sleep(2)
@@ -665,6 +669,11 @@ class ViewsPage(NavigationBarPage):
             self.send_key_action("attr")
             time.sleep(2)
 
+            # print(f"Selecting direction for {view_name} \n")
+            # direction = "//*[text()='Ascending']"
+            # direction_sitem = self.locator_finder_by_xpath(direction)
+            # direction_sitem.click()
+
             print(f"Closing primary sort for {view_name}\n")
             primary_sort = "//*[text()='Primary Sort']"
             primary_sort_sitem = self.locator_finder_by_xpath(primary_sort)
@@ -693,14 +702,43 @@ class ViewsPage(NavigationBarPage):
             advance_option_sitem.click()
             time.sleep(1)
 
+            # print(f"Select write buffer idle value for {view_name} \n")
+            # write_buffer = "//*[text()='Write Buffer Idle']"
+            # write_buffer_sitem = self.locator_finder_by_id(write_buffer)
+            # write_buffer_sitem.click()
+            # self.send_key_action('50')
+
             print(f"Close advance options for {view_name} \n")
             advance_option = "//*[text()='Advanced']"
             advance_option_sitem = self.locator_finder_by_xpath(advance_option)
             advance_option_sitem.click()
             time.sleep(1)
 
+            # print(f"Select write buffer active value for {view_name} \n")
+            # write_buffer_active = "newWriteBufferActive"
+            # write_buffer_active_sitem = self.locator_finder_by_id(write_buffer_active)
+            # write_buffer_active_sitem.click()
+            # write_buffer_active_sitem.clear()
+            # write_buffer_active_sitem.send_keys("8")
+            # time.sleep(2)
+            #
+            # print(f"Select max write buffer size max value for {view_name} \n")
+            # max_buffer_size = "//input[@value='33554432']"
+            # max_buffer_size_sitem = self.locator_finder_by_xpath(max_buffer_size)
+            # max_buffer_size_sitem.click()
+            #
+            # a = ActionChains(self.driver)
+            # a.key_down(Keys.CONTROL).send_keys("A").key_up(Keys.CONTROL).send_keys(
+            #     Keys.DELETE
+            # ).send_keys("33554434").perform()
+            # time.sleep(2)
+            #
         print(f"Selecting creation button for {view_name} \n")
-        create = '//*[@id="chakra-modal-3"]/form/footer/div/button[2]'
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+            create = '//*[@id="chakra-modal-3"]/form/footer/div/button[2]'
+        else:
+            create = '//*[@id="chakra-modal-3"]/form/footer/div/button[2]'
+
         create_sitem = self.locator_finder_by_xpath(create)
         create_sitem.click()
         time.sleep(3)
@@ -1073,10 +1111,10 @@ class ViewsPage(NavigationBarPage):
         print(f"{name} start deleting \n")
         try:
             views = ""
-            if name == "arangosearch_view_3121":
-                views = "//*[text()='arangosearch_view_3121']"
-            elif name == "arangosearch_view_3122":
-                views = "//*[text()='arangosearch_view_3122']"
+            if name == "arangosearch_view_3111":
+                views = "//*[text()='arangosearch_view_3111']"
+            elif name == "arangosearch_view_3112":
+                views = "//*[text()='arangosearch_view_3112']"
             elif name == "search_alias":
                 views = "//*[text()='search_alias']"
 
@@ -1092,7 +1130,10 @@ class ViewsPage(NavigationBarPage):
             if name == "search_alias":
                 confirm_delete_btn = '//*[@id="chakra-modal-2"]/footer/div/button[2]'
             else:
-                confirm_delete_btn = "(//button[@class='button-danger'])[1]"
+                if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
+                    confirm_delete_btn = "(//button[@class='chakra-button css-pu8osu'])[1]"
+                else:
+                    confirm_delete_btn = "(//button[@class='button-danger'])[1]"
             confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
             confirm_delete_btn_sitem.click()
             time.sleep(2)

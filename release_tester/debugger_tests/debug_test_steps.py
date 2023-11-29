@@ -15,7 +15,7 @@ from arangodb.starter.manager import StarterManager
 from reporting.reporting_utils import step
 
 # pylint: disable=broad-except
-from tools.clihelper import run_cmd_and_log_stdout
+from tools.clihelper import run_cmd_and_log_stdout_async
 from tools.killall import kill_all_processes
 
 
@@ -110,17 +110,17 @@ def create_dump_for_exe(exe_file: str, dump_file_dir: str):
         return dump_filename
 
 
-def store(pdb_filename: str, target_dir: str):
+def store(cfg, pdb_filename: str, target_dir: str):
     """store pdb file in symbol server directory"""
     with step(f"Store pdb file {pdb_filename} in symbol server directory"):
         print(f"Storing file {pdb_filename}")
         command = ["symstore.exe", "add", "/f", pdb_filename, "/s", target_dir, "/t", "ArangoDB", "/compress"]
-        run_cmd_and_log_stdout(command)
+        run_cmd_and_log_stdout_async(cfg, command)
         print(f"File {pdb_filename} successfully stored to {target_dir}")
 
 
 @step
-def store_all_files_in_dir(
+def store_all_files_in_dir(cfg,
     source_directory: str, target_directory: str, clean_dir: bool = False, create_dir: bool = True
 ):
     """Add PDB files to a symbol server directory"""
@@ -134,4 +134,4 @@ def store_all_files_in_dir(
     for filename in os.listdir(source_directory):
         path = os.path.join(source_directory, filename)
         if os.path.isfile(path):
-            store(str(path), target_directory)
+            store(cfg, str(path), target_directory)

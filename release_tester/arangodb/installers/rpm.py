@@ -16,7 +16,7 @@ from arangodb.installers.linux import InstallerLinux
 from arangodb.sh import ArangoshExecutor
 from reporting.reporting_utils import step
 from tools.asciiprint import ascii_print, print_progress as progress
-from tools.clihelper import run_cmd_and_log_stdout
+from tools.clihelper import run_cmd_and_log_stdout_async
 
 
 class InstallerRPM(InstallerLinux):
@@ -96,7 +96,7 @@ class InstallerRPM(InstallerLinux):
         logging.info("starting service")
         cmd = ["service", "arangodb3", "start"]
         lh.log_cmd(cmd)
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
         time.sleep(0.1)
         self.instance.detect_pid(1)  # should be owned by init
 
@@ -105,7 +105,7 @@ class InstallerRPM(InstallerLinux):
         logging.info("stopping service")
         cmd = ["service", "arangodb3", "stop"]
         lh.log_cmd(cmd)
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
         while self.check_service_up():
             time.sleep(1)
 
@@ -281,7 +281,7 @@ class InstallerRPM(InstallerLinux):
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
 
     @step
     def install_rpm_package(self, package: str, upgrade: bool = False):

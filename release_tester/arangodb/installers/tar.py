@@ -86,6 +86,8 @@ class InstallerTAR(InstallerArchive):
         self.cfg.appdir = self.cfg.install_prefix  # n/A
         self.cfg.dbdir = self.cfg.install_prefix  # n/A
         self.cfg.log_dir = self.cfg.install_prefix  # n/A
+        if MACVER[0] and self.cfg.semver > semver.VersionInfo.parse("3.10.99"):
+            self.server_package = None
 
     def calculate_installation_dirs(self):
         self.cfg.bin_dir = self.test_dir / "bin"

@@ -45,9 +45,6 @@ class CollectionPage(NavigationBarPage):
         self.select_status_unloaded_id = (
             "//div[@id='collectionsDropdown']/ul[2]/li[3]/a[@href='#']/label[@class='checkbox checkboxLabel']"
         )
-        # self.sort_by_name_id = "sortName"
-        # self.sort_by_type_id = "sortType"
-        # self.sort_descending_id = "sortOrder"
         self.sort_by_name_id = '//*[@id="collectionsDropdown"]/ul[2]/li[2]/a/label/i'
         self.sort_by_type_id = '//*[@id="collectionsDropdown"]/ul[2]/li[3]/a/label/i'
         self.sort_descending_id = '//*[@id="collectionsDropdown"]/ul[2]/li[4]/a/label/i'
@@ -125,7 +122,7 @@ class CollectionPage(NavigationBarPage):
         self.select_test_doc_settings_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
 
         self.select_test_doc_collection_id = "//div[@id='collection_Test']//h5[@class='collectionName']"
-        self.select_collection_search_id = "//*[@id='searchInput']"
+        # self.select_collection_search_id = "//*[@id='searchInput']"
 
         self.select_export_doc_as_jason_id = "//*[@id='exportCollection']/span/i"
         self.select_export_doc_confirm_btn_id = "exportDocuments"
@@ -280,10 +277,65 @@ class CollectionPage(NavigationBarPage):
 
     def checking_search_options(self, search):
         """Checking search functionality"""
-        select_collection_search_sitem = self.locator_finder_by_xpath(self.select_collection_search_id)
-        select_collection_search_sitem.click()
-        select_collection_search_sitem.clear()
-        select_collection_search_sitem.send_keys(search)
+        print("selecting collection tab \n")
+        self.locator_finder_by_id(self.select_collection_page_id).click()
+        time.sleep(1)
+
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+            self.webdriver.refresh()
+
+            # click on reset button
+            reset = '//*[@id="content-react"]/div/div[2]/div[1]/div/button[2]'
+            reset_sitem = self.locator_finder_by_xpath(reset)
+            reset_sitem.click()
+            time.sleep(1)
+
+            filter_btn = "(//button[normalize-space()='Filters'])[1]"
+            filter_btn_sitem = self.locator_finder_by_xpath(filter_btn)
+            filter_btn_sitem.click()
+
+            add_filter_btn = '//*[@id="menu-button-8"]'
+            add_filter_btn_stiem = self.locator_finder_by_xpath(add_filter_btn)
+            add_filter_btn_stiem.click()
+
+            id_filter = "menu-list-8-menuitem-3"
+            id_filter_stiem = self.locator_finder_by_id(id_filter)
+            id_filter_stiem.click()
+
+            search_filter = '//*[@id="name"]'
+            search_filter_sitem = self.locator_finder_by_xpath(search_filter)
+            search_filter_sitem.click()
+            search_filter_sitem.clear()
+            search_filter_sitem.send_keys("_analyzers")
+
+            # trying to find the expected collection from the search
+
+            search_analyzer_col = "(//a[normalize-space()='_analyzers'])[1]"
+            search_analyzer_col_sitem = self.locator_finder_by_xpath(
+                search_analyzer_col
+            )
+
+            expected_msg = "_analyzers"
+            assert (
+                expected_msg == search_analyzer_col_sitem.text
+            ), f"Expected {expected_msg} but got {search_analyzer_col_sitem.text}"
+
+            # Print success message if the assertion succeeds
+            print(
+                "Assertion succeeded! The expected message is equal to the text found on the webpage."
+            )
+
+            self.webdriver.refresh()
+
+        else:
+            select_collection_search_id = "//*[@id='searchInput']"
+            select_collection_search_sitem = self.locator_finder_by_xpath(
+                select_collection_search_id
+            )
+            select_collection_search_sitem.click()
+            select_collection_search_sitem.clear()
+            select_collection_search_sitem.send_keys(search)
+
         time.sleep(2)
 
     def select_collection_settings(self):
@@ -562,11 +614,13 @@ class CollectionPage(NavigationBarPage):
             sparse_sitem.click()
 
             # selecting persistent index's duplicate array value
-            duplicate_array = '//*[@id="content-react"]/div/div[3]/form/div/div[1]/div[11]/label/span/span'
+            duplicate_array = (
+                "(//label[normalize-space()='Deduplicate array values'])[1]"
+            )
             duplicate_array_sitem = self.locator_finder_by_xpath(duplicate_array)
             duplicate_array_sitem.click()
 
-            memory_cache = '//*[@id="content-react"]/div/div[3]/form/div/div[1]/div[15]/label/span/span'
+            memory_cache = "(//label[normalize-space()='Enable in-memory cache for index lookups'])[1]"
             memory_cache_sitem = self.locator_finder_by_xpath(memory_cache)
             memory_cache_sitem.click()
 
@@ -1234,6 +1288,19 @@ class CollectionPage(NavigationBarPage):
         print(f"Deleting {collection_name} collection started \n")
         self.navbar_goto("collections")
 
+        # changing the default collection locator according to the >= v3.12.x
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            if collection_name == "TestDoc":
+                collection_locator = "(//a[normalize-space()='TestDoc'])[1]"
+            elif collection_name == "TestEdge":
+                collection_locator = "(//a[normalize-space()='TestEdge'])[1]"
+            elif collection_name == "Test":
+                collection_locator = "(//a[normalize-space()='Test'])[1]"
+            elif collection_name == "TestDocRenamed":
+                collection_locator = "(//a[normalize-space()='TestDocRenamed'])[1]"
+            elif collection_name == "ComputedValueCol":
+                collection_locator = "(//a[normalize-space()='ComputedValueCol'])[1]"
+        
         try:
             self.locator_finder_by_xpath(collection_locator).click()
 
