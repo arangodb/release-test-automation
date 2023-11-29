@@ -116,7 +116,6 @@ docker run \
           --release-tracker-username ${RELEASE_TRACKER_USERNAME} \
           --release-tracker-password ${RELEASE_TRACKER_PASSWORD} \
           --zip \
-#          --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
