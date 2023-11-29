@@ -8,6 +8,7 @@ from pathlib import Path
 import traceback
 
 import click
+import semver
 
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
@@ -39,8 +40,8 @@ def upgrade_package_test(
     print("Cleanup done")
 
     versions = []
-    enterprise_packages_are_present = "EE" in editions or "EP" in editions
-    community_packages_are_present = "C" in editions
+    enterprise_packages_are_present = "EE" in editions or "EP" in editions or "EEr2" in editions or "EPr2" in editions
+    community_packages_are_present = "C" in editions or "Cr2" in editions
     for props in EXECUTION_PLAN:
         if props.directory_suffix not in editions:
             continue
@@ -80,7 +81,13 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
-
+            skip = False
+            for version in [new_version, old_version]:
+                if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                    skip = True
+            if skip:
+                print(f"Skipping {str(props)}")
+                continue
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
             versions.append([dl_new.cfg.version, dl_old.cfg.version])
         except PermissionError as ex:

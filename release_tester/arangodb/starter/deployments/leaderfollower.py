@@ -4,6 +4,7 @@ import time
 import logging
 from pathlib import Path
 
+# pylint: disable=R0801
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
@@ -18,7 +19,7 @@ from reporting.reporting_utils import step
 class LeaderFollower(Runner):
     """this runs a leader / Follower setup with synchronisation"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -35,7 +36,7 @@ class LeaderFollower(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("LeaderFollower", 400, 500, False, ssl, replication2, use_auto_certs, 2),
+            RunnerProperties("LeaderFollower", 400, 500, False, ssl, False, use_auto_certs, 2),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -44,7 +45,7 @@ class LeaderFollower(Runner):
         self.leader_starter_instance = None
         self.follower_starter_instance = None
         self.passvoid = "leader"
-
+        # pylint: disable=line-too-long
         self.success = False
         ssl = "ssl://" if self.cfg.ssl else "tcp://"
         passvoid = self.passvoid
@@ -347,10 +348,10 @@ process.exit(0);
         if self.selenium:
             self.selenium.test_jam_attempt()
 
+    # pylint: disable=R0801
     @step
     def shutdown_impl(self):
-        ret = (self.leader_starter_instance.terminate_instance() or
-               self.follower_starter_instance.terminate_instance())
+        ret = self.leader_starter_instance.terminate_instance() or self.follower_starter_instance.terminate_instance()
         pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))

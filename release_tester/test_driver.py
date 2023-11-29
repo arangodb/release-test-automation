@@ -273,7 +273,7 @@ class TestDriver:
                                     testcase.context.status = Status.PASSED
                                 except Exception as ex:
                                     one_result["success"] = False
-                                    one_result["messages"].append('\n' + str(ex))
+                                    one_result["messages"].append("\n" + str(ex))
                                     one_result["progress"] += runner.get_progress()
                                     runner.take_screenshot()
                                     if runner.agency:
@@ -290,8 +290,11 @@ class TestDriver:
                                     )
                                     if self.abort_on_error:
                                         raise ex
-                                    one_result["progress"] += "\n -> " + str(ex) + "\n" + "".join(
-                                        traceback.TracebackException.from_exception(ex).format()
+                                    one_result["progress"] += (
+                                        "\n -> "
+                                        + str(ex)
+                                        + "\n"
+                                        + "".join(traceback.TracebackException.from_exception(ex).format())
                                     )
                                     traceback.print_exc()
                                     lh.section("uninstall on error")
@@ -423,6 +426,13 @@ class TestDriver:
                         run_props,
                         use_auto_certs=self.use_auto_certs,
                     )
+                    if run_props.replication2 and not runner.replication2:
+                        testcase.context.status = Status.SKIPPED
+                        testcase.context.statusDetails = StatusDetails(
+                        message=f"Replication v. 2 is not supported by {runner.name}, version is {runner.versionstr}"
+                        )
+                        runner.cleanup()
+                        continue
                     # install on first run:
                     runner.do_install = (count == 1) and do_install
                     # only uninstall after the last test:

@@ -6,6 +6,8 @@ from pathlib import Path
 import sys
 
 import click
+import semver
+
 from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from write_result_table import write_table
@@ -54,6 +56,8 @@ def package_test(
         props.replication2 = replication2
         if props.directory_suffix not in editions:
             continue
+        if semver.VersionInfo.parse(new_version) < props.minimum_supported_version:
+            continue
         dl_opt = deepcopy(dl_opts)
         dl_opt.force = dl_opts.force and props.force_dl
         dl_new = Download(
@@ -80,8 +84,10 @@ def package_test(
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     if run_test_suites:
-        enterprise_packages_are_present = "EE" in editions or "EP" in editions
-        community_packages_are_present = "C" in editions
+        enterprise_packages_are_present = (
+            "EE" in editions or "EP" in editions or "EEr2" in editions or "EPr2" in editions
+        )
+        community_packages_are_present = "C" in editions or "Cr2" in editions
         params = deepcopy(test_driver.cli_test_suite_params)
         params.new_version = dl_new.cfg.version
         if enterprise_packages_are_present:
