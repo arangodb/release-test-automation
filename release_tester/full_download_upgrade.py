@@ -40,8 +40,8 @@ def upgrade_package_test(
     print("Cleanup done")
 
     versions = []
-    enterprise_packages_are_present = "EE" in editions or "EP" in editions or "EEr2" in editions or "EPr2" in editions
-    community_packages_are_present = "C" in editions or "Cr2" in editions
+    enterprise_packages_are_present = False
+    community_packages_are_present = False
     for props in EXECUTION_PLAN:
         if props.directory_suffix not in editions:
             continue
@@ -90,6 +90,10 @@ def upgrade_package_test(
                 continue
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
             versions.append([dl_new.cfg.version, dl_old.cfg.version])
+            if props.enterprise:
+                enterprise_packages_are_present = True
+            else:
+                community_packages_are_present = True
         except PermissionError as ex:
             enterprise_packages_are_present = False
             community_packages_are_present = False

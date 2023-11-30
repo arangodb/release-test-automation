@@ -54,6 +54,8 @@ def upgrade_package_test(
     packages = {}
 
     # STEP 1: Prepare. Download all required packages for current launch
+    enterprise_packages_are_present = False
+    community_packages_are_present = False
     for v_sequence in upgrade_matrix.split(";"):
         versions_list = v_sequence.split(":")
         upgrade_scenarios.append(versions_list)
@@ -85,6 +87,10 @@ def upgrade_package_test(
                 )
                 packages[version_name][props.directory_suffix] = res
                 res.get_packages(dl_opts.force)
+                if props.enterprise:
+                    enterprise_packages_are_present = True
+                else:
+                    community_packages_are_present = True
                 # No server package, no install/upgrade tests for these:
                 if res.inst.server_package is None:
                     print("skipping server package tests")
@@ -155,11 +161,6 @@ def upgrade_package_test(
 
     # STEP 4: Run other test suites
     if run_test_suites:
-        enterprise_packages_are_present = (
-            "EE" in editions or "EP" in editions or "EEr2" in editions or "EPr2" in editions
-        )
-        community_packages_are_present = "C" in editions or "Cr2" in editions
-
         for pair in upgrade_pairs:
             params.new_version = pair[0]
             params.old_version = pair[1]

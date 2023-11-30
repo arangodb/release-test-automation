@@ -50,6 +50,8 @@ def package_test(
     # pylint: disable=fixme
     # FIXME: replication2 parameter must be passed from CLI to the runner class
     # in every entrypoint script without need for manual fixes like this one
+    enterprise_packages_are_present = False
+    community_packages_are_present = False
     for init_props in EXECUTION_PLAN:
         props = deepcopy(init_props)
         if props.directory_suffix not in editions:
@@ -75,17 +77,16 @@ def package_test(
             print("we already tested this version. bye.")
             sys.exit(0)
         dl_new.get_packages(dl_new.is_different())
-
+        if props.enterprise:
+            enterprise_packages_are_present = True
+        else:
+            community_packages_are_present = True
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
 
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     if run_test_suites:
-        enterprise_packages_are_present = (
-            "EE" in editions or "EP" in editions or "EEr2" in editions or "EPr2" in editions
-        )
-        community_packages_are_present = "C" in editions or "Cr2" in editions
         params = deepcopy(test_driver.cli_test_suite_params)
         params.new_version = dl_new.cfg.version
         if enterprise_packages_are_present:
