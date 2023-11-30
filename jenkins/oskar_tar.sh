@@ -49,6 +49,14 @@ if test "RUN_UPGRADE"; then
 else    
     force_arg+=(--no-run-upgrade)
 fi
+if test -n "${EDITION}"; then
+    EDITION='C'
+fi
+IFS=',' read -r -a EDITION_ARR <<< "${EDITION}"
+for one_edition in "${EDITION_ARR[@]}"; do
+    force_arg+=(--edition "${one_edition}")
+done
+                   
 docker rm minio1
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
