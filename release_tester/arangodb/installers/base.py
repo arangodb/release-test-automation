@@ -131,7 +131,7 @@ class BinaryDescription:
 
     def _friendly_name(self, string):
         """ should find friendly name in string """
-        return re.match(string, self.friendly_name) is not None
+        return re.match(self.friendly_name, string) is not None
 
     def _validate_windows_attributes(self, version, enterprise):
         """ validate the windows binary header fields """

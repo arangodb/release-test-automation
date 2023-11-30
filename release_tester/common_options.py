@@ -7,7 +7,7 @@ import os
 import click
 
 from arangodb.starter.deployments import STARTER_MODES
-from arangodb.installers import HB_MODES, HB_PROVIDERS
+from arangodb.installers import HB_MODES, HB_PROVIDERS, EXECUTION_PLAN
 
 CWD = Path.cwd()
 
@@ -433,7 +433,7 @@ def full_common_options(function):
     function = click.option(
         "--edition",
         "editions",
-        default=["EE", "EP", "C"],
+        default=[props.directory_suffix for props in EXECUTION_PLAN],
         multiple=True,
         help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
     )(function)

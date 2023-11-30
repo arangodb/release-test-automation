@@ -4,7 +4,6 @@ import logging
 import sys
 import time
 from pathlib import Path
-import os
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -19,7 +18,7 @@ from tools.interact import prompt_user
 class ActiveFailover(Runner):
     """This launches an active failover setup"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -36,7 +35,7 @@ class ActiveFailover(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, replication2, use_auto_certs, 3),
+            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, 3),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -75,7 +74,7 @@ class ActiveFailover(Runner):
             node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
             node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
             node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
-
+            # pylint: disable=R0801
             self.cert_op(
                 [
                     "tls",
@@ -177,10 +176,10 @@ class ActiveFailover(Runner):
     def test_setup_impl(self):
         self.success = True
         replies = []
-
+        # pylint: disable=consider-using-enumerate
         for i in range(len(self.follower_nodes)):
             url = self.follower_nodes[i].get_frontend().get_local_url("")
-            reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
+            reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid), timeout=180)
             logging.info(str(reply))
             logging.info(reply.text)
             replies.append(reply)
@@ -316,7 +315,7 @@ class ActiveFailover(Runner):
         url = "{host}/_db/_system/_admin/aardvark/index.html#replication".format(
             host=curr_leader.get_frontend().get_local_url("")
         )
-        reply = requests.get(url, auth=HTTPBasicAuth("root", curr_leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth("root", curr_leader.passvoid), timeout=180)
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
@@ -333,7 +332,7 @@ class ActiveFailover(Runner):
             """The leader failover has happened.
 please revalidate the UI states on the new leader; you should see *one* follower.""",
         )
-        version = self.new_cfg.version if self.new_cfg != None else self.cfg.version
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         self.leader.kill_specific_instance([InstanceType.AGENT])
 
         self.leader.respawn_instance(version)
@@ -347,7 +346,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
         url = self.leader.get_frontend().get_local_url("")
 
-        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid), timeout=180)
         logging.info(str(reply))
         logging.info(str(reply.text))
 

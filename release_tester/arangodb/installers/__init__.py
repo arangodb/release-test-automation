@@ -461,7 +461,7 @@ def make_installer(install_config: InstallerConfig):
 class RunProperties:
     """bearer class for run properties"""
 
-    # pylint: disable=too-many-function-args disable=too-many-arguments
+    # pylint: disable=too-many-function-args disable=too-many-arguments disable=too-many-instance-attributes
     def __init__(
         self,
         enterprise: bool,
@@ -471,6 +471,7 @@ class RunProperties:
         replication2: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
+        minimum_supported_version: str = "3.5.0",
     ):
         """set the values for this testrun"""
         self.enterprise = enterprise
@@ -480,6 +481,7 @@ class RunProperties:
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
         self.replication2 = replication2
+        self.minimum_supported_version = semver.VersionInfo.parse(minimum_supported_version)
 
     def __repr__(self):
         return """{0.__class__.__name__}
@@ -506,8 +508,11 @@ directory_suffix: {0.directory_suffix}""".format(
 # pylint: disable=too-many-function-args
 EXECUTION_PLAN = [
     RunProperties(True, True, True, True, False, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, True, True, True, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
     RunProperties(True, False, False, False, False, "Enterprise", "EP"),
-    RunProperties(False, True,  False, False, False, "Community", "C"),
+    RunProperties(True, False, False, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
+    RunProperties(False, True, False, False, False, "Community", "C"),
+    RunProperties(False, True, False, False, True, "Community\nreplication v.2", "Cr2", "3.11.999"),
 ]
 
 
