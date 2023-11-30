@@ -429,7 +429,7 @@ class TestDriver:
                     if run_props.replication2 and not runner.replication2:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
-                        message=f"Replication v. 2 is not supported by {runner.name}, version is {runner.versionstr}"
+                        message=f"Replication v. 2 is not supported for {runner.name}, version {runner.versionstr}"
                         )
                         runner.cleanup()
                         continue

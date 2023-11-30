@@ -28,7 +28,6 @@ def package_test(
     git_version,
     editions,
     run_test_suites,
-    replication2,
     test_driver,
 ):
     """process fetch & tests"""
@@ -53,7 +52,6 @@ def package_test(
     # in every entrypoint script without need for manual fixes like this one
     for init_props in EXECUTION_PLAN:
         props = deepcopy(init_props)
-        props.replication2 = replication2
         if props.directory_suffix not in editions:
             continue
         if semver.VersionInfo.parse(new_version) < props.minimum_supported_version:
@@ -148,7 +146,6 @@ def main(**kwargs):
             kwargs['git_version'],
             kwargs['editions'],
             kwargs['run_test_suites'],
-            kwargs['replication2'],
             test_driver
         )
     finally:
