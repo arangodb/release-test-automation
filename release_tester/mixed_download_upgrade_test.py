@@ -7,6 +7,7 @@ from copy import copy, deepcopy
 from pathlib import Path
 
 import click
+import semver
 
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, make_installer, InstallerBaseConfig, InstallerConfig
@@ -104,6 +105,8 @@ def upgrade_package_test(
     map_versions = {}
 
     # STEP 1: Prepare. Download all required packages for current launch
+    enterprise_packages_are_present = False
+    community_packages_are_present = False
     for v_sequence in upgrade_matrix.split(";"):
         versions_list = v_sequence.split(":")
         upgrade_scenarios.append(versions_list)
@@ -155,6 +158,10 @@ def upgrade_package_test(
                     version_name = new_version_name
                 ver[props.directory_suffix] = res
                 res.get_packages(dl_opts.force)
+                if props.enterprise:
+                    enterprise_packages_are_present = True
+                else:
+                    community_packages_are_present = True
                 packages[version_name] = res
     params = deepcopy(test_driver.cli_test_suite_params)
     # STEP 2: Run test for primary version
@@ -165,6 +172,9 @@ def upgrade_package_test(
                 continue
             props = copy(default_props)
             if props.directory_suffix not in editions:
+                continue
+
+            if props.minimum_supported_version > packages[primary_version][props.directory_suffix].cfg.semver:
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
@@ -189,6 +199,13 @@ def upgrade_package_test(
         for scenario in upgrade_scenarios:
             for props in EXECUTION_PLAN:
                 if props.directory_suffix not in editions:
+                    continue
+                skip = False
+                for version in scenario:
+                    if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                        skip = True
+                if skip:
+                    print(f"Skipping {str(props)}")
                     continue
                 this_test_dir = test_dir / props.directory_suffix
                 print("Cleaning up" + props.testrun_name)
@@ -218,9 +235,6 @@ def upgrade_package_test(
 
     # STEP 4: Run other test suites
     if run_test_suites:
-        enterprise_packages_are_present = "EE" in editions or "EP" in editions
-        community_packages_are_present = "C" in editions
-
         for pair in upgrade_pairs:
             params.new_version = pair[0]
             params.old_version = pair[1]
@@ -302,8 +316,8 @@ def main(**kwargs):
     kwargs['base_config_src'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
     # we run either enterprise or community:
-    if len(kwargs['editions']) == 3:
-        kwargs['editions'] = ["EP"]
+    if len(kwargs['editions']) == len(EXECUTION_PLAN):
+        kwargs['editions'] = ["EP","EPr2"]
 
     test_driver = TestDriver(**kwargs)
     try:

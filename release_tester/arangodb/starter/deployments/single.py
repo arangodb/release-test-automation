@@ -19,7 +19,7 @@ from reporting.reporting_utils import step
 class Single(Runner):
     """this runs a single server setup"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -36,7 +36,7 @@ class Single(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("Single", 400, 500, True, ssl, replication2, use_auto_certs, 1),
+            RunnerProperties("Single", 400, 500, True, ssl, False, use_auto_certs, 1),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -184,6 +184,7 @@ class Single(Runner):
                 reply = self.starter_instance.send_request(InstanceType.SINGLE, requests.get, "/_api/collection", None)
                 if reply[0].status_code == 200:
                     break
+            # pylint: disable=broad-except
             except Exception:
                 print("waiting")
             count += 1
