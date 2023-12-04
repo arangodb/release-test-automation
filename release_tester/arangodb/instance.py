@@ -316,7 +316,7 @@ class Instance(ABC):
                 print("terminating {0} instance PID:[{1}]".format(self.type_str, self.instance.pid))
                 self.instance.terminate()
                 self.instance.wait(600)
-                if add_logfile_to_report:
+                if add_logfile_to_report and self.logfile is not None and self.logfile.exists():
                     self.add_logfile_to_report()
             except psutil.NoSuchProcess:
                 logging.info("instance already dead: " + str(self.instance))
