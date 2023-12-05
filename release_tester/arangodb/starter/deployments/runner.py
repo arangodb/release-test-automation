@@ -750,7 +750,7 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-        args = ["--tempDataDir", str(self.cfg.base_test_dir / self.basedir / "makedata_tmp")]
+        args = ["--tempDataDir", str(self.cfg.base_test_dir / self.basedir / "makedata_tmp"), "--excludePreviouslyExecutedTests", "true"]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
         for starter in self.makedata_instances:
