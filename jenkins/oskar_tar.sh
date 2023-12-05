@@ -49,7 +49,7 @@ if test "RUN_UPGRADE"; then
 else    
     force_arg+=(--no-run-upgrade)
 fi
-if test -n "${RTA_EDITION}"; then
+if test -z "${RTA_EDITION}"; then
     RTA_EDITION='C'
 fi
 IFS=',' read -r -a EDITION_ARR <<< "${RTA_EDITION}"
