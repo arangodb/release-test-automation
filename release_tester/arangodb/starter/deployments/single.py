@@ -146,7 +146,8 @@ class Single(Runner):
         self.starter_instance.respawn_instance(version)
         self.progress(True, "step 4 - detect system state")
         self.starter_instance.detect_instances()
-        self.starter_instance.node.detect_instance_pids()
+        for node in self.starter_instance.all_instances:
+            self.starter_instance.node.detect_instance_pids()
         self.starter_instance.wait_for_version_reply()
         if self.selenium:
             self.selenium.test_after_install()
