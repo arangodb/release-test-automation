@@ -35,7 +35,7 @@ LOG_BLACKLIST = [
     "2c0c6",  # -> extended names
     "de8f3",  # -> extended names
 ]
-LOG_MAINTAINER_BLACKLIST = [ # if we use the 'source'-Distribution, these are expected:
+LOG_MAINTAINER_BLACKLIST = [  # if we use the 'source'-Distribution, these are expected:
     "0458b",  # -> maintainer version binary
     "bd666",  # -> maintainer version binary
 ]
@@ -46,6 +46,7 @@ FATAL_BLACKLIST = [
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
 IS_WINDOWS = bool(platform.win32_ver()[0])
 IS_MAC = bool(platform.mac_ver()[0] != "")
+
 
 class InstanceType(IntEnum):
     """type of arangod instance"""
@@ -218,7 +219,7 @@ class Instance(ABC):
                 if line.startswith("#"):
                     continue
                 line = line.rstrip().rstrip(" \\")
-                if line.find('build/bin') >= 0:
+                if line.find("build/bin") >= 0:
                     print("Source instance!")
                     self.source_instance = True
                 if len(line) > 0:
@@ -449,14 +450,17 @@ class Instance(ABC):
     @step
     def add_logfile_to_report(self):
         """Add log to allure report"""
-        logfile = str(self.logfile)
-        attach.file(
-            logfile,
-            "Log file(name: {name}, PID:{pid}, port: {port}, type: {type})".format(
-                name=self.name, pid=self.pid, port=self.port, type=self.type_str
-            ),
-            AttachmentType.TEXT,
-        )
+        if self.logfile is not None and self.logfile.exists():
+            logfile = str(self.logfile)
+            attach.file(
+                logfile,
+                "Log file(name: {name}, PID:{pid}, port: {port}, type: {type})".format(
+                    name=self.name, pid=self.pid, port=self.port, type=self.type_str
+                ),
+                AttachmentType.TEXT,
+            )
+        else:
+            step(f"Can't add log file because it doesn't exist: {str(self.logfile)}")
 
     # pylint: disable=no-else-return
     def get_http_protocol(self):
@@ -715,7 +719,7 @@ class ArangodInstance(Instance):
 
     def detect_pid(self, ppid, offset=0, full_binary_path=""):
         """detect the instance"""
-        # pylint: disable=too-many-statements disable=too-many-locals
+        # pylint: disable=too-many-statements disable=too-many-locals disable=too-many-branches
         self.pid = 0
         self.ppid = ppid
         tries = 40
