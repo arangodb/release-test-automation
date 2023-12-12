@@ -296,7 +296,6 @@ class Runner(ABC):
 
         for i in range(0, bound):
             self.old_installer = self.installers[i][1]
-            self.old_installer.cfg.passvoid = ""
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
                 self.cfg = copy.deepcopy(self.old_installer.cfg)
