@@ -74,15 +74,15 @@ git submodule update
 docker network create -d bridge minio-bridge
 
 
-docker run -d \
-  -p 9000:9000 \
-  -p 9001:9001 \
-  --network=minio-bridge \
-  --name minio1 \
-  -v $(pwd)/test_dir/miniodata:/data \
-  -e "MINIO_ROOT_USER=minio" \
-  -e "MINIO_ROOT_PASSWORD=minio123" \
-  quay.io/minio/minio server /data --console-address ":9001" || exit 1
+#docker run -d \
+#  -p 9000:9000 \
+#  -p 9001:9001 \
+#  --network=minio-bridge \
+#  --name minio1 \
+#  -v $(pwd)/test_dir/miniodata:/data \
+#  -e "MINIO_ROOT_USER=minio" \
+#  -e "MINIO_ROOT_PASSWORD=minio123" \
+#  quay.io/minio/minio server /data --console-address ":9001"
 
 echo "Maximum number of memory mappings per process is: `cat /proc/sys/vm/max_map_count`"
 echo "Setting maximum number of memory mappings per process to: $((`nproc`*8*8000))"
@@ -102,11 +102,6 @@ docker run \
        --env="PYTHONUNBUFFERED=1" \
        --env="RTA_LOCAL_HTTPUSER=${RTA_LOCAL_HTTPUSER}" \
        --env="WORKSPACE=/home/release-test-automation/" \
-       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
-       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
-       --env="AWS_REGION=$AWS_REGION" \
-       --env="AWS_ACL=$AWS_ACL" \
-       \
        --network=minio-bridge \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \
@@ -116,13 +111,11 @@ docker run \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        \
-          /home/release-test-automation/release_tester/full_download_upgrade_test.py \
-          --upgrade-matrix "${UPGRADE_MATRIX}" \
-          --new-version "${NEW_VERSION}" \
+          /home/release-test-automation/release_tester/run_chain_upgrade.py \
+          --enterprise-magic ${ENTERPRISE_DOWNLOAD_KEY} \
+          --release-tracker-username ${RELEASE_TRACKER_USERNAME} \
+          --release-tracker-password ${RELEASE_TRACKER_PASSWORD} \
           --zip \
-          --no-test \
-          --do-not-run-test-suites \
-          --hb-mode s3bucket \
           --verbose \
           --alluredir /home/allure-results \
           --git-version "$GIT_VERSION" \
@@ -136,7 +129,7 @@ result=$?
 docker run \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "$(pwd)/allure-results:/home/allure-results" \
-       -v $(pwd)/test_dir/miniodata:/data \
+       -v "$(pwd)/test_dir/miniodata:/data" \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/*
@@ -146,6 +139,11 @@ docker run \
        --rm \
        "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
        rm -f /tmp/config.yml 
+
+if [ `ls -1 $(pwd)/test_dir/core* 2>/dev/null | wc -l ` -gt 0 ]; then
+    7z a coredumps $(pwd)/test_dir/core*
+    rm -f $(pwd)/test_dir/core*
+fi
 
 if [ `ls -1 $(pwd)/test_dir/core* 2>/dev/null | wc -l ` -gt 0 ]; then
     7z a coredumps $(pwd)/test_dir/core*

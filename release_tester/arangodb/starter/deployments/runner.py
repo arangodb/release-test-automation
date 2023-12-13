@@ -296,7 +296,6 @@ class Runner(ABC):
 
         for i in range(0, bound):
             self.old_installer = self.installers[i][1]
-            self.old_installer.cfg.passvoid = ""
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
                 self.cfg = copy.deepcopy(self.old_installer.cfg)
@@ -327,9 +326,9 @@ class Runner(ABC):
                     self.starter_prepare_env()
                     self.starter_run()
                     self.finish_setup()
-                    self.make_data()
-                    self.after_makedata_check()
-                    self.check_data_impl()
+                self.make_data()
+                self.after_makedata_check()
+                self.check_data_impl()
 
                 if self.selenium:
                     self.set_selenium_instances()
@@ -750,7 +749,7 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-        args = []
+        args = ["--tempDataDir", str(self.cfg.base_test_dir / self.basedir / "makedata_tmp"), "--excludePreviouslyExecutedTests", "true"]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
         for starter in self.makedata_instances:
@@ -758,7 +757,7 @@ class Runner(ABC):
             arangosh = starter.arangosh
 
             # must be writabe that the setup may not have already data
-            if not arangosh.read_only and not self.has_makedata_data:
+            if not arangosh.read_only:  # and not self.has_makedata_data:
                 try:
                     arangosh.create_test_data(self.name, args=args)
                 except CliExecutionException as exc:
@@ -907,10 +906,7 @@ class Runner(ABC):
                 continue
             assert starter.hb_instance, "upload backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
-            return starter.hb_instance.upload_status(name,
-                                                     hb_id,
-                                                     self.backup_instance_count,
-                                                     timeout=timeout)
+            return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count, timeout=timeout)
         raise Exception("no frontend found.")
 
     @step
@@ -965,8 +961,8 @@ class Runner(ABC):
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
             if self.cfg.log_dir.exists():
-                logfile = self.cfg.log_dir / 'arangod.log'
-                targetfile = self.cfg.base_test_dir / self.basedir / 'arangod.log'
+                logfile = self.cfg.log_dir / "arangod.log"
+                targetfile = self.cfg.base_test_dir / self.basedir / "arangod.log"
                 if logfile.exists():
                     print(f"copying {str(logfile)} => {str(targetfile)} so it can be in the report")
                     shutil.copyfile(str(logfile), str(targetfile))
@@ -995,7 +991,7 @@ class Runner(ABC):
                 del os.environ["TMPDIR"]
 
     def _set_logging(self, instance_type):
-        """ turn on logging for all of instance_type """
+        """turn on logging for all of instance_type"""
         for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
                 instance_type,
@@ -1003,6 +999,7 @@ class Runner(ABC):
                 "/_admin/log/level",
                 '{"agency":"debug", "requests":"trace", "cluster":"debug", "maintenance":"debug"}',
             )
+
     @step
     def agency_set_debug_logging(self):
         """turns on logging on the agency"""

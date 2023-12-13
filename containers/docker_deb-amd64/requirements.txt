@@ -1,4 +1,3 @@
-
 # copy into containers using: for i in docker_deb-amd64 docker_deb-arm64v8 docker_me docker_rpm docker_tar-amd64 docker_tar-arm64v8; do cp requirements.txt containers/$i; done
 psutil >= 5.9
 pyyaml
@@ -8,7 +7,8 @@ click
 semver
 python-magic; platform_system != "Windows"
 python-magic-bin; platform_system == "Windows"
-selenium >= 4.0.0a
+libmagic; platform_system == "Darwin"
+selenium >= 4.0.0
 beautifultable
 tabulate
 markdown
@@ -19,4 +19,9 @@ distro
 dataclasses
 statsd
 wexpect; platform_system == "Windows"
+docker; platform_system == "Linux"
 py7zr
+paramiko
+scp
+unipath
+pre-commit
