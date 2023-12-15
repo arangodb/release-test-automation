@@ -4,6 +4,7 @@
 import datetime
 import json
 import logging
+import os
 import platform
 import re
 import time
@@ -260,7 +261,9 @@ class Instance(ABC):
             command.append(cache_val)
 
         print("Manually launching: " + str(command))
+        os.environ["ARANGODB_SERVER_DIR"] =  str(self.basedir)
         self.instance = psutil.Popen(command)
+        del os.environ["ARANGODB_SERVER_DIR"]
         self.pid = self.instance.pid
         self.ppid = self.instance.ppid()
 
