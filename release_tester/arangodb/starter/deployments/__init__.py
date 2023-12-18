@@ -2,6 +2,8 @@
 """ launch and manage an arango deployment using the starter"""
 from enum import Enum
 import logging
+import platform
+import semver
 
 from typing import Optional
 from arangodb.starter.deployments.runner import Runner
@@ -9,6 +11,8 @@ from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
 
+IS_WINDOWS = platform.win32_ver()[0] != ""
+IS_MAC = platform.mac_ver()[0] != ""
 
 class RunnerType(Enum):
     """dial which runner instance you want"""
@@ -75,6 +79,12 @@ def make_runner(
         selenium_driver_args += ("ignore-certificate-errors",)
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
+    if runner_type == RunnerType.ACTIVE_FAILOVER and installer_set[ len(installer_set) - 1 ][1].cfg.semver > semver.VersionInfo.parse("3.11.99"):
+        runner_type = RunnerType.NONE
+
+    if runner_type == RunnerType.DC2DC and (not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or IS_WINDOWS or IS_MAC):
+        runner_type = RunnerType.NONE
+
     args = (
         runner_type,
         abort_on_error,
@@ -86,6 +96,7 @@ def make_runner(
         runner_properties.replication2,
         use_auto_certs,
     )
+
 
     if runner_type == RunnerType.SINGLE:
         from arangodb.starter.deployments.single import Single

@@ -24,7 +24,7 @@ class NoStarter(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("none", 0, 0, False, ssl, replication2, use_auto_certs, 0),
+            RunnerProperties("none", 0, 1, False, ssl, replication2, use_auto_certs, 1),
             selenium,
             selenium_driver_args,
             testrun_name,
@@ -56,6 +56,12 @@ class NoStarter(Runner):
 
     def before_backup_impl(self):
         """nothing to see here"""
+
+    def before_backup_create_impl(self):
+        """nothing to see here"""
+
+    def after_backup_create_impl(self):
+        """HotBackup has happened, prepare the SUT to continue testing"""
 
     def after_backup_impl(self):
         """nothing to see here"""

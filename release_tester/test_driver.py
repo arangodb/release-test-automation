@@ -182,6 +182,7 @@ class TestDriver:
         kill_all_processes()
         kill_all_processes()
         starter_mode = [
+            RunnerType.SINGLE,
             RunnerType.LEADER_FOLLOWER,
             RunnerType.ACTIVE_FAILOVER,
             RunnerType.CLUSTER,
@@ -226,12 +227,6 @@ class TestDriver:
                 suite_name=runner_strings[runner_type],
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc(True) and runner_type == RunnerType.DC2DC:
-                        testcase.context.status = Status.SKIPPED
-                        testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages.\nDC2DC is not supported on Windows."
-                        )
-                        continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
                         "testscenario": runner_strings[runner_type],
@@ -256,71 +251,74 @@ class TestDriver:
                                 }
                             )
                         )
-                        if runner_type:
-                            runner = make_runner(
-                                runner_type,
-                                self.abort_on_error,
-                                self.selenium,
-                                self.selenium_driver_args,
-                                installers,
-                                run_props,
-                                use_auto_certs=self.use_auto_certs,
+                        runner = make_runner(
+                            runner_type,
+                            self.abort_on_error,
+                            self.selenium,
+                            self.selenium_driver_args,
+                            installers,
+                            run_props,
+                            use_auto_certs=self.use_auto_certs,
                             )
-                            if runner:
-                                try:
-                                    runner.run()
-                                    runner.cleanup()
-                                    testcase.context.status = Status.PASSED
-                                except Exception as ex:
-                                    one_result["success"] = False
-                                    one_result["messages"].append("\n" + str(ex))
-                                    one_result["progress"] += runner.get_progress()
-                                    runner.take_screenshot()
-                                    if runner.agency:
-                                        runner.agency.acquire_dump()
-                                    runner.search_for_warnings()
-                                    runner.quit_selenium()
-                                    kill_all_processes()
-                                    runner.zip_test_dir()
-                                    self.copy_packages_to_result(installers)
-                                    testcase.context.status = Status.FAILED
-                                    testcase.context.statusDetails = StatusDetails(
-                                        message=str(ex),
-                                        trace="".join(traceback.TracebackException.from_exception(ex).format()),
-                                    )
-                                    if self.abort_on_error:
-                                        raise ex
-                                    one_result["progress"] += (
-                                        "\n -> "
-                                        + str(ex)
-                                        + "\n"
-                                        + "".join(traceback.TracebackException.from_exception(ex).format())
-                                    )
-                                    traceback.print_exc()
-                                    lh.section("uninstall on error")
-                                    # pylint: disable=consider-using-enumerate
-                                    for i in range(len(installers)):
-                                        installer = installers[i][1]
-                                        installer.un_install_debug_package()
-                                        installer.un_install_server_package()
-                                        installer.cleanup_system()
-                                    try:
-                                        runner.cleanup()
-                                    finally:
-                                        pass
-                                    results.append(one_result)
-                                    continue
-                                if runner.ui_tests_failed:
-                                    failed_test_names = [
-                                        f'"{row["Name"]}"'
-                                        for row in runner.ui_test_results_table
-                                        if not row["Result"] == "PASSED"
-                                    ]
-                                    one_result["success"] = False
-                                    one_result["messages"].append(
-                                        f'The following UI tests failed: {", ".join(failed_test_names)}.'
-                                        + "See allure report for details."
-                                    )
+                        if not runner or runner.runner_type == RunnerType.NONE:
+                            one_result["message"] = f"Skipping {runner_type}"
+                            print(f"Skipping {runner_type}")
+                            continue
+
+                        try:
+                            runner.run()
+                            runner.cleanup()
+                            testcase.context.status = Status.PASSED
+                        except Exception as ex:
+                            one_result["success"] = False
+                            one_result["messages"].append("\n" + str(ex))
+                            one_result["progress"] += runner.get_progress()
+                            runner.take_screenshot()
+                            if runner.agency:
+                                runner.agency.acquire_dump()
+                            runner.search_for_warnings()
+                            runner.quit_selenium()
+                            kill_all_processes()
+                            runner.zip_test_dir()
+                            self.copy_packages_to_result(installers)
+                            testcase.context.status = Status.FAILED
+                            testcase.context.statusDetails = StatusDetails(
+                                message=str(ex),
+                                trace="".join(traceback.TracebackException.from_exception(ex).format()),
+                            )
+                            if self.abort_on_error:
+                                raise ex
+                            one_result["progress"] += (
+                                "\n -> "
+                                + str(ex)
+                                + "\n"
+                                + "".join(traceback.TracebackException.from_exception(ex).format())
+                            )
+                            traceback.print_exc()
+                            lh.section("uninstall on error")
+                            # pylint: disable=consider-using-enumerate
+                            for i in range(len(installers)):
+                                installer = installers[i][1]
+                                installer.un_install_debug_package()
+                                installer.un_install_server_package()
+                                installer.cleanup_system()
+                            try:
+                                runner.cleanup()
+                            finally:
+                                pass
+                            results.append(one_result)
+                            continue
+                        if runner.ui_tests_failed:
+                            failed_test_names = [
+                                f'"{row["Name"]}"'
+                                for row in runner.ui_test_results_table
+                                if not row["Result"] == "PASSED"
+                            ]
+                            one_result["success"] = False
+                            one_result["messages"].append(
+                                f'The following UI tests failed: {", ".join(failed_test_names)}.'
+                                + "See allure report for details."
+                            )
                         lh.section("uninstall")
                         # pylint: disable=consider-using-enumerate
                         for i in range(len(installers)):
@@ -404,12 +402,6 @@ class TestDriver:
             with AllureTestSuiteContext(parent_test_suite_name=parent_test_suite_name,
                                         suite_name=runner_strings[runner_type]):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc(False) and runner_type == RunnerType.DC2DC:
-                        testcase.context.status = Status.SKIPPED
-                        testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages.\n"
-                                    "DC2DC is not supported on Windows.")
-                        continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
                         "testscenario": runner_strings[runner_type],
@@ -426,6 +418,10 @@ class TestDriver:
                         run_props,
                         use_auto_certs=self.use_auto_certs,
                     )
+                    if not runner or runner.runner_type == RunnerType.NONE:
+                        one_result["message"] = f"Skipping {runner_type}"
+                        print(f"Skipping {runner_type}")
+                        continue
                     if run_props.replication2 and not runner.replication2:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
