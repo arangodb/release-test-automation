@@ -585,9 +585,6 @@ class StarterManager:
         logging.info(f"StarterManager: waiting for process {self.instance.pid} to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
-        # workaround BTS-815: starter exits 15 on the wintendo:
-        # if IS_WINDOWS and exit_code == 15:
-        #    exit_code = 0
 
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
