@@ -259,8 +259,9 @@ class TestDriver:
                             installers,
                             run_props,
                             use_auto_certs=self.use_auto_certs,
-                            )
+                        )
                         if not runner or runner.runner_type == RunnerType.NONE:
+                            testcase.context.status = Status.SKIPPED
                             one_result["message"] = f"Skipping {runner_type}"
                             print(f"Skipping {runner_type}")
                             continue
@@ -419,6 +420,7 @@ class TestDriver:
                         use_auto_certs=self.use_auto_certs,
                     )
                     if not runner or runner.runner_type == RunnerType.NONE:
+                        testcase.context.status = Status.SKIPPED
                         one_result["message"] = f"Skipping {runner_type}"
                         print(f"Skipping {runner_type}")
                         continue
