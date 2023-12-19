@@ -263,6 +263,8 @@ class TestDriver:
                         if not runner or runner.runner_type == RunnerType.NONE:
                             testcase.context.status = Status.SKIPPED
                             one_result["message"] = f"Skipping {runner_type}"
+                            if runner:
+                                one_result["message"] += runner.msg
                             print(f"Skipping {runner_type}")
                             continue
 
@@ -422,6 +424,8 @@ class TestDriver:
                     if not runner or runner.runner_type == RunnerType.NONE:
                         testcase.context.status = Status.SKIPPED
                         one_result["message"] = f"Skipping {runner_type}"
+                        if runner:
+                            one_result["message"] += runner.msg
                         print(f"Skipping {runner_type}")
                         continue
                     if run_props.replication2 and not runner.replication2:

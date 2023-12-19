@@ -79,11 +79,14 @@ def make_runner(
         selenium_driver_args += ("ignore-certificate-errors",)
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
+    msg = ""
     if runner_type == RunnerType.ACTIVE_FAILOVER and installer_set[ len(installer_set) - 1 ][1].cfg.semver > semver.VersionInfo.parse("3.11.99"):
         runner_type = RunnerType.NONE
+        msg = "Active failover not supported for these versions"
 
     if runner_type == RunnerType.DC2DC and (not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or IS_WINDOWS or IS_MAC):
         runner_type = RunnerType.NONE
+        msg = "DC2DC deployment not supported for the host or edition"
 
     args = (
         runner_type,
@@ -131,6 +134,8 @@ def make_runner(
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter
 
-        return NoStarter(*args)
+        ret =  NoStarter(*args)
+        ret.msg = msg
+        return ret
 
     raise Exception("unknown starter type")

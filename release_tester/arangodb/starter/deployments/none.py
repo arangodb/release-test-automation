@@ -20,6 +20,7 @@ class NoStarter(Runner):
         replication2: bool,
         use_auto_certs: bool,
     ):
+        self.msg = ""
         super().__init__(
             runner_type,
             abort_on_error,
