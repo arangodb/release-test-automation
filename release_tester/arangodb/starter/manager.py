@@ -153,8 +153,6 @@ class StarterManager:
                 if "--starter.sync" in moreopts:
                     self.expect_instance_count += 2  # syncmaster + syncworker
 
-        semversion = semver.VersionInfo.parse(self.cfg.version)
-        self.supports_extended_names = (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
         self.username = "root"
         self.passvoid = ""
 
@@ -199,13 +197,18 @@ class StarterManager:
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
 
+    def supports_extended_names(self):
+        """check whether current version supports the extended DB names feature"""
+        semversion = semver.VersionInfo.parse(self.cfg.version)
+        return (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
+
     def get_version_specific_arguments(self, version: str):
         """list starter arguments that must be applied conditionally based on version"""
         result = []
         semversion = semver.VersionInfo.parse(version)
 
         # Extended database names were introduced in 3.9.0
-        if self.supports_extended_names:
+        if self.supports_extended_names():
             result += ["--args.all.database.extended-names-databases=true"]
 
         # Telemetry was introduced in 3.11.0
@@ -421,6 +424,9 @@ class StarterManager:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid("root", passvoid)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
+        else:
+            self.arangosh.cfg.passvoid = passvoid
+            self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
@@ -576,12 +582,9 @@ class StarterManager:
 
         logging.info("This should terminate all child processes")
         self.instance.terminate()
-        logging.info(F"StarterManager: waiting for process {self.instance.pid} to exit")
+        logging.info(f"StarterManager: waiting for process {self.instance.pid} to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
-        # workaround BTS-815: starter exits 15 on the wintendo:
-        # if IS_WINDOWS and exit_code == 15:
-        #    exit_code = 0
 
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
@@ -849,6 +852,7 @@ class StarterManager:
             args.extend(moreargs)
 
         logging.info("StarterManager: respawning instance %s", str(args))
+        lh.log_cmd(str(args))
         self.instance = psutil.Popen(args)
         self.pid = self.instance.pid
         self.ppid = self.instance.ppid()

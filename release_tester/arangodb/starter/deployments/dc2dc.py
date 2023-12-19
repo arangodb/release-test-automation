@@ -202,6 +202,7 @@ class Dc2Dc(Runner):
                 # FIXME: temp solution for BTS-1690 - limit concurrency during initial-sync phase (default 16)
                 moreopts.append('--args.syncworkers.worker.max-initial-sync-tasks=8')
             opts = [
+                    '--all.cluster.default-replication-factor=2',
                     '--all.log.level=backup=trace',
                     # '--all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',

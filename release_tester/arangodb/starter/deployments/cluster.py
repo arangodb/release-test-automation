@@ -66,6 +66,7 @@ db.testCollection.save({test: "document"})
                 "--coordinators.database.default-replication-version=2",
                 "--all.log.level=replication2=debug",
             ]
+        common_opts += ["--all.cluster.default-replication-factor=2"]
         node1_opts = []
         node2_opts = ["--starter.join", "127.0.0.1:9528"]
         node3_opts = ["--starter.join", "127.0.0.1:9528"]
