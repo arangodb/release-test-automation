@@ -3,7 +3,6 @@
 import time
 import semver
 from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import NoSuchElementException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
@@ -496,29 +495,11 @@ class ServicePage(NavigationBarPage):
         self.navbar_goto("services")
 
         # at this point it will be back to service page
-        max_retries = 3
-        
-        for attempt in range(1, max_retries + 1):
-            try:
-                print('Selecting graphql service \n')
-                graphql_service = "//*[text()='demo-graphql']"
-                graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
-                graphql_service_sitem.click()
-                time.sleep(2)
-                break
-            except NoSuchElementException  as ex:
-                print(f'Error occurred while selecting graphql service. Attempt {attempt} \n')
-                
-                time.sleep(2)
-                print(f"Attempt {attempt}: Element not found. Retrying...")
-                if attempt == max_retries:
-                    print("Maximum retries reached. Exiting.")
-                    raise  # Re-raise the exception if max retries reached
-                else:
-                    print('Refreshing the UI \n')
-                    self.webdriver.refresh()
-                    time.sleep(2)  # You may adjust the sleep duration as needed
-                    continue  # Retry the loop
+        print('Selecting graphql service \n')
+        graphql_service = "//*[text()='demo-graphql']"
+        graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
+        graphql_service_sitem.click()
+        time.sleep(2)
 
         print('Opening graphql interface \n')
         graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
