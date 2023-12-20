@@ -492,10 +492,11 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
         time.sleep(2)
-        self.webdriver.refresh()
         self.navbar_goto("services")
 
         # at this point it will be back to service page
+        self.webdriver.refresh()
+        time.sleep(5)
         max_retries = 3
 
         for attempt in range(1, max_retries + 1):
@@ -506,19 +507,19 @@ class ServicePage(NavigationBarPage):
                 graphql_service_sitem.click()
                 time.sleep(2)
                 break
-            except NoSuchElementException  as ex:
+            except NoSuchElementException:
                 print(f'Error occurred while selecting graphql service. Attempt {attempt} \n')
 
                 time.sleep(2)
                 print(f"Attempt {attempt}: Element not found. Retrying...")
                 if attempt == max_retries:
                     print("Maximum retries reached. Exiting.")
-                    raise  # Re-raise the exception if max retries reached
+                    raise
                 else:
                     print('Refreshing the UI \n')
                     self.webdriver.refresh()
                     time.sleep(2)
-                    continue  # Retry the loop
+                    continue
 
         print('Opening graphql interface \n')
         graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
