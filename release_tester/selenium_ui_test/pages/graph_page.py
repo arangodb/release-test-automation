@@ -263,15 +263,14 @@ class GraphPage(NavigationBarPage):
     
     def checking_created_collections(self, graph_name):
         """This method will check all the example graphs created collections"""
+        self.wait_for_ajax()
         # todo add navigation instead
         print(f"Checking created collections for {graph_name}")
-        select_collection_page_sitem = self.locator_finder_by_id(
-            self.select_collection_page_id
-        )
-        select_collection_page_sitem.click()
-        time.sleep(1)
+        self.navbar_goto("collections")
+        self.wait_for_ajax()
 
         if graph_name == "Knows Graph":
+            self.wait_for_ajax()
             knows_collection = '//*[@id="collection_knows"]/div/h5'
             knows_collection_sitem = self.locator_finder_by_xpath(knows_collection)
             expected_title = "knows"
@@ -292,6 +291,7 @@ class GraphPage(NavigationBarPage):
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "Traversal Graph":
+            self.wait_for_ajax()
             circle_collection = '//*[@id="collection_circles"]/div/h5'
             circle_collection_sitem = self.locator_finder_by_xpath(circle_collection)
             expected_title = "circles"
@@ -312,6 +312,7 @@ class GraphPage(NavigationBarPage):
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "k Shortest Paths Graph":
+            self.wait_for_ajax()
             connections_collection = '//*[@id="collection_connections"]/div/h5'
             connections_collection_sitem = self.locator_finder_by_xpath(
                 connections_collection
@@ -334,6 +335,7 @@ class GraphPage(NavigationBarPage):
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "Mps Graph":
+            self.wait_for_ajax()
             mps_verts_collection = '//*[@id="collection_mps_verts"]/div/h5'
             mps_verts_collection_sitem = self.locator_finder_by_xpath(
                 mps_verts_collection
@@ -358,6 +360,7 @@ class GraphPage(NavigationBarPage):
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "World Graph":
+            self.wait_for_ajax()
             worldVertices_collection = '//*[@id="collection_worldVertices"]/div/h5'
             worldVertices_collection_sitem = self.locator_finder_by_xpath(
                 worldVertices_collection
@@ -382,6 +385,7 @@ class GraphPage(NavigationBarPage):
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "Social Graph":
+            self.wait_for_ajax()
             male_collection = '//*[@id="collection_male"]/div/h5'
             male_collection_sitem = self.locator_finder_by_xpath(male_collection)
             expected_title = "male"
@@ -414,6 +418,7 @@ class GraphPage(NavigationBarPage):
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "City Graph":
+            self.wait_for_ajax()
             frenchCity_collection = '//*[@id="collection_frenchCity"]/div/h5'
             frenchCity_collection_sitem = self.locator_finder_by_xpath(
                 frenchCity_collection
@@ -467,6 +472,7 @@ class GraphPage(NavigationBarPage):
         """This method will create all the example graphs"""
         self.webdriver.refresh()
         self.navbar_goto("graphs")
+        self.wait_for_ajax()
         print(f"Creating {graph_name}\n")
 
         self.locator_finder_by_id(self.select_create_graph_id).click()
@@ -477,36 +483,42 @@ class GraphPage(NavigationBarPage):
         time.sleep(1)
 
         if graph_name == "Knows Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='knows_graph'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "Traversal Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='traversalGraph'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "k Shortest Paths Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='kShortestPathsGraph'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "Mps Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='mps_graph'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "World Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='worldCountry'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "Social Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='social'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
@@ -514,6 +526,7 @@ class GraphPage(NavigationBarPage):
             self.checking_created_collections(graph_name)
 
         elif graph_name == "City Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='routeplanner'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
@@ -521,6 +534,7 @@ class GraphPage(NavigationBarPage):
             self.checking_created_collections(graph_name)
 
         elif graph_name == "Connected Components Graph":
+            self.wait_for_ajax()
             graph_id = "(//button[@graph-id='connectedComponentsGraph'])[1]"
             graph_id_sitem = self.locator_finder_by_xpath(graph_id)
             graph_id_sitem.click()
@@ -530,8 +544,8 @@ class GraphPage(NavigationBarPage):
     # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
-        collection_page = self.locator_finder_by_id(self.select_collection_page_id)
-        collection_page.click()
+        self.navbar_goto("collections")
+        self.wait_for_ajax()
 
         # first collection for the knows_graph_manual begins
         col1 = self.create_new_collection_id

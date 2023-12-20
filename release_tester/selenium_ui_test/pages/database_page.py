@@ -16,17 +16,11 @@ class DatabasePage(NavigationBarPage):
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
         self.select_db_opt_id_sitem = "loginDatabase"
 
-    def select_database_page(self):
-        """Navigate to Database page"""
-        db_sitem = self.database_page
-        db_sitem = self.locator_finder_by_id(db_sitem)
-        db_sitem.click()
-        time.sleep(1)
-
     def create_new_db(self, db_name, index, cluster):
         """Creating and checking new database"""
         # pylint: disable=too-many-locals
-        self.select_database_page()
+        self.navbar_goto("databases")
+        self.wait_for_ajax()
         print(f"Creating {db_name} database started \n")
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
@@ -122,12 +116,14 @@ class DatabasePage(NavigationBarPage):
             select_db_btn_id_sitem = self.locator_finder_by_id(select_db_btn_id)
             select_db_btn_id_sitem.click()
             time.sleep(3)
-        self.select_database_page()
+        self.navbar_goto("databases")
+        self.wait_for_ajax()
 
     def test_database_expected_error(self, cluster):
         """This method will test all negative scenario"""
         # pylint: disable=too-many-statements disable=too-many-statements  disable=too-many-locals
-        self.select_database_page()
+        self.navbar_goto("databases")
+        self.wait_for_ajax()
         print("Expected error scenario for the Database name Started. \n")
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
@@ -296,6 +292,7 @@ class DatabasePage(NavigationBarPage):
 
     def sorting_db(self):
         """Sorting database"""
+        self.wait_for_ajax()
         db_settings = "databaseToggle"
         db_settings_sitem = self.locator_finder_by_id(db_settings)
         db_settings_sitem.click()
@@ -313,6 +310,7 @@ class DatabasePage(NavigationBarPage):
 
     def searching_db(self, db_name):
         """Searching database"""
+        self.wait_for_ajax()
         db_search = "databaseSearchInput"
         db_search_sitem = self.locator_finder_by_id(db_search)
         db_search_sitem.click()
@@ -341,9 +339,11 @@ class DatabasePage(NavigationBarPage):
 
     def deleting_database(self, db_name):
         """Deleting Database"""
+        self.wait_for_ajax()
         try:
             self.webdriver.refresh()
-            self.select_database_page()
+            self.navbar_goto("databases")
+            self.wait_for_ajax()
 
             print(f'{db_name} deleting started \n')
             if db_name == 'OneShard':
@@ -378,6 +378,7 @@ class DatabasePage(NavigationBarPage):
     
     def deleting_user(self, username):
         """Deleting users created for the Database test"""
+        self.wait_for_ajax()
         try:
             self.webdriver.refresh()
             print('Selecting user for deletion \n')
