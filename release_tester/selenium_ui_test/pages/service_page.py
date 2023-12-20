@@ -15,10 +15,7 @@ class ServicePage(NavigationBarPage):
 
     def select_service_page(self):
         """Selecting service page"""
-        service = 'services'
-        service_sitem = self.locator_finder_by_id(service)
-        service_sitem.click()
-        time.sleep(2)
+        self.navbar_goto("services")
 
     def select_add_service_button(self):
         """selecting new service button"""
@@ -190,6 +187,7 @@ class ServicePage(NavigationBarPage):
 
     def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
+        self.wait_for_ajax()
         self.select_demo_geo_s2_service()
 
         print('Installing demo_geo_s2 service \n')
@@ -236,6 +234,7 @@ class ServicePage(NavigationBarPage):
             if status:
                 # got to collection tab
                 self.navbar_goto("collections")
+                self.wait_for_ajax()
                 self.webdriver.refresh()
                 time.sleep(2)
 
@@ -298,7 +297,8 @@ class ServicePage(NavigationBarPage):
                     choose_file_btn_sitem.send_keys(str(path2.absolute()))
                     time.sleep(1)
 
-                    self.select_service_page()
+                    self.navbar_goto("services")
+                    self.wait_for_ajax()
                     self.webdriver.refresh()
 
                     print('Selecting demo_geo_s2 service \n')
@@ -356,7 +356,8 @@ class ServicePage(NavigationBarPage):
 
     def check_demo_geo_s2_service_api(self):
         """Checking demo_geo_s2 service's API"""
-        self.select_service_page()
+        self.navbar_goto("services")
+        self.wait_for_ajax()
 
         print('Selecting demo_geo_s2 service \n')
         select_service = "//*[text()='demo-geo-s2']"
@@ -442,7 +443,8 @@ class ServicePage(NavigationBarPage):
 
     def install_demo_graph_hql_service(self, mount_path):
         """Installing demo_graph_hql_service from the list"""
-        self.select_service_page()
+        self.navbar_goto("services")
+        self.wait_for_ajax()
         self.select_add_service_button()
 
         print('Selecting graphql service \n')
@@ -493,6 +495,7 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem.click()
         time.sleep(2)
         self.navbar_goto("services")
+        self.wait_for_ajax()
 
         # at this point it will be back to service page
         self.webdriver.refresh()
@@ -580,7 +583,8 @@ class ServicePage(NavigationBarPage):
 
     def replace_service(self):
         """This method will replace the service"""""
-        self.select_service_page()
+        self.navbar_goto("services")
+        self.wait_for_ajax()
         self.select_demo_geo_s2_service()
         self.select_service_settings()
 
@@ -662,7 +666,8 @@ class ServicePage(NavigationBarPage):
 
     def delete_service(self, service_name):
         """Delete all the services"""
-        self.select_service_page()
+        self.navbar_goto("services")
+        self.wait_for_ajax()
 
         if service_name == '/geo':
 
@@ -696,6 +701,7 @@ class ServicePage(NavigationBarPage):
                     print(f'{service_sitem} service has been deleted successfully \n')
 
                     self.navbar_goto("collections")
+                    self.wait_for_ajax()
                     # deleting neighborhood collection
                     self.collection_deletion('collection_neighborhoods')
                     self.collection_deletion('collection_restaurants')
