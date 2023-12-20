@@ -492,10 +492,11 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
         time.sleep(2)
-        self.webdriver.refresh()
         self.navbar_goto("services")
 
         # at this point it will be back to service page
+        self.webdriver.refresh()
+        time.sleep(5)
         max_retries = 3
 
         for attempt in range(1, max_retries + 1):
