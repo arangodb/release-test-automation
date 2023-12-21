@@ -10,7 +10,8 @@ import traceback
 from pathlib import Path
 
 from allure_commons._allure import attach
-from allure_commons.model2 import Status, StatusDetails
+from allure_commons.model2 import Status, StatusDetails, Label
+from allure_commons.types import LabelType
 
 from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
@@ -224,6 +225,9 @@ class TestDriver:
             with AllureTestSuiteContext(
                 parent_test_suite_name=parent_test_suite_name,
                 suite_name=runner_strings[runner_type],
+                labels=[Label(name=LabelType.TAG, value=f"HB: {self.get_hb_provider()}")]
+                if self.get_hb_provider() is not None
+                else None,
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc(True) and runner_type == RunnerType.DC2DC:
@@ -402,7 +406,9 @@ class TestDriver:
             parent_test_suite_name = generate_suite_name(properties=run_props, versions=versions, runner_type=None,
                                                          installer_type=installers[0][1].installer_type)
             with AllureTestSuiteContext(parent_test_suite_name=parent_test_suite_name,
-                                        suite_name=runner_strings[runner_type]):
+                                        suite_name=runner_strings[runner_type],
+                                        labels=[Label(name=LabelType.TAG, value=f"HB: {self.get_hb_provider()}")]
+                                        if self.get_hb_provider() is not None else None):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     if not run_props.supports_dc2dc(False) and runner_type == RunnerType.DC2DC:
                         testcase.context.status = Status.SKIPPED
@@ -628,3 +634,12 @@ class TestDriver:
                     result["messages"].append(one_result.message)
             results.append(result)
         return results
+
+    def get_hb_provider(self):
+        """ get HB provider value """
+        hb_provider = None
+        try:
+            hb_provider = self.base_config.hb_cli_cfg.hb_provider
+        except AttributeError:
+            pass
+        return hb_provider
