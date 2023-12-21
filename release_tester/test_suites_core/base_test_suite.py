@@ -2,7 +2,6 @@
 """ base class for all testsuites """
 
 import platform
-import re
 import sys
 import traceback
 from uuid import uuid4
@@ -11,7 +10,6 @@ import distro
 from allure_commons.model2 import Status, StatusDetails
 
 # pylint: disable=import-error
-from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from test_suites_core.models import RtaTestResult
 
@@ -28,8 +26,9 @@ class TestMustBeSkipped(Exception):
 
 class MetaTestSuite(type):
     """Test suite meta class"""
-    def __new__(mcs, name, bases, dct):
-        suite_class = super().__new__(mcs, name, bases, dct)
+
+    def __new__(cls, name, bases, dct):
+        suite_class = super().__new__(cls, name, bases, dct)
         suite_class.is_disabled = False
         suite_class.disable_reasons = []
         if "child_test_suites" not in dct.keys():
@@ -65,6 +64,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         if message:
             cls.disable_reasons.append(message)
         for suite_class in cls.child_test_suites:
+            # pylint: disable=protected-access
             suite_class._disable(message)
 
     @classmethod
@@ -79,6 +79,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     @classmethod
     def get_child_test_suite_classes(cls):
+        """get children suite classes"""
         # pylint: disable=no-member
         return cls.child_test_suites
 
@@ -104,15 +105,15 @@ class BaseTestSuite(metaclass=MetaTestSuite):
             if not setup_failed:
                 try:
                     self.setup_test_suite()
-                # pylint: disable=bare-except
                 except TestMustBeSkipped as ex:
                     self._disable(ex.message)
                     self._report_disabled()
+                # pylint: disable=broad-except disable=bare-except
                 except:
                     setup_failed = True
                     try:
                         self.add_crash_data_to_report()
-                    # pylint: disable=bare-except
+                    # pylint: disable=broad-except disable=bare-except
                     except:
                         pass
             if not self._is_disabled():
@@ -122,6 +123,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     suite = self.init_child_class(suite_class)
                     self.children.append(suite)
                     self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
+                # pylint: disable=unused-variable
                 tear_down_failed = False
                 try:
                     self.tear_down_test_suite()
@@ -130,6 +132,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     tear_down_failed = True
                     try:
                         self.add_crash_data_to_report()
+                    # pylint: disable=bare-except
                     except:
                         pass
         self.test_suite_context.destroy()
@@ -182,9 +185,9 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 exc_tb = None
                 try:
                     func()
-                # pylint: disable=bare-except
                 except TestMustBeSkipped as ex:
                     raise ex
+                # pylint: disable=broad-except disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
@@ -307,13 +310,12 @@ def disable(arg):
         testcase_func = arg
         testcase_func.is_disabled = True
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            func.is_disabled = True
-            func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        func.is_disabled = True
+        func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -325,14 +327,13 @@ def disable_for_windows(arg):
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Windows.")
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            if os_is_win():
-                func.is_disabled = True
-                func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        if os_is_win():
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -344,14 +345,13 @@ def disable_for_mac(arg):
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for MacOS.")
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            if os_is_mac():
-                func.is_disabled = True
-                func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        if os_is_mac():
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -363,14 +363,13 @@ def disable_for_debian(arg):
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Debian-based linux distros.")
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            if os_is_debian_based():
-                func.is_disabled = True
-                func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        if os_is_debian_based():
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -421,7 +420,7 @@ def testcase(title=None):
 
     def decorator(func):
         def wrapper(self, *args, **kwargs):
-            # pylint: disable=broad-except disable=too-many-branches
+            # pylint: disable=broad-except disable=too-many-branches disable=too-many-statements
             name = None
             success = None
             message = ""
