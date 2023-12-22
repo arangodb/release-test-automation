@@ -124,17 +124,17 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     self.children.append(suite)
                     self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
                 # pylint: disable=unused-variable
-                tear_down_failed = False
+            tear_down_failed = False
+            try:
+                self.tear_down_test_suite()
+            # pylint: disable=bare-except
+            except:
+                tear_down_failed = True
                 try:
-                    self.tear_down_test_suite()
+                    self.add_crash_data_to_report()
                 # pylint: disable=bare-except
                 except:
-                    tear_down_failed = True
-                    try:
-                        self.add_crash_data_to_report()
-                    # pylint: disable=bare-except
-                    except:
-                        pass
+                    pass
         self.test_suite_context.destroy()
         return self.test_results
 
