@@ -2,7 +2,6 @@
 """ base class for all testsuites """
 
 import platform
-import re
 import sys
 import traceback
 from uuid import uuid4
@@ -11,14 +10,25 @@ import distro
 from allure_commons.model2 import Status, StatusDetails
 
 # pylint: disable=import-error
-from arangodb.installers import RunProperties
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from test_suites_core.models import RtaTestResult
 
 
+class TestMustBeSkipped(Exception):
+    """Exception to be raised if a testcase must be skipped"""
+
+    def __init__(self, message: str = None):
+        self.message = "Test is skipped."
+        if message:
+            self.message += "\nReason: " + message
+        super().__init__(self.message)
+
+
 class MetaTestSuite(type):
-    def __new__(mcs, name, bases, dct):
-        suite_class = super().__new__(mcs, name, bases, dct)
+    """Test suite meta class"""
+
+    def __new__(cls, name, bases, dct):
+        suite_class = super().__new__(cls, name, bases, dct)
         suite_class.is_disabled = False
         suite_class.disable_reasons = []
         if "child_test_suites" not in dct.keys():
@@ -48,6 +58,16 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         )
 
     @classmethod
+    def _disable(cls, message: str = None):
+        # pylint: disable=no-member
+        cls.is_disabled = True
+        if message:
+            cls.disable_reasons.append(message)
+        for suite_class in cls.child_test_suites:
+            # pylint: disable=protected-access
+            suite_class._disable(message)
+
+    @classmethod
     def _is_disabled(cls):
         # pylint: disable=no-member
         return cls.is_disabled
@@ -59,6 +79,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     @classmethod
     def get_child_test_suite_classes(cls):
+        """get children suite classes"""
         # pylint: disable=no-member
         return cls.child_test_suites
 
@@ -66,34 +87,43 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         """initialise the child class"""
         return child_class()
 
+    def _report_disabled(self):
+        """report that test suite is skipped into allure"""
+        with RtaTestcase("test suite is skipped") as my_testcase:
+            my_testcase.context.status = Status.SKIPPED
+            if len(self._get_disable_reasons()) > 0:
+                message = "\n".join(self._get_disable_reasons())
+                my_testcase.context.statusDetails = StatusDetails(message=message)
+
     def run(self, parent_suite_setup_failed=False):
         """execute the test"""
         self._init_allure()
         if self._is_disabled():
-            with RtaTestcase("test suite is skipped") as my_testcase:
-                my_testcase.context.status = Status.SKIPPED
-                if len(self._get_disable_reasons()) > 0:
-                    message = "\n".join(self._get_disable_reasons())
-                    my_testcase.context.statusDetails = StatusDetails(message=message)
+            self._report_disabled()
         else:
             setup_failed = parent_suite_setup_failed
             if not setup_failed:
                 try:
                     self.setup_test_suite()
-                # pylint: disable=bare-except
+                except TestMustBeSkipped as ex:
+                    self._disable(ex.message)
+                    self._report_disabled()
+                # pylint: disable=broad-except disable=bare-except
                 except:
                     setup_failed = True
                     try:
                         self.add_crash_data_to_report()
-                    # pylint: disable=bare-except
+                    # pylint: disable=broad-except disable=bare-except
                     except:
                         pass
-            if self.has_own_testcases():
-                self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
-            for suite_class in self.child_classes:
-                suite = self.init_child_class(suite_class)
-                self.children.append(suite)
-                self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
+            if not self._is_disabled():
+                if self.has_own_testcases():
+                    self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
+                for suite_class in self.child_classes:
+                    suite = self.init_child_class(suite_class)
+                    self.children.append(suite)
+                    self.test_results += suite.run(parent_suite_setup_failed=setup_failed)
+                # pylint: disable=unused-variable
             tear_down_failed = False
             try:
                 self.tear_down_test_suite()
@@ -102,6 +132,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 tear_down_failed = True
                 try:
                     self.add_crash_data_to_report()
+                # pylint: disable=bare-except
                 except:
                     pass
         self.test_suite_context.destroy()
@@ -109,16 +140,18 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     def run_own_testscases(self, suite_is_broken=False):
         """run all tests local to the derived class"""
-        testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
         results = []
-        for one_testcase in testcases:
+        for one_testcase in self.get_own_testcases():
             results.extend(one_testcase(self, suite_is_broken=suite_is_broken))
         return results
 
+    def get_own_testcases(self):
+        """get testcases that belong to this suite"""
+        return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
+
     def has_own_testcases(self):
         """do we have own testcases?"""
-        testcases = [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "is_testcase")]
-        return len(testcases) > 0
+        return len(self.get_own_testcases()) > 0
 
     def get_run_before_suite_methods(self):
         """list methods that are marked to be ran before test suite"""
@@ -152,7 +185,9 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 exc_tb = None
                 try:
                     func()
-                # pylint: disable=bare-except
+                except TestMustBeSkipped as ex:
+                    raise ex
+                # pylint: disable=broad-except disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
@@ -275,13 +310,12 @@ def disable(arg):
         testcase_func = arg
         testcase_func.is_disabled = True
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            func.is_disabled = True
-            func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        func.is_disabled = True
+        func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -293,14 +327,13 @@ def disable_for_windows(arg):
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Windows.")
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            if os_is_win():
-                func.is_disabled = True
-                func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        if os_is_win():
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -312,14 +345,13 @@ def disable_for_mac(arg):
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for MacOS.")
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            if os_is_mac():
-                func.is_disabled = True
-                func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        if os_is_mac():
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -331,14 +363,13 @@ def disable_for_debian(arg):
             testcase_func.is_disabled = True
             testcase_func.disable_reasons.append("This test case is disabled for Debian-based linux distros.")
         return testcase_func
-    else:
-        reason = arg
+    reason = arg
 
-        def set_disable_reason(func):
-            if os_is_debian_based():
-                func.is_disabled = True
-                func.disable_reasons.append(reason)
-            return func
+    def set_disable_reason(func):
+        if os_is_debian_based():
+            func.is_disabled = True
+            func.disable_reasons.append(reason)
+        return func
 
     return set_disable_reason
 
@@ -389,7 +420,7 @@ def testcase(title=None):
 
     def decorator(func):
         def wrapper(self, *args, **kwargs):
-            # pylint: disable=broad-except disable=too-many-branches
+            # pylint: disable=broad-except disable=too-many-branches disable=too-many-statements
             name = None
             success = None
             message = ""
@@ -433,6 +464,11 @@ def testcase(title=None):
                             success = True
                             print('Test case "%s" passed!' % parametrized_testcase_name)
                             my_testcase.context.status = Status.PASSED
+                        except TestMustBeSkipped as ex:
+                            success = True
+                            print("Testcase is skipped.")
+                            my_testcase.context.status = Status.SKIPPED
+                            my_testcase.context.statusDetails = StatusDetails(message=ex.message)
                         except Exception as ex:
                             success = False
                             print("Test failed!")

@@ -5,9 +5,10 @@ import json
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
+from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import run_before_suite
+from test_suites_core.base_test_suite import run_before_suite, TestMustBeSkipped
 
 
 class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
@@ -59,6 +60,8 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
                 ssl=False,
             ),
         )
+        if isinstance(self.runner, NoStarter):
+            raise TestMustBeSkipped(self.runner.msg)
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
