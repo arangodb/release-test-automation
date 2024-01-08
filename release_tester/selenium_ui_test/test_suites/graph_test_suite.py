@@ -20,8 +20,21 @@ class GraphTestSuite(BaseSeleniumTestSuite):
         
         print("Example Graphs creation started\n")
         if graph.current_package_version() > semver.VersionInfo.parse("3.11.100"):
-            print("Creating Knows Graph\n")
             graph.create_example_graph_for_312("Knows Graph")
+            graph.create_example_graph_for_312("Traversal Graph")
+            graph.create_example_graph_for_312("k Shortest Paths Graph")
+            graph.create_example_graph_for_312("Mps Graph")
+            graph.create_example_graph_for_312("World Graph")
+            graph.create_example_graph_for_312("Social Graph")
+            graph.create_example_graph_for_312("City Graph")
+
+            graph.deleting_example_graphs("Knows Graph")
+            graph.deleting_example_graphs("Traversal Graph")
+            graph.deleting_example_graphs("k Shortest Paths Graph")
+            graph.deleting_example_graphs("Mps Graph")
+            graph.deleting_example_graphs("World Graph")
+            graph.deleting_example_graphs("Social Graph")
+            graph.deleting_example_graphs("City Graph")
         else:
             graph.create_example_graph("Knows Graph")
             graph.create_example_graph("Traversal Graph")
@@ -30,7 +43,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.create_example_graph("World Graph")
             graph.create_example_graph("Social Graph")
             graph.create_example_graph("City Graph")
-            # self.graph.create_example_graph("Connected Components Graph") # overlapped with kshortest path collection
+            # graph.create_example_graph("Connected Components Graph") # overlapped with a kshortest path collection
 
             print("Deleting all example graphs started")
             graph.deleting_example_graphs("Knows Graph")
@@ -40,7 +53,6 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.deleting_example_graphs("World Graph")
             graph.deleting_example_graphs("Social Graph")
             graph.deleting_example_graphs("City Graph")
-
         
         # print("Manual Graph creation started \n")
         # this_graph.select_graph_page()
