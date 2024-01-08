@@ -199,10 +199,13 @@ class GraphPage(NavigationBarPage):
     
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
-        self.select_graph_page()
+        self.navbar_goto("graphs")
+        self.wait_for_ajax()
+
+        print(f"selecting {graph_name} \n")
 
         select_graph = "//*[text()='Add graph']"
-        select_graph = self.locator_finder_by_xpath(self, select_graph)
+        select_graph = self.locator_finder_by_xpath(select_graph)
         select_graph.click()
         time.sleep(1)
         # Selecting example graph button
@@ -213,50 +216,43 @@ class GraphPage(NavigationBarPage):
 
         if graph_name == "Knows Graph":
             self.select_knows_graph_id = self.locator_finder_by_xpath(
-                self.select_knows_graph_id
+                "(//button[@type='submit'][normalize-space()='Create'])[1]"
             )
             self.select_knows_graph_id.click()
 
             print(f"Checking required collections created for {graph_name}\n")
-            self.checking_created_collections_for_312('knows_graph')
+            self.checking_created_collections_for_312("knows_graph")
 
-        elif graph_name == 2:
+        elif graph_name == "Traversal Graph":
             self.select_traversal_graph_id = self.locator_finder_by_xpath(
-               self.select_traversal_graph_id
+                "(//button[@type='submit'][normalize-space()='Create'])[2]"
             )
             self.select_traversal_graph_id.click()
-        elif graph_name == 3:
+        elif graph_name == "k Shortest Paths Graph":
             self.select_k_shortest_path_id = self.locator_finder_by_xpath(
-               self.select_k_shortest_path_id
+                "(//button[@type='submit'][normalize-space()='Create'])[3]"
             )
             self.select_k_shortest_path_id.click()
-        elif graph_name == 4:
+        elif graph_name == "Mps Graph":
             self.select_maps_graph_id = self.locator_finder_by_xpath(
-               self.select_maps_graph_id
+                "(//button[@type='submit'][normalize-space()='Create'])[4]"
             )
             self.select_maps_graph_id.click()
-        elif graph_name == 5:
+        elif graph_name == "World Graph":
             self.select_world_graph_id = self.locator_finder_by_xpath(
-               self.select_world_graph_id
+                "(//button[@type='submit'][normalize-space()='Create'])[5]"
             )
             self.select_world_graph_id.click()
-        elif graph_name == 6:
+        elif graph_name == "Social Graph":
             self.select_social_graph_id = self.locator_finder_by_xpath(
-               self.select_social_graph_id
+                "(//button[@type='submit'][normalize-space()='Create'])[6]"
             )
             self.select_social_graph_id.click()
-        elif graph_name == 7:
+        elif graph_name == "City Graph":
             self.select_city_graph_id = self.locator_finder_by_xpath(
-               self.select_city_graph_id
+                "(//button[@type='submit'][normalize-space()='Create'])[7]"
             )
             self.select_city_graph_id.click()
-        elif graph_name == 8:
-            self.select_connected_component_graph_id = (
-                self.locator_finder_by_xpath(
-                   self.select_connected_component_graph_id
-                )
-            )
-            self.select_connected_component_graph_id.click()
         else:
             print("Invalid Graph\n")
         time.sleep(2)
@@ -1224,46 +1220,72 @@ class GraphPage(NavigationBarPage):
         self.select_graph_page()
         self.webdriver.refresh()
 
-        graph_settings_id = ""
+        if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
+            graph_settings_id = ""
 
-        if graph_name == "Knows Graph":
-            graph_settings_id = "(//span[@id='knows_graph_settings'])[1]"
-        elif graph_name == "Traversal Graph":
-            graph_settings_id = "(//span[@id='traversalGraph_settings'])[1]"
-        elif graph_name == "k Shortest Paths Graph":
-            graph_settings_id = "(//span[@id='kShortestPathsGraph_settings'])[1]"
-        elif graph_name == "Mps Graph":
-            graph_settings_id = "(//span[@id='mps_graph_settings'])[1]"
-        elif graph_name == "World Graph":
-            graph_settings_id = "(//span[@id='worldCountry_settings'])[1]"
-        elif graph_name == "Social Graph":
-            graph_settings_id = "(//span[@id='social_settings'])[1]"
-        elif graph_name == "City Graph":
-            graph_settings_id = "(//span[@id='routeplanner_settings'])[1]"
+            if graph_name == "Knows Graph":
+                graph_settings_id = "(//span[@id='knows_graph_settings'])[1]"
+            elif graph_name == "Traversal Graph":
+                graph_settings_id = "(//span[@id='traversalGraph_settings'])[1]"
+            elif graph_name == "k Shortest Paths Graph":
+                graph_settings_id = "(//span[@id='kShortestPathsGraph_settings'])[1]"
+            elif graph_name == "Mps Graph":
+                graph_settings_id = "(//span[@id='mps_graph_settings'])[1]"
+            elif graph_name == "World Graph":
+                graph_settings_id = "(//span[@id='worldCountry_settings'])[1]"
+            elif graph_name == "Social Graph":
+                graph_settings_id = "(//span[@id='social_settings'])[1]"
+            elif graph_name == "City Graph":
+                graph_settings_id = "(//span[@id='routeplanner_settings'])[1]"
 
-        graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
-        graph_settings_id_sitem.click()
-        time.sleep(1)
-        self.wait_for_ajax()
+            graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
+            graph_settings_id_sitem.click()
 
-        delete_btn = "(//button[normalize-space()='Delete'])[1]"
-        delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
-        delete_btn_stiem.click()
-        time.sleep(1)
-        self.wait_for_ajax()
+            delete_btn = "(//button[normalize-space()='Delete'])[1]"
+            delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+            delete_btn_stiem.click()
+            time.sleep(1)
 
-        delete_with_collection = '//*[@id="dropGraphCollections"]'
-        delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
-        delete_with_collection_sitem.click()
-        time.sleep(1)
-        self.wait_for_ajax()
+            delete_with_collection = "dropGraphCollections"
+            delete_with_collection_sitem = self.locator_finder_by_id(
+                delete_with_collection
+            )
+            delete_with_collection_sitem.click()
+            time.sleep(1)
 
-        delete_confirm = "modal-confirm-delete"
-        delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
-        delete_confirm_sitem.click()
-        time.sleep(1)
-        self.wait_for_ajax()
-        self.webdriver.refresh()
+            delete_confirm = "modal-confirm-delete"
+            delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
+            delete_confirm_sitem.click()
+            time.sleep(1)
+            
+        else:
+            self.webdriver.refresh()
+            self.wait_for_ajax()
+
+            select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
+
+            graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
+            graph_settings_id_sitem.click()
+            time.sleep(1)
+
+            delete_btn = "(//button[normalize-space()='Delete'])[1]"
+            delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+            delete_btn_stiem.click()
+            time.sleep(1)
+
+            delete_with_collection = (
+                "(//label[normalize-space()='Also drop collections'])[1]"
+            )
+            delete_with_collection_sitem = self.locator_finder_by_xpath(
+                delete_with_collection
+            )
+            delete_with_collection_sitem.click()
+            time.sleep(1)
+
+            delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
+            delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
+            delete_confirm_sitem.click()
+            time.sleep(1)
 
 
 GRAPH_SETS = [

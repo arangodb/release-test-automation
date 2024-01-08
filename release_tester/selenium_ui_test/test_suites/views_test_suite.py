@@ -39,8 +39,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                     views.create_improved_views_311(
                         "arangosearch_view_3112", "arangosearch", 0
                     )
-                    if views.current_package_version() > semver.VersionInfo.parse("3.11.100"):
-                        views.create_improved_views_311(
+                    views.create_improved_views_311(
                             "search_alias", "search-alias", 0
                         )
                     print("Creating improved views completed \n")

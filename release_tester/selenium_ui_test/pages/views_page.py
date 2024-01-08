@@ -734,10 +734,7 @@ class ViewsPage(NavigationBarPage):
             # time.sleep(2)
             #
         print(f"Selecting creation button for {view_name} \n")
-        if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-            create = '//*[@id="chakra-modal-1"]/form/footer/div/button[2]'
-        else:
-            create = '//*[@id="chakra-modal-3"]/form/footer/div/button[2]'
+        create = '//*[@id="chakra-modal-1"]/form/footer/div/button[2]'
 
         create_sitem = self.locator_finder_by_xpath(create)
         create_sitem.click()
@@ -1127,10 +1124,7 @@ class ViewsPage(NavigationBarPage):
             delete_sitem.click()
             time.sleep(2)
 
-            if name == "search_alias":
-                confirm_delete_btn = "(//button[@class='chakra-button css-flye6g'])[1]"
-            else:
-                confirm_delete_btn = "(//button[@class='button-danger'])[1]"
+            confirm_delete_btn = "//*[text()='Cancel']/following-sibling::button"
             confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
             confirm_delete_btn_sitem.click()
             time.sleep(2)
