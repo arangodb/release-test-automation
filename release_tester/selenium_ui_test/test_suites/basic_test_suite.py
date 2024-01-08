@@ -20,7 +20,7 @@ class BasicTestSuite(BaseSeleniumTestSuite):
     child_test_suites = [
         # UserPageTestSuite,
         # CollectionsTestSuite,
-        ViewsTestSuite,
+        # ViewsTestSuite,
         # GraphTestSuite,
         # QueryTestSuite,
         # AnalyzersTestSuite,
@@ -28,7 +28,7 @@ class BasicTestSuite(BaseSeleniumTestSuite):
         # LogInTestSuite,
         # DashboardTestSuite,
         # SupportTestSuite,
-        # ServiceTestSuite,
+        ServiceTestSuite,
     ]
 
     def __init__(self, selenium_runner):
