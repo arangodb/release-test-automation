@@ -680,10 +680,12 @@ class ServicePage(NavigationBarPage):
             try:
                 success_notification = super().handle_red_bar()
                 time.sleep(2)
-                expected_msg = "Services: Service demo-graphql installed."
+                # two pop-up msg comes very fast, hard to catch both of them, timing is key here.
+                expected_msg_1 = "Services: Upgrading demo-graphql."
+                expected_msg_2 = "Services: Service demo-graphql installed."
                 assert (
-                    expected_msg == success_notification
-                ), f"Expected {expected_msg} but got {success_notification}"
+                    expected_msg_1 == success_notification or expected_msg_2 == success_notification
+                ), f"Expected {expected_msg_1} or {expected_msg_2} but got {success_notification}"
             except Exception:
                 raise Exception("Error occurred!! required manual inspection.\n")
             print("Service successfully replaced \n")
