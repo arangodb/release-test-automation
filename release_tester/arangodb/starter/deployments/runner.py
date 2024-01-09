@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-# pylint: disable=too-many-lines
+# pylint: disable=too-many-lines disable=broad-exception-raised
 from abc import abstractmethod, ABC
 import copy
 import json
@@ -80,7 +80,7 @@ def remove_node_x_from_json(starter_dir):
 class RunnerProperties:
     """runner properties management class"""
 
-    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches
+    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches disable=too-many-instance-attributes
     def __init__(
         self,
         short_name: str,
@@ -377,8 +377,10 @@ class Runner(ABC):
                     "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
                 )
                 self.new_installer.calculate_package_names()
-                self.new_installer.upgrade_server_package(self.old_installer)
-                self.new_installer.copy_binaries()
+                try:
+                    self.new_installer.upgrade_server_package(self.old_installer)
+                finally:
+                    self.new_installer.copy_binaries()
                 lh.subsection("outputting version")
                 self.new_installer.output_arangod_version()
                 self.new_installer.get_starter_version()
@@ -510,8 +512,10 @@ class Runner(ABC):
         kill_all_processes(False)
         if self.do_install:
             lh.subsubsection("installing server package")
-            inst.install_server_package()
-            inst.copy_binaries()
+            try:
+                inst.install_server_package()
+            finally:
+                inst.copy_binaries()
             self.cfg.set_directories(inst.cfg)
             lh.subsubsection("checking files")
             inst.check_installed_files()
@@ -964,8 +968,9 @@ class Runner(ABC):
                 logfile = self.cfg.log_dir / "arangod.log"
                 targetfile = self.cfg.base_test_dir / self.basedir / "arangod.log"
                 if logfile.exists():
-                    print(f"copying {str(logfile)} => {str(targetfile)} so it can be in the report")
-                    shutil.copyfile(str(logfile), str(targetfile))
+                    print(f"copying {str(logfile)}* => {str(targetfile)} so it can be in the report")
+                    for path in self.cfg.log_dir.glob("arangod.log*"):
+                        shutil.copyfile(path, self.cfg.base_test_dir / self.basedir / path.name)
             for installer_set in self.installers:
                 installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
