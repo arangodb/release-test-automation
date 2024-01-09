@@ -80,7 +80,7 @@ def remove_node_x_from_json(starter_dir):
 class RunnerProperties:
     """runner properties management class"""
 
-    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches
+    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches disable=too-many-instance-attributes
     def __init__(
         self,
         short_name: str,
@@ -749,7 +749,12 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-        args = ["--tempDataDir", str(self.cfg.base_test_dir / self.basedir / "makedata_tmp"), "--excludePreviouslyExecutedTests", "true"]
+        args = [
+            "--tempDataDir",
+            str(self.cfg.base_test_dir / self.basedir / "makedata_tmp"),
+            "--excludePreviouslyExecutedTests",
+            "true",
+        ]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
         for starter in self.makedata_instances:
@@ -1137,3 +1142,28 @@ class Runner(ABC):
         for starter in starter_structs[1:]:
             struct["arangods"].extend(starter["arangods"])
         os.environ["INSTANCEINFO"] = json.dumps(struct)
+
+    def remove_server_from_agency(self, server_uuid, timeout=60):
+        """remove server from the agency"""
+        if self.agency is None:
+            raise Exception("This deployment doesn't have an agency!")
+        logging.info("Removing from agency the server with UUID: " + str(server_uuid))
+        count = 0
+        body = '{"server": "%s"}' % server_uuid
+        while count < timeout:
+            reply = self.starter_instances[0].send_request(
+                InstanceType.COORDINATOR,
+                requests.post,
+                "/_admin/cluster/removeServer",
+                body,
+            )
+            if reply[0].status_code in (200, 404):
+                return
+            else:
+                time.sleep(1)
+                count += 1
+        raise Exception(
+            f"Cannot remove server from the agency.\n"
+            f"Status code: {str(reply[0].status_code)}\n"
+            f"Body: {str(reply[0].content)}"
+        )
