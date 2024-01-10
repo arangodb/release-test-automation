@@ -113,6 +113,7 @@ class SeleniumRunner(ABC):
     @step
     def take_screenshot(self, filename=None):
         """*snap*"""
+        self.get_browser_log_entries()
         if filename is None:
             filename = "%s_%s_exception_screenshot.png" % (
                 FNRX.sub("", self.testrun_name),

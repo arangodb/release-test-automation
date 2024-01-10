@@ -1,0 +1,20 @@
+{
+	"firefox": {
+		"default": "latest",
+		"versions": {
+			"latest": {
+				"image": ["geckodriver"],
+				"port": "4444"
+			}
+		}
+	},
+	"chrome": {
+		"default": "latest",
+		"versions": {
+			"latest": {
+				"image": ["chromedriver"],
+				"port": "4444"
+			}
+		}
+	}
+}

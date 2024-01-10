@@ -48,12 +48,34 @@ DOCKER_TAR_TAG="${DOCKER_TAR_NAME}:$(cat containers/this_version.txt)${ARCH}"
 
 docker kill "$DOCKER_TAR_NAME" || true
 docker rm "$DOCKER_TAR_NAME" || true
+DOCKER_NETWORK_NAME=minio-bridge
+
+if /bin/true ; then
+    DOCKER_NETWORK_NAME=selenoid
+     docker network create $DOCKER_NETWORK_NAME
+                      # --network="${DOCKER_NETWORK_NAME}" \
+     SELENOID=$(docker run -d --name selenoid -p 4444:4444 \
+                       -v /var/run/docker.sock:/var/run/docker.sock\
+                       -v "$(pwd)/selenoid_config/:/etc/selenoid/:ro" \
+                       aerokube/selenoid:latest-release -container-network "${DOCKER_NETWORK_NAME}" )
+     SELENOID_IP=$(docker inspect \
+                          -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${SELENOID})
+     echo "Selenoid IP: ${SELENOID_IP}"
+     force_arg+=( --selenium-driver-args "command_executor=http://${SELENOID_IP}:4444/wd/hub")
+     docker pull selenoid/chrome
+     DOCKER_SELENOID_CLEANUP1="docker stop ${SELENOID}"
+     DOCKER_SELENOID_CLEANUP2="docker rm selenoid"
+else
+ docker network create -d $DOCKER_NETWORK_NAME
+fi
 
 trap 'docker kill "${DOCKER_TAR_NAME}";
       docker rm "${DOCKER_TAR_NAME}";
       docker kill minio1;
       docker rm minio1;
-      docker network rm minio-bridge;
+      ${DOCKER_SELENOID_CLEANUP1};
+      ${DOCKER_SELENOID_CLEANUP2};
+      docker network rm ${DOCKER_NETWORK_NAME};
      ' EXIT
 
 DOCKER_NAMESPACE="arangodb/"
@@ -72,13 +94,10 @@ fi
 git submodule init
 git submodule update
 
-docker network create -d bridge minio-bridge
-
-
 docker run -d \
   -p 9000:9000 \
   -p 9001:9001 \
-  --network=minio-bridge \
+  --network=$DOCKER_NETWORK_NAME \
   --name minio1 \
   -v $(pwd)/test_dir/miniodata:/data \
   -e "MINIO_ROOT_USER=minio" \
@@ -108,7 +127,7 @@ docker run \
        --env="AWS_REGION=$AWS_REGION" \
        --env="AWS_ACL=$AWS_ACL" \
        \
-       --network=minio-bridge \
+       --network="${DOCKER_NETWORK_NAME}" \
        --name="${DOCKER_TAR_NAME}" \
        --pid=host \
        --rm \
