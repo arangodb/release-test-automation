@@ -328,7 +328,6 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.test_wait_for_upgrade()  # * 5s
 
-
     def _jam_stop_one_db_server(self):
         agency_leader = self.agency.get_leader()
         terminate_instance = 2
@@ -343,6 +342,9 @@ db.testCollection.save({test: "document"})
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
+
+        if self.replication2:
+            self.remove_server_from_agency(uuid)
 
         self.set_frontend_instances()
 
