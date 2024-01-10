@@ -14,9 +14,7 @@ ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update ; \
-    apt-get install -y build-essential curl gdb git libbz2-dev libffi-dev libgdbm-dev liblzma-dev libncurses5-dev libnss3-dev libreadline-dev libsqlite3-dev libssl-dev locales sudo systemd unzip wget zlib1g-dev; \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && apt-get update -qqy \
+    apt-get install -y build-essential curl gdb git libbz2-dev libffi-dev libgdbm-dev liblzma-dev libncurses5-dev libnss3-dev libreadline-dev libsqlite3-dev libssl-dev locales sudo systemd unzip wget zlib1g-dev \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 #============================================
@@ -58,6 +56,3 @@ RUN mkdir -p /home/release-test-automation \
  /home/package_cache \
  /home/versions \
  /home/entrypoint
-
-# ADD tarball_nightly_test.py /home/entrypoint/tarball_nightly_test.py
-# ENTRYPOINT ["/home/entrypoint/tarball_nightly_test.py"]

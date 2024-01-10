@@ -6,7 +6,6 @@ ENV container docker
 #ENV LANGUAGE en_US:en
 #ENV LC_ALL en_US.UTF-8
 ENV PYTHONPATH /home/release-test-automation/release_tester
-ARG CHROME_VERSION="google-chrome-stable"
 ARG PYTHON_VERSION="3.10.10"
 ARG OPENSSL_VERSION="1.1.1t"
 ARG PYENV_APP_VERSION="2.3.15"
@@ -20,7 +19,7 @@ ENV LANG en_US.UTF-8
 #RUN localectl set-locale en_US.UTF-8
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 
-RUN yum -y update; yum install -y bzip2-devel chromedriver chromium file gcc gdb git initscripts libffi-devel make ncurses-devel perl readline-devel xz-devel zlib-devel
+RUN yum -y update; yum install -y bzip2-devel file gcc gdb git initscripts libffi-devel make ncurses-devel perl readline-devel xz-devel zlib-devel
 
 VOLUME [ "/sys/fs/cgroup" ]
 run mkdir -p /home/release-test-automation \

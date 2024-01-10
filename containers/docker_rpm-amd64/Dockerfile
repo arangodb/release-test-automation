@@ -6,7 +6,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 ENV PYTHONPATH /home/release-test-automation/release_tester
-ARG CHROME_VERSION="google-chrome-stable"
 ARG PYTHON_VERSION="3.10.10"
 ARG OPENSSL_VERSION="1.1.1t"
 ARG PYENV_APP_VERSION="2.3.15"
@@ -20,7 +19,7 @@ run mkdir -p /home/release-test-automation \
  /home/entrypoint
 RUN mkdir -p /home/entrypoint
 
-RUN yum -y update; yum install -y bzip2-devel chromedriver chromium file gcc gdb git initscripts libffi-devel make ncurses-devel openssl11-devel openssl11-lib openssl-devel perl readline-devel sql xz-devel zlib-devel;
+RUN yum -y update; yum install -y bzip2-devel file gcc gdb git initscripts libffi-devel make ncurses-devel openssl11-devel openssl11-lib openssl-devel perl readline-devel sql xz-devel zlib-devel
 
 #============================================
 # Build newest python from source
