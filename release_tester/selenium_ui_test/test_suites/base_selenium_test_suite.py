@@ -2,7 +2,6 @@
 """ base class for all selenium testsuites """
 import logging
 from datetime import datetime
-import traceback
 
 from beautifultable import BeautifulTable
 
@@ -129,11 +128,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     @run_before_suite
     def prepare_to_run_tests(self):
         """prepare to run test cases"""
-        try:
-            self.go_to_index_page()
-        except Exception as ex:
-            print("".join(traceback.TracebackException.from_exception(ex).format()),)
-            raise ex
+        self.go_to_index_page()
 
     @run_after_suite
     def after_test_suite(self):
