@@ -30,7 +30,6 @@ def init(
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
     # from selenium.webdriver.chrome.options import Options
-    print(selenium_driver_args)
     kwargs = {}
     is_headless = False
     if len(selenium_driver_args) > 0:
@@ -47,8 +46,6 @@ def init(
                 continue
             options.add_argument("--" + opt)
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
-    print('xxxx')
-    print(kwargs)
     driver = None
     count = 0
     while driver is None and count < 10:
