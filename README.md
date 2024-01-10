@@ -56,6 +56,13 @@ Typical arguments that may make chrome work:
     --selenium-driver-args remote-debugging-port=9222
     --selenium-driver-args start-maximized
 
+Alternatively selenoid may be used using:
+
+    --selenium Remote_chrome
+    --selenium-driver-args "command_executor=http://192.168.1.1:4444/wd/hub
+    --publicip 192.168.1.1
+
+ (where  `192.168.1.1` would be the real IP of your machine. Please note that you need to launch the selenoid server.)
 
 ## Windows
 
