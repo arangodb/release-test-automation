@@ -1246,8 +1246,8 @@ class GraphPage(NavigationBarPage):
             delete_btn_stiem.click()
             time.sleep(1)
 
-            delete_with_collection = "dropGraphCollections"
-            delete_with_collection_sitem = self.locator_finder_by_id(
+            delete_with_collection = '//*[@id="modalButton0"]'
+            delete_with_collection_sitem = self.locator_finder_by_xpath(
                 delete_with_collection
             )
             delete_with_collection_sitem.click()
