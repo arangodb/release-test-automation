@@ -13,10 +13,19 @@ ARG PYENV_APP_VERSION="2.3.15"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+#============================================
+# Google Chrome
+#============================================
+# can specify versions by CHROME_VERSION;
+#  e.g. google-chrome-stable
+#       google-chrome-beta
+#       google-chrome-unstable
+#============================================
+
 RUN apt-get update ; \
     apt-get install -y build-essential curl gdb git libbz2-dev libffi-dev libgdbm-dev liblzma-dev libncurses5-dev libnss3-dev libreadline-dev libsqlite3-dev libssl-dev locales sudo systemd unzip wget zlib1g-dev; \
     \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+   wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor | tee /etc/apt/trusted.gpg.d/google.gpg >/dev/null \
   && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
   && apt-get update -qqy \
   && apt-get -qqy install \
@@ -32,7 +41,6 @@ RUN apt-get update ; \
 #=================================
 COPY wrap_chrome_binary /opt/bin/wrap_chrome_binary
 RUN /opt/bin/wrap_chrome_binary
-
 
 #============================================
 # Chrome webdriver
@@ -104,6 +112,8 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd
   rm -rf /lib/systemd/system/basic.target.wants/;\
   rm -rf /lib/systemd/system/anaconda.target.wants/*;\
   rm -f /usr/sbin/policy-rc.d
+
+RUN printf "passwd:      files\ngroup:       files\nhosts:       files dns" > /etc/nsswitch.conf
 
 VOLUME [ "/sys/fs/cgroup" ]
 RUN ln -s /lib/systemd/systemd /usr/sbin/init

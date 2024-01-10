@@ -24,6 +24,10 @@ DOCKER_ARGS=(
          --env="PYTHONUNBUFFERED=1" \
          --env="RTA_LOCAL_HTTPUSER=${RTA_LOCAL_HTTPUSER}" \
          --env="WORKSPACE=/home/release-test-automation/" \
+         --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+         --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+         --env="AWS_REGION=$AWS_REGION" \
+         --env="AWS_ACL=$AWS_ACL" \
          --network="${DOCKER_NETWORK_NAME}" \
          --name="${DOCKER_NAME}" \
          --ulimit core=-1 \

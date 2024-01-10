@@ -1,5 +1,4 @@
 #!/bin/bash
-
 DOCKER_SUFFIX=rpm
 . ./jenkins/common/default_variables.sh
 
@@ -11,7 +10,7 @@ DOCKER_SUFFIX=rpm
 . ./jenkins/common/evaluate_force.sh
 . ./jenkins/common/load_git_submodules.sh
 
-. ./jenkins/common/launch_minio.sh
+# . ./jenkins/common/launch_minio.sh
 
 . ./jenkins/common/register_cleanup_trap.sh
 

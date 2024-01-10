@@ -75,4 +75,6 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd
   rm -rf /lib/systemd/system/basic.target.wants/;\
   rm -rf /lib/systemd/system/anaconda.target.wants/*;
 
+RUN printf "passwd:      files\ngroup:       files\nhosts:       files dns" > /etc/nsswitch.conf
+
 CMD ["/usr/sbin/init"]

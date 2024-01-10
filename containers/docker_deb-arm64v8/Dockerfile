@@ -71,6 +71,8 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in ; do [ $i == systemd
   rm -rf /lib/systemd/system/anaconda.target.wants/*;\
   rm -f /usr/sbin/policy-rc.d
 
+RUN printf "passwd:      files\ngroup:       files\nhosts:       files dns" > /etc/nsswitch.conf
+
 VOLUME [ "/sys/fs/cgroup" ]
 
 # RUN ln -s /lib/systemd/systemd /usr/sbin/init
