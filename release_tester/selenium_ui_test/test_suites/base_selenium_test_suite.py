@@ -122,7 +122,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def goto_url_and_wait_until_loaded(self, path):
         """goto & wait for loaded"""
-        print(self.webdriver.get(self.url + path))
+        self.webdriver.get(self.url + path)
         BasePage(self.webdriver, self.cfg).wait_for_ajax()
 
     @run_before_suite
