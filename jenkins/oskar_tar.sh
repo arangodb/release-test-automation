@@ -81,6 +81,7 @@ done
 DOCKER_ARGS+=(
        -v "$(pwd)/../../:/oskar"
        -v "$(pwd)/../:/work"
+       --env=BASE_DIR=/oskar
 )
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
