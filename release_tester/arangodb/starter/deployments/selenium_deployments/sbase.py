@@ -52,7 +52,10 @@ class SeleniumRunner(ABC):
     def quit(self):
         """terminate the web driver"""
         if self.webdriver is not None:
-            self.webdriver.quit()
+            try:
+                self.webdriver.quit()
+            except InvalidSessionIdException as ex:
+                print(f"Selenium connection seems to be already gone:  {str(ex)}")
             self.webdriver = None
 
     def progress(self, msg):
