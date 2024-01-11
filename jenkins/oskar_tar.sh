@@ -78,6 +78,10 @@ done
 
 . ./jenkins/common/register_cleanup_trap.sh
 
+DOCKER_ARGS+=(
+       -v "$(pwd)/../../:/oskar"
+       -v "$(pwd)/../:/work"
+)
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        "${DOCKER_ARGS[@]}" \
