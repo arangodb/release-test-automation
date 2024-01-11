@@ -1,9 +1,34 @@
 #!/bin/bash
 DOCKER_SUFFIX=tar
-. ./jenkins/common/default_variables.sh
 
-if test -z "$NEW_VERSION"; then
-    NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
+cat /proc/sys/kernel/core_pattern
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
+VERSION=$(cat VERSION.json)
+git status
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
+if test -z "$GIT_VERSION"; then
+    GIT_VERSION=$VERSION
+fi
+if test -z "$OLD_VERSION"; then
+    OLD_VERSION=3.11.0-nightly
+fi
+ if test -z "$NEW_VERSION"; then
+     NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
+ fi
+if test -z "${PACKAGE_CACHE}"; then
+    PACKAGE_CACHE="$(pwd)/package_cache/"
+fi
+
+RTA_ARGS=()
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
+  RTA_ARGS+=(--force)
 fi
 
 if test -z "$UPGRADE_MATRIX"; then
