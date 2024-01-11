@@ -1,6 +1,14 @@
 #!/bin/bash
 DOCKER_SUFFIX=tar
 
+ALLURE_DIR="$(pwd)/allure-results"
+if test -n "$WORKSPACE"; then
+    ALLURE_DIR="${WORKSPACE}/allure-results"
+fi
+if test ! -d "${ALLURE_DIR}"; then 
+    mkdir -p "${ALLURE_DIR}"
+fi
+
 cat /proc/sys/kernel/core_pattern
 ARCH="-$(uname -m)"
 

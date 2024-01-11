@@ -21,3 +21,6 @@ if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 RTA_ARGS=(  --git-version "$GIT_VERSION" )
+
+ALLURE_DIR="$(pwd)/allure-results"
+mkdir -p "${ALLURE_DIR}"

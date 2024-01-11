@@ -14,7 +14,6 @@ docker rm $DOCKER_NETWORK_NAME || true
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
-mkdir -p allure-results
 docker kill "$DOCKER_NAME" || true
 docker rm "$DOCKER_NAME" || true
 
@@ -34,7 +33,7 @@ DOCKER_ARGS=(
          --rm \
          -v "$(pwd):/home/release-test-automation" \
          -v "$(pwd)/test_dir:/home/test_dir" \
-         -v "$(pwd)/allure-results:/home/allure-results" \
+         -v "${ALLURE_DIR}:/home/allure-results" \
          -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
          -v /tmp/tmp:/tmp/ \
          -v /dev/shm:/dev/shm \
