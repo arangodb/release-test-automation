@@ -1247,7 +1247,7 @@ class GraphPage(NavigationBarPage):
             delete_btn_stiem.click()
 
             delete_with_collection = "//input[contains(@id, 'dropGraphCollections')]"
-            delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection,  timeout=30, poll_frequency=2)
+            delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection, poll_frequency=2, max_retries=3, timeout=30)
             delete_with_collection_sitem.click()
 
             delete_confirm = "modal-confirm-delete"
