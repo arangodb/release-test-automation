@@ -1,4 +1,4 @@
-from arangodb/ubuntubuildarangodb6-x86_64
+from arangodb/ubuntubuildarangodb7-x86_64
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
 ENV TZ=Europe/Berlin

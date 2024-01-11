@@ -1,4 +1,4 @@
-from arangodb/ubuntubuildarangodb6-arm64v8
+from arangodb/ubuntubuildarangodb7-arm64v8
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
 ENV LANG en_US.UTF-8
