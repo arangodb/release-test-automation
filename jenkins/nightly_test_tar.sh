@@ -23,7 +23,7 @@ docker run \
        --rm \
        --init \
        \
-       "${DOCKER_NAMESPACE}${DOCKER_TAR_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
        /home/release-test-automation/release_tester/full_download_test.py \
        --new-version "${NEW_VERSION}" \
