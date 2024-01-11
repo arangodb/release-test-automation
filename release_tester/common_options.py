@@ -279,7 +279,11 @@ def common_options(
             default=True,
             help="if we should abort on first error",
         )(function)
-        function = click.option("--publicip", default="127.0.0.1", help="IP for the click to browser hints.")(function)
+        listen_ip = get_default_value("HOSTNAME", "", "127.0.0.1")
+        if listen_ip != "127.0.0.1":
+            import socket
+            listen_ip = socket.gethostbyname(listen_ip)
+        function = click.option("--publicip", default=listen_ip, help="IP for the click to browser hints.")(function)
         function = click.option(
             "--selenium",
             default="none",

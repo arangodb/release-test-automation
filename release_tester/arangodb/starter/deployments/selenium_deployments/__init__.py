@@ -18,22 +18,32 @@ def init(
     ssl: bool,
 ) -> SeleniumRunner:
     """build selenium testcase for runner_type"""
-    driver_func = getattr(webdriver, selenium_worker)
+    sw = [selenium_worker]
+    if '_' in selenium_worker:
+        sw = selenium_worker.split('_')
+        driver_func = getattr(webdriver, sw[0])
+        selenium_worker = sw[1].lower()
+        worker_options = ""
+    else:
+        driver_func = getattr(webdriver, selenium_worker)
+        worker_options = selenium_worker = selenium_worker.lower() + "_"
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
     # from selenium.webdriver.chrome.options import Options
     kwargs = {}
     is_headless = False
     if len(selenium_driver_args) > 0:
-        selenium_worker = selenium_worker.lower()
         opts_func = getattr(webdriver, selenium_worker)
         opts_func = getattr(opts_func, "options")
         opts_func = getattr(opts_func, "Options")
         options = opts_func()
-        kwargs[selenium_worker + "_options"] = options
+        kwargs[worker_options + "options"] = options
         for opt in selenium_driver_args:
             if opt == "headless":
                 is_headless = True
+            elif opt.startswith('command_executor'):
+                kwargs['command_executor'] = opt.split('=')[1]
+                continue
             options.add_argument("--" + opt)
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
     driver = None
