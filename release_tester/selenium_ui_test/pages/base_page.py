@@ -299,25 +299,47 @@ class BasePage:
             raise Exception(str(locator_name), " locator was not found.")
         return self.locator
 
-    def locator_finder_by_xpath(self, locator_name, timeout=10, expec_fail=False):
-        """This method will used for finding all the locators by their xpath"""
+    # def locator_finder_by_xpath(self, locator_name, timeout=10, expec_fail=False):
+    #     """This method will used for finding all the locators by their xpath"""
+    #     try:
+    #         self.locator = WebDriverWait(self.webdriver, timeout).until(
+    #             EC.element_to_be_clickable((BY.XPATH, locator_name)),
+    #             message="UI-Test: " + locator_name + " locator was not found.",
+    #         )
+    #     except Exception as ex:
+    #         if expec_fail:
+    #             raise ex
+    #         ti.prompt_user(self.cfg,
+    #                        "ERROR " * 10 +
+    #                        "\nError while wating for web element:\n" +
+    #                        str(ex) + "\n" +
+    #                        "".join(traceback.format_stack(ex.__traceback__.tb_frame))
+    #                        )
+    #         raise ex
+    #     if self.locator is None:
+    #         raise Exception("UI-Test: ", locator_name, " locator was not found.")
+    #     return self.locator
+
+    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, expec_fail=False):
+        """This method finds locators by their xpath using Fluent Wait."""
         try:
-            self.locator = WebDriverWait(self.webdriver, timeout).until(
+            self.locator = WebDriverWait(self.webdriver, timeout, poll_frequency=poll_frequency).until(
                 EC.element_to_be_clickable((BY.XPATH, locator_name)),
-                message="UI-Test: " + locator_name + " locator was not found.",
+                message=f"UI-Test: {locator_name} locator was not found."
             )
-        except Exception as ex:
+        except TimeoutException as ex:
             if expec_fail:
                 raise ex
-            ti.prompt_user(self.cfg,
-                           "ERROR " * 10 +
-                           "\nError while wating for web element:\n" +
-                           str(ex) + "\n" +
-                           "".join(traceback.format_stack(ex.__traceback__.tb_frame))
-                           )
+            ti.prompt_user(
+                self.cfg,
+                "ERROR " * 10 +
+                f"\nError while waiting for web element:\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
+            )
             raise ex
+
         if self.locator is None:
-            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+            raise Exception(f"UI-Test: {locator_name} locator was not found.")
+        
         return self.locator
     
     def locator_finder_by_link_text(self, locator_name):

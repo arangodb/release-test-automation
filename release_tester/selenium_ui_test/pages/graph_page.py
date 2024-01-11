@@ -1245,18 +1245,14 @@ class GraphPage(NavigationBarPage):
             delete_btn = "(//button[normalize-space()='Delete'])[1]"
             delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
             delete_btn_stiem.click()
-            time.sleep(1)
 
-            self.wait_for_ajax()
-            delete_with_collection = "/html//input[@id='dropGraphCollections']"
+            delete_with_collection = "//input[contains(@id, 'dropGraphCollections')]"
             delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
             delete_with_collection_sitem.click()
-            time.sleep(1)
 
             delete_confirm = "modal-confirm-delete"
             delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
             delete_confirm_sitem.click()
-            time.sleep(1)
             
         else:
             self.webdriver.refresh()
@@ -1265,29 +1261,23 @@ class GraphPage(NavigationBarPage):
             select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
             graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
             graph_settings_id_sitem.click()
-            time.sleep(1)
 
-            self.wait_for_ajax()
             delete_btn = "(//button[normalize-space()='Delete'])[1]"
             delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
             delete_btn_stiem.click()
-            time.sleep(1)
 
             delete_with_collection = (
                 "(//label[normalize-space()='Also drop collections'])[1]"
             )
-            self.wait_for_ajax()
+
             delete_with_collection_sitem = self.locator_finder_by_xpath(
                 delete_with_collection
             )
             delete_with_collection_sitem.click()
-            time.sleep(1)
 
-            self.wait_for_ajax()
             delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
             delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
             delete_confirm_sitem.click()
-            time.sleep(1)
 
 
 GRAPH_SETS = [
