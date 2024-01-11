@@ -8,6 +8,7 @@ if [[ ${argv[@]} =~ "--selenium" ]]; then
     SELENOID_IP=$(docker inspect \
                          -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${SELENOID})
     echo "Selenoid IP: ${SELENOID_IP}"
+    docker pull selenoid/chrome
     RTA_ARGS+=( --selenium-driver-args "command_executor=http://${SELENOID_IP}:4444/wd/hub")
     DOCKER_SELENOID_CLEANUP1="docker stop ${SELENOID}"
     DOCKER_SELENOID_CLEANUP2="docker rm selenoid"
