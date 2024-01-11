@@ -38,7 +38,7 @@ done
 . ./jenkins/common/set_max_map_count.sh
 
 . ./jenkins/common/setup_selenium.sh
-. ./jenkins/common/evaluate_force.sh
+# . ./jenkins/common/evaluate_force.sh
 . ./jenkins/common/load_git_submodules.sh
 
 . ./jenkins/common/launch_minio.sh
