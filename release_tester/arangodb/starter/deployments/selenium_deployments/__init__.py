@@ -18,11 +18,10 @@ def init(
     ssl: bool,
 ) -> SeleniumRunner:
     """build selenium testcase for runner_type"""
-    sw = [selenium_worker]
     if '_' in selenium_worker:
-        sw = selenium_worker.split('_')
-        driver_func = getattr(webdriver, sw[0])
-        selenium_worker = sw[1].lower()
+        sw_split = selenium_worker.split('_')
+        driver_func = getattr(webdriver, sw_split[0])
+        selenium_worker = sw_split[1].lower()
         worker_options = ""
     else:
         driver_func = getattr(webdriver, selenium_worker)
