@@ -29,7 +29,7 @@ def init(
         worker_options = selenium_worker = selenium_worker.lower() + "_"
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
-    # from selenium.webdriver.chrome.options import Options
+
     kwargs = {}
     is_headless = False
     if len(selenium_driver_args) > 0:
@@ -38,7 +38,6 @@ def init(
         opts_func = getattr(opts_func, "Options")
         options = opts_func()
         kwargs[worker_options + "options"] = options
-        print(dir(options))
         for opt in selenium_driver_args:
             split_opts = opt.split('=')
             if opt == "headless":
@@ -47,18 +46,25 @@ def init(
                 if split_opts[0] == 'command_executor':
                     kwargs['command_executor'] = split_opts[1]
                     continue
-                else:
+            elif len(split_opts) >= 3:
+                key=split_opts.pop(0)
+                where_to_put = {}
+                while len(split_opts) > 2:
+                    if split_opts[0] not in where_to_put:
+                        where_to_put[split_opts[0]] = {}
+                    where_to_put = where_to_put[split_opts[0]]
+                if len(split_opts) == 2:
                     val = split_opts[1]
                     if val == 'True':
                         val = True
                     elif val == 'False':
                         val = False
-                    options.set_capability(split_opts[0], val)
-                    continue
+                    where_to_put[split_opts[0]] = val
+                    options.set_capability(key, where_to_put)
+                    split_opts=[]
+                continue
             options.add_argument("--" + opt)
-    # kwargs['service_log_path'] = "/tmp/abcd123.log"
-    print(kwargs)
-    print(options)
+
     driver = None
     count = 0
     while driver is None and count < 10:
