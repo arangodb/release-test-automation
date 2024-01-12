@@ -1,8 +1,9 @@
 argv=$@
 if [[ ${argv[@]} =~ "--selenium" ]]; then
-    mkdir -p "$(pwd)/test_dir/selenoid_video"
-    docker pull selenoid/video-recorder
+    docker pull aerokube/selenoid
     docker pull selenoid/chrome
+    docker pull selenoid/video-recorder
+    mkdir -p "$(pwd)/test_dir/selenoid_video"
     SELENOID=$(docker run -d --name selenoid -p 4444:4444 \
                       --network="${DOCKER_NETWORK_NAME}" \
                       -v "$(pwd)/test_dir/selenoid_video:/opt/selenoid/video" \
