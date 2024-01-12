@@ -38,14 +38,27 @@ def init(
         opts_func = getattr(opts_func, "Options")
         options = opts_func()
         kwargs[worker_options + "options"] = options
+        print(dir(options))
         for opt in selenium_driver_args:
+            split_opts = opt.split('=')
             if opt == "headless":
                 is_headless = True
-            elif opt.startswith('command_executor'):
-                kwargs['command_executor'] = opt.split('=')[1]
-                continue
+            elif len(split_opts) == 2:
+                if split_opts[0] == 'command_executor':
+                    kwargs['command_executor'] = split_opts[1]
+                    continue
+                else:
+                    val = split_opts[1]
+                    if val == 'True':
+                        val = True
+                    elif val == 'False':
+                        val = False
+                    options.set_capability(split_opts[0], val)
+                    continue
             options.add_argument("--" + opt)
     # kwargs['service_log_path'] = "/tmp/abcd123.log"
+    print(kwargs)
+    print(options)
     driver = None
     count = 0
     while driver is None and count < 10:
