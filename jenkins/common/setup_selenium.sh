@@ -2,7 +2,7 @@ argv=$@
 if [[ ${argv[@]} =~ "--selenium" ]]; then
     docker pull aerokube/selenoid
     docker pull selenoid/chrome
-    docker pull selenoid/video-recorder
+    docker pull selenoid/video-recorder:latest-release
     mkdir -p "$(pwd)/test_dir/selenoid_video"
     SELENOID=$(docker run -d --name selenoid -p 4444:4444 \
                       --network="${DOCKER_NETWORK_NAME}" \
