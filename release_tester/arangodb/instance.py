@@ -430,6 +430,7 @@ class Instance(ABC):
     def search_for_warnings(self, print_lines=True):
         """browse our logfile for warnings and errors"""
         count = 0
+        ret = False
         for logfile in [self.logfile] + self.logfiles:
             if not logfile.exists():
                 print(str(self.logfile) + " doesn't exist, skipping.")
@@ -441,14 +442,14 @@ class Instance(ABC):
                             if self.is_line_fatal(line):
                                 if print_lines:
                                     print(f"FATAL LINE FOUND: {line.rstrip()}")
-                                return True
+                                ret = True
                             if self.is_suppressed_log_line(line):
                                 count += 1
                             elif print_lines:
                                 print(line.rstrip())
         if count > 0 and print_lines:
             print(" %d lines suppressed by filters" % count)
-        return False
+        return ret
 
     @step
     def add_logfile_to_report(self):
