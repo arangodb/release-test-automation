@@ -8,6 +8,6 @@ RUN apt-get update ; \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 COPY requirements.txt /tmp/
-RUN pip3 install -r /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt  --break-system-packages
 
 RUN mkdir -p /home/entrypoint /home/release-test-automation /home/package_cache /home/versions /home/test_dir

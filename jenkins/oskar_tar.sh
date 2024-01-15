@@ -1,5 +1,5 @@
 #!/bin/bash
-DOCKER_SUFFIX=tar-oskar
+DOCKER_SUFFIX=tar_oskar
 
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then

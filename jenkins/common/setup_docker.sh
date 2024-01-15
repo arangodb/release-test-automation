@@ -6,7 +6,7 @@ DOCKER_NAMESPACE="arangodb/"
 if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
     echo "using ready built container"
 else
-    docker build "containers/docker_${DOCKER_SUFFIX}${ARCH}" -t "${DOCKER_TAG}" || exit
+    docker build $(echo "containers/docker_${DOCKER_SUFFIX}${ARCH}" |sed "s;-;_;g" -t "${DOCKER_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
 
