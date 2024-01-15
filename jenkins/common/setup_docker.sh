@@ -10,12 +10,7 @@ else
     DOCKER_NAMESPACE=""
 fi
 
-docker rm $DOCKER_NETWORK_NAME || true
-mkdir -p "${PACKAGE_CACHE}"
-mkdir -p test_dir/miniodata/home/test_dir
-rm -rf test_dir/miniodata/home/test_dir/*
-docker kill "$DOCKER_NAME" || true
-docker rm "$DOCKER_NAME" || true
+. ./jenkins/common/pre_cleanup_docker.sh
 
 docker network create $DOCKER_NETWORK_NAME
 DOCKER_ARGS=(
