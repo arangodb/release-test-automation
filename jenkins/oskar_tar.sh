@@ -105,6 +105,12 @@ docker run \
 result=$?
 
 # don't need docker stop $DOCKER_TAR_NAME
+CLEANUP_DOCKER_ARGS=(
+    -v "$(pwd)/../../:/oskar"
+)
+CLEANUP_PARAMS=(
+    /oskar/work/
+)
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh
 
