@@ -88,7 +88,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         return expect_failure(False, ret, params)
 
     @step
-    def stop_sync(self, timeout=60, deadline=180, more_args=None):
+    def stop_sync(self, deadline=180, timeout=60, more_args=None):
         """run the stop sync command"""
         args = [
             "stop",
@@ -101,15 +101,10 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         if is_higher_version(self.version, semver.VersionInfo.parse("2.18.0")):
             args = args + [f"--timeout={round(timeout*0.95)}s"]
         logging.info("SyncManager: stopping sync: %s", str(args))
-        params = make_default_params(self.cfg.verbose)
+        params = make_default_params(true)
         ret = self.run_monitored(
             self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
         )
-        if ret["rc_exit"] != 0:
-            print("trying to stop a second time:")
-            ret = self.run_monitored(
-                self.cfg.bin_dir / "arangosync", args, params=params, progressive_timeout=timeout, deadline=deadline
-            )
         return expect_failure(False, ret, params)
 
     @step
