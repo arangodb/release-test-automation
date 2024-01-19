@@ -101,6 +101,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # fmt: off
         run_cmd = self.cfg.default_arangosh_args + [
             "--log.level", "v8=debug",
+            "--log.level", "startup=trace", # BTS-1743 - find out why arangosh exits
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
         ] + process_control + [
             "--javascript.execute", str(cmd[1])
