@@ -65,6 +65,7 @@ db.testCollection.save({test: "document"})
                 "--dbservers.database.default-replication-version=2",
                 "--coordinators.database.default-replication-version=2",
                 "--all.log.level=replication2=debug",
+                "--all.log.level=rep-state=debug",
             ]
         common_opts += ["--all.cluster.default-replication-factor=2"]
         node1_opts = []
