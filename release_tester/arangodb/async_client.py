@@ -350,16 +350,16 @@ deadline_signal: {0.deadline_signal}""".format(
 
             try:
                 print(
-                    "{0} me PID:{1} launched PID:{2} with LWPID:{3} and LWPID:{4}".format(
-                        identifier, str(os.getpid()), str(process.pid), str(thread1.native_id), str(thread2.native_id)
+                    f"{identifier} my PID:{str(os.getpid())} launched PID:{str(process.pid)} {str(process.name())}with LWPID:{str(thread1.native_id)} and LWPID:{str(thread2.native_id)}"
                     )
-                )
             except AttributeError:
                 print(
                     "{0} me PID:{1} launched PID:{2} with LWPID:N/A and LWPID:N/A".format(
                         identifier, str(os.getpid()), str(process.pid)
                     )
                 )
+            except psutil.NoSuchProcess as ex:
+                print(f"process exited before we got started! {ex}")
 
             # read line without blocking
             have_progressive_timeout = False
