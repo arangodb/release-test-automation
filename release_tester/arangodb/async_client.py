@@ -181,12 +181,12 @@ def expect_failure(expect_to_fail, ret, params):
     res = (None, None, None, None)
     if ret["have_deadline"] or ret["progressive_timeout"]:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
-        raise CliExecutionException("Execution failed.", res, ret["progressive_timeout"] or ret["have_deadline"])
+        raise CliExecutionException("Execution failed by timeout.", res, ret["progressive_timeout"] or ret["have_deadline"])
     if ret["rc_exit"] != 0:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         if expect_to_fail:
             return res
-        raise CliExecutionException("Execution failed.", res, False)
+        raise CliExecutionException("Execution failed by unexpected exit code.", res, False)
 
     if not expect_to_fail:
         if len(params["output"]) == 0:
