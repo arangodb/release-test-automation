@@ -3,6 +3,7 @@
 # pylint: disable=too-many-lines disable=broad-exception-raised
 from abc import abstractmethod, ABC
 import copy
+from datetime import datetime, timedelta
 import json
 import logging
 import os
@@ -1148,14 +1149,14 @@ class Runner(ABC):
             struct["arangods"].extend(starter["arangods"])
         os.environ["INSTANCEINFO"] = json.dumps(struct)
 
-    def remove_server_from_agency(self, server_uuid, timeout=60):
+    def remove_server_from_agency(self, server_uuid, deadline=150):
         """remove server from the agency"""
         if self.agency is None:
             raise Exception("This deployment doesn't have an agency!")
         logging.info("Removing from agency the server with UUID: " + str(server_uuid))
-        count = 0
         body = '{"server": "%s"}' % server_uuid
-        while count < timeout:
+        deadline = datetime.now() + timedelta(seconds=deadline)
+        while datetime.now() < deadline :
             reply = self.starter_instances[0].send_request(
                 InstanceType.COORDINATOR,
                 requests.post,
@@ -1165,8 +1166,7 @@ class Runner(ABC):
             if reply[0].status_code in (200, 404):
                 return
             else:
-                time.sleep(1)
-                count += 1
+                time.sleep(5)
         raise Exception(
             f"Cannot remove server from the agency.\n"
             f"Status code: {str(reply[0].status_code)}\n"
