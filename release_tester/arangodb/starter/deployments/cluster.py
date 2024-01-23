@@ -148,6 +148,18 @@ db.testCollection.save({test: "document"})
         self.makedata_instances = self.starter_instances[:]
         self.set_frontend_instances()
 
+    def _check_for_shards_in_sync(self):
+        """ wait for all shards to be in sync """
+        lh.subsubsection("wait for all shards to be in sync - Jamming")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
+            [],
+            ["true"],
+        )
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        print("all in sync.")
+
     def test_setup_impl(self):
         if self.selenium:
             self.selenium.test_setup()
@@ -430,15 +442,7 @@ db.testCollection.save({test: "document"})
         # pylint: disable=too-many-statements disable=too-many-branches
         # this is simply to slow to be worth wile:
         # collections = self.get_collection_list()
-        lh.subsubsection("wait for all shards to be in sync - Jamming")
-        retval = self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ["true"],
-        )
-        if not retval:
-            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
-        print("all in sync.")
+        self._check_for_shards_in_sync()
         self._jam_stop_one_db_server()
 
         logging.info("jamming: Starting instance without jwt")
@@ -457,7 +461,7 @@ db.testCollection.save({test: "document"})
         pass
 
     def after_backup_impl(self):
-        pass
+        self._check_for_shards_in_sync()
 
     def before_backup_create_impl(self):
         pass
