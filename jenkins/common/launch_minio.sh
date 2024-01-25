@@ -7,6 +7,9 @@ docker run -d \
        -e "MINIO_ROOT_USER=minio" \
        -e "MINIO_ROOT_PASSWORD=minio123" \
        quay.io/minio/minio server /data --console-address ":9001" || exit 1
-DOCKER_MINIO_CLEANUP1="docker kill minio1"
-DOCKER_MINIO_CLEANUP2="docker rm minio1"
+TRAP_CLEANUP=(
+    "docker kill minio1"
+    "docker rm minio1"
+    "${TRAP_CLEANUP[@]}"
+)
 RTA_ARGS+=(--hb-mode s3bucket)

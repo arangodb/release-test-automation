@@ -23,8 +23,11 @@ if [[ ${argv[@]} =~ "--selenium" ]]; then
         --selenium-driver-args browserName=chrome
         --selenium-driver-args browserVersion=latest
     )
-    DOCKER_SELENOID_CLEANUP1="docker stop ${SELENOID}"
-    DOCKER_SELENOID_CLEANUP2="docker rm selenoid"
+    TRAP_CLEANUP+=(
+        "docker logs ${SELENOID}"
+        "docker stop ${SELENOID}"
+        "docker rm selenoid"
+    )
     # bridgeid=$(docker network ls | grep rta-bridge |sed "s; .*;;")
     # sudo tcpdump -ni "br-${bridgeid}" -w /tmp/out.pcap &
 fi

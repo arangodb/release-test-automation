@@ -33,3 +33,10 @@ DOCKER_ARGS=(
          -v /tmp/tmp:/tmp/ \
          -v /dev/shm:/dev/shm \
         )
+
+TRAP_CLEANUP=(
+    "docker kill ${DOCKER_NAME}"
+    "docker rm ${DOCKER_NAME}"
+    "docker network rm ${DOCKER_NETWORK_NAME}"
+    "${TRAP_CLEANUP[@]}"
+)
