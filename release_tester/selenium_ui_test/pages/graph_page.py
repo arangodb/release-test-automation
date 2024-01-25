@@ -1242,17 +1242,30 @@ class GraphPage(NavigationBarPage):
             graph_settings_id_sitem.click()
 
             self.wait_for_ajax()
-            delete_btn = "(//button[normalize-space()='Delete'])[1]"
-            delete_btn_stiem = self.locator_finder_by_xpath(delete_btn, timeout=15, poll_frequency=2)
+            if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+            else:
+                delete_btn = "modalButton0"
+                delete_btn_stiem = self.locator_finder_by_id(delete_btn)
+
             delete_btn_stiem.click()
 
-            delete_with_collection = "//input[contains(@id, 'dropGraphCollections')]"
-            delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection, poll_frequency=2, max_retries=3, timeout=30)
+            if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                delete_with_collection = '//*[@id="dropGraphCollections"]'
+                delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection, poll_frequency=2,
+                                                                            max_retries=3, timeout=30)
+            else:
+                delete_with_collection = 'dropGraphCollections'
+                delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+
             delete_with_collection_sitem.click()
+
 
             delete_confirm = "modal-confirm-delete"
             delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
             delete_confirm_sitem.click()
+            time.sleep(1)
             
         else:
             self.webdriver.refresh()
