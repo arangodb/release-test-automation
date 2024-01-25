@@ -30,7 +30,7 @@ LOG_BLACKLIST = [
     "d72fb",  # -> license is going to expire...
     "1afb1",  # -> unlicensed enterprise instance
     "9afd3",  # -> Warning while instantiation of icu::Collator
-    "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
+#     "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
     "7e050",  # -> heartbeat could not connect to agency endpoints
     "3e342",  # -> option has been renamed
     "2c0c6",  # -> extended names
