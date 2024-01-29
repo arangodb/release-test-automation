@@ -1252,15 +1252,13 @@ class GraphPage(NavigationBarPage):
             delete_btn_stiem.click()
 
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-                delete_with_collection = '//*[@id="dropGraphCollections"]'
-                delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection, poll_frequency=2,
-                                                                            max_retries=3, timeout=30)
-            else:
                 delete_with_collection = 'dropGraphCollections'
                 delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+            else:
+                delete_with_collection = '//*[@id="dropGraphCollections"]'
+                delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
 
             delete_with_collection_sitem.click()
-
 
             delete_confirm = "modal-confirm-delete"
             delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
