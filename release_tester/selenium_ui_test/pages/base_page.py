@@ -289,7 +289,7 @@ class BasePage:
         return self.locator
 
     
-    def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=3, expec_fail=False):
+    def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
         """This method finds locators by their ID using Fluent Wait with retry."""
         for attempt in range(max_retries + 1):
             try:
@@ -312,7 +312,7 @@ class BasePage:
 
 
 
-    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=3, expec_fail=False):
+    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
         """This method finds locators by their xpath using Fluent Wait with retry."""
         for attempt in range(max_retries + 1):
             try:
