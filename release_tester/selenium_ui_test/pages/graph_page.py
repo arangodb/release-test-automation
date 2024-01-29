@@ -1190,12 +1190,27 @@ class GraphPage(NavigationBarPage):
                 self.wait_for_ajax()
 
                 time.sleep(0.1)
-                confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
-                confirm_delete_graph_sitem.click()
+                # confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
+                # confirm_delete_graph_sitem.click()
+                if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                    delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                else:
+                    delete_btn = "modalButton0"
+                    delete_btn_stiem = self.locator_finder_by_id(delete_btn)
+                delete_btn_stiem.click()
                 self.wait_for_ajax()
 
                 time.sleep(0.1)
-                delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                # delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                # delete_with_collection_sitem.click()
+                if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                    delete_with_collection = 'dropGraphCollections'
+                    delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+                else:
+                    delete_with_collection = '//*[@id="dropGraphCollections"]'
+                    delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
+
                 delete_with_collection_sitem.click()
                 self.wait_for_ajax()
 
@@ -1252,15 +1267,13 @@ class GraphPage(NavigationBarPage):
             delete_btn_stiem.click()
 
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-                delete_with_collection = '//*[@id="dropGraphCollections"]'
-                delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection, poll_frequency=2,
-                                                                            max_retries=3, timeout=30)
-            else:
                 delete_with_collection = 'dropGraphCollections'
                 delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+            else:
+                delete_with_collection = '//*[@id="dropGraphCollections"]'
+                delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
 
             delete_with_collection_sitem.click()
-
 
             delete_confirm = "modal-confirm-delete"
             delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)

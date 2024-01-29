@@ -537,10 +537,10 @@ FOR doc IN Characters
         print("Executing sample graph query for worldCountry Graph \n")
         self.enter_query(
             """
-FOR v, e, p IN 1..1
-    ANY "worldVertices/continent-south-america"
-GRAPH "worldCountry"
-    RETURN {v, e, p}"""
+        FOR v, e, p IN 1..1
+            ANY "worldVertices/continent-south-america"
+        GRAPH "worldCountry"
+            RETURN {v, e, p}"""
         )
 
         time.sleep(2)
@@ -562,11 +562,11 @@ GRAPH "worldCountry"
         print("Executing sample graph query for KShortestPaths Graph")
         self.enter_query(
             """
-FOR path IN OUTBOUND K_SHORTEST_PATHS
-    "places/Birmingham" TO "places/StAndrews"
-GRAPH "kShortestPathsGraph"
-LIMIT 4
-    RETURN path"""
+            FOR path IN OUTBOUND K_SHORTEST_PATHS
+                "places/Birmingham" TO "places/StAndrews"
+            GRAPH "kShortestPathsGraph"
+            LIMIT 4
+                RETURN path"""
         )
 
         time.sleep(2)
@@ -615,9 +615,9 @@ LIMIT 4
         print("Executing one more KShortestPaths graph query \n")
         self.enter_query(
             """
-FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
-    GRAPH "kShortestPathsGraph"
-    RETURN { place: v.label, travelTime: e.travelTime }"""
+            FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
+                GRAPH "kShortestPathsGraph"
+                RETURN { place: v.label, travelTime: e.travelTime }"""
         )
         time.sleep(2)
 
@@ -670,9 +670,9 @@ FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
         print("Execute sample query\n")
         self.enter_query(
             """
-FOR c IN imdb_vertices
-    LIMIT 500
-RETURN c"""
+            FOR c IN imdb_vertices
+                LIMIT 500
+            RETURN c"""
         )
         time.sleep(2)
 
