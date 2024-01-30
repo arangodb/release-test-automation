@@ -327,6 +327,11 @@ class StarterManager:
         print("NO S.B. ELSE")
         return False
 
+    def cleanup_hotbackup_in_instance(self):
+        """ remove hotbackup from the database directory """
+        for instance in self.all_instances:
+            instance.clean_hotbackup()
+
     def get_instance_essentials(self):
         """get the essentials of all instances controlled by this starter"""
         ret = []
