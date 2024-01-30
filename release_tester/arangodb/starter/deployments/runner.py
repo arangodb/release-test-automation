@@ -970,6 +970,16 @@ class Runner(ABC):
         )
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
+            if (self.hot_backup):
+                for starter in self.starter_instances:
+                    starter.cleanup_hotbackup_in_instance()
+                # we just assume that we might have the "remote" directory in this subdir:
+                backup_dir = self.basedir / "backup"
+                if backup_dir.exists():
+                    for one_backup_dir in backup_dir.iterdir():
+                        for node_dir in one_backup_dir.iterdir():
+                            shutil.rmtree(node_dir / "views")
+                            shutil.rmtree(node_dir / "engine_rocksdb")
             if self.cfg.log_dir.exists():
                 logfile = self.cfg.log_dir / "arangod.log"
                 targetfile = self.cfg.base_test_dir / self.basedir / "arangod.log"

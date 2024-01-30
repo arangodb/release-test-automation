@@ -7,6 +7,7 @@ import logging
 import os
 import platform
 import re
+import shutil
 import time
 from abc import abstractmethod, ABC
 from enum import IntEnum
@@ -493,6 +494,9 @@ class Instance(ABC):
             port=self.port,
         )
 
+    def clean_hotbackup(self):
+        """ find and clear hotbackups """
+        pass
 
 class ArangodInstance(Instance):
     """represent one arangodb instance"""
@@ -590,6 +594,18 @@ class ArangodInstance(Instance):
     def probe_if_is_leader(self):
         """detect if I am the leader?"""
         return self.get_afo_state() == AfoServerState.LEADER
+
+    def clean_hotbackup(self):
+        if self.instance_type == InstanceType.COORDINATOR:
+            shutil.rmtree(self.basedir / "data" / "js")
+        elif self.instance_type in [
+                InstanceType.DBSERVER, InstanceType.SINGLE ,InstanceType.RESILIENT_SINGLE
+        ]:
+            backup_dir = self.basedir / "data" / "backups"
+            if backup_dir.exists():
+                for path in backup_dir.iterdir():
+                    shutil.rmtree(path / "views")
+                    shutil.rmtree(path / "engine_rocksdb")
 
     @step
     def check_version_request(self, timeout):
