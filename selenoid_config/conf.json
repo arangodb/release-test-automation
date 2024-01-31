@@ -8,15 +8,17 @@
                 "path": "/",
                 "tmpfs": {
                     "/tmp": "size=128m"
-                }
-            },
+                },
+                "shmSize" : 268435456
+           },
             "54.0": {
                 "image": "selenoid/chrome:54.0",
                 "port": "4444",
                 "path": "/",
                 "tmpfs": {
                     "/tmp": "size=128m"
-                }
+                },
+                "shmSize" : 268435456
             },
             "55.0": {
                 "image": "selenoid/chrome:55.0",
@@ -24,7 +26,8 @@
                 "path": "/",
                 "tmpfs": {
                     "/tmp": "size=128m"
-                }
+                },
+                "shmSize" : 268435456
             },
             "56.0": {
                 "image": "selenoid/chrome:56.0",
@@ -32,7 +35,8 @@
                 "path": "/",
                 "tmpfs": {
                     "/tmp": "size=128m"
-                }
+                },
+                "shmSize" : 268435456
             },
             "57.0": {
                 "image": "selenoid/chrome:57.0",
@@ -40,7 +44,8 @@
                 "path": "/",
                 "tmpfs": {
                     "/tmp": "size=128m"
-                }
+                },
+                "shmSize" : 268435456
             }
         }
     },
