@@ -9,7 +9,7 @@
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
-                "shmSize" : 268435456
+                "shmSize" : 402653184
            },
             "54.0": {
                 "image": "selenoid/chrome:54.0",
@@ -18,7 +18,7 @@
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
-                "shmSize" : 268435456
+                "shmSize" : 402653184
             },
             "55.0": {
                 "image": "selenoid/chrome:55.0",
@@ -27,7 +27,7 @@
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
-                "shmSize" : 268435456
+                "shmSize" : 402653184
             },
             "56.0": {
                 "image": "selenoid/chrome:56.0",
@@ -36,7 +36,7 @@
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
-                "shmSize" : 268435456
+                "shmSize" : 402653184
             },
             "57.0": {
                 "image": "selenoid/chrome:57.0",
@@ -45,7 +45,7 @@
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
-                "shmSize" : 268435456
+                "shmSize" : 402653184
             }
         }
     },
