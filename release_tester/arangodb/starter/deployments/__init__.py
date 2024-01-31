@@ -3,9 +3,10 @@
 from enum import Enum
 import logging
 import platform
+from typing import Optional
+
 import semver
 
-from typing import Optional
 from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
@@ -85,7 +86,9 @@ def make_runner(
         msg = "Active failover not supported for these versions"
 
     if runner_type == RunnerType.DC2DC and (
-            (not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or IS_WINDOWS or IS_MAC) or
+            not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or
+            IS_WINDOWS or
+            IS_MAC or
             installer_set[ len(installer_set) - 1 ][1].cfg.semver > semver.VersionInfo.parse("3.11.99")):
         runner_type = RunnerType.NONE
         msg = "DC2DC deployment not supported for the host or edition"
