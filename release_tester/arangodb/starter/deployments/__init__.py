@@ -84,7 +84,9 @@ def make_runner(
         runner_type = RunnerType.NONE
         msg = "Active failover not supported for these versions"
 
-    if runner_type == RunnerType.DC2DC and (not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or IS_WINDOWS or IS_MAC):
+    if runner_type == RunnerType.DC2DC and (
+            (not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or IS_WINDOWS or IS_MAC) or
+            installer_set[ len(installer_set) - 1 ][1].cfg.semver > semver.VersionInfo.parse("3.11.99")):
         runner_type = RunnerType.NONE
         msg = "DC2DC deployment not supported for the host or edition"
 
