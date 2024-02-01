@@ -3,9 +3,10 @@
 from enum import Enum
 import logging
 import platform
+from typing import Optional
+
 import semver
 
-from typing import Optional
 from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
@@ -13,6 +14,7 @@ from reporting.reporting_utils import step
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_MAC = platform.mac_ver()[0] != ""
+
 
 class RunnerType(Enum):
     """dial which runner instance you want"""
@@ -55,7 +57,7 @@ STARTER_MODES = {
     "none": [RunnerType.NONE],
 }
 
-# pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args
+# pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args disable=too-many-branches
 @step
 def make_runner(
     runner_type: RunnerType,
@@ -80,13 +82,25 @@ def make_runner(
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     msg = ""
-    if runner_type == RunnerType.ACTIVE_FAILOVER and installer_set[ len(installer_set) - 1 ][1].cfg.semver > semver.VersionInfo.parse("3.11.99"):
+    if runner_type == RunnerType.ACTIVE_FAILOVER and installer_set[len(installer_set) - 1][
+        1
+    ].cfg.semver > semver.VersionInfo.parse("3.11.99"):
         runner_type = RunnerType.NONE
         msg = "Active failover not supported for these versions"
 
-    if runner_type == RunnerType.DC2DC and (not installer_set[ len(installer_set) - 1 ][1].cfg.enterprise or IS_WINDOWS or IS_MAC):
-        runner_type = RunnerType.NONE
-        msg = "DC2DC deployment not supported for the host or edition"
+    if runner_type == RunnerType.DC2DC:
+        if not installer_set[len(installer_set) - 1][1].cfg.enterprise:
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment is not supported in community edition."
+        elif IS_WINDOWS:
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment is not supported on Windows."
+        elif IS_MAC:
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment is not supported on MacOS."
+        elif installer_set[len(installer_set) - 1][1].cfg.semver > semver.VersionInfo.parse("3.11.99"):
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment not supported on version 3.12 and newer."
 
     args = (
         runner_type,
@@ -99,7 +113,6 @@ def make_runner(
         runner_properties.replication2,
         use_auto_certs,
     )
-
 
     if runner_type == RunnerType.SINGLE:
         from arangodb.starter.deployments.single import Single
@@ -134,7 +147,7 @@ def make_runner(
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter
 
-        ret =  NoStarter(*args)
+        ret = NoStarter(*args)
         ret.msg = msg
         return ret
 

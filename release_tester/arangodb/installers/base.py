@@ -525,7 +525,7 @@ class InstallerBase(ABC):
                     True,
                     False,
                     "1.0.0",
-                    "4.0.0",
+                    "3.11.99",
                     [self.cfg.real_bin_dir / ("arangosync" + FILE_EXTENSION)],
                     "go",
                 )
