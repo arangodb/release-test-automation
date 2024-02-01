@@ -53,11 +53,23 @@ class DashboardPage(NavigationBarPage):
     def check_db_status(self, cluster):
         """checking current database status from the dashboard"""
         if cluster:
-            check_db_status_sitem = self.locator_finder_by_xpath(self.check_cluster_status_id)
-            print("Cluster Health: ", check_db_status_sitem.text)
+            status = self.locator_finder_by_xpath(self.check_cluster_status_id)
+            print("Cluster Health: ", status.text)
+            
         else:
-            check_db_status_sitem = self.locator_finder_by_xpath(self.check_db_status_id)
-            print("Current Status: ", check_db_status_sitem.text)
+            status = self.locator_finder_by_xpath(self.check_db_status_id)
+            print("Current Status: ", status.text)
+        
+        if cluster:
+            assert (
+                status.text in "NODES OK"
+            ), f"Expected page title GOOD but got {status.text}"
+
+        else:
+            assert (
+                status.text in "GOOD"
+            ), f"Expected page title GOOD but got {status.text}"
+        
         time.sleep(1)
         
 
