@@ -12,8 +12,6 @@ fi
 
 . ./jenkins/common/pre_cleanup_docker.sh
 
-mkdir -p "$(pwd)/test_dir/tmp"
-chmod a+rwxt "$(pwd)/test_dir/tmp"
 docker network create $DOCKER_NETWORK_NAME
 DOCKER_ARGS=(
     --env="BUILD_NUMBER=${BUILD_NUMBER}" \
@@ -33,7 +31,6 @@ DOCKER_ARGS=(
          -v "$(pwd)/test_dir/tmp/:/tmp" \
          -v "${ALLURE_DIR}:/home/allure-results" \
          -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
-         -v /tmp/tmp:/tmp/ \
          -v /dev/shm:/dev/shm \
         )
 
