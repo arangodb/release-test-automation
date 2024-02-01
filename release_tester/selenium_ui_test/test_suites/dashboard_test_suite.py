@@ -23,7 +23,7 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
         version = dash.current_package_version()
         dash.check_current_username()
         dash.check_current_db()
-        dash.check_db_status()
+        dash.check_db_status(self.is_cluster)
         # only 3.6 & 3.7 only support mmfiles... dash.check_db_engine()
         if not self.is_cluster:
             dash.check_db_uptime()
@@ -48,7 +48,6 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
         print("Opening Stackoverflow link \n")
         dash.click_stackoverflow_link()
         print("Opening Google group link \n")
-        dash.click_google_group_link()
         dash.click_google_group_link()
         # login.logout_button()
         print("---------Checking Dashboard Completed--------- \n")
