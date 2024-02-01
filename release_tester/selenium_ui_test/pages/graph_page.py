@@ -1232,6 +1232,7 @@ class GraphPage(NavigationBarPage):
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
+        print(f"Deleting {graph_name} Graph \n")
         self.select_graph_page()
         self.webdriver.refresh()
 
@@ -1267,8 +1268,13 @@ class GraphPage(NavigationBarPage):
             delete_btn_stiem.click()
 
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-                delete_with_collection = 'dropGraphCollections'
-                delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+                try:
+                    delete_with_collection = "dropGraphCollections"
+                    delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+                except Exception as e:
+                    print(f"An error occurred: {e} trying different xpath locator \n")
+                    delete_with_collection = "//*[text()='also drop collections?']"
+                    delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
             else:
                 delete_with_collection = '//*[@id="dropGraphCollections"]'
                 delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
