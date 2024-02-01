@@ -17,7 +17,7 @@
 				"image": "selenoid/chrome",
 				"port": "4444",
                                  "volumes": ["@RTAROOT@:/home/release-test-automation",
-                                      "@RTAROOT@/test_dir/tmp/:/tmp"],
+                                      "/tmp:/tmp"],
                                 "shmSize" : 402653184
 			}
 		}

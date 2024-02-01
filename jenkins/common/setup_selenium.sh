@@ -1,6 +1,7 @@
 argv=$@
 if [[ ${argv[@]} =~ "--selenium" ]]; then
     sed -e "s;@RTAROOT@;$(pwd);g" < "$(pwd)/selenoid_config/browsers.json.in" > "$(pwd)/selenoid_config/browsers.json"
+    cat "$(pwd)/selenoid_config/browsers.json"
     docker pull aerokube/selenoid
     docker pull selenoid/chrome
     docker pull selenoid/video-recorder:latest-release
