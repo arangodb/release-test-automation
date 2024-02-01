@@ -37,6 +37,5 @@ DOCKER_ARGS=(
 TRAP_CLEANUP=(
     "docker kill ${DOCKER_NAME}"
     "docker rm ${DOCKER_NAME}"
-    "docker network rm ${DOCKER_NETWORK_NAME}"
     "${TRAP_CLEANUP[@]}"
 )

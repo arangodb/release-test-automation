@@ -16,9 +16,9 @@
 			"latest": {
 				"image": "selenoid/chrome",
 				"port": "4444",
-                                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
-                                "shmSize" : 402653184,
-				"tmpfs": {"/tmp":"size=512m"}
+                                 "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation",
+                                      "/home/willi/src/release-test-automation/test_dir/tmp/:/tmp"],
+                                "shmSize" : 402653184
 			}
 		}
 	}
