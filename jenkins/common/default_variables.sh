@@ -24,3 +24,5 @@ RTA_ARGS=(  --git-version "$GIT_VERSION" )
 
 ALLURE_DIR="$(pwd)/allure-results"
 mkdir -p "${ALLURE_DIR}"
+mkdir -p "$(pwd)/test_dir/tmp"
+chmod a+rwxt "$(pwd)/test_dir/tmp"
