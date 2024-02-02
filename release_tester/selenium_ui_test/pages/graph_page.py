@@ -1267,17 +1267,19 @@ class GraphPage(NavigationBarPage):
 
             delete_btn_stiem.click()
 
-            if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-                try:
-                    delete_with_collection = "dropGraphCollections"
-                    delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
-                except Exception as e:
-                    print(f"An error occurred: {e} trying different xpath locator \n")
-                    delete_with_collection = "//*[text()='also drop collections?']"
-                    delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
-            else:
+            try:
                 delete_with_collection = '//*[@id="dropGraphCollections"]'
                 delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
+            except Exception as e:
+                print(f"An error occurred: {e} trying different xpath locator \n")
+                # Attempting to use an alternative method
+                try:
+                    delete_with_collection = "//*[text()='also drop collections?']"
+                    delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
+                except Exception as e_alternative:
+                    print(f"An error occurred: {e_alternative} using alternative xpath locator \n")
+                    # If both attempts fail, raise the original exception
+                    raise e
 
             delete_with_collection_sitem.click()
 
