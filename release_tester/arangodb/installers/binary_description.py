@@ -192,7 +192,7 @@ class BinaryDescription:
         if not enterprise and self.enterprise:
             if is_there:
                 raise Exception("Enterprise binary found in community package! " + str(self.path))
-        elif not is_there:
+        elif not is_there and in_version:
             raise Exception("binary was not found! " + str(self.path))
 
     def check_stripped_mac(self):
