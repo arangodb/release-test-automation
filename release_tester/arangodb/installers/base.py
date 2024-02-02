@@ -653,7 +653,8 @@ class InstallerBase(ABC):
 
     def get_sync_version(self):
         """find out the version of the starter in this package"""
-        if not self.cfg.enterprise:
+        if (not self.cfg.enterprise or
+            self.semver > semver.VersionInfo.parse("3.11.99")):
             return semver.VersionInfo.parse("0.0.0")
         if not self.syncer_versions:
             syncer = self.cfg.real_sbin_dir / ("arangosync" + FILE_EXTENSION)
