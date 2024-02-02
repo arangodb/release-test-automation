@@ -47,7 +47,7 @@ class SeleniumRunner(ABC):
 
     def _cleanup_temp_files(self):
         if self.is_headless and os.getuid() == 0:
-            tmpdir = tempfile.gettempdir()
+            tmpdir = '/tmp/' # tempfile.gettempdir()
             trashme_rx = '(?:% s)' % f"|{tmpdir}/".join([
                 'pulse-*',
                 'xvfb-run.*',
