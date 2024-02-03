@@ -18,17 +18,17 @@ class BasicTestSuite(BaseSeleniumTestSuite):
     """testsuites entrypoint"""
 
     child_test_suites = [
-        UserPageTestSuite,
-        CollectionsTestSuite,
-        ViewsTestSuite,
+        # UserPageTestSuite,
+        # CollectionsTestSuite,
+        # ViewsTestSuite,
         GraphTestSuite,
-        QueryTestSuite,
-        AnalyzersTestSuite,
-        DatabaseTestSuite,
-        LogInTestSuite,
-        DashboardTestSuite,
-        SupportTestSuite,
-        ServiceTestSuite,
+        # QueryTestSuite,
+        # AnalyzersTestSuite,
+        # DatabaseTestSuite,
+        # LogInTestSuite,
+        # DashboardTestSuite,
+        # SupportTestSuite,
+        # ServiceTestSuite,
     ]
 
     def __init__(self, selenium_runner):

@@ -1232,9 +1232,11 @@ class GraphPage(NavigationBarPage):
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
+        retry = 0
         while True:
             try:
                 print(f"Deleting {graph_name} Graph \n")
+                self.navbar_goto("graphs")
                 self.webdriver.refresh()
                 self.wait_for_ajax()
                 time.sleep(0.1)
@@ -1294,7 +1296,7 @@ class GraphPage(NavigationBarPage):
                     delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
                     delete_confirm_sitem.click()
                     time.sleep(1)
-                    
+                    break
                 else:
                     self.webdriver.refresh()
                     self.wait_for_ajax()
@@ -1323,12 +1325,12 @@ class GraphPage(NavigationBarPage):
                     break
             except TimeoutException as exc:
                 retry += 1
-                if retry > 5:
+                if retry > 2:
                     raise exc
                 print("retrying delete " + str(retry))
             except ElementClickInterceptedException as exc:
                 retry += 1
-                if retry > 5:
+                if retry > 2:
                     raise exc
                 print("retrying delete " + str(retry))
 
