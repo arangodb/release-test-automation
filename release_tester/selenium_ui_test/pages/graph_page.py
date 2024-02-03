@@ -1267,6 +1267,7 @@ class GraphPage(NavigationBarPage):
 
             delete_btn_stiem.click()
 
+            self.wait_for_ajax()
             try:
                 delete_with_collection = '//*[@id="dropGraphCollections"]'
                 delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
@@ -1274,6 +1275,7 @@ class GraphPage(NavigationBarPage):
                 print(f"An error occurred: {e} trying different xpath locator \n")
                 # Attempting to use an alternative method
                 try:
+                    self.wait_for_ajax()
                     delete_with_collection = "//*[text()='also drop collections?']"
                     delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
                 except Exception as e_alternative:
