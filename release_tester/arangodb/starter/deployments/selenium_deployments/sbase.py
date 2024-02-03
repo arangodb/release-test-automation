@@ -45,6 +45,25 @@ class SeleniumRunner(ABC):
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
 
+    def _cleanup_temp_files(self):
+        if self.is_headless and os.getuid() == 0:
+            tmpdir = '/tmp/' # tempfile.gettempdir()
+            trashme_rx = '(?:% s)' % f"|{tmpdir}/".join([
+                'pulse-*',
+                'xvfb-run.*',
+                '.X99-lock',
+                '.X11-unix',
+                '.org.chromium.Chromium.*',
+                '.com.google.Chrome.*',
+                '.org.chromium.Chromium.*'
+                ])
+            print(f"cleanup headless files: {str(trashme_rx)}")
+            for one_tmp_file in Path(tmpdir).iterdir():
+                if (re.match(trashme_rx, str(one_tmp_file)) and
+                    one_tmp_file.group() == 'root'):
+                    print(f"Purging: {str(one_tmp_file)}")
+                    shutil.rmtree(one_tmp_file)
+
     def set_instances(self, cfg, importer, restorer, ui_entrypoint_instance, new_cfg=None):
         """change the used frontend instance"""
         self.cfg = cfg
@@ -55,30 +74,15 @@ class SeleniumRunner(ABC):
 
     def quit(self):
         """terminate the web driver"""
+        print("Quitting Selenium")
         if self.webdriver is not None:
+            print("stopping")
             try:
                 self.webdriver.quit()
             except InvalidSessionIdException as ex:
                 print(f"Selenium connection seems to be already gone:  {str(ex)}")
             self.webdriver = None
-            if self.is_headless and os.getuid() == 0:
-                tmpdir = tempfile.gettempdir()
-                trashme_rx = '(?:% s)' % f"|{tmpdir}/".join([
-                    'pulse-*',
-                    'xvfb-run.*',
-                    '.X99-lock',
-                    '.X11-unix',
-                    '.org.chromium.Chromium.*',
-                    '.com.google.Chrome.*',
-                    '.org.chromium.Chromium.*'
-                    ])
-                print(trashme_rx)
-                for one_tmp_file in Path(tmpdir).iterdir():
-                    if (re.match(trashme_rx, str(one_tmp_file)) and
-                        one_tmp_file.group() == 'root'):
-                        print(f"Purging: {str(one_tmp_file)}")
-                        shutil.rmtree(one_tmp_file)
-
+            self._cleanup_temp_files()
 
     def progress(self, msg):
         """add something to the state..."""

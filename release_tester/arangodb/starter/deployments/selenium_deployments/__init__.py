@@ -43,6 +43,7 @@ def init(
                 is_headless = True
             elif len(split_opts) == 2:
                 if split_opts[0] == 'command_executor':
+                    is_headless = True
                     kwargs['command_executor'] = split_opts[1]
                     continue
             elif len(split_opts) >= 3:
