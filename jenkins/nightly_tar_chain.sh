@@ -1,7 +1,7 @@
 #!/bin/bash
 DOCKER_SUFFIX=tar
 . ./jenkins/common/default_variables.sh
-
+. ./jenkins/common/default_matrix.sh
 . ./jenkins/common/setup_docker.sh
 
 . ./jenkins/common/set_max_map_count.sh

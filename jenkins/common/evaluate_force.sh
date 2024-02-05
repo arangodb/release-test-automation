@@ -3,7 +3,11 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
 fi
 
 if test -n "$SOURCE"; then
-    RTA_ARGS+=(--old-source "$SOURCE" --new-source "$SOURCE")
+    if test -z "$UPGRADE_MATRIX"; then
+        RTA_ARGS+=(--old-source "$SOURCE" --new-source "$SOURCE")
+    else
+        force_arg+=(--source "$SOURCE" --other-source "$SOURCE")
+    fi
 else
     RTA_ARGS+=(--remote-host 172.17.4.0)
 fi
