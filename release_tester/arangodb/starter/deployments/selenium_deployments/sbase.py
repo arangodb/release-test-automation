@@ -19,7 +19,7 @@ FNRX = re.compile("[\n@]*")
 def cleanup_temp_files(is_headless):
     """ attempt to cleanup the selenoid docker contaires leftovers """
     if is_headless and os.getuid() == 0:
-        tmpdir = '/tmp/' # tempfile.gettempdir()
+        tmpdir = '/tmp' # tempfile.gettempdir()
         trashme_rx = '(?:% s)' % f"|{tmpdir}/".join([
             'pulse-*',
             'xvfb-run.*',
@@ -31,6 +31,7 @@ def cleanup_temp_files(is_headless):
             ])
         print(f"cleanup headless files: {str(trashme_rx)}")
         for one_tmp_file in Path(tmpdir).iterdir():
+            print(f"checking {str(one_tmp_file)}")
             if (re.match(trashme_rx, str(one_tmp_file)) and
                 one_tmp_file.group() == 'root'):
                 print(f"Purging: {str(one_tmp_file)}")
