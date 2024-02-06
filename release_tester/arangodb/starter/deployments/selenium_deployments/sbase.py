@@ -35,7 +35,10 @@ def cleanup_temp_files(is_headless):
             if (re.match(trashme_rx, str(one_tmp_file)) and
                 one_tmp_file.group() == 'root'):
                 print(f"Purging: {str(one_tmp_file)}")
-                shutil.rmtree(one_tmp_file)
+                if one_tmp_file.is_dir():
+                    shutil.rmtree(one_tmp_file)
+                else:
+                    one_tmp_file.unlink()
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
