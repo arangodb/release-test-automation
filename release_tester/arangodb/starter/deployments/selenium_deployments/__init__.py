@@ -65,6 +65,7 @@ def init(
                 continue
             options.add_argument("--" + opt)
 
+    cleanup_temp_files(is_headless)
     driver = None
     count = 0
     while driver is None and count < 10:
