@@ -335,7 +335,7 @@ class CollectionPage(NavigationBarPage):
 
         self.webdriver.refresh()
 
-    def checking_search_options(self, search):
+    def checking_search_options(self, search=""):
         """Checking search functionality for v312 and else part is for v311 & v310"""
         print("selecting collection tab \n")
         self.navbar_goto("collections")
