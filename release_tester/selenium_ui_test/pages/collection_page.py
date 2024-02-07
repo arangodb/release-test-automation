@@ -200,23 +200,58 @@ class CollectionPage(NavigationBarPage):
     def create_new_collections(self, name, doc_type, is_cluster):
         """This method will create new collection based on their name and type"""
         print('selecting collection tab \n')
-        select_collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
-        select_collection_page_sitem.click()
+        self.navbar_goto("collections")
         time.sleep(1)
 
-        print('Clicking on create new collection box \n')
-        select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+        # print('Clicking on create new collection box \n')
+        # select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+        # select_create_collection_sitem.click()
+        # time.sleep(1)
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+            select_create_collection_id = "//*[text()='Add collection']"
+            select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id)
+        else:
+            select_create_collection_id = "createCollection"
+            select_create_collection_sitem = self.locator_finder_by_id(select_create_collection_id)
+        
         select_create_collection_sitem.click()
         time.sleep(1)
 
-        print('Selecting new collection name \n')
-        select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
+        # print('Selecting new collection name \n')
+        # select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
+        # select_new_collection_name_sitem.click()
+        # select_new_collection_name_sitem.send_keys(name)
+        # time.sleep(1)
+
+        print("Selecting new collection name \n")
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+            select_new_collection_name_sitem = self.locator_finder_by_id("name")
+        else:
+            select_new_collection_name_sitem = self.locator_finder_by_id("new-collection-name")
+        
         select_new_collection_name_sitem.click()
         select_new_collection_name_sitem.send_keys(name)
         time.sleep(1)
 
-        print(f'Selecting collection type for {name} \n')  # collection Document type where # '2' = Document, '3' = Edge
-        self.locator_finder_by_select(self.select_collection_type_id, doc_type)
+        print(f'Selecting collection type for {name} \n')  
+        # collection Document type where # '2' = Document, '3' = Edge
+        # self.locator_finder_by_select(self.select_collection_type_id, doc_type)
+        # time.sleep(1)
+        if self.package_version >= semver.VersionInfo.parse("3.11.99"):
+            if doc_type == 1:
+                # type dropdown menu
+                type_dropdown = "(//div[@class=' css-nmh171'])[1]"
+                type_dropdown_sitem = self.locator_finder_by_xpath(type_dropdown)
+                type_dropdown_sitem.click()
+                time.sleep(3)
+
+                # choosing type
+                chosen_type = "//*[text()='Edge']"
+                chosen_type_sitem = self.locator_finder_by_xpath(chosen_type)
+                chosen_type_sitem.click()
+                time.sleep(1)
+        else:
+            self.locator_finder_by_select("new-collection-type", doc_type)
         time.sleep(1)
 
         if is_cluster:
@@ -236,18 +271,43 @@ class CollectionPage(NavigationBarPage):
             rf_sitem.send_keys(3)
             time.sleep(2)
 
-        print(f'Selecting collection advance options for {name} \n')
-        select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
-        select_advance_option_sitem.click()
-        time.sleep(1)
+        # print(f'Selecting collection advance options for {name} \n')
+        # select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
+        # select_advance_option_sitem.click()
+        # time.sleep(1)
 
+        # # Selecting collection wait type where value # 0 = YES, '1' = NO)
+        # self.locator_finder_by_select(self.wait_for_sync_id, 0)
+        # time.sleep(1)
         # Selecting collection wait type where value # 0 = YES, '1' = NO)
-        self.locator_finder_by_select(self.wait_for_sync_id, 0)
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+            # selecting sync btn
+            wait_for_sync = "//*[contains(text(),'Advanced')]"
+            self.locator_finder_by_xpath(wait_for_sync).click()
+            # toggle sync option
+            sync_toggle = "//*[contains(text(),'Wait for sync')]"
+            self.locator_finder_by_xpath(sync_toggle).click()
+
+        else:
+            print(f"Selecting collection advance options for {name} \n")
+            select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
+            select_advance_option_sitem.click()
+            time.sleep(1)
+            self.locator_finder_by_select(self.wait_for_sync_id, 0)
         time.sleep(1)
 
-        print(f'Selecting create button for {name} \n')
-        create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
-        create_new_collection_btn_sitem.click()
+        # print(f'Selecting create button for {name} \n')
+        # create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
+        # create_new_collection_btn_sitem.click()
+        # time.sleep(3)
+        print(f"Selecting create button for {name} \n")
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+            create_button = "(//button[normalize-space()='Create'])[1]"
+            create_button_sitem = self.locator_finder_by_xpath(create_button)
+            create_button_sitem.click()
+        else:
+            create_new_collection_btn_sitem = self.locator_finder_by_id("modalButton1")
+            create_new_collection_btn_sitem.click()
         time.sleep(3)
         self.webdriver.refresh()
 
@@ -276,56 +336,82 @@ class CollectionPage(NavigationBarPage):
         self.webdriver.refresh()
 
     def checking_search_options(self, search):
-        """Checking search functionality"""
+        """Checking search functionality for v312 and else part is for v311 & v310"""
         print("selecting collection tab \n")
-        self.locator_finder_by_id(self.select_collection_page_id).click()
+        self.navbar_goto("collections")
         time.sleep(1)
-
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
-            self.webdriver.refresh()
-
-            # click on reset button
-            reset = '//*[@id="content-react"]/div/div[2]/div[1]/div/button[2]'
-            reset_sitem = self.locator_finder_by_xpath(reset)
-            reset_sitem.click()
-            time.sleep(1)
-
-            filter_btn = "(//button[normalize-space()='Filters'])[1]"
+            # choose filter for clear any preselected filter
+            filter_btn = "//button[contains(text(), 'Filters')]"
             filter_btn_sitem = self.locator_finder_by_xpath(filter_btn)
             filter_btn_sitem.click()
+            time.sleep(3)
 
-            add_filter_btn = '//*[@id="menu-button-8"]'
+            # select clear all filter button
+            clear_all_filter = "//button[contains(text(), 'Clear')]"
+            clear_all_filter_sitem = self.locator_finder_by_xpath(clear_all_filter)
+            clear_all_filter_sitem.click()
+            time.sleep(3)
+
+            print('the current UI for cleaning anything else \n')
+            self.webdriver.refresh()
+
+            print("filter btn again for searching \n")
+            add_filter_btn = "//button[contains(text(),'Filters')]"
             add_filter_btn_stiem = self.locator_finder_by_xpath(add_filter_btn)
             add_filter_btn_stiem.click()
+            time.sleep(3)
 
-            id_filter = "menu-list-8-menuitem-3"
-            id_filter_stiem = self.locator_finder_by_id(id_filter)
-            id_filter_stiem.click()
+            print("selecting collection filter \n")
+            id_filter_name = "//*[@aria-label='Add filter']"
+            id_filter_name_stiem = self.locator_finder_by_xpath(id_filter_name)
+            id_filter_name_stiem.click()
+            time.sleep(3)
 
-            search_filter = '//*[@id="name"]'
+            print('selecting name filter from the list \n')
+            search_filter = "//button[contains(text(),'Name')]"
             search_filter_sitem = self.locator_finder_by_xpath(search_filter)
             search_filter_sitem.click()
-            search_filter_sitem.clear()
-            search_filter_sitem.send_keys("_analyzers")
+            time.sleep(3)
 
-            # trying to find the expected collection from the search
+            print("selecting search placeholder and send search input TestDoc \n")
+            search_collection_testDoc = "//*[@placeholder='Search']"
+            search_collection_testDoc_sitem = self.locator_finder_by_xpath(search_collection_testDoc)
+            search_collection_testDoc_sitem.click()
+            search_collection_testDoc_sitem.clear()
+            search_collection_testDoc_sitem.send_keys("TestDoc")
+            time.sleep(3)
 
-            search_analyzer_col = "(//a[normalize-space()='_analyzers'])[1]"
-            search_analyzer_col_sitem = self.locator_finder_by_xpath(
-                search_analyzer_col
-            )
-
-            expected_msg = "_analyzers"
-            assert (
-                expected_msg == search_analyzer_col_sitem.text
-            ), f"Expected {expected_msg} but got {search_analyzer_col_sitem.text}"
-
-            # Print success message if the assertion succeeds
-            print(
-                "Assertion succeeded! The expected message is equal to the text found on the webpage."
-            )
-
+            print("invoke refresh to go out from the search option and test search works \n")
             self.webdriver.refresh()
+
+            print("trying to find the expected collection from the search")
+            search_testDoc_col = "//a[contains(text(), 'TestDoc')]"
+            search_testDoc_col_sitem = self.locator_finder_by_xpath(search_testDoc_col)
+            time.sleep(3)
+
+            expected_msg = "TestDoc"
+            assert (
+                expected_msg == search_testDoc_col_sitem.text
+            ), f"Expected {expected_msg} but got {search_testDoc_col_sitem.text}"
+
+            print("after getting TestDoc now clear the name filter")
+            # selecting filter btn again
+            add_filter_btn_again = "//button[contains(text(),'Filters')]"
+            add_filter_btn_again_stiem = self.locator_finder_by_xpath(add_filter_btn_again)
+            add_filter_btn_again_stiem.click()
+            time.sleep(3)
+
+            # selecting clear btn again
+            clear_all_filter_again = "//button[contains(text(), 'Clear')]"
+            clear_all_filter_again_sitem = self.locator_finder_by_xpath(clear_all_filter_again)
+            clear_all_filter_again_sitem.click()
+            time.sleep(3)
+
+            # select refresh() to clear anything else in the UI
+            self.webdriver.refresh()
+
+        # testing search options for v310 and v311
 
         else:
             select_collection_search_id = "//*[@id='searchInput']"
@@ -1310,7 +1396,7 @@ class CollectionPage(NavigationBarPage):
 
             print(f"Deleting {collection_name} collection Completed \n")
             self.webdriver.refresh()
-        except TimeoutException:
+        except (TimeoutException, AttributeError):
             print("TimeoutException occurred! \n")
             print("Info: Collection has already been deleted or never created. \n")
         except NoSuchElementException:
