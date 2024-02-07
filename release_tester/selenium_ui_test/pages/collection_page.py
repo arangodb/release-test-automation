@@ -237,7 +237,7 @@ class CollectionPage(NavigationBarPage):
         # collection Document type where # '2' = Document, '3' = Edge
         # self.locator_finder_by_select(self.select_collection_type_id, doc_type)
         # time.sleep(1)
-        if self.package_version >= semver.VersionInfo.parse("3.11.99"):
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             if doc_type == 1:
                 # type dropdown menu
                 type_dropdown = "(//div[@class=' css-nmh171'])[1]"
