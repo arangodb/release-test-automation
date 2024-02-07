@@ -181,14 +181,44 @@ class BasePage:
         dash.click()
         time.sleep(2)
 
+    # def select_query_execution_area(self):
+    #     """This method will select the query execution area"""
+    #     try:
+    #         query_sitem = self.locator_finder_by_xpath(self.query_execution_area)
+    #         query_sitem.click()
+    #         time.sleep(2)
+    #     except TimeoutException:
+    #         print("Can't find the query execution area \n")
     def select_query_execution_area(self):
-        """This method will select the query execution area"""
-        try:
-            query_sitem = self.locator_finder_by_xpath(self.query_execution_area)
-            query_sitem.click()
-            time.sleep(2)
-        except TimeoutException:
-            print("Can't find the query execution area \n")
+        """This method will select the query execution area take a
+        string and adjacent locator argument of ace-editor and execute the query
+        locator set to none for < v3.12x"""
+        print("Selecting query execution area \n")
+        if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
+            self.webdriver.refresh()
+            # to unify ace_locator class attribute has been used
+            query = "//*[text()='Saved Queries']"
+            ace_locator = self.locator_finder_by_xpath(query)
+            # Set x and y offset positions of adjacent element
+            xOffset = 100
+            yOffset = 100
+            # Performs mouse move action onto the element
+            actions = ActionChains(self.driver).move_to_element_with_offset(
+                ace_locator, xOffset, yOffset
+            )
+            actions.click()
+            actions.key_down(Keys.CONTROL).send_keys("a").send_keys(
+                Keys.BACKSPACE
+            ).key_up(Keys.CONTROL).perform()
+            time.sleep(1)
+        else:
+            try:
+                query = '//*[@id="aqlEditor"]'
+                query = self.locator_finder_by_xpath(query)
+                query.click()
+                time.sleep(2)
+            except TimeoutException:
+                print("Can't find the query execution area \n")
 
     def select_bindvalue_json_area(self):
         """This method will select the query execution area"""
