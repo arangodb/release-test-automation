@@ -203,7 +203,7 @@ class BasePage:
             xOffset = 100
             yOffset = 100
             # Performs mouse move action onto the element
-            actions = ActionChains(self.driver).move_to_element_with_offset(
+            actions = ActionChains(self.webdriver).move_to_element_with_offset(
                 ace_locator, xOffset, yOffset
             )
             actions.click()
