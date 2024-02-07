@@ -203,10 +203,6 @@ class CollectionPage(NavigationBarPage):
         self.navbar_goto("collections")
         time.sleep(1)
 
-        # print('Clicking on create new collection box \n')
-        # select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
-        # select_create_collection_sitem.click()
-        # time.sleep(1)
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             select_create_collection_id = "//*[text()='Add collection']"
             select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id)
@@ -216,12 +212,6 @@ class CollectionPage(NavigationBarPage):
         
         select_create_collection_sitem.click()
         time.sleep(1)
-
-        # print('Selecting new collection name \n')
-        # select_new_collection_name_sitem = self.locator_finder_by_id(self.select_new_collection_name_id)
-        # select_new_collection_name_sitem.click()
-        # select_new_collection_name_sitem.send_keys(name)
-        # time.sleep(1)
 
         print("Selecting new collection name \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
@@ -233,10 +223,7 @@ class CollectionPage(NavigationBarPage):
         select_new_collection_name_sitem.send_keys(name)
         time.sleep(1)
 
-        print(f'Selecting collection type for {name} \n')  
-        # collection Document type where # '2' = Document, '3' = Edge
-        # self.locator_finder_by_select(self.select_collection_type_id, doc_type)
-        # time.sleep(1)
+        print(f'Selecting collection type for {name} \n')
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             if doc_type == 1:
                 # type dropdown menu
@@ -255,22 +242,6 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
 
         if is_cluster:
-            # print(f'selecting number of Shards for the {name} \n')
-            # shards = 'new-collection-shards'
-            # shards_sitem = self.locator_finder_by_id(shards)
-            # shards_sitem.click()
-            # shards_sitem.clear()
-            # shards_sitem.send_keys(9)
-            # time.sleep(2)
-
-            # print(f'selecting number of replication factor for {name} \n')
-            # rf = 'new-replication-factor'
-            # rf_sitem = self.locator_finder_by_id(rf)
-            # rf_sitem.click()
-            # rf_sitem.clear()
-            # rf_sitem.send_keys(3)
-            # time.sleep(2)
-
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
                 advance_option = "//div[contains(text(), 'Advanced')]"
                 advance_option_sitem = self.locator_finder_by_xpath(advance_option)
@@ -309,22 +280,7 @@ class CollectionPage(NavigationBarPage):
                 rf_sitem.send_keys(3)
                 time.sleep(2)
 
-        # print(f'Selecting collection advance options for {name} \n')
-        # select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
-        # select_advance_option_sitem.click()
-        # time.sleep(1)
-
-        # # Selecting collection wait type where value # 0 = YES, '1' = NO)
-        # self.locator_finder_by_select(self.wait_for_sync_id, 0)
-        # time.sleep(1)
-        # Selecting collection wait type where value # 0 = YES, '1' = NO)
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
-            # # selecting sync btn
-            # wait_for_sync = "//*[contains(text(),'Advanced')]"
-            # self.locator_finder_by_xpath(wait_for_sync).click()
-            # # toggle sync option
-            # sync_toggle = "//*[contains(text(),'Wait for sync')]"
-            # self.locator_finder_by_xpath(sync_toggle).click()
             if not is_cluster:
                 # selecting sync btn if deployment is not a cluster
                 wait_for_sync = "//*[contains(text(),'Advanced')]"
@@ -342,10 +298,6 @@ class CollectionPage(NavigationBarPage):
             self.locator_finder_by_select(self.wait_for_sync_id, 0)
         time.sleep(1)
 
-        # print(f'Selecting create button for {name} \n')
-        # create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
-        # create_new_collection_btn_sitem.click()
-        # time.sleep(3)
         print(f"Selecting create button for {name} \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             create_button = "(//button[normalize-space()='Create'])[1]"

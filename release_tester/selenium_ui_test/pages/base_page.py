@@ -181,14 +181,6 @@ class BasePage:
         dash.click()
         time.sleep(2)
 
-    # def select_query_execution_area(self):
-    #     """This method will select the query execution area"""
-    #     try:
-    #         query_sitem = self.locator_finder_by_xpath(self.query_execution_area)
-    #         query_sitem.click()
-    #         time.sleep(2)
-    #     except TimeoutException:
-    #         print("Can't find the query execution area \n")
     def select_query_execution_area(self):
         """This method will select the query execution area take a
         string and adjacent locator argument of ace-editor and execute the query
