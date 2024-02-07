@@ -2,17 +2,46 @@
 """ base class for arangodb starter deployment selenium frontend tests """
 from abc import ABC
 import logging
+import os
+from pathlib import Path
 import re
+import shutil
 import time
 
-from selenium.webdriver.common.by import By
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from reporting.reporting_utils import step
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSessionIdException
 
 FNRX = re.compile("[\n@]*")
 
+def cleanup_temp_files(is_headless):
+    """ attempt to cleanup the selenoid docker contaires leftovers """
+    if is_headless and os.getuid() == 0:
+        tmpdir = '/tmp' # tempfile.gettempdir()
+        trashme_rx = '(?:% s)' % f"|{tmpdir}/".join([
+            'pulse-*',
+            'xvfb-run.*',
+            '.X99-lock',
+            '.X11-unix',
+            '.org.chromium.Chromium.*',
+            '.com.google.Chrome.*',
+            '.org.chromium.Chromium.*'
+            ])
+        print(f"cleanup headless files: {str(trashme_rx)}")
+        for one_tmp_file in Path(tmpdir).iterdir():
+            print(f"checking {str(one_tmp_file)}")
+            if (re.match(trashme_rx, str(one_tmp_file)) and
+                one_tmp_file.group() == 'root'):
+                print(f"Purging: {str(one_tmp_file)}")
+                try:
+                    if one_tmp_file.is_dir():
+                        shutil.rmtree(one_tmp_file)
+                    else:
+                        one_tmp_file.unlink()
+                except FileNotFoundError:
+                    pass
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
@@ -41,6 +70,9 @@ class SeleniumRunner(ABC):
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
 
+    def _cleanup_temp_files(self):
+        cleanup_temp_files(self.is_headless)
+
     def set_instances(self, cfg, importer, restorer, ui_entrypoint_instance, new_cfg=None):
         """change the used frontend instance"""
         self.cfg = cfg
@@ -51,12 +83,15 @@ class SeleniumRunner(ABC):
 
     def quit(self):
         """terminate the web driver"""
+        print("Quitting Selenium")
         if self.webdriver is not None:
+            print("stopping")
             try:
                 self.webdriver.quit()
             except InvalidSessionIdException as ex:
                 print(f"Selenium connection seems to be already gone:  {str(ex)}")
             self.webdriver = None
+            self._cleanup_temp_files()
 
     def progress(self, msg):
         """add something to the state..."""

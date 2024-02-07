@@ -1,6 +1,7 @@
 #!/bin/bash
 DOCKER_SUFFIX=rpm
 . ./jenkins/common/default_variables.sh
+. ./jenkins/common/default_matrix.sh
 
 . ./jenkins/common/setup_docker.sh
 

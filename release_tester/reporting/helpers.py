@@ -31,10 +31,13 @@ class StepData:
     def __init__(self):
         self.prev_stdout = sys.stdout
         self.prev_stderr = sys.stderr
-        sys.stdout = IoDuplicator(StepData.system_stdout)
-        sys.stderr = IoDuplicator(StepData.system_stderr)
+        new_stdout = IoDuplicator(StepData.system_stdout)
+        new_stderr = IoDuplicator(StepData.system_stderr)
+        sys.stdout = new_stdout
+        sys.stderr = new_stderr
 
 
+# pylint: disable=too-many-instance-attributes
 class AllureListener:
     """allure plugin implementation"""
 

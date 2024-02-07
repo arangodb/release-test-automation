@@ -2,6 +2,7 @@
 
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
+. ./jenkins/common/default_matrix.sh
 
 . ./jenkins/common/setup_docker.sh
 

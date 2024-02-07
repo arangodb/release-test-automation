@@ -1190,12 +1190,27 @@ class GraphPage(NavigationBarPage):
                 self.wait_for_ajax()
 
                 time.sleep(0.1)
-                confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
-                confirm_delete_graph_sitem.click()
+                # confirm_delete_graph_sitem = self.locator_finder_by_xpath(self.confirm_delete_graph_selector)
+                # confirm_delete_graph_sitem.click()
+                if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                    delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                else:
+                    delete_btn = "modalButton0"
+                    delete_btn_stiem = self.locator_finder_by_id(delete_btn)
+                delete_btn_stiem.click()
                 self.wait_for_ajax()
 
                 time.sleep(0.1)
-                delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                # delete_with_collection_sitem = self.locator_finder_by_id(self.delete_with_collection_id)
+                # delete_with_collection_sitem.click()
+                if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                    delete_with_collection = 'dropGraphCollections'
+                    delete_with_collection_sitem = self.locator_finder_by_id(delete_with_collection)
+                else:
+                    delete_with_collection = '//*[@id="dropGraphCollections"]'
+                    delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
+
                 delete_with_collection_sitem.click()
                 self.wait_for_ajax()
 
@@ -1217,67 +1232,107 @@ class GraphPage(NavigationBarPage):
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
-        self.select_graph_page()
-        self.webdriver.refresh()
+        retry = 0
+        while True:
+            try:
+                print(f"Deleting {graph_name} Graph \n")
+                self.navbar_goto("graphs")
+                self.webdriver.refresh()
+                self.wait_for_ajax()
+                time.sleep(0.1)
 
-        if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
-            graph_settings_id = ""
+                if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
+                    graph_settings_id = ""
 
-            if graph_name == "Knows Graph":
-                graph_settings_id = "(//span[@id='knows_graph_settings'])[1]"
-            elif graph_name == "Traversal Graph":
-                graph_settings_id = "(//span[@id='traversalGraph_settings'])[1]"
-            elif graph_name == "k Shortest Paths Graph":
-                graph_settings_id = "(//span[@id='kShortestPathsGraph_settings'])[1]"
-            elif graph_name == "Mps Graph":
-                graph_settings_id = "(//span[@id='mps_graph_settings'])[1]"
-            elif graph_name == "World Graph":
-                graph_settings_id = "(//span[@id='worldCountry_settings'])[1]"
-            elif graph_name == "Social Graph":
-                graph_settings_id = "(//span[@id='social_settings'])[1]"
-            elif graph_name == "City Graph":
-                graph_settings_id = "(//span[@id='routeplanner_settings'])[1]"
+                    if graph_name == "Knows Graph":
+                        graph_settings_id = "(//span[@id='knows_graph_settings'])[1]"
+                    elif graph_name == "Traversal Graph":
+                        graph_settings_id = "(//span[@id='traversalGraph_settings'])[1]"
+                    elif graph_name == "k Shortest Paths Graph":
+                        graph_settings_id = "(//span[@id='kShortestPathsGraph_settings'])[1]"
+                    elif graph_name == "Mps Graph":
+                        graph_settings_id = "(//span[@id='mps_graph_settings'])[1]"
+                    elif graph_name == "World Graph":
+                        graph_settings_id = "(//span[@id='worldCountry_settings'])[1]"
+                    elif graph_name == "Social Graph":
+                        graph_settings_id = "(//span[@id='social_settings'])[1]"
+                    elif graph_name == "City Graph":
+                        graph_settings_id = "(//span[@id='routeplanner_settings'])[1]"
 
-            graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
-            graph_settings_id_sitem.click()
+                    graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
+                    graph_settings_id_sitem.click()
 
-            self.wait_for_ajax()
-            delete_btn = "(//button[normalize-space()='Delete'])[1]"
-            delete_btn_stiem = self.locator_finder_by_xpath(delete_btn, timeout=15, poll_frequency=2)
-            delete_btn_stiem.click()
+                    self.wait_for_ajax()
+                    time.sleep(0.1)
+                    if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
+                        delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                        delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                    else:
+                        delete_btn = "modalButton0"
+                        delete_btn_stiem = self.locator_finder_by_id(delete_btn)
 
-            delete_with_collection = "//input[contains(@id, 'dropGraphCollections')]"
-            delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection, poll_frequency=2, max_retries=3, timeout=30)
-            delete_with_collection_sitem.click()
+                    delete_btn_stiem.click()
 
-            delete_confirm = "modal-confirm-delete"
-            delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
-            delete_confirm_sitem.click()
-            
-        else:
-            self.webdriver.refresh()
-            self.wait_for_ajax()
+                    self.wait_for_ajax()
+                    time.sleep(0.1)
+                    try:
+                        delete_with_collection = '//*[@id="dropGraphCollections"]'
+                        delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
+                    except Exception as e:
+                        print(f"An error occurred: {e} trying different xpath locator \n")
+                        # Attempting to use an alternative method
+                        try:
+                            self.wait_for_ajax()
+                            delete_with_collection = "//*[text()='also drop collections?']"
+                            delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
+                        except Exception as e_alternative:
+                            print(f"An error occurred: {e_alternative} using alternative xpath locator \n")
+                            # If both attempts fail, raise the original exception
+                            raise e
 
-            select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
-            graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
-            graph_settings_id_sitem.click()
+                    delete_with_collection_sitem.click()
 
-            delete_btn = "(//button[normalize-space()='Delete'])[1]"
-            delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
-            delete_btn_stiem.click()
+                    delete_confirm = "modal-confirm-delete"
+                    delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
+                    delete_confirm_sitem.click()
+                    time.sleep(1)
+                    break
+                else:
+                    self.webdriver.refresh()
+                    self.wait_for_ajax()
+                    time.sleep(0.1)
 
-            delete_with_collection = (
-                "(//label[normalize-space()='Also drop collections'])[1]"
-            )
+                    select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
+                    graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
+                    graph_settings_id_sitem.click()
 
-            delete_with_collection_sitem = self.locator_finder_by_xpath(
-                delete_with_collection
-            )
-            delete_with_collection_sitem.click()
+                    delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                    delete_btn_stiem.click()
 
-            delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
-            delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
-            delete_confirm_sitem.click()
+                    delete_with_collection = (
+                        "(//label[normalize-space()='Also drop collections'])[1]"
+                    )
+
+                    delete_with_collection_sitem = self.locator_finder_by_xpath(
+                        delete_with_collection
+                    )
+                    delete_with_collection_sitem.click()
+
+                    delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
+                    delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
+                    delete_confirm_sitem.click()
+                    break
+            except TimeoutException as exc:
+                retry += 1
+                if retry > 2:
+                    raise exc
+                print("retrying delete " + str(retry))
+            except ElementClickInterceptedException as exc:
+                retry += 1
+                if retry > 2:
+                    raise exc
+                print("retrying delete " + str(retry))
 
 
 GRAPH_SETS = [

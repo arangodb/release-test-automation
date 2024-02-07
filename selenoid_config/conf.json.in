@@ -6,7 +6,7 @@
                 "image": "selenoid/chrome:53.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
@@ -16,7 +16,7 @@
                 "image": "selenoid/chrome:54.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
@@ -26,7 +26,7 @@
                 "image": "selenoid/chrome:55.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
@@ -36,7 +36,7 @@
                 "image": "selenoid/chrome:56.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
@@ -46,7 +46,7 @@
                 "image": "selenoid/chrome:57.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 },
@@ -61,7 +61,7 @@
                 "image": "selenoid/firefox:48.0",
                 "port": "4444",
                 "path": "/wd/hub",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -70,7 +70,7 @@
                 "image": "selenoid/firefox:49.0",
                 "port": "4444",
                 "path": "/wd/hub",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -79,7 +79,7 @@
                 "image": "selenoid/firefox:50.0",
                 "port": "4444",
                 "path": "/wd/hub",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -88,7 +88,7 @@
                 "image": "selenoid/firefox:51.0",
                 "port": "4444",
                 "path": "/wd/hub",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -97,7 +97,7 @@
                 "image": "selenoid/firefox:52.0",
                 "port": "4444",
                 "path": "/wd/hub",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -106,7 +106,7 @@
                 "image": "selenoid/firefox:53.0",
                 "port": "4444",
                 "path": "/wd/hub",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -120,7 +120,7 @@
                 "image": "selenoid/opera:40.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -129,7 +129,7 @@
                 "image": "selenoid/opera:41.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -138,7 +138,7 @@
                 "image": "selenoid/opera:42.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -147,7 +147,7 @@
                 "image": "selenoid/opera:43.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }
@@ -156,7 +156,7 @@
                 "image": "selenoid/opera:44.0",
                 "port": "4444",
                 "path": "/",
-                "volumes": ["/home/willi/src/release-test-automation:/home/release-test-automation"],
+                "volumes": ["@RTAROOT@:/home/release-test-automation"],
                 "tmpfs": {
                     "/tmp": "size=128m"
                 }

@@ -28,15 +28,14 @@ DOCKER_ARGS=(
          --rm \
          -v "$(pwd):/home/release-test-automation" \
          -v "$(pwd)/test_dir:/home/test_dir" \
+         -v "/tmp:/tmp" \
          -v "${ALLURE_DIR}:/home/allure-results" \
          -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
-         -v /tmp/tmp:/tmp/ \
          -v /dev/shm:/dev/shm \
         )
 
 TRAP_CLEANUP=(
     "docker kill ${DOCKER_NAME}"
     "docker rm ${DOCKER_NAME}"
-    "docker network rm ${DOCKER_NETWORK_NAME}"
     "${TRAP_CLEANUP[@]}"
 )

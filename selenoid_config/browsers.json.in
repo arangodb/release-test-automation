@@ -16,7 +16,9 @@
 			"latest": {
 				"image": "selenoid/chrome",
 				"port": "4444",
-				"tmpfs": {"/tmp":"size=512m"}
+                                 "volumes": ["@RTAROOT@:/home/release-test-automation",
+                                      "/tmp:/tmp"],
+                                "shmSize" : 402653184
 			}
 		}
 	}

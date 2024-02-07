@@ -7,7 +7,7 @@ from selenium import webdriver
 from selenium.common.exceptions import SessionNotCreatedException
 
 from arangodb.starter.deployments import RunnerType
-from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
+from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner, cleanup_temp_files
 
 # pylint: disable=import-outside-toplevel disable=too-many-locals disable=too-many-branches disable=too-many-statements
 def init(
@@ -43,6 +43,7 @@ def init(
                 is_headless = True
             elif len(split_opts) == 2:
                 if split_opts[0] == 'command_executor':
+                    is_headless = True
                     kwargs['command_executor'] = split_opts[1]
                     continue
             elif len(split_opts) >= 3:
@@ -64,6 +65,7 @@ def init(
                 continue
             options.add_argument("--" + opt)
 
+    cleanup_temp_files(is_headless)
     driver = None
     count = 0
     while driver is None and count < 10:
@@ -77,11 +79,13 @@ def init(
                 if count == 10:
                     raise ex
                 print("S: retrying to launch browser")
+                cleanup_temp_files(is_headless)
                 time.sleep(2)
         except SessionNotCreatedException as ex:
             if count == 10:
                 raise ex
             print("S: retrying to launch browser")
+            cleanup_temp_files(is_headless)
             time.sleep(2)
     if selenium_worker.lower() == "chrome":
         required_width = driver.execute_script("return document.body.parentNode.scrollWidth")

@@ -1,4 +1,5 @@
 docker run \
+       -v "/tmp:/tmp" \
        -v "$(pwd)/test_dir:/home/test_dir" \
        -v "${ALLURE_DIR}:/home/allure-results" \
        -v "$(pwd)/test_dir/miniodata:/data" \
@@ -7,6 +8,7 @@ docker run \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results /data/* ${CLEANUP_PARAMS[@]}
 
+rm -rf "$TMPDIR"
 docker run \
        -v /tmp/tmp:/tmp/ \
        --rm \

@@ -288,18 +288,31 @@ class BasePage:
             raise Exception(locator_name, " locator was not found.")
         return self.locator
 
-    def locator_finder_by_id(self, locator_name, timeout=10):
-        """This method will used for finding all the locators by their id"""
-        print(locator_name)
-        self.locator = WebDriverWait(self.webdriver, timeout).until(
-            EC.element_to_be_clickable((BY.ID, locator_name)),
-            message="UI-Test: " + str(locator_name) + " locator was not found.",
-        )
-        if self.locator is None:
-            raise Exception(str(locator_name), " locator was not found.")
-        return self.locator
+    
+    def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
+        """This method finds locators by their ID using Fluent Wait with retry."""
+        for attempt in range(max_retries + 1):
+            try:
+                self.locator = WebDriverWait(self.webdriver, timeout, poll_frequency=poll_frequency).until(
+                    EC.element_to_be_clickable((BY.ID, locator_name)),
+                    message=f"UI-Test: {locator_name} locator was not found."
+                )
+                return self.locator
+            except TimeoutException as ex:
+                if expec_fail or attempt == max_retries:
+                    raise ex
+                ti.prompt_user(
+                    self.cfg,
+                    "ERROR " * 10 +
+                    f"\nError while waiting for web element (Attempt {attempt + 1} of {max_retries + 1}):"
+                    f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
+                )
 
-    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=3, expec_fail=False):
+        raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
+
+
+
+    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
         """This method finds locators by their xpath using Fluent Wait with retry."""
         for attempt in range(max_retries + 1):
             try:

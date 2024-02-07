@@ -50,16 +50,28 @@ class DashboardPage(NavigationBarPage):
         print("Current DB: ", check_current_db_sitem.text)
         time.sleep(1)
 
-    def check_db_status(self):
+    def check_db_status(self, cluster):
         """checking current database status from the dashboard"""
-        try:
-            check_db_status_sitem = self.locator_finder_by_xpath(self.check_db_status_id)
-            print("Current Status: ", check_db_status_sitem.text)
-            time.sleep(1)
-        except TimeoutException:
-            node_sitem = self.locator_finder_by_xpath(self.check_cluster_status_id)
-            print("Cluster Health: ", node_sitem.text)
-            time.sleep(1)
+        if cluster:
+            status = self.locator_finder_by_xpath(self.check_cluster_status_id)
+            print("Cluster Health: ", status.text)
+            
+        else:
+            status = self.locator_finder_by_xpath(self.check_db_status_id)
+            print("Current Status: ", status.text)
+        
+        if cluster:
+            assert (
+                status.text in "NODES OK"
+            ), f"Expected page title GOOD but got {status.text}"
+
+        else:
+            assert (
+                status.text in "GOOD"
+            ), f"Expected page title GOOD but got {status.text}"
+        
+        time.sleep(1)
+        
 
     def check_db_engine(self):
         """checking current database status from the dashboard"""
