@@ -157,21 +157,28 @@ class SeleniumRunner(ABC):
                 self.__class__.__name__,
             )
 
-        self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
+        self.progress("Taking screenshot")
+        
         # pylint: disable=broad-except
         try:
-            if self.is_headless:
-                self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
-                screenshot = elmnt.screenshot_as_png()
+            if self.webdriver is not None:
+                if self.is_headless:
+                    self.progress("taking full screenshot")
+                    elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
+                    screenshot = elmnt.screenshot_as_png()
+                else:
+                    self.progress("taking screenshot")
+                    screenshot = self.webdriver.get_screenshot_as_png()
             else:
-                self.progress("taking screenshot")
-                screenshot = self.webdriver.get_screenshot_as_png()
+                self.progress("webdriver is None. Cannot take a screenshot.")
+                return
         except InvalidSessionIdException:
             self.progress("Fatal: webdriver not connected!")
+            return
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
             screenshot = self.webdriver.get_screenshot_as_png()
+        
         self.get_browser_log_entries()
         self.progress("Saving screenshot to file: %s" % filename)
         with open(filename, "wb") as file:
@@ -182,6 +189,7 @@ class SeleniumRunner(ABC):
             name="Screenshot ({fn})".format(fn=filename),
             attachment_type=AttachmentType.PNG,
         )
+
 
     # pylint: disable=no-else-return
     def get_protocol(self):
