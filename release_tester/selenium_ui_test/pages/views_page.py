@@ -323,7 +323,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print(f"Select advance options for {view_name} \n")
-        advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
+        advance_option = "//span[contains(text(), 'Advanced')]"
         advance_option_sitem = self.locator_finder_by_xpath(advance_option)
         advance_option_sitem.click()
         time.sleep(2)
@@ -364,6 +364,7 @@ class ViewsPage(NavigationBarPage):
         create_sitem.click()
         time.sleep(2)
         self.webdriver.refresh()
+        self.wait_for_ajax()
 
     def checking_improved_views(self, name, locator, is_cluster):
         """This method will check improved views"""
@@ -926,7 +927,7 @@ class ViewsPage(NavigationBarPage):
             print(f"Rename {name} to modified_name started \n")
             print(f'Selecting {name} for renaming \n')
 
-            self.select_views_tab()
+            self.navbar_goto("views")
 
             print(f'Selecting {name} for renaming \n')
             select_view_sitem = self.locator_finder_by_xpath(locator)
@@ -951,7 +952,7 @@ class ViewsPage(NavigationBarPage):
 
     def checking_views_negative_scenario_for_views(self):
         """This method will check negative input for views name during creation"""
-        self.select_views_tab()
+        self.navbar_goto("views")
         print('Selecting views create button \n')
         create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
@@ -1018,7 +1019,7 @@ class ViewsPage(NavigationBarPage):
         """This method will delete views"""
         
         try:
-            self.select_views_tab()
+            self.navbar_goto("views")
             self.wait_for_ajax()
             print(f"Selecting {name} for deleting \n")
             select_view_sitem = self.locator_finder_by_xpath(locator)
@@ -1085,7 +1086,7 @@ class ViewsPage(NavigationBarPage):
     def delete_views_310(self, name):
         """this method will delete all the newer version views"""
         self.wait_for_ajax()
-        self.select_views_tab()
+        self.navbar_goto("views")
         try:
             views = ''
             if name == 'modified_views_name':
@@ -1123,9 +1124,11 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-        except TimeoutException as e:
+        except (TimeoutException, AttributeError) as e:
             print('TimeoutException occurred! \n')
             print(f'Info: {name} has already been deleted or never created. \n')
+        except NoSuchElementException:
+            print('Element not found, which might be happen due to force cleanup.')
         except Exception:
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
@@ -1133,7 +1136,7 @@ class ViewsPage(NavigationBarPage):
     def delete_views_312(self, name):
         """this method will delete all the newer version views > 3.11"""
         self.wait_for_ajax()
-        self.select_views_tab()
+        self.navbar_goto("views")
         print(f"{name} start deleting \n")
         try:
             views = ""
