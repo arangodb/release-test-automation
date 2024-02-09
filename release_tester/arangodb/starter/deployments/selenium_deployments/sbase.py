@@ -32,16 +32,16 @@ def cleanup_temp_files(is_headless):
         print(f"cleanup headless files: {str(trashme_rx)}")
         for one_tmp_file in Path(tmpdir).iterdir():
             print(f"checking {str(one_tmp_file)}")
-            if (re.match(trashme_rx, str(one_tmp_file)) and
-                one_tmp_file.group() == 'root'):
-                print(f"Purging: {str(one_tmp_file)}")
-                try:
-                    if one_tmp_file.is_dir():
-                        shutil.rmtree(one_tmp_file)
-                    else:
-                        one_tmp_file.unlink()
-                except FileNotFoundError:
-                    pass
+            try:
+                 if (re.match(trashme_rx, str(one_tmp_file)) and
+                     one_tmp_file.group() == 'root'):
+                     print(f"Purging: {str(one_tmp_file)}")
+                         if one_tmp_file.is_dir():
+                             shutil.rmtree(one_tmp_file)
+                         else:
+                             one_tmp_file.unlink()
+            except FileNotFoundError:
+                pass
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
