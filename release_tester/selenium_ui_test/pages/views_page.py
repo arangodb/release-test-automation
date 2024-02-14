@@ -252,6 +252,7 @@ class ViewsPage(NavigationBarPage):
         creating improved views tab
         This method will create the improved views for v3.9+
         """
+        self.wait_for_ajax()
         print("Selecting views create button \n")
         create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
@@ -314,6 +315,7 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
+        self.wait_for_ajax()
         print(f"Selecting stored direction for {view_name} \n")
         stored_direction = "(//select)[3]"
         self.locator_finder_by_select_using_xpath(stored_direction, types)  # keep it default choice
@@ -321,7 +323,7 @@ class ViewsPage(NavigationBarPage):
 
         self.wait_for_ajax()
         print(f"Select advance options for {view_name} \n")
-        advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
+        advance_option = "//span[contains(text(), 'Advanced')]"
         advance_option_sitem = self.locator_finder_by_xpath(advance_option)
         advance_option_sitem.click()
         time.sleep(2)
@@ -344,6 +346,7 @@ class ViewsPage(NavigationBarPage):
         write_buffer_active_sitem.send_keys('8')
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f'Select max write buffer size max value for {view_name} \n')
         max_buffer_size = "//input[@value='33554432']"
         max_buffer_size_sitem = self.locator_finder_by_xpath(max_buffer_size)
@@ -361,9 +364,11 @@ class ViewsPage(NavigationBarPage):
         create_sitem.click()
         time.sleep(2)
         self.webdriver.refresh()
+        self.wait_for_ajax()
 
     def checking_improved_views(self, name, locator, is_cluster):
         """This method will check improved views"""
+        self.wait_for_ajax()
         print(f"Checking {name} started \n")
 
         print(f"Selecting {name}'s settings button\n")
@@ -418,6 +423,7 @@ class ViewsPage(NavigationBarPage):
     
     def create_collection(self, collection_name):
         """Creating collection for testing"""
+        self.wait_for_ajax()
         collection = 'collections'  # TODO add navbar navigation here
         collection_sitem = self.locator_finder_by_id(collection)
         collection_sitem.click()
@@ -441,6 +447,7 @@ class ViewsPage(NavigationBarPage):
     
     def adding_collection_to_the_link(self, collection_name):
         """This method will add collection to the views link"""
+        self.wait_for_ajax()
         print('Selecting Link tab \n')
         links = "//div[@id='subNavigationBar']/ul[2]//a[.='Links']"
         links_sitem = self.locator_finder_by_xpath(links)
@@ -468,6 +475,7 @@ class ViewsPage(NavigationBarPage):
 
     def modify_connected_collection_of_link(self, collection_name):
         """This method will modify the connected collection"""
+        self.wait_for_ajax()
         print('Select my_collection \n')
         select_my_col = f"//*[text()='{collection_name}']"
         select_my_col_sitem = self.locator_finder_by_xpath(select_my_col)
@@ -519,6 +527,7 @@ class ViewsPage(NavigationBarPage):
 
     def creating_black_collection_and_analyzer(self):
         """Creating blank col and analyzer for testing"""
+        self.wait_for_ajax()
         print('creating blank collection and analyzer for link tab\n')
         self.navbar_goto("collections")
         time.sleep(1)
@@ -544,6 +553,7 @@ class ViewsPage(NavigationBarPage):
     
     def check_views_changes_saved(self, name, ex_msg=None):
         """checking the creation of the view using the green notification bar appears at the bottom"""
+        self.wait_for_ajax()
         time.sleep(1)
         try:
             print(f'Checking successful creation of the {name} \n')
@@ -630,6 +640,7 @@ class ViewsPage(NavigationBarPage):
     
     def create_improved_views_311(self, view_name, types, variation):
         """This method will create the improved views for v3.11+"""
+        self.wait_for_ajax()
         print("Selecting views create button \n")
         if self.current_package_version() <= semver.VersionInfo.parse("3.11.100"):
             create_new_views = "//*[contains(text(),'Add View')]"
@@ -640,6 +651,7 @@ class ViewsPage(NavigationBarPage):
         create_new_views_id.click()
         time.sleep(2)
 
+        self.wait_for_ajax()
         print(f"Select name for the {view_name} \n")
         name_id_sitem = self.locator_finder_by_id("name")
         name_id_sitem.click()
@@ -651,10 +663,12 @@ class ViewsPage(NavigationBarPage):
         if types == "search-alias":
             self.select_desired_views_from_the_list("search-alias")
 
+        self.wait_for_ajax()
         # this will change the type of the views
         if types == "arangosearch" and variation == 1:
             self.select_desired_primary_sort("None")
 
+        self.wait_for_ajax()
         if types == "arangosearch":
             print(f"Select primary sort for {view_name} \n")
             primary_sort = "//*[text()='Primary Sort']"
@@ -662,6 +676,7 @@ class ViewsPage(NavigationBarPage):
             primary_sort_sitem.click()
             time.sleep(2)
 
+            self.wait_for_ajax()
             print(f"Select primary field for {view_name} \n")
             primary_field = "//*[text()='Field']"
             primary_field_sitem = self.locator_finder_by_xpath(primary_field)
@@ -674,12 +689,14 @@ class ViewsPage(NavigationBarPage):
             # direction_sitem = self.locator_finder_by_xpath(direction)
             # direction_sitem.click()
 
+            self.wait_for_ajax()
             print(f"Closing primary sort for {view_name}\n")
             primary_sort = "//*[text()='Primary Sort']"
             primary_sort_sitem = self.locator_finder_by_xpath(primary_sort)
             primary_sort_sitem.click()
             time.sleep(1)
 
+            self.wait_for_ajax()
             print(f"Select stored value for {view_name} \n")
             sorted_value = "//*[text()='Stored Values']"
             sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
@@ -690,12 +707,14 @@ class ViewsPage(NavigationBarPage):
             field_sitem = self.locator_finder_by_xpath(field)
             field_sitem.click()
 
+            self.wait_for_ajax()
             print(f"Closing stored value for {view_name} \n")
             sorted_value = "//*[text()='Stored Values']"
             sorted_value_sitem = self.locator_finder_by_xpath(sorted_value)
             sorted_value_sitem.click()
             time.sleep(1)
 
+            self.wait_for_ajax()
             print(f"Select advance options for {view_name} \n")
             advance_option = "//*[text()='Advanced']"
             advance_option_sitem = self.locator_finder_by_xpath(advance_option)
@@ -708,6 +727,7 @@ class ViewsPage(NavigationBarPage):
             # write_buffer_sitem.click()
             # self.send_key_action('50')
 
+            self.wait_for_ajax()
             print(f"Close advance options for {view_name} \n")
             advance_option = "//*[text()='Advanced']"
             advance_option_sitem = self.locator_finder_by_xpath(advance_option)
@@ -733,6 +753,7 @@ class ViewsPage(NavigationBarPage):
             # ).send_keys("33554434").perform()
             # time.sleep(2)
             #
+        self.wait_for_ajax()
         print(f"Selecting creation button for {view_name} \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
             create = '//*[@id="chakra-modal-1"]/form/footer/div/button[2]'
@@ -746,6 +767,7 @@ class ViewsPage(NavigationBarPage):
     
     def checking_improved_views_for_v310(self, name, locator, is_cluster):
         """This method will check improved views for v3.10.x"""
+        self.wait_for_ajax()
         print(f'Checking {name} started \n')
         print(f"Selecting {name}'s settings button\n")
         self.select_views_settings()
@@ -905,7 +927,7 @@ class ViewsPage(NavigationBarPage):
             print(f"Rename {name} to modified_name started \n")
             print(f'Selecting {name} for renaming \n')
 
-            self.select_views_tab()
+            self.navbar_goto("views")
 
             print(f'Selecting {name} for renaming \n')
             select_view_sitem = self.locator_finder_by_xpath(locator)
@@ -930,7 +952,7 @@ class ViewsPage(NavigationBarPage):
 
     def checking_views_negative_scenario_for_views(self):
         """This method will check negative input for views name during creation"""
-        self.select_views_tab()
+        self.navbar_goto("views")
         print('Selecting views create button \n')
         create_new_views_id = self.locator_finder_by_id(self.create_new_view)
         create_new_views_id.click()
@@ -997,7 +1019,7 @@ class ViewsPage(NavigationBarPage):
         """This method will delete views"""
         
         try:
-            self.select_views_tab()
+            self.navbar_goto("views")
             self.wait_for_ajax()
             print(f"Selecting {name} for deleting \n")
             select_view_sitem = self.locator_finder_by_xpath(locator)
@@ -1027,6 +1049,7 @@ class ViewsPage(NavigationBarPage):
 
     def delete_created_collection(self, col_name):
         """this method will delete all the collection created for views"""
+        self.wait_for_ajax()
         try:
             print('Selecting collection tab\n')
             self.navbar_goto("collections")
@@ -1048,6 +1071,7 @@ class ViewsPage(NavigationBarPage):
             delete_sitem.click()
             time.sleep(1)
 
+            self.wait_for_ajax()
             confirm = "/html/body/div[2]/div/div[2]/div[2]/div/div[3]/button[1]"
             confirm_sitem = self.locator_finder_by_xpath(confirm)
             confirm_sitem.click()
@@ -1062,7 +1086,7 @@ class ViewsPage(NavigationBarPage):
     def delete_views_310(self, name):
         """this method will delete all the newer version views"""
         self.wait_for_ajax()
-        self.select_views_tab()
+        self.navbar_goto("views")
         try:
             views = ''
             if name == 'modified_views_name':
@@ -1077,11 +1101,13 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
+            self.wait_for_ajax()
             delete = '//*[@id="Actions"]/button'
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
             time.sleep(2)
 
+            self.wait_for_ajax()
             confirm_delete_btn = ''
             if name == 'modified_views_name':
                 confirm_delete_btn = '//*[@id="modal-content-delete-modified_views_name"]/div[3]/button[2]'
@@ -1098,16 +1124,19 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-        except TimeoutException as e:
+        except (TimeoutException, AttributeError) as e:
             print('TimeoutException occurred! \n')
             print(f'Info: {name} has already been deleted or never created. \n')
+        except NoSuchElementException:
+            print('Element not found, which might be happen due to force cleanup.')
         except Exception:
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
     
     def delete_views_312(self, name):
         """this method will delete all the newer version views > 3.11"""
-        self.select_views_tab()
+        self.wait_for_ajax()
+        self.navbar_goto("views")
         print(f"{name} start deleting \n")
         try:
             views = ""
@@ -1127,6 +1156,7 @@ class ViewsPage(NavigationBarPage):
             delete_sitem.click()
             time.sleep(2)
 
+            self.wait_for_ajax()
             if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
                 confirm_delete_btn = "//*[text()='Cancel']/following-sibling::button"
             else:

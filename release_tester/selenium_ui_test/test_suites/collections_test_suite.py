@@ -28,7 +28,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
 
         try:
             col.create_new_collections('TestDoc', 0, self.is_cluster)
-            col.create_new_collections('TestEdge', 1, self.is_cluster)
+            col.create_new_collections('TestEdge', 0, self.is_cluster)
             col.create_new_collections('Test', 0, self.is_cluster)
             col.create_new_collections('ComputedValueCol', 0, self.is_cluster)
 
@@ -49,7 +49,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 col.checking_search_options("Test")
                 self.webdriver.refresh()
 
-            if col.current_package_version() <= semver.VersionInfo.parse("3.11.100"):
+            if (semver.VersionInfo.parse("3.11.0") < col.current_package_version() < semver.VersionInfo.parse("3.12.100")):
                 col.select_collection_page()
             else:
                 print("Selecting Settings\n")

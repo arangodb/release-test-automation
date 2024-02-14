@@ -32,16 +32,16 @@ def cleanup_temp_files(is_headless):
         print(f"cleanup headless files: {str(trashme_rx)}")
         for one_tmp_file in Path(tmpdir).iterdir():
             print(f"checking {str(one_tmp_file)}")
-            if (re.match(trashme_rx, str(one_tmp_file)) and
-                one_tmp_file.group() == 'root'):
-                print(f"Purging: {str(one_tmp_file)}")
-                try:
+            try:
+                if (re.match(trashme_rx, str(one_tmp_file)) and
+                    one_tmp_file.group() == 'root'):
+                    print(f"Purging: {str(one_tmp_file)}")
                     if one_tmp_file.is_dir():
                         shutil.rmtree(one_tmp_file)
                     else:
                         one_tmp_file.unlink()
-                except FileNotFoundError:
-                    pass
+            except FileNotFoundError:
+                pass
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
@@ -157,21 +157,28 @@ class SeleniumRunner(ABC):
                 self.__class__.__name__,
             )
 
-        self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
+        self.progress("Taking screenshot")
+        
         # pylint: disable=broad-except
         try:
-            if self.is_headless:
-                self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
-                screenshot = elmnt.screenshot_as_png()
+            if self.webdriver is not None:
+                if self.is_headless:
+                    self.progress("taking full screenshot")
+                    elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
+                    screenshot = elmnt.screenshot_as_png()
+                else:
+                    self.progress("taking screenshot")
+                    screenshot = self.webdriver.get_screenshot_as_png()
             else:
-                self.progress("taking screenshot")
-                screenshot = self.webdriver.get_screenshot_as_png()
+                self.progress("webdriver is None. Cannot take a screenshot.")
+                return
         except InvalidSessionIdException:
             self.progress("Fatal: webdriver not connected!")
+            return
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
             screenshot = self.webdriver.get_screenshot_as_png()
+        
         self.get_browser_log_entries()
         self.progress("Saving screenshot to file: %s" % filename)
         with open(filename, "wb") as file:
@@ -182,6 +189,7 @@ class SeleniumRunner(ABC):
             name="Screenshot ({fn})".format(fn=filename),
             attachment_type=AttachmentType.PNG,
         )
+
 
     # pylint: disable=no-else-return
     def get_protocol(self):

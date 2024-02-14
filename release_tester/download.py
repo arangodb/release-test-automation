@@ -245,7 +245,14 @@ class Download:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print(stage + ": downloading " + str(url))
-        res = requests.get(url, timeout=120)
+        retry = 0
+        while retry < 99:
+            try:
+                res = requests.get(url, timeout=120)
+                retry = 100
+            except requests.exceptions.ChunkedEncodingError as ex:
+                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                retry +=1
         if res.status_code == 200:
             print(
                 stage
@@ -285,7 +292,14 @@ class Download:
             print("LIVE: not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print("LIVE: downloading " + str(url))
-        res = requests.get(url, timeout=120)
+        retry = 0
+        while retry < 99:
+            try:
+                res = requests.get(url, timeout=120)
+                retry = 100
+            except requests.exceptions.ChunkedEncodingError as ex:
+                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                retry +=1
         if res.status_code == 200:
             print(
                 "LIVE: writing {size} kbytes to {existing}{file}".format(
