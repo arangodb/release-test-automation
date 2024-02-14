@@ -1236,9 +1236,9 @@ class GraphPage(NavigationBarPage):
         while True:
             try:
                 print(f"Deleting {graph_name} Graph \n")
-                self.navbar_goto("graphs")
                 self.webdriver.refresh()
                 time.sleep(2)
+                self.navbar_goto("graphs")
                 self.wait_for_ajax()
 
                 if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
