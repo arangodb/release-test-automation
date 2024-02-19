@@ -350,7 +350,7 @@ deadline_signal: {0.deadline_signal}""".format(
 
             try:
                 print(
-                    f"{identifier} my PID:{str(os.getpid())} launched PID:{str(process.pid)} {str(process.name())}with LWPID:{str(thread1.native_id)} and LWPID:{str(thread2.native_id)}"
+                    f"{identifier} my PID:{str(os.getpid())} launched PID:{str(process.pid)} {str(process.name())} with LWPID:{str(thread1.native_id)} and LWPID:{str(thread2.native_id)}"
                     )
             except AttributeError:
                 print(
