@@ -931,6 +931,38 @@ class CollectionPage(NavigationBarPage):
                 send_keys(5368709128).perform()
             time.sleep(1)
 
+        elif index_name == 'MDI':
+            try:
+                self.navbar_goto("collections")
+                print("Selecting computed values collections. \n")
+                col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+                self.locator_finder_by_xpath(col).click()
+                time.sleep(1)
+
+                self.select_index_menu()
+
+                create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
+                create_new_index_btn_sitem.click()
+                time.sleep(2)
+
+                print('MDI Index')
+                mdi_field = "/html//input[@id='fields']"
+                mdi_field = self.locator_finder_by_xpath(mdi_field)
+                mdi_field.click()
+                mdi_field.send_keys('x,y')
+
+                # selecting MDI index's name
+                mdi_name = "/html//input[@id='name']"
+                mdi_name_sitem = self.locator_finder_by_xpath(mdi_name)
+                mdi_name_sitem.click()
+                mdi_name_sitem.send_keys(index_name)
+            except Exception as e:
+                print(e)
+                # retry
+                self.webdriver.refresh()
+                self.create_index('ZKD')
+            finally:
+                pass
         else:
             try:
                 self.navbar_goto("collections")
@@ -1075,6 +1107,40 @@ class CollectionPage(NavigationBarPage):
             select_zkd_name_sitem.click()
             select_zkd_name_sitem.clear()
             select_zkd_name_sitem.send_keys('ZKD')
+            time.sleep(1)
+        elif index_name == 'MDI':
+            if check:
+                self.navbar_goto("collections")
+                print("Selecting computed values collections. \n")
+                col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+                self.locator_finder_by_xpath(col).click()
+                self.select_index_menu()
+
+                print(f"Creating {index_name} index started \n")
+                self.locator_finder_by_xpath(add_index).click()
+                time.sleep(2)
+
+                print(f"selecting {index_name} from the list\n")
+                self.locator_finder_by_select(self.select_index_type_id, 5)
+
+                time.sleep(1)
+
+                select_mdi_field_sitem = self.locator_finder_by_id('newMdiFields')
+                select_mdi_field_sitem.click()
+                select_mdi_field_sitem.clear()
+                select_mdi_field_sitem.send_keys('x,y')
+                time.sleep(1)
+            else:
+                select_mdi_field_sitem = self.locator_finder_by_id('newMdiFields')
+                select_mdi_field_sitem.click()
+                select_mdi_field_sitem.clear()
+                select_mdi_field_sitem.send_keys('mdifileds')
+                time.sleep(1)
+
+            select_mdi_name_sitem = self.locator_finder_by_id('newMdiName')
+            select_mdi_name_sitem.click()
+            select_mdi_name_sitem.clear()
+            select_mdi_name_sitem.send_keys('MDI')
             time.sleep(1)
 
         select_create_index_btn_id = "createIndex"

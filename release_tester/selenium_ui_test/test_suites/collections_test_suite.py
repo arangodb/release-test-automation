@@ -143,6 +143,8 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     col.create_index('TTL')
                     col.create_index('Inverted Index')
                     # col.create_index('ZKD')
+                    if version >= semver.VersionInfo.parse("3.11.99"):
+                        col.create_index('MDI')
                 else:
                     print("Cluster status: ", self.is_cluster)
                     col.create_new_index("Persistent", 1, self.is_cluster)
