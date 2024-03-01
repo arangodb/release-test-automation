@@ -29,6 +29,7 @@ from package_installation_tests.enterprise_package_installation_test_suite impor
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from reporting.reporting_utils2 import generate_suite_name
 from siteconfig import SiteConfig
+from test_suites.misc.binary_test_suite import BinaryComplianceTestSuite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
 
@@ -53,6 +54,7 @@ FULL_TEST_SUITE_LIST = [
     BasicLicenseManagerTestSuite,
     UpgradeLicenseManagerTestSuite,
     DebuggerTestSuite,
+    BinaryComplianceTestSuite,
 ]
 
 

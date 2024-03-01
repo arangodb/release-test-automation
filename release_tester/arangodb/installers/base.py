@@ -82,8 +82,7 @@ class InstallerBase(ABC):
         eps = "E_" if self.cfg.enterprise else ""
         self.backup_arangod_name = self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}"
         arangod_src = self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}"
-        if (not str(self.backup_arangod_name) in self.arangods and
-            arangod_src.exists()):
+        if not str(self.backup_arangod_name) in self.arangods and arangod_src.exists():
             self.arangods.append(self.backup_arangod_name)
             print("copying " + str(arangod_src) + " to " + str(self.backup_arangod_name))
             shutil.copy(str(arangod_src), str(self.backup_arangod_name))
@@ -428,7 +427,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangobench",
-                    "arangobench.*", #  - stress test tool",
+                    "arangobench.*",  #  - stress test tool",
                     False,
                     True,
                     "1.0.0",
@@ -473,7 +472,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangod",
-                     "ArangoDB - the native multi-model NoSQL database",
+                    "ArangoDB - the native multi-model NoSQL database",
                     False,
                     stripped_arangod,
                     "1.0.0",
@@ -553,7 +552,7 @@ class InstallerBase(ABC):
         for binary in self.arango_binaries:
             progress("S" if binary.stripped else "s")
             binary.check_installed(
-                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized
+                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized, False
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
@@ -577,7 +576,7 @@ class InstallerBase(ABC):
         return success
 
     def get_log_dir(self):
-        """ get the directory the installer will create logs in """
+        """get the directory the installer will create logs in"""
         return self.cfg.install_prefix / self.cfg.log_dir
 
     def set_system_instance(self):
@@ -653,8 +652,7 @@ class InstallerBase(ABC):
 
     def get_sync_version(self):
         """find out the version of the starter in this package"""
-        if (not self.cfg.enterprise or
-            self.semver > semver.VersionInfo.parse("3.11.99")):
+        if not self.cfg.enterprise or self.semver > semver.VersionInfo.parse("3.11.99"):
             return semver.VersionInfo.parse("0.0.0")
         if not self.syncer_versions:
             syncer = self.cfg.real_sbin_dir / ("arangosync" + FILE_EXTENSION)
