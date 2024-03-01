@@ -12,15 +12,10 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
     def __init__(self, params: CliTestSuiteParameters):
         min_version = semver.VersionInfo.parse("3.12.0-nightly")
         super().__init__(params)
-        if (
-            self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < min_version
-        ):
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) < min_version:
             self.__class__.is_disabled = True
             # pylint: disable=no-member
-            self.__class__.disable_reasons.append(
-                "Test suite is only applicable to versions 3.12 and newer."
-            )
+            self.__class__.disable_reasons.append("Test suite is only applicable to versions 3.12 and newer.")
         self.installer_set = create_config_installer_set(
             versions=[self.new_version],
             base_config=self.base_cfg,
@@ -57,7 +52,11 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
     def test_license_info_server_package(self):
         self.installer.install_server_package()
         self.installer.stop_service()
-        binaries = [file for file in self.installer.arango_binaries if file.path.name in self.binary_file_names]
+        binaries = [
+            file
+            for file in self.installer.arango_binaries
+            if file.path.name in self.binary_file_names and not (not self.run_props.enterprise and file.enterprise)
+        ]
         for bin in binaries:
             with step(f"check {bin.name}"):
                 bin.check_license_info()
@@ -65,7 +64,11 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
     @testcase("Check that --version output contains information required by third party libraries(client package)")
     def test_license_info_client_package(self):
         self.installer.install_client_package()
-        binaries = [file for file in self.installer.arango_binaries if file.path.name in self.binary_file_names]
+        binaries = [
+            file
+            for file in self.installer.arango_binaries
+            if file.path.name in self.binary_file_names and not (not self.run_props.enterprise and file.enterprise)
+        ]
         for bin in binaries:
             with step(f"check {bin.name}"):
                 bin.check_license_info()
