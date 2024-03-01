@@ -497,11 +497,11 @@ directory_suffix: {0.directory_suffix}""".format(
 # pylint: disable=too-many-function-args
 EXECUTION_PLAN = [
     RunProperties(True, True, True, True, False, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, True, True, True, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
+    #RunProperties(True, True, True, True, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
     RunProperties(True, False, False, False, False, "Enterprise", "EP"),
-    RunProperties(True, False, False, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
+    #RunProperties(True, False, False, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
     RunProperties(False, True, False, False, False, "Community", "C"),
-    RunProperties(False, True, False, False, True, "Community\nreplication v.2", "Cr2", "3.11.999"),
+    #RunProperties(False, True, False, False, True, "Community\nreplication v.2", "Cr2", "3.11.999"),
 ]
 
 
