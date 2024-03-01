@@ -124,7 +124,7 @@ def upgrade_package_test(
         params.enterprise = True
         results.append(
             test_driver.run_test_suites(
-                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite"),
+                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite", "BinaryComplianceTestSuite"),
                 params=params,
             )
         )
@@ -133,7 +133,7 @@ def upgrade_package_test(
         params.enterprise = False
         results.append(
             test_driver.run_test_suites(
-                include_suites=("DebuggerTestSuite",),
+                include_suites=("DebuggerTestSuite", "BinaryComplianceTestSuite",),
                 params=params,
             )
         )
