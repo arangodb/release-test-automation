@@ -392,9 +392,9 @@ Thus it requires `--edition C` to be specified switch between Enterprise and com
 It will download tar/zip packages, while `-nightly` will first attempt
 to resolve the proper version of the nightly package, since `-nightly` allways is a suffix to the latest released version + 1.
 
-The `BASE_DIR` environment variable is meant to be specified by oskar to find the typical directory structure in there. 
+The `BASE_DIR` environment variable is meant to be specified by oskar to find the oskar typical directory structure in there. 
 
-It will then run the `upgrade.py` mechanic for either:
+It will then run the `upgrade.py` and `test.py` mechanic for either:
  - enterprise with encryption at rest enabled
  - enterprise
 or:
@@ -462,8 +462,6 @@ export BASE_DIR=/home/willi/src/develc/release-test-automation
 # Using `deployment` scripts to install all the necessary dependency packages for testsystems
 The scripts in the `deployment` directory will try to install all the required pacakges to a new/fresh machine in order to run release-test-automation tests.
 
-`[centos6] || [ubuntu16].py`
-
 # binaries strip cheking
 
  - Linux (ubuntu|debian|centos|fedora|sles)[deb|rpm|tar.gz] full support.
@@ -474,7 +472,7 @@ The scripts in the `deployment` directory will try to install all the required p
 
  - `release_tester/down_upload.py` - download packages via our various distribution routes, push to remote SUTs via scp
  - `release_tester/download.py` - download packages via our various distribution routes
- - `release_tester/[full_|][upgrade|&test].py` - main entrypoints to the process flow, download, install, run test, uninstall, cleanup
+ - `release_tester/[full_|mixed_|][download_][upgrade|&test].py` - main entrypoints to the process flow, download, install, run test, uninstall, cleanup
  - `release_tester/test_driver.py` dispatcher from the entrypoints in the different testparts, after download took place.
  - `release_tester/common_options.py` commandline options used by more than one entrypoint script
  - `release_tester/cleanup.py` - remove files and installed packages etc.
