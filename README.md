@@ -3,7 +3,7 @@
 - python 3
 - python requests to talk to the instances https://requests.readthedocs.io/en/latest/
 - Python expect - https://github.com/pexpect/pexpect https://pexpect.readthedocs.io/en/stable/ (linux only)
-- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services 
+- PS-util  https://psutil.readthedocs.io/en/latest/#windows-services
 - pyyaml - for parsing saved data.
 - click - for commandline parsing https://click.palletsprojects.com/en/7.x/
 - semver - semantic versioning.
@@ -17,15 +17,15 @@
 
 - **debian** / **ubuntu**:
   `apt-get install python3-yaml python3-magic python3-requests python3-click python3-distro python3-psutil python3-pexpect python3-pyftpdlib python3-statsd python3-selenium python3-pip gdb`
-  
+
   the `python3-semver` on debian is to old - need to use the pip version instead:
   `pip3 install semver beautifultable allure_python_commons certifi tabulate`
-  
-  Ubuntu 16.40 pip3 system package is broken. Fix like this: 
-  `dpkg -r python3-pip python3-pexpect` 
+
+  Ubuntu 16.40 pip3 system package is broken. Fix like this:
+  `dpkg -r python3-pip python3-pexpect`
   `python3.8 -m easy_install pip`
   `pip install distro semver pexpect psutil beautifultable allure_python_commons certifi`
-  
+
 - **centos**:
    `yum update ; yum install python3 python3-pyyaml python3-magic python36-PyYAML python3-requests python3-click gcc platform-python-devel python3-distro python3-devel python36-distro python36-click python36-pexpect python3-pexpect python3-pyftpdlib; pip3 install psutil semver beautifultable` 
    `sudo yum install gdb`
@@ -162,7 +162,7 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
- 
+
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir /home/willi/Downloads`
@@ -189,7 +189,7 @@ Example usage:
 # Using `conflict_checking.py` for testing of package installation process
 
 To run the tests you need to download older version packages in addition to the version you intend to test.
-Both Community and Enterprise editions are required.   
+Both Community and Enterprise editions are required.
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
  - `--old-version` old version of ArangoDB to be used in tests where an older version is required, e.g. testing that newer debug package cannot be installed over older server package
@@ -202,7 +202,7 @@ Supported Parameters:
 
 # Using `run_license_tests.py` to test the license manager feature
 
-License manager tests are only applicable to enterprise edition.   
+License manager tests are only applicable to enterprise edition.
 Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -264,7 +264,7 @@ to resolve the proper version of the nightly package, since `-nightly` allways i
 
 It will then run the `upgrade.py` mechanic for:
  - enterprise with encryption at rest enabled
- - enterprise 
+ - enterprise
  - community
 
 and create a final report at the end of the run.
@@ -312,7 +312,7 @@ Supported Parameters:
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
 
-Example usage: 
+Example usage:
 
 - [jenkins/nightly_tar.sh](jenkins/nightly_tar.sh) Download nightly tarball packages, and run it with selenium in `containers/docker_tar` ubuntu container
 - [jenkins/nightly_deb.sh](jenkins/nightly_deb.sh) Download nightly debian packages, and run them with selenium in `containers/docker_deb` ubuntu container
@@ -329,7 +329,7 @@ to resolve the proper version of the nightly package, since `-nightly` allways i
 
 It will then run the `upgrade.py` mechanic for:
  - enterprise with encryption at rest enabled
- - enterprise 
+ - enterprise
  - community
 
 and create a final report at the end of the run.
@@ -396,7 +396,7 @@ The `BASE_DIR` environment variable is meant to be specified by oskar to find th
 
 It will then run the `upgrade.py` mechanic for either:
  - enterprise with encryption at rest enabled
- - enterprise 
+ - enterprise
 or:
  - community
 
@@ -446,7 +446,7 @@ Supported Parameters:
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
  - `--run-test-suites/--do-not-run-test-suites` - run test suites for each version pair (default = False)
 
-Example usage: 
+Example usage:
 ```
 export BASE_DIR=/home/willi/src/develc/release-test-automation
 ./release_tester/mixed_download_upgrade_test.py --new-version 3.12.0 --upgrade-matrix '3.11.0-nightly:3.12.0-src' --starter-mode SG
@@ -472,22 +472,86 @@ The scripts in the `deployment` directory will try to install all the required p
 
 # Source distribution
 
- - `release_tester/test.py` - main process flow, install, run test, uninstall
- - `release_tester/upgrade.py` - main upgrade process flow, install, run test, upgrade, test again, uninstall
+ - `release_tester/down_upload.py` - download packages via our various distribution routes, push to remote SUTs via scp
  - `release_tester/download.py` - download packages via our various distribution routes
+ - `release_tester/[full_|][upgrade|&test].py` - main entrypoints to the process flow, download, install, run test, uninstall, cleanup
+ - `release_tester/test_driver.py` dispatcher from the entrypoints in the different testparts, after download took place.
+ - `release_tester/common_options.py` commandline options used by more than one entrypoint script
  - `release_tester/cleanup.py` - remove files and installed packages etc.
- - `release_tester/installers/[base|nsis|tar|linux|deb|rpm|mac].py` distribution / OS specific [un]installation/upgrade automation
- - `release_tester/arangodb/instance.py` wraps one process of arangod / arangosync; detects its operation mode
- - `release_tester/arangodb/sh.py` launch an arangosh with javascript snippets against the starter installation
+ - `release_tester/siteconfig.py` shared with Oskar, manages SUT capacity for timeouts etc. 
+ - `release_tester/installers/[base|nsis|tar|linux|deb|rpm|mac].py`
+   distribution / OS specific [un]installation/upgrade automation
+   - `__init__.py` Configuration objects
+     - Hot backup / rclone configurations
+     - `InstallerConfig` contains system / installation components as versions etc.
+     - `RunProperties` runner specific configurations
+     - `EXECUTION_PLAN` pre-defined list of things to test during the full automatic release flow
+     - `InstallerBaseConfig` simple config to bootstrap an installer
+   - `binary_description.py` binary validation and description code, (windows specific parts)
+   -  `base.py.py`
+     - `InstallerBase`:
+       - meta class for installers
+       - shared code containing the list of binaries to be found
+       - shared control code to revalidate binaries to be installed
+       - code do decypher versions of binaries
+     `InstallerArchive` shared base class for zip/tar/source installers
+
+ - `release_tester/arangodb/agency.py`code to manipulate the agency
+ - `release_tester/arangodb/instance.py`
+   - manage arangosync & arangod instances.
+   - detects their operation mode (Running, stopped, crashed, manually started/stopped)
+   - Contains Blacklists to ignore while scanning logfiles for errors.
+ - `release_tester/arangodb/async_client.py`
+   manages subrocess execution; shared between rta/oskar/circle-ci
+   provides the ability to portabily capture  log output
+ - `release_tester/arangodb/sh.py` launch an arangosh with javascript snippets against the starter installation, rta-makedata, testing.js style
  - `release_tester/arangodb/sync.py` manage arangosync invocations
  - `release_tester/arangodb/backup.py` manage arangobackup invocations
  - `release_tester/arangodb/starter/manager.py` manage one starter instance and get information about its launched processes
  - `release_tester/arangodb/starter/deployments/[runner|leaderfolower|activefailover|cluster|cluster_perf|dc2dc|dc2dcendurance].py` set up one of [Leader/Follower | Active Failover | Cluster Cluster_Perf | DC2DC | DCendurance]
+   - `__init__.py`
+     - runner types / starter modes text vs. enum
+     - basic runner spawning code
+   - `runner.py`
+     - `RunnerProperties` settings specific to the to be spawned runner, like SUT requirements
+     - `Runner` base class for runners, application flow, lots of hooks, tool methods
+ - `release_tester/arangodb/stress` tools to stress the SUT by launching multiple parallel configureable subjobs
+   Orchestrated by `release_tester/arangodb/starter/deployments/cluster_perf.py` and `scenarios/`.
+   - `restore.py` launch arangorestore jobs
+   - `makedata.py` launch (multiple) rta-makedatas
+   - `arangosh.py` launch (multiple) arangosh with various to be specified scripts
+   - `dump.py` launch arangodump.
  - `release_tester/tools` several utility functions
  - `test_data` - UI related test data
  - `rta_makedata` - the famous makedata suite as reference
  - `attic_snippets` - trial and error scripts of start phase, utility functions like killall for mac/windows for manual invocation
 
+ - `containers/` the source `Dockerfile`s of various docker containers
+ - `jenkins/build_and_push_containers.sh` push one set of [amd64|arm64-v8] containers
+ - `jenkins/build_and_push_manifests.sh` join above containers
+ - `jenkins/nightly*.sh`, `jenkins/oscar_tar.sh` entrypoint scripts to be invoked from jenkins or manual
+   - will evaluate `*VERSION*` environment variables as default
+   - will pass `$@` into the rta invocation inside the docker contanier
+   - will basically consist of invoking common snippets, only docker launches will be individual in here
+ - `jenkins/common` - snippet parts used by the various entry point scripts; sourced by the "host"-script to have variable back/forwards passing, which isn't better possible in bash
+    common variables shared among these scripts:
+      - `TRAP_COMMAND` array to push commands to that will be invoked by `trap` at the end of the script
+      - `DOCKER_NETWORK_NAME` the network to be shared amongst the various containers
+      - `DOCKER_ARGS`- the (common) arguments to the to be launched docker test-container
+      - `RTA_ARGS` - array of arguments to be passed to the rta-invocation
+    - `default_variables.sh` - common environment variable parsing setting
+    - `default_matrix.sh` - common matrix environment variable parsing setting
+    - `setup_docker.sh` - configure mountpoints etc. for the SUT-container, setup networks etc.
+    - `set_max_map_count.sh` - make sure files and /proc are properly configured
+    - `setup_selenium.sh` - launch the selenoid containers if `--selenium.*` in `$@`
+    - `evaluate_force.sh` - whether force should be applied
+    - `load_git_submodules.sh` - checkout submodules and enterprise closed parts (in able)
+    - `launch_minio.sh` - launch the s3 lookalike minio container
+    - `register_cleanup_trap.sh` - set the exit-trap for cleanup with all registered arguments
+    /now tests will be executed/
+    - `cleanup_ownership.sh` - de-root-ify all files
+    - `gather_coredumps.sh` - check for crashes, zip files
+    - `pre_cleanup_docker.sh` - make sure we can launch docker contaniers properly
 
 # Hot backup settings
 During the test scenarios hot backups will be created/restored and uploaded/downloaded to/from an external storage using the bundled rclone. 
@@ -503,11 +567,11 @@ This is controlled using the following command line parameters:
  - `--hb-aws-acl` [env `AWS_ACL`] - AWS ACL (default value: `private`)
  - `--hb-gce-service-account-credentials` - GCE service account credentials(JSON string).
  - `--hb-gce-service-account-file` - Path to a JSON file containing GCE service account credentials.
- - `--hb-gce-project-number` - GCE project ID.  
+ - `--hb-gce-project-number` - GCE project ID.
  - `--hb-azure-account` - Azure storage account.
- - `--hb-azure-key` - Azure storage account access key.   
+ - `--hb-azure-key` - Azure storage account access key.
  - `--hb-use-cloud-preset` (string) - Load saved hotbackup settings. To use this, create a file release_tester/tools/external_helpers/cloud_secrets.py. Inside this file define dict variables. The name of the variable is the name of the preset. The dict must contain all the hb parameters. If --hb-use-cloud-preset is set, then all other parameters which names start with hb- are ignored.
-   Example of cloud_secrets.py: 
+   Example of cloud_secrets.py:
 ```python
 aws = {
     "hb_storage_path_prefix": "/path/inside/bucket",
@@ -549,7 +613,7 @@ if HotBackup capable:
 if Update:
   manage packages (uninstall debug, install new, install new debug, test debug)
   upgrade the starter environment [upgrade_arangod_version[_impl]]
-  [makedata check] after upgrade 
+  [makedata check] after upgrade
   if Hotbackup capable:
     list backups
     upload backup once more
@@ -622,7 +686,7 @@ Example usage:
 
 
 # scenario yml file
-They are kept in `scenarios/`. 
+They are kept in `scenarios/`.
 
 ```
 !!python/object:arangodb.starter.deployments.cluster_perf.testConfig
@@ -768,17 +832,17 @@ This will open a browser with the test report.
 We use [Black Formatter](https://github.com/psf/black). To apply formatting to the code simply run `black .` in the project root dir.  
 Formatter settings are stored in `pyproject.toml` file.
 To switch formatting off for a code block, start it with `# fmt: off` and end with `# fmt: on`.  
-To disable formatting for single line, end it with `# fmt: on`. 
+To disable formatting for single line, end it with `# fmt: on`.
 
 ## Linter
 We use [pylint](https://pylint.org/). Command to run it: `pylint release_tester`
 
 ## Pre-commit hooks
-We have pre-commit hooks to enforce the use of linter and formatter. 
+We have pre-commit hooks to enforce the use of linter and formatter.
 The hooks are managed using the [pre-commit tool](https://pre-commit.com/). The configuration is stored in the `.pre-commit-config.yaml` file.  
 To install pre-commit hooks:
 - Run `pip install -r requirements.txt`
-- Run `pre-commit install`   
+- Run `pre-commit install`
 
 Now, each time you run `git commit`, the linter and formatter will be ran automatically. The hooks will prevent you from commiting code if the changed files have any unresolved issues found by the linter.  
   If the formatter changed anything in the files staged for commit, the hook will also not commit anything. You should review changes made by the formatter, stage them by running `git add` and run `git commit` again.
@@ -793,7 +857,7 @@ Several binaries are not built from with the arangodb source. They have to be ad
 They can easily be obtained through nightly zip/tar packages or be build from their respective source directories and symlinked into the `build/bin` directories:
 - arangodb - the starter.
 - arangosync - the arangosync binary for dc2dc replication
-- rclone-arangodb 
+- rclone-arangodb
 
 The source directory is located via 3 parameters (and if `build/bin` exists chosen accordingly):
 - `--package-dir` - in `test.py` this can be used to directly point to the source directory. Alternatively, subdirectories with symlinks can be used:
@@ -829,4 +893,3 @@ cd ..
 ```
 
 Will search for `/home/willi/src/rta/arangoversions/E_3.9.0/build/bin` to launch the deployment initially, and upgrade to `/home/willi/src/rta/arangoversions/E_3.10.0-devel/build/bin`.
-
