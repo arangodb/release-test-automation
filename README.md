@@ -534,11 +534,11 @@ The scripts in the `deployment` directory will try to install all the required p
    - will pass `$@` into the rta invocation inside the docker contanier
    - will basically consist of invoking common snippets, only docker launches will be individual in here
  - `jenkins/common` - snippet parts used by the various entry point scripts; sourced by the "host"-script to have variable back/forwards passing, which isn't better possible in bash
-    common variables shared among these scripts:
-      - `TRAP_COMMAND` array to push commands to that will be invoked by `trap` at the end of the script
-      - `DOCKER_NETWORK_NAME` the network to be shared amongst the various containers
-      - `DOCKER_ARGS`- the (common) arguments to the to be launched docker test-container
-      - `RTA_ARGS` - array of arguments to be passed to the rta-invocation
+    - common variables shared among these scripts:
+       - `TRAP_COMMAND` array to push commands to that will be invoked by `trap` at the end of the script
+       - `DOCKER_NETWORK_NAME` the network to be shared amongst the various containers
+       - `DOCKER_ARGS`- the (common) arguments to the to be launched docker test-container
+       - `RTA_ARGS` - array of arguments to be passed to the rta-invocation
     - `default_variables.sh` - common environment variable parsing setting
     - `default_matrix.sh` - common matrix environment variable parsing setting
     - `setup_docker.sh` - configure mountpoints etc. for the SUT-container, setup networks etc.
