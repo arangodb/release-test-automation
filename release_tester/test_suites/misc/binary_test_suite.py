@@ -26,17 +26,6 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
         self.installer = self.installer_set[0][1]
         ent = "Enterprise" if self.run_props.enterprise else "Community"
         self.suite_name = f"Binary compliance test suite: ArangoDB v. {str(self.new_version)} ({ent}) ({self.installer.installer_type})"
-        self.binary_file_names = [
-            "arangobackup",
-            "arangobench",
-            "arangodump",
-            "arangoexport",
-            "arangoimport",
-            "arangorestore",
-            "arangosh",
-            "arangovpack",
-            "arangod",
-        ]
 
     @run_after_each_testcase
     def uninstall_everything(self):
@@ -55,7 +44,7 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
         binaries = [
             file
             for file in self.installer.arango_binaries
-            if file.path.name in self.binary_file_names and not (not self.run_props.enterprise and file.enterprise)
+            if file.binary_type=="c++" and not (not self.run_props.enterprise and file.enterprise)
         ]
         for bin in binaries:
             with step(f"check {bin.name}"):
@@ -67,7 +56,7 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
         binaries = [
             file
             for file in self.installer.arango_binaries
-            if file.path.name in self.binary_file_names and not (not self.run_props.enterprise and file.enterprise)
+            if file.binary_type=="c++" and not (not self.run_props.enterprise and file.enterprise)
         ]
         for bin in binaries:
             with step(f"check {bin.name}"):
