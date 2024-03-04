@@ -14,7 +14,8 @@ import psutil
 
 from allure_commons._allure import attach
 from reporting.reporting_utils import step
-# pylint: disable=broad-exception-raised disable=broad-exception-caught
+
+# pylint: disable=broad-except disable=import-error
 FILE_PIDS = []
 
 IS_WINDOWS = platform.win32_ver()[0]
@@ -29,18 +30,18 @@ if platform.mac_ver()[0]:
 
 
 PROP_NAMES = {
-    'Comments': '@binary_version',
-    'InternalName': '@binary',
-    'ProductName': '@binary',
-    'CompanyName': '@company_name',
-    'LegalCopyright': r'[ArangoDB GmbH ]*\(C\) Copyright 20.*',
-    'ProductVersion': '@windows_version',
-    'FileDescription': '@friendly_name',
-    'LegalTrademarks': None,
-    'PrivateBuild': None,
-    'FileVersion': '@windows_version',
-    'OriginalFilename': '@binary',
-    'SpecialBuild': None
+    "Comments": "@binary_version",
+    "InternalName": "@binary",
+    "ProductName": "@binary",
+    "CompanyName": "@company_name",
+    "LegalCopyright": r"[ArangoDB GmbH ]*\(C\) Copyright 20.*",
+    "ProductVersion": "@windows_version",
+    "FileDescription": "@friendly_name",
+    "LegalTrademarks": None,
+    "PrivateBuild": None,
+    "FileVersion": "@windows_version",
+    "OriginalFilename": "@binary",
+    "SpecialBuild": None,
 }
 ## helper classes
 class BinaryDescription:
@@ -52,8 +53,8 @@ class BinaryDescription:
         self.path = path / (name + FILE_EXTENSION)
         self.enterprise = enter
         self.stripped = strip
-        self.version_min =  semver.VersionInfo.parse(vmin)
-        self.version_max =  semver.VersionInfo.parse(vmax)
+        self.version_min = semver.VersionInfo.parse(vmin)
+        self.version_max = semver.VersionInfo.parse(vmax)
         self.symlink = sym
         self.binary_type = binary_type
         self.name = name
@@ -102,69 +103,76 @@ class BinaryDescription:
                     raise Exception("codesign didn't find signature: " + str(codesign_str))
 
     def _binary(self, string):
-        """ should be our name """
+        """should be our name"""
         return string == self.name
 
     def _binary_version(self, version, string):
-        """ should be our name """
+        """should be our name"""
         return string in [f"{self.name} v{version.major}.{version.minor}", string == "arangobench"]
 
     def _windows_version(self, version, version_string):
-        """ funny windows version should be there """
+        """funny windows version should be there"""
         return f"{version.major}.{version.minor}.0.{version.patch}" == version_string
 
     def _company_name(self, version, string):
-        """ may find company name """
+        """may find company name"""
         # pylint: disable=chained-comparison
         if string == "ArangoDB GmbH":
             return True
-        if (version < semver.VersionInfo.parse("3.10.12") or
-            (version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5") )):
+        if version < semver.VersionInfo.parse("3.10.12") or (
+            version > semver.VersionInfo.parse("3.11.0") and version < semver.VersionInfo.parse("3.11.5")
+        ):
             return string is None or string == ""
         return False
 
     def _friendly_name(self, string):
-        """ should find friendly name in string """
+        """should find friendly name in string"""
         return re.match(self.friendly_name, string) is not None
 
     def _validate_windows_attributes(self, version, enterprise):
-        """ validate the windows binary header fields """
+        """validate the windows binary header fields"""
         # pylint: disable=import-outside-toplevel disable=too-many-branches
         if not enterprise and self.enterprise:
             return
-        if IS_WINDOWS and self.binary_type != "go": # GT-540: remove type comparison, alter versions.
+        if IS_WINDOWS and self.binary_type != "go":  # GT-540: remove type comparison, alter versions.
             from win32api import GetFileVersionInfo
-            language, codepage = GetFileVersionInfo(str(self.path), '\\VarFileInfo\\Translation')[0]
+
+            language, codepage = GetFileVersionInfo(str(self.path), "\\VarFileInfo\\Translation")[0]
             for windows_field, hook in PROP_NAMES.items():
-                exstr = ''
+                exstr = ""
                 check_ok = True
                 try:
-                    string_file_info = '\\StringFileInfo\\%04X%04X\\%s' % (language, codepage, windows_field)
+                    string_file_info = "\\StringFileInfo\\%04X%04X\\%s" % (language, codepage, windows_field)
                     description = GetFileVersionInfo(str(self.path), string_file_info)
                 except Exception as ex:
                     description = None
                     exstr = str(ex)
                 if description is None:
                     if hook is not None:
-                        raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , {hook}, but is None - {exstr}")
-                elif hook  == '@binary':
+                        raise Exception(
+                            f"{windows_field} in '{self.path}' expected: to be set to , {hook}, but is None - {exstr}"
+                        )
+                elif hook == "@binary":
                     check_ok = self._binary(description)
-                elif hook == '@binary_version':
+                elif hook == "@binary_version":
                     check_ok = self._binary_version(version, description)
-                elif hook  == '@company_name':
+                elif hook == "@company_name":
                     check_ok = self._company_name(version, description)
-                elif hook  == '@windows_version':
+                elif hook == "@windows_version":
                     check_ok = self._windows_version(version, description)
-                elif hook  == '@friendly_name':
+                elif hook == "@friendly_name":
                     check_ok = self._friendly_name(description)
                 else:
                     check_ok = re.match(hook, description) is not None
                 if not check_ok:
-                    raise Exception(f"{windows_field} in '{self.path}' expected: to be set to , '{hook}', but is {description} - '{exstr}'")
+                    raise Exception(
+                        f"{windows_field} in '{self.path}' expected: "
+                        f"to be set to , '{hook}', but is {description} - '{exstr}'"
+                    )
 
     # pylint: disable=too-many-arguments
     @step
-    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
+    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized, check_license_info):
         """check all attributes of this file in reality"""
         attach(str(self), "file info")
         if version > self.version_max or version < self.version_min:
@@ -181,6 +189,8 @@ class BinaryDescription:
             self.check_stripped()
         if check_symlink:
             self.check_symlink()
+        if check_license_info:
+            self.check_license_info()
 
     def check_path(self, enterprise, in_version=True):
         """check whether the file rightfully exists or not"""
@@ -266,3 +276,24 @@ class BinaryDescription:
         for link in self.symlink:
             if not link.is_symlink():
                 raise Exception("{0} is not a symlink".format(str(link)))
+
+    @step
+    def check_license_info(self):
+        """check that --version output contains information required by third party libraries"""
+        license_strings = [
+            # string required by glibc license
+            "This executable uses the GNU C library (glibc), "
+            "which is licensed under the GNU Lesser General Public License (LGPL), "
+            "see https://www.gnu.org/copyleft/lesser.html and https://www.gnu.org/licenses/gpl.html",
+        ]
+        cmd = [str(self.path), "--version"]
+        with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            (stdout, stderr) = proc.communicate()
+            if proc.returncode:
+                raise Exception(f"${self.name} exited nonzero \n" + str(stderr))
+            for license_string in license_strings:
+                if str(stdout).find(license_string) < 0:
+                    raise Exception(
+                        f"{self.name} output does not contain required info.\n Command: {' '.join(cmd)}\nOutput: "
+                        f"${str(stdout)}\nExpected output: {license_string}"
+                    )

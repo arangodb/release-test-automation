@@ -93,7 +93,7 @@ def package_test(
             params.enterprise = True
             results.append(
                 test_driver.run_test_suites(
-                    include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite"),
+                    include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "BinaryComplianceTestSuite",),
                     params=params,
                 )
             )
@@ -101,7 +101,7 @@ def package_test(
             params.enterprise = False
             results.append(
                 test_driver.run_test_suites(
-                    include_suites=("DebuggerTestSuite",),
+                    include_suites=("DebuggerTestSuite", "BinaryComplianceTestSuite",),
                     params=params,
                 )
             )
