@@ -50,8 +50,6 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 self.webdriver.refresh()
 
             if (semver.VersionInfo.parse("3.11.0") < col.current_package_version() < semver.VersionInfo.parse("3.12.100")):
-                col.select_collection_page()
-            else:
                 print("Selecting Settings\n")
                 col.select_collection_settings()
                 print("Displaying system's collection\n")
@@ -178,10 +176,6 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
 
                 print("Select Settings tab\n")
                 col.select_settings_tab(self.is_cluster, True)
-                # some old bullshit
-                # print("Loading and Unloading collection\n")
-                # col.select_settings_unload_btn()
-                # col.select_settings_unload_btn()
                 self.webdriver.refresh()
                 print("Truncate collection\n")
                 col.select_truncate_btn()

@@ -1177,11 +1177,8 @@ class CollectionPage(NavigationBarPage):
         """this method will delete all the indexes one by one"""
         try:
             self.webdriver.refresh()
-            if index == 4:
-                delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[3]"
-            else:
-                delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
-                
+            self.wait_for_ajax()
+            delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
             time.sleep(1)
@@ -1191,13 +1188,18 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
         except TimeoutException as e:
             try:
-                print('Something went wrong', e, '\n')
                 print("Trying again to delete the inverted index")
                 self.webdriver.refresh()
-                self.select_collection_page()
-                self.select_testdoc_collection()
-                self.select_index_menu()
-                self.delete_index(3)
+                self.wait_for_ajax()
+
+                delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[3]"
+                delete_sitem = self.locator_finder_by_xpath(delete)
+                delete_sitem.click()
+                time.sleep(1)
+                delete_confirmation = "(//button[normalize-space()='Delete'])[1]"
+                delete_confirmation_sitem = self.locator_finder_by_xpath(delete_confirmation)
+                delete_confirmation_sitem.click()
+
             except BaseException as e:
                 print('Something went wrong', e, '\n')
 
