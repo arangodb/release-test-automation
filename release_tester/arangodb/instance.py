@@ -44,6 +44,7 @@ LOG_MAINTAINER_BLACKLIST = [  # if we use the 'source'-Distribution, these are e
 FATAL_BLACKLIST = [
     # Next line is disabled to collect more data about the issue:
     # "11ca3",  # -> SIGTERM received during shutdown sequence GT-541
+    "d8a5c", # -> Wintendos: exiting prematurely as we failed terminating the maintenance thread BTS-1773
 ]
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
