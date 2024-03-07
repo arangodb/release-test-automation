@@ -49,8 +49,11 @@ class CollectionPage(NavigationBarPage):
         self.sort_by_type_id = '//*[@id="collectionsDropdown"]/ul[2]/li[3]/a/label/i'
         self.sort_descending_id = '//*[@id="collectionsDropdown"]/ul[2]/li[4]/a/label/i'
 
-        self.select_doc_collection_id = "//div[@id='collection_TestDoc']//h5[@class='collectionName']"
-
+        if self.current_package_version() >= semver.VersionInfo.parse("3.12.0"):
+            self.select_doc_collection_id = "(//a[normalize-space()='TestDoc'])[1]"
+        else:
+            self.select_doc_collection_id = '//*[@id="collection_TestDoc"]/div/h5'
+        
         self.select_upload_btn_id = "/html//a[@id='importCollection']"
 
         self.select_choose_file_btn_id = "/html//input[@id='importDocuments']"
@@ -141,8 +144,11 @@ class CollectionPage(NavigationBarPage):
 
     def select_collection_page(self):
         """selecting collection tab"""
-        select_collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
-        select_collection_page_sitem.click()
+        self.navbar_goto("collections")
+        # select_collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
+        # select_collection_page_sitem.click()
+        self.webdriver.refresh()
+        self.wait_for_ajax()
         time.sleep(1)
 
     def select_create_collection(self):
@@ -641,6 +647,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_index_menu(self):
         """Selecting index menu from collection"""
+        self.wait_for_ajax()
         self.click_submenu_entry("Indexes")
 
     def select_desired_index_from_the_list(self, index_name):
@@ -657,11 +664,11 @@ class CollectionPage(NavigationBarPage):
         # Perform a click action
         actions.click().perform()
     
-    def select_testdoc_collection(self):
-        print('Selecting TestDoc Collection \n')
-        select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
-        select_doc_collection_sitem.click()
-        time.sleep(1)
+    # def select_testdoc_collection(self):
+    #     print('Selecting TestDoc Collection \n')
+    #     select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
+    #     select_doc_collection_sitem.click()
+    #     time.sleep(1)
     
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
@@ -765,7 +772,11 @@ class CollectionPage(NavigationBarPage):
             action = ActionChains(self.webdriver)
             self.select_desired_index_from_the_list('Inverted Index')
 
-            fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"
+            if self.current_package_version() >= semver.VersionInfo.parse("3.12.0"):
+                fields = '//label[text()="Fields"][1]'
+            else:
+                fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"
+
             fields_sitem = self.locator_finder_by_xpath(fields)
             fields_sitem.click()
             action.send_keys('region').send_keys(Keys.ENTER).send_keys('name').send_keys(Keys.ENTER).perform()
@@ -934,8 +945,10 @@ class CollectionPage(NavigationBarPage):
         elif index_name == 'MDI':
             try:
                 self.navbar_goto("collections")
+                self.webdriver.refresh()
+                self.wait_for_ajax()
                 print("Selecting computed values collections. \n")
-                col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+                col = "(//a[normalize-space()='ComputedValueCol'])[1]"
                 self.locator_finder_by_xpath(col).click()
                 time.sleep(1)
 
@@ -945,7 +958,8 @@ class CollectionPage(NavigationBarPage):
                 create_new_index_btn_sitem.click()
                 time.sleep(2)
 
-                print('MDI Index')
+                self.select_desired_index_from_the_list("MDI Index")
+
                 mdi_field = "/html//input[@id='fields']"
                 mdi_field = self.locator_finder_by_xpath(mdi_field)
                 mdi_field.click()
@@ -960,7 +974,7 @@ class CollectionPage(NavigationBarPage):
                 print(e)
                 # retry
                 self.webdriver.refresh()
-                self.create_index('ZKD')
+                self.create_index('MDI')
             finally:
                 pass
         else:
@@ -1178,14 +1192,20 @@ class CollectionPage(NavigationBarPage):
         try:
             self.webdriver.refresh()
             self.wait_for_ajax()
-            delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
+            
+            if self.current_package_version() > semver.VersionInfo.parse("3.11.99"):
+                delete = "//button[@aria-label='Delete Index'][1]"
+            else:
+                delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
+            
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
             time.sleep(1)
             delete_confirmation = "(//button[normalize-space()='Delete'])[1]"
-            delete_confirmation_stiem = self.locator_finder_by_xpath(delete_confirmation)
-            delete_confirmation_stiem.click()
+            delete_confirmation_sitem = self.locator_finder_by_xpath(delete_confirmation)
+            delete_confirmation_sitem.click()
             time.sleep(1)
+
         except TimeoutException as e:
             try:
                 print("Trying again to delete the inverted index")
@@ -1201,7 +1221,7 @@ class CollectionPage(NavigationBarPage):
                 delete_confirmation_sitem.click()
 
             except BaseException as e:
-                print('Something went wrong', e, '\n')
+                print('Something went wrong, moving on \n')
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -1435,42 +1455,22 @@ class CollectionPage(NavigationBarPage):
         selector = """//div[contains(@class, 'tile')][@id='collection_%s']""" % collection_name
         self.locator_finder_by_xpath(selector).click()
 
-    def delete_collection(self, collection_name, collection_locator, is_cluster):
-        """This method will delete all the collection"""
-        print(f"Deleting {collection_name} collection started \n")
-        self.navbar_goto("collections")
-
-        # changing the default collection locator according to the >= v3.12.x
-        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
-            if collection_name == "TestDoc":
-                collection_locator = "(//a[normalize-space()='TestDoc'])[1]"
-            elif collection_name == "TestEdge":
-                collection_locator = "(//a[normalize-space()='TestEdge'])[1]"
-            elif collection_name == "Test":
-                collection_locator = "(//a[normalize-space()='Test'])[1]"
-            elif collection_name == "TestDocRenamed":
-                collection_locator = "(//a[normalize-space()='TestDocRenamed'])[1]"
-            elif collection_name == "ComputedValueCol":
-                collection_locator = "(//a[normalize-space()='ComputedValueCol'])[1]"
-        
+    def select_doc_collection(self):
+        """selecting testDoc collection"""
+        print("Selecting TestDoc Collection \n")
         try:
-            self.locator_finder_by_xpath(collection_locator).click()
+            if self.current_package_version() >= semver.VersionInfo.parse("3.12.0"):
+                test_doc_col = "(//a[normalize-space()='TestDoc'])[1]"
+            else:
+                test_doc_col = '//*[@id="collection_TestDoc"]/div/h5'
 
-            # we don't care about the cluster specific things:
-            self.select_settings_tab(is_cluster)
-            self.select_delete_collection()
-
-            print(f"Deleting {collection_name} collection Completed \n")
+            select_test_doc_collection_sitem = self.locator_finder_by_xpath(test_doc_col)
+            select_test_doc_collection_sitem.click()
+            time.sleep(1)
+        except BaseException as e:
+            print('trying again in case of found statle element', e, '\n')
             self.webdriver.refresh()
-        except (TimeoutException, AttributeError):
-            print("TimeoutException occurred! \n")
-            print("Info: Collection has already been deleted or never created. \n")
-        except NoSuchElementException:
-            print('Element not found, which might be happen due to force cleanup.')
-        except Exception as ex:
-            traceback.print_exc()
-            raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
-        self.webdriver.refresh()
+            self.select_doc_collection()
 
     def create_sample_collection(self, test_name):
         """selecting collection tab"""
@@ -1504,3 +1504,42 @@ class CollectionPage(NavigationBarPage):
                 print("Collection creation failed, which is expected")
             if test_name == "read/write":
                 raise Exception("FAIL: Unexpected error occurred!") from ex
+
+    def delete_collection(self, collection_name, collection_locator, is_cluster):
+        """This method will delete all the collection"""
+        print(f"Deleting {collection_name} collection started \n")
+        self.webdriver.refresh()
+        self.wait_for_ajax()
+        self.navbar_goto("collections")
+
+        # changing the default collection locator according to the >= v3.12.x
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            if collection_name == "TestDoc":
+                collection_locator = "(//a[normalize-space()='TestDoc'])[1]"
+            elif collection_name == "TestEdge":
+                collection_locator = "(//a[normalize-space()='TestEdge'])[1]"
+            elif collection_name == "Test":
+                collection_locator = "(//a[normalize-space()='Test'])[1]"
+            elif collection_name == "TestDocRenamed":
+                collection_locator = "(//a[normalize-space()='TestDocRenamed'])[1]"
+            elif collection_name == "ComputedValueCol":
+                collection_locator = "(//a[normalize-space()='ComputedValueCol'])[1]"
+        
+        try:
+            self.locator_finder_by_xpath(collection_locator).click()
+            # we don't care about the cluster specific things:
+            self.select_settings_tab(is_cluster)
+            self.select_delete_collection()
+
+            print(f"Deleting {collection_name} collection Completed \n")
+            self.webdriver.refresh()
+        except (TimeoutException, AttributeError):
+            print("TimeoutException occurred! \n")
+            print("Info: Collection has already been deleted or never created. \n")
+        except NoSuchElementException:
+            print('Element not found, which might be happen due to force cleanup.')
+        except Exception as ex:
+            traceback.print_exc()
+            raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
+        self.webdriver.refresh()
+        self.wait_for_ajax()

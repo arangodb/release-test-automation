@@ -747,7 +747,7 @@ class ViewsPage(NavigationBarPage):
             # max_buffer_size_sitem = self.locator_finder_by_xpath(max_buffer_size)
             # max_buffer_size_sitem.click()
             #
-            # a = ActionChains(self.driver)
+            # a = ActionChains(self.webdriver)
             # a.key_down(Keys.CONTROL).send_keys("A").key_up(Keys.CONTROL).send_keys(
             #     Keys.DELETE
             # ).send_keys("33554434").perform()
