@@ -690,7 +690,7 @@ class ArangodInstance(Instance):
                     log_file_content += "\n" + line
 
             # check last line or continue
-            match = re.search(r"Z \[(\d*)\]", last_line)
+            match = re.search(r"Z \[(\d*)((\])|(-\d*\]))", last_line)
             if match is None:
                 logging.info("no PID in: %s", last_line)
                 continue
@@ -775,7 +775,7 @@ class ArangodInstance(Instance):
                     log_file_content += "\n" + line
 
             # check last line or continue
-            match = re.search(r"Z \[(\d*)\]", last_line)
+            match = re.search(r"Z \[(\d*)((\])|(-\d*\]))", last_line)
             if match is None:
                 tries -= 1
                 logging.info("no PID in [%s]: %s", self.logfile, last_line)
@@ -797,8 +797,9 @@ class ArangodInstance(Instance):
                 continue
             self.pid = int(pid)
             # locate the timestamp of our 'ready for business' line:
+            match = re.search(r"Z \[(\d*)((\])|(-\d*\]))", last_line)
             match = re.search(
-                r"(.*)Z \[" + pid + "].*" + ready_for_business,
+                r"(.*)Z \[" + pid + "((\])|(-\d*\])).*" + ready_for_business,
                 log_file_content[pos - 140 :],
             )
             if match is None:
