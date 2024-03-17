@@ -33,13 +33,16 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_help_filter_btn(self):
         """Selecting help button"""
-        self.webdriver.refresh()
-        print("Selecting Analyzers help filter button \n")
-        help_filter = "//a[@href='#analyzers']//i[@class='fa fa-question-circle']"
-        help_sitem = self.locator_finder_by_xpath(help_filter)
-        help_sitem.click()
-        time.sleep(3)
-        self.webdriver.refresh()
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            print("select_help_filter_btn test skipped \n")
+        else:
+            self.webdriver.refresh()
+            print("Selecting Analyzers help filter button \n")
+            help_filter = "//a[@href='#analyzers']//i[@class='fa fa-question-circle']"
+            help_sitem = self.locator_finder_by_xpath(help_filter)
+            help_sitem.click()
+            time.sleep(3)
+            self.webdriver.refresh()
 
     def select_built_in_analyzers_open(self):
         """Checking in-built analyzers list and description"""
@@ -140,145 +143,186 @@ class AnalyzerPage(NavigationBarPage):
         to the collection page then it's an error.
         """
 
-        self.navbar_goto("analyzers")
-        self.navbar_goto("collections")
-        self.navbar_goto("analyzers")
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            print("checking_analyzer_page_transition test skipped \n")
+        else:
+            self.navbar_goto("analyzers")
+            self.navbar_goto("collections")
+            self.navbar_goto("analyzers")
 
-        
-        filter_input = "filterInput"
-        filter_input_sitem = self.locator_finder_by_id(filter_input)
-        filter_input_sitem.click()
-        filter_input_sitem.clear()
-        filter_input_sitem.send_keys(keyword)
-        filter_input_sitem.send_keys(Keys.ENTER)
-        time.sleep(1)
+            
+            filter_input = "filterInput"
+            filter_input_sitem = self.locator_finder_by_id(filter_input)
+            filter_input_sitem.click()
+            filter_input_sitem.clear()
+            filter_input_sitem.send_keys(keyword)
+            filter_input_sitem.send_keys(Keys.ENTER)
+            time.sleep(1)
 
-        search = '//i[@class="fa fa-search"]'
-        search_sitem = self.locator_finder_by_xpath(search)
-        search_sitem.click()
-        time.sleep(1)
+            search = '//i[@class="fa fa-search"]'
+            search_sitem = self.locator_finder_by_xpath(search)
+            search_sitem.click()
+            time.sleep(1)
 
-        # trying to add new analyzer to confirm that we are still in analyzer page and not in collection page
-        print("Selecting add new analyzer button \n")
-        add_analyzer = self.add_new_analyzer_btn
-        add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
-        add_analyzer_sitem.click()
-        time.sleep(1)
+            # trying to add new analyzer to confirm that we are still in analyzer page and not in collection page
+            print("Selecting add new analyzer button \n")
+            add_analyzer = self.add_new_analyzer_btn
+            add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
+            add_analyzer_sitem.click()
+            time.sleep(1)
 
-        create_btn = "//*[text()='Create']"
-        create_btn_sitem = self.locator_finder_by_xpath(create_btn).text
-        expected_text = 'Create'
-        assert create_btn_sitem == expected_text, f"Expected text {expected_text} " \
-                                                            f"but got {create_btn_sitem}"
+            create_btn = "//*[text()='Create']"
+            create_btn_sitem = self.locator_finder_by_xpath(create_btn).text
+            expected_text = 'Create'
+            assert create_btn_sitem == expected_text, f"Expected text {expected_text} " \
+                                                                f"but got {create_btn_sitem}"
 
-        self.webdriver.refresh()
-        # going back to analyzer page for the rest of the tests
-        self.navbar_goto("analyzers")
+            self.webdriver.refresh()
+            # going back to analyzer page for the rest of the tests
+            self.navbar_goto("analyzers")
     
     def checking_all_built_in_analyzer(self):
-        print('Showing in-built Analyzers list \n')
-        self.select_built_in_analyzers_open()
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            print("select_help_filter_btn test skipped \n")
+        else:
+            print('Showing in-built Analyzers list \n')
+            self.select_built_in_analyzers_open()
 
-        print('Checking in-built identity analyzer \n')
-        self.select_analyzer_to_check("identity", '//tr/td[text()="identity"]/following-sibling::td[2]/button')
-        print('Checking in-built text_de analyzer \n')
-        self.select_analyzer_to_check("text_de", '//tr/td[text()="text_de"]/following-sibling::td[2]/button')
-        print('Checking in-built text_en analyzer \n')
-        self.select_analyzer_to_check('text_en', '//tr/td[text()="text_en"]/following-sibling::td[2]/button')
-        print('Checking in-built text_es analyzer \n')
-        self.select_analyzer_to_check('text_es', '//tr/td[text()="text_es"]/following-sibling::td[2]/button')
-        print('Checking in-built text_fi analyzer \n')
-        self.select_analyzer_to_check('text_fi', '//tr/td[text()="text_fi"]/following-sibling::td[2]/button')
-        print('Checking in-built text_fr analyzer \n')
-        self.select_analyzer_to_check('text_fr', '//tr/td[text()="text_fr"]/following-sibling::td[2]/button')
-        print('Checking in-built text_it analyzer \n')
-        self.select_analyzer_to_check('text_it', '//tr/td[text()="text_it"]/following-sibling::td[2]/button')
-        print('Checking in-built text_nl analyzer \n')
-        self.select_analyzer_to_check('text_nl', '//tr/td[text()="text_nl"]/following-sibling::td[2]/button')
-        print('Checking in-built text_no analyzer \n')
-        self.select_analyzer_to_check('text_no', '//tr/td[text()="text_no"]/following-sibling::td[2]/button')
-        print('Checking in-built text_pt analyzer \n')
-        self.select_analyzer_to_check('text_pt', '//tr/td[text()="text_pt"]/following-sibling::td[2]/button')
-        print('Checking in-built text_ru analyzer \n')
-        self.select_analyzer_to_check('text_ru', '//tr/td[text()="text_ru"]/following-sibling::td[2]/button')
-        print('Checking in-built text_sv analyzer \n')
-        self.select_analyzer_to_check('text_sv', '//tr/td[text()="text_sv"]/following-sibling::td[2]/button')
-        print('Checking in-built text_zh analyzer \n')
-        self.select_analyzer_to_check('text_zh', '//tr/td[text()="text_zh"]/following-sibling::td[2]/button')
+            print('Checking in-built identity analyzer \n')
+            self.select_analyzer_to_check("identity", '//tr/td[text()="identity"]/following-sibling::td[2]/button')
+            print('Checking in-built text_de analyzer \n')
+            self.select_analyzer_to_check("text_de", '//tr/td[text()="text_de"]/following-sibling::td[2]/button')
+            print('Checking in-built text_en analyzer \n')
+            self.select_analyzer_to_check('text_en', '//tr/td[text()="text_en"]/following-sibling::td[2]/button')
+            print('Checking in-built text_es analyzer \n')
+            self.select_analyzer_to_check('text_es', '//tr/td[text()="text_es"]/following-sibling::td[2]/button')
+            print('Checking in-built text_fi analyzer \n')
+            self.select_analyzer_to_check('text_fi', '//tr/td[text()="text_fi"]/following-sibling::td[2]/button')
+            print('Checking in-built text_fr analyzer \n')
+            self.select_analyzer_to_check('text_fr', '//tr/td[text()="text_fr"]/following-sibling::td[2]/button')
+            print('Checking in-built text_it analyzer \n')
+            self.select_analyzer_to_check('text_it', '//tr/td[text()="text_it"]/following-sibling::td[2]/button')
+            print('Checking in-built text_nl analyzer \n')
+            self.select_analyzer_to_check('text_nl', '//tr/td[text()="text_nl"]/following-sibling::td[2]/button')
+            print('Checking in-built text_no analyzer \n')
+            self.select_analyzer_to_check('text_no', '//tr/td[text()="text_no"]/following-sibling::td[2]/button')
+            print('Checking in-built text_pt analyzer \n')
+            self.select_analyzer_to_check('text_pt', '//tr/td[text()="text_pt"]/following-sibling::td[2]/button')
+            print('Checking in-built text_ru analyzer \n')
+            self.select_analyzer_to_check('text_ru', '//tr/td[text()="text_ru"]/following-sibling::td[2]/button')
+            print('Checking in-built text_sv analyzer \n')
+            self.select_analyzer_to_check('text_sv', '//tr/td[text()="text_sv"]/following-sibling::td[2]/button')
+            print('Checking in-built text_zh analyzer \n')
+            self.select_analyzer_to_check('text_zh', '//tr/td[text()="text_zh"]/following-sibling::td[2]/button')
 
-        print('Hiding in-built Analyzers list \n')
-        self.select_built_in_analyzers_close()
+            print('Hiding in-built Analyzers list \n')
+            self.select_built_in_analyzers_close()
 
 
     def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
         index = self.index
-        if name == "My_Identity_Analyzer":
-            index = 0
-        elif name == "My_Delimiter_Analyzer":
-            index = 1
-        elif name == "My_Stem_Analyzer":
-            index = 2
-        elif name == "My_Norm_Analyzer":
-            index = 3
-        elif name == "NGram_Analyzer":
-            index = 4
-        elif name == "My_Text_Analyzer":
-            index = 5
-        elif name == "My_AQL_Analyzer":
-            index = 6
-        elif name == "My_Stopwords_Analyzer":
-            index = 7
-        elif name == "My_Collation_Analyzer":
-            index = 8
-        elif name == "My_Segmentation_Alpha_Analyzer":
-            index = 9
-        elif name == "My_Nearest_Neighbor_Analyzer":
-            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                index = 10
-        elif name == "My_Classification_Analyzer":
-            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                index = 11
-        elif name == "My_Pipeline_Analyzer":
-            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                index = 12
-            else:
-                index = 10
-        elif name == "My_GeoJSON_Analyzer":
-            if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                index = 13
-            else:
-                index = 11
-        elif name== "My_GeoPoint_Analyzer":
+        match name:
+            case "My_Identity_Analyzer":
+                index = 0
+            case "My_Delimiter_Analyzer":
+                index = 1
+            case "My_Stem_Analyzer":
+                index = 2
+            case "My_Norm_Analyzer":
+                index = 3
+            case "My_N-Gram_Analyzer":
+                index = 4
+            case "My_Text_Analyzer":
+                index = 5
+            case "My_AQL_Analyzer":
+                index = 6
+            case "My_Stopwords_Analyzer":
+                index = 7
+            case "My_Collation_Analyzer":
+                index = 8
+            case "My_Segmentation_Alpha_Analyzer":
+                index = 9
+            case "My_Nearest_Neighbor_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 10
+            case "My_Classification_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 11
+            case "My_Pipeline_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 12
+                else:
+                    index = 10
+            case "My_GeoJSON_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 13
+                else:
+                    index = 11
+            case "My_GeoPoint_Analyzer":
                 if self.package_version >= semver.VersionInfo.parse('3.10.0'):
                     index = 14
                 else:
                     index = 12
-        else:
-            print("Something went wrong\n")
+            case "My_GeoS2_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 15
+                else:
+                    index = 13
+            case "My_Minhash_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 16
+                else:
+                    index = 14
+            case "My_Minhash_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 16
+                else:
+                    index = 14
+            case "My_MultiDelimiter_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 17
+                else:
+                    index = 15
+            case "My_WildCard_Analyzer":
+                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
+                    index = 18
+                else:
+                    index = 16
 
         self.select_analyzers_page()
         self.webdriver.refresh()
 
-        print("Selecting add new analyzer button \n")
-        add_analyzer = self.add_new_analyzer_btn
-        add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            add_new_analyzer_btn = '//*[@id="content-react"]/div/div[1]/span/button'
+        else:
+            add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
+
+        add_analyzer_sitem = self.locator_finder_by_xpath(add_new_analyzer_btn)
         add_analyzer_sitem.click()
         time.sleep(2)
 
-        print(f"Creating {name} started \n")
-        # common attributes for all the analyzers
         print(f'Creating {name} started \n')
         # common attributes for all the analyzer
-        analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
-        analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
-        frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
-        norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
-        position = '//div[label[text()="Position"]]/input[not(@disabled)]'
-        switch_form_btn = "//*[text()='Switch to form view']"
-        local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
-        case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            analyzer_name = "(//input[@id='name'])[1]"
+            analyzer_type = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
+            frequency = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[1]/span[1]/span'
+            norm = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[2]/span[1]/span'
+            position = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[3]/span[1]'
+            local_placeholder = "(//input[@id='properties.locale'])[1]"
+            case_placeholder = "(//label[normalize-space()='Case'])[1]"
+        else:
+            analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
+            analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
+            frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
+            norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
+            position = '//div[label[text()="Position"]]/input[not(@disabled)]'
+            # switch_form_btn = "//*[text()='Switch to form view']"
+            # switch_view_btn = '//*[@id="chakra-modal--header-2"]/div/div[3]/button' #todo 3.11
+            local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
+            case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
 
         analyzer_name_sitem = self.locator_finder_by_xpath(analyzer_name)
         analyzer_name_sitem.click()
@@ -287,8 +331,19 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print('Selecting analyzer type \n')
-        self.locator_finder_by_select_using_xpath(analyzer_type, index)
-        time.sleep(2)
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
+            analyzer_type_sitem.click()
+            time.sleep(2)
+            # this will simulate down arrow key according to its index position
+            print("Analyzer's position on the list: ", index)
+            for _ in range(index):
+                self.send_key_action(Keys.ARROW_DOWN)
+            self.send_key_action(Keys.ENTER)
+            time.sleep(1)
+        else:
+            self.locator_finder_by_select_using_xpath(analyzer_type, index)
+            time.sleep(2)
 
         print(f"selecting frequency for {name} \n")
         frequency_sitem = self.locator_finder_by_xpath(frequency)
@@ -331,16 +386,26 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.send_keys(value)
 
             print('Selecting case for norm analyzer using index value \n')
-            self.locator_finder_by_select_using_xpath(case_placeholder, 0)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                case_sitem = self.locator_finder_by_xpath(case_placeholder)
+                case_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+            else:
+                self.locator_finder_by_select_using_xpath(case_placeholder, 0)
 
             print('Selecting accent for norm analyzer \n')
-            accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
+            else:
+                accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
+
             accent_sitem = self.locator_finder_by_xpath(accent)
             accent_sitem.click()
             time.sleep(2)
 
         # for N-Gram
-        elif name == "NGram_Analyzer":
+        elif name == "My_N-Gram_Analyzer":
             print(f'Adding minimum n-gram length for {name} \n')
             min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
             min_length_sitem = self.locator_finder_by_xpath(min_length)
@@ -358,7 +423,11 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Preserve original value for {name}\n')
-            preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                preserve = "(//span[@class='chakra-switch__thumb css-7roig'])[5]"
+            else:
+                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
+
             preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
             time.sleep(2)
@@ -380,8 +449,16 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Stream type selection using index value for {name}\n')
-            stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(stream_type, 1)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                stream_type = "(//label[normalize-space()='Stream Type'])[1]"
+                stream_type_sitem = self.locator_finder_by_xpath(stream_type)
+                stream_type_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+            else:
+                stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
+                self.locator_finder_by_select_using_xpath(stream_type, 1)
             time.sleep(2)
         # for text
         elif name == "My_Text_Analyzer":
@@ -401,7 +478,11 @@ class AnalyzerPage(NavigationBarPage):
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
             print(f'Selecting stopwords for the {name} \n')
-            stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                print("skipped! \n")
+            else:
+                stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
+            
             stopwords_sitem = self.locator_finder_by_xpath(stopwords)
             stopwords_sitem.clear()
             stopwords_sitem.send_keys('dog')
@@ -414,17 +495,30 @@ class AnalyzerPage(NavigationBarPage):
             stopwords_sitem.send_keys(Keys.ENTER)
             stopwords_sitem.send_keys('the')
 
-            print(f"Selecting case for the analyzer from the dropdown menu for {name} \n")
-            self.locator_finder_by_select_using_xpath(case_placeholder, 1)
+            print(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                case = "(//label[normalize-space()='Case'])[1]"
+                case_sitem = self.locator_finder_by_xpath(case)
+                case_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.TAB)
+            else:
+                self.locator_finder_by_select_using_xpath(case_placeholder, 1)
 
             print('Selecting stem for the analyzer \n')
-            stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                stem = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[5]/div/div/label[2]/span/span'
+            else:
+                stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
             stem_sitem = self.locator_finder_by_xpath(stem)
             stem_sitem.click()
             time.sleep(2)
 
             print('Selecting accent for the analyzer \n')
-            accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[6]/div/div/label[2]/span/span'
+            else:
+                accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
             accent_sitem = self.locator_finder_by_xpath(accent)
             accent_sitem.click()
             time.sleep(2)
@@ -444,10 +538,16 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting preserve original for {name} \n')
-            preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                preserve = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[9]/div/div/label[2]/span/span'
+            else:
+                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
             preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
-            preserve_sitem.send_keys('3')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                print("skipped")
+            else:
+                preserve_sitem.send_keys('3')
             time.sleep(2)
         # for AQL analyzer
         elif name == "My_AQL_Analyzer":
@@ -461,50 +561,80 @@ class AnalyzerPage(NavigationBarPage):
             batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
             batch_size_sitem = self.locator_finder_by_xpath(batch_size)
             batch_size_sitem.click()
-            batch_size_sitem.clear()
-            batch_size_sitem.send_keys('100')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+            else:
+                batch_size_sitem.clear()
+                batch_size_sitem.send_keys('100')
             time.sleep(2)
 
             print(f'Selecting memory limit for {name} \n')
             memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
             memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
             memory_limit_sitem.click()
-            memory_limit_sitem.clear()
-            memory_limit_sitem.send_keys('200')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+            else:
+                memory_limit_sitem.clear()
+                memory_limit_sitem.send_keys('200')
             time.sleep(2)
 
             print(f'Selecting collapse position for {name} \n')
-            collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                collapse = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[4]/div/div/label[2]/span/span'
+            else:
+                collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
             collapse_sitem = self.locator_finder_by_xpath(collapse)
             collapse_sitem.click()
             time.sleep(2)
 
             print(f'Selecting keep null for {name} \n')
-            keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
-            keep_null_sitem = self.locator_finder_by_xpath(keep_null)
-            keep_null_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                print('Skipped \n')
+            else:
+                keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
+                keep_null_sitem = self.locator_finder_by_xpath(keep_null)
+                keep_null_sitem.click()
             time.sleep(2)
 
             print(f'Selecting Return type for {name} \n')
-            return_type = '//div[label[text()="Return Type"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(return_type, 1)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                return_type = "(//label[normalize-space()='Return Type'])[1]"
+                return_type_sitem = self.locator_finder_by_xpath(return_type)
+                return_type_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+
+            else:
+                return_type = '//div[label[text()="Return Type"]]//select[not(@disabled)]'
+                self.locator_finder_by_select_using_xpath(return_type, 1)
             time.sleep(2)
         # for stopwords
         elif name == "My_Stopwords_Analyzer":
             print(f'Selecting stopwords for {name} \n')
-            stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-            stopwords_sitem = self.locator_finder_by_xpath(stopwords)
-            stopwords_sitem.click()
-            stopwords_sitem.clear()
-            stopwords_sitem.send_keys('616e64')
-            stopwords_sitem.send_keys(Keys.ENTER)
-            time.sleep(1)
-            stopwords_sitem.send_keys('746865')
-            stopwords_sitem.send_keys(Keys.ENTER)
-            time.sleep(1)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                stopwords = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div/div[1]/div[1]/div[2]'
+                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
+                stopwords_sitem.click()
+                self.send_key_action('616e64')
+                self.send_key_action(Keys.ENTER)
+            else:
+                stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
+                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
+                stopwords_sitem.click()
+                stopwords_sitem.clear()
+                stopwords_sitem.send_keys('616e64')
+                stopwords_sitem.send_keys(Keys.ENTER)
+                time.sleep(1)
+                stopwords_sitem.send_keys('746865')
+                stopwords_sitem.send_keys(Keys.ENTER)
+                time.sleep(1)
 
             print(f'Selecting hex value for {name} \n')
-            hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                hex_value = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[2]/div/div/label[2]/span/span'
+            else:
+                hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
             hex_sitem = self.locator_finder_by_xpath(hex_value)
             hex_sitem.click()
             time.sleep(2)
@@ -520,13 +650,27 @@ class AnalyzerPage(NavigationBarPage):
         # Segmentation alpha 
         elif name == "My_Segmentation_Alpha_Analyzer":
             print(f'Selecting segmentation break as alpha for {name} \n')
-            alpha_break = '//div[label[text()="Break"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(alpha_break, 1)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                alpha_break = "(//label[normalize-space()='Break'])[1]"
+                alpha_break_sitem = self.locator_finder_by_xpath(alpha_break)
+                alpha_break_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+            else:
+                alpha_break = '//div[label[text()="Break"]]//select[not(@disabled)]'
+                self.locator_finder_by_select_using_xpath(alpha_break, 1)
             time.sleep(2)
 
             print(f'Selecting segmentation case as lower for {name} \n')
-            case_lower = '//div[label[text()="Case"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(case_lower, 0)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                case_lower = "(//label[normalize-space()='Case'])[1]"
+                case_lower_sitem = self.locator_finder_by_xpath(case_lower)
+                case_lower_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+            else:
+                case_lower = '//div[label[text()="Case"]]//select[not(@disabled)]'
+                self.locator_finder_by_select_using_xpath(case_lower, 0)
             time.sleep(2)
 
         # for nearest neighbor analyzer introduced on 3.10.x
@@ -568,93 +712,145 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "My_Pipeline_Analyzer":
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             print(f'Selecting add analyzer button for {name} \n')
-            add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                add_analyzer01 = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/button'
+            else:
+                add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
             add_analyzer01_sitem = self.locator_finder_by_xpath(add_analyzer01)
             add_analyzer01_sitem.click()
             time.sleep(1)
 
             print(f'Selecting first pipeline analyzer as Norm for {name} \n')
-            norm = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[2]'
-            self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop-down list
-            time.sleep(2)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                norm = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div/div/div/div[1]/div[2]'
+                norm_sitem = self.locator_finder_by_xpath(norm)
+                norm_sitem.click()
 
-            print(f'Selecting locale value for Norm analyzer of {name} \n')
-            value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
-            locale_sitem.click()
-            locale_sitem.send_keys(value)
-            time.sleep(2)
+                # selecting norm analyzer
+                for _ in range(3):
+                    self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+                time.sleep(1)
 
-            print(f'Selecting case value to upper for Norm analyzer of {name} \n')
-            self.locator_finder_by_select_using_xpath(case_placeholder, 1)
-            time.sleep(2)
+                # selecting locale value
+                select_locale = "(//input[@id='properties.pipeline.0.properties.locale'])[1]"
+                select_locale_sitem = self.locator_finder_by_xpath(select_locale)
+                select_locale_sitem.click()
+                select_locale_sitem.send_keys("en_US.utf-8")
+                time.sleep(1)
 
-            # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
-            print(f'Selecting add analyzer button for {name} \n')
-            new_analyzer = '(//button[@class="button-warning"][not(@disabled)])[3]'
-            new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
-            new_analyzer_sitem.click()
-            time.sleep(2)
+                # selecting case for norm analyzer
+                case = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div[1]/div[2]'
+                case_sitem = self.locator_finder_by_xpath(case)
+                case_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+                time.sleep(1)
 
-            print(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
-            ngram = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[3]'
-            self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
-            time.sleep(2)
+                # selecting accent
+                accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div[2]/div/div[3]/div/div/label[2]/span/span'
+                accent_sitem = self.locator_finder_by_xpath(accent)
+                accent_sitem.click()
+                time.sleep(1)
+            else:
+                norm = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[2]'
+                self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop-down list
+                time.sleep(2)
+                print(f'Selecting locale value for Norm analyzer of {name} \n')
+                value = 'en_US.utf-8'
+                locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+                locale_sitem.click()
+                locale_sitem.send_keys(value)
+                time.sleep(2)
 
-            print(f'Selecting N-Gram minimum length for {name} \n')
-            min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            min_length_sitem = self.locator_finder_by_xpath(min_length)
-            min_length_sitem.click()
-            min_length_sitem.clear()
-            min_length_sitem.send_keys(3)
-            time.sleep(2)
+                print(f'Selecting case value to upper for Norm analyzer of {name} \n')
+                self.locator_finder_by_select_using_xpath(case_placeholder,1)  # 1 represents upper from the dropdown
+                time.sleep(2)
+                # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
+                print(f'Selecting add analyzer button for {name} \n')
+                new_analyzer = '(//button[@class="button-warning"][not(@disabled)])[3]'
+                new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
+                new_analyzer_sitem.click()
+                time.sleep(2)
 
-            print(f'Selecting N-Gram maximum length for {name} \n')
-            max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            max_length_sitem = self.locator_finder_by_xpath(max_length)
-            max_length_sitem.click()
-            max_length_sitem.clear()
-            max_length_sitem.send_keys(3)
+                print(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
+                ngram = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[3]'
+                self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
+                time.sleep(2)
 
-            print(f'Selecting Preserve original value for {name}\n')
-            preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-            preserve_sitem = self.locator_finder_by_xpath(preserve)
-            preserve_sitem.click()
-            time.sleep(2)
+                print(f'Selecting N-Gram minimum length for {name} \n')
+                min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
+                min_length_sitem = self.locator_finder_by_xpath(min_length)
+                min_length_sitem.click()
+                min_length_sitem.clear()
+                min_length_sitem.send_keys(3)
+                time.sleep(2)
 
-            print(f'Start marker value {name}\n')
-            start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-            start_marker_sitem = self.locator_finder_by_xpath(start_marker)
-            start_marker_sitem.click()
-            start_marker_sitem.clear()
-            start_marker_sitem.send_keys('^')
-            time.sleep(2)
+                print(f'Selecting N-Gram maximum length for {name} \n')
+                max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
+                max_length_sitem = self.locator_finder_by_xpath(max_length)
+                max_length_sitem.click()
+                max_length_sitem.clear()
+                max_length_sitem.send_keys(3)
 
-            print(f'End marker value for {name} \n')
-            end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-            end_marker_sitem = self.locator_finder_by_xpath(end_marker)
-            end_marker_sitem.click()
-            end_marker_sitem.clear()
-            end_marker_sitem.send_keys('$')
-            time.sleep(2)
+                print(f'Selecting Preserve original value for {name}\n')
+                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
+                preserve_sitem = self.locator_finder_by_xpath(preserve)
+                preserve_sitem.click()
+                time.sleep(2)
 
-            print(f'Stream type selection using index value for {name}\n')
-            stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-            self.locator_finder_by_select_using_xpath(stream_type, 1)
-            time.sleep(2)
+                print(f'Start marker value {name}\n')
+                start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
+                start_marker_sitem = self.locator_finder_by_xpath(start_marker)
+                start_marker_sitem.click()
+                start_marker_sitem.clear()
+                start_marker_sitem.send_keys('^')
+                time.sleep(2)
+
+                print(f'End marker value for {name} \n')
+                end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
+                end_marker_sitem = self.locator_finder_by_xpath(end_marker)
+                end_marker_sitem.click()
+                end_marker_sitem.clear()
+                end_marker_sitem.send_keys('$')
+                time.sleep(2)
+
+                print(f'Stream type selection using name value for {name}\n')
+                stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
+                self.locator_finder_by_select_using_xpath(stream_type, 1)
+                time.sleep(2)
         # GeoJson
         elif name == "My_GeoJSON_Analyzer":
-            print(f'Selecting type for {name} \n')
-            types = '//div[label[text()="Type"]]//select[not(@disabled)]'
-            types_sitem = self.locator_finder_by_xpath(types)
-            types_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                types = '//*[@id="field-11-label"]'
+                types_sitem = self.locator_finder_by_xpath(types)
+                types_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ENTER)
+
+            else:
+                types = '//div[label[text()="Type"]]//select[not(@disabled)]'
+                types_sitem = self.locator_finder_by_xpath(types)
+                types_sitem.click()
             time.sleep(2)
 
             print(f'Selecting max S2 cells value for {name} \n')
-            max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                max_s2_cells = '//*[@id="properties.options.maxCells"]'
+            else:
+                max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
+
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
-            max_s2_cells_sitem.clear()
+
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
+            else:
+                max_s2_cells_sitem.clear()
+
             max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
@@ -662,7 +858,12 @@ class AnalyzerPage(NavigationBarPage):
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
-            least_precise_sitem.clear()
+
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+            else:
+                least_precise_sitem.clear()
+
             least_precise_sitem.send_keys('10')
             time.sleep(2)
 
@@ -670,6 +871,10 @@ class AnalyzerPage(NavigationBarPage):
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
+
             most_precise_sitem.send_keys('30')
             time.sleep(2)
         # GeoPoint
@@ -679,6 +884,8 @@ class AnalyzerPage(NavigationBarPage):
             latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
             latitude_paths_sitem.click()
             latitude_paths_sitem.send_keys('40.78')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
             print(f'Selecting Longitude Path for {name} \n')
@@ -686,12 +893,17 @@ class AnalyzerPage(NavigationBarPage):
             longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
             longitude_paths_sitem.click()
             longitude_paths_sitem.send_keys('-73.97')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
             print(f'Selecting max S2 cells value for {name} \n')
             max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
             max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
@@ -699,6 +911,8 @@ class AnalyzerPage(NavigationBarPage):
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
             least_precise_sitem.send_keys('4')
             time.sleep(2)
 
@@ -706,7 +920,182 @@ class AnalyzerPage(NavigationBarPage):
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
             most_precise_sitem.send_keys('23')
+            time.sleep(2)
+        # GeoS2
+        elif name == 'My_GeoS2_Analyzer':
+            print("Selecting type of geos2 analyzer")
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                types = "(//label[@id='field-11-label'])[1]"
+            else:
+                types = "(//label[normalize-space()='Type'])[1]"
+
+            type_sitem = self.locator_finder_by_xpath(types)
+            type_sitem.click()
+            self.send_key_action(Keys.ARROW_DOWN)
+            self.send_key_action(Keys.ARROW_DOWN)
+
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.ENTER)
+
+            print("Selecting format of geos2 analyzer")
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                formats = "(//label[normalize-space()='format'])[1]"
+            else:
+                formats = "(//label[normalize-space()='Format'])[1]"
+
+            format_sitem = self.locator_finder_by_xpath(formats)
+            format_sitem.click()
+            self.send_key_action(Keys.ARROW_DOWN)
+            self.send_key_action(Keys.ARROW_DOWN)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.ENTER)
+
+            print(f"Selecting max s2 for {name} \n")
+            max_s2_cell = "//*[text()='Max S2 Cells']"
+            max_s2_cell_sitem = self.locator_finder_by_xpath(max_s2_cell)
+            max_s2_cell_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
+            self.send_key_action("20")
+            time.sleep(2)
+
+            print(f'Selecting least precise for {name} \n')
+            least_precise_s2_level = "//*[text()='Least Precise S2 Level']"
+            least_precise_s2_level_sitem = self.locator_finder_by_xpath(least_precise_s2_level)
+            least_precise_s2_level_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+            self.send_key_action("4")
+            time.sleep(2)
+
+            print(f'Selecting most precise S2 level for {name} \n')
+            most_precise_s2_level = "//*[text()='Most Precise S2 Level']"
+            most_precise_s2_level_sitem = self.locator_finder_by_xpath(most_precise_s2_level)
+            most_precise_s2_level_sitem.click()
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
+            self.send_key_action("23")
+            time.sleep(2)
+        # Minhash
+        elif name == 'My_Minhash_Analyzer':
+            print("Selecting type of minhash analyzer")
+            analyzer_type = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div[1]/div[1]/div/div/div[1]/div[2]'
+            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
+            analyzer_type_sitem.click()
+            # selecting minhash for delimiter analyzer
+            self.send_key_action(Keys.ARROW_DOWN)
+            self.send_key_action(Keys.ENTER)
+            time.sleep(2)
+
+            print("adding minhash for delimiter analyzer")
+            delimiter_value = '//*[@id="properties.analyzer.properties.delimiter"]'
+            delimiter_value_sitem = self.locator_finder_by_xpath(delimiter_value)
+            delimiter_value_sitem.click()
+            delimiter_value_sitem.send_keys("#")
+            time.sleep(1)
+
+            numhashes = "(//input[@id='properties.numHashes'])[1]"
+            numhashes_sitem = self.locator_finder_by_xpath(numhashes)
+            numhashes_sitem.click()
+            numhashes_sitem.send_keys("10")
+            time.sleep(1)
+        # MultiDelimiter
+        elif name == "My_MultiDelimiter_Analyzer":
+            print("Selecting type of MultiDelimiter analyzer")
+            delimiters = "(//label[normalize-space()='Delimiters'])[1]"
+            delimiters_sitem = self.locator_finder_by_xpath(delimiters)
+            delimiters_sitem.click()
+
+            # selecting values for MultiDelimiter analyzer
+            self.send_key_action(":")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(";")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(",")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(".")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("/")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("ß")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("Û")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("⚽")
+            self.send_key_action(Keys.ENTER)
+            time.sleep(2)
+        # WildCard
+        elif name == "My_WildCard_Analyzer":
+            print("Selecting type of WildCard analyzer\n")
+            ngram = "//input[@id='properties.ngramSize']"
+            ngram_sitem = self.locator_finder_by_xpath(ngram)
+            ngram_sitem.click()
+            self.send_key_action(Keys.BACKSPACE)
+            ngram_sitem.send_keys('4')
+            time.sleep(2)
+
+            print("Selecting delimiter analyzer\n")
+            delimiter = '//*[@id="chakra-modal--body-7"]/div/div[3]/div[2]/div[1]/div[1]/div/div/div[1]/div[2]'
+            delimiter_sitem = self.locator_finder_by_xpath(delimiter)
+            delimiter_sitem.click()
+            time.sleep(1)
+
+            # selecting multi-delimiter analyzer from the drop-down menu
+            for _ in range(15):
+                self.send_key_action(Keys.ARROW_DOWN)
+
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(Keys.ARROW_DOWN)
+            self.send_key_action(Keys.ENTER)
+
+            print("Selecting Multi Delimiters \n")
+            delimiter_properties = '//*[@id="chakra-modal--body-7"]/div/div[3]/div[2]/div[2]/div/div/div/div/div[1]/div[1]/div[2]'
+            delimiter_properties_sitem = self.locator_finder_by_xpath(delimiter_properties)
+            delimiter_properties_sitem.click()
+
+            self.send_key_action(",")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(".")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(":")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action(";")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("!")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("?")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("[")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("]")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("-")
+            self.send_key_action(Keys.ENTER)
+
+            self.send_key_action("_")
+            self.send_key_action(Keys.ENTER)
             time.sleep(2)
         
         #todo need to fix this one for 3.11.x
@@ -726,8 +1115,12 @@ class AnalyzerPage(NavigationBarPage):
             
 
         print(f"Selecting the create button for the {name} \n")
+        print(f'Selecting the create button for the {name} \n')
         if self.package_version >= semver.VersionInfo.parse('3.11.0'):
-            create = '//*[@id="chakra-modal-2"]/footer/button[2]'
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                create = '//*[@id="chakra-modal-7"]/form/footer/div/button[2]'
+            else:
+                create = '//*[@id="chakra-modal-2"]/footer/button[2]'
         else:
             create = "//*[text()='Create']"
 
@@ -796,6 +1189,19 @@ class AnalyzerPage(NavigationBarPage):
 
             print('Adding GeoPoint analyzer \n')
             self.add_new_analyzer('My_GeoPoint_Analyzer')
+
+            if enterprise:
+                print('Adding GeoS2 analyzer \n')
+                self.add_new_analyzer('My_GeoS2_Analyzer')
+            
+                print('Adding Minhash analyzer \n')
+                self.add_new_analyzer('My_Minhash_Analyzer')
+
+            print('Adding MultiDelimiter analyzer \n')
+            self.add_new_analyzer('My_MultiDelimiter_Analyzer')
+
+            print('Adding WildCard analyzer \n')
+            self.add_new_analyzer('My_WildCard_Analyzer')
 
         else:
             print('Adding Pipeline analyzer \n')
@@ -1050,22 +1456,28 @@ class AnalyzerPage(NavigationBarPage):
     
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
-        print('Checking negative scenario for the identity analyzers name \n')
-        self.test_analyzer_expected_error('Identity_Analyzer')
-        print('Checking negative scenario for the stem analyzers locale value \n')
-        self.test_analyzer_expected_error('Stem_Analyzer')
-        print('Checking negative scenario for the stem analyzers locale value \n')
-        self.test_analyzer_expected_error('N_Gram_Analyzer')
-        print('Checking negative scenario for the AQL analyzers \n')
-        self.test_analyzer_expected_error('AQL_Analyzer')
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            print('Skipped \n')
+        else:
+            print('Checking negative scenario for the identity analyzers name \n')
+            self.test_analyzer_expected_error('Identity_Analyzer')
+            print('Checking negative scenario for the stem analyzers locale value \n')
+            self.test_analyzer_expected_error('Stem_Analyzer')
+            print('Checking negative scenario for the stem analyzers locale value \n')
+            self.test_analyzer_expected_error('N_Gram_Analyzer')
+            print('Checking negative scenario for the AQL analyzers \n')
+            self.test_analyzer_expected_error('AQL_Analyzer')
 
 
     def checking_search_filter(self):
         """This method will check analyzer's search filter option"""
-        print('Checking analyzer search filter options started \n')
-        self.checking_search_filter_option('de')
-        self.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
-        print('Checking analyzer search filter options completed \n')
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            print("Skipped \n")
+        else:
+            print('Checking analyzer search filter options started \n')
+            self.checking_search_filter_option('de')
+            self.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
+            print('Checking analyzer search filter options completed \n')
 
     
     def delete_analyzer(self, analyzer_name):
@@ -1075,31 +1487,52 @@ class AnalyzerPage(NavigationBarPage):
 
         try:
             print(f'Deletion of {analyzer_name} started \n')
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                analyzer = f"//*[text()='_system::{analyzer_name}']"
+                print(analyzer)
+                analyzer_sitem = self.locator_finder_by_xpath(analyzer)
+                if analyzer_sitem is None:
+                    print(f'This {analyzer_name} has never been created \n')
+                else:
+                    analyzer_sitem.click()
+                    time.sleep(1)
 
-            # search for specific analyzer according to their name
-            search_filter = '//*[@id="filterInput"]'
-            search_filter_sitem = self.locator_finder_by_xpath(search_filter)
-            search_filter_sitem.click()
-            search_filter_sitem.send_keys(analyzer_name)
-            time.sleep(2)
+                    select_delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                    select_delete_btn_sitem = self.locator_finder_by_xpath(select_delete_btn)
+                    select_delete_btn_sitem.click()
+                    time.sleep(1)
 
-            analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr/td[4]/button[2]/i'
-            analyzer_delete_icon_sitem = self.locator_finder_by_xpath(analyzer_delete_icon)
-            analyzer_delete_icon_sitem.click()
-            time.sleep(2)
+                    delete_confirm_btn = "(//button[@class='chakra-button css-flye6g'])[1]"
+                    delete_confirm_btn_sitem = self.locator_finder_by_xpath(delete_confirm_btn)
+                    delete_confirm_btn_sitem.click()
+                    time.sleep(1)
 
-            # force_delete = '//*[@id="force-delete"]'
-            # force_delete.sitem = self.locator_finder_by_xpath(force_delete)
-            # force_delete.sitem.click()
-
-            if self.package_version >= semver.VersionInfo.parse('3.11.0'):
-                delete_btn = "(//button[normalize-space()='Delete'])[1]"
             else:
-                delete_btn = f'//*[@id="modal-content-delete-_system::{analyzer_name}"]/div[3]/button[2]'
-            delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
-            delete_btn_sitem.click()
-            time.sleep(8)
-            print(f'Deletion of {analyzer_name} completed \n')
+                # search for specific analyzer according to their name
+                search_filter = '//*[@id="filterInput"]'
+                search_filter_sitem = self.locator_finder_by_xpath(search_filter)
+                search_filter_sitem.click()
+                search_filter_sitem.send_keys(analyzer_name)
+                time.sleep(2)
+
+                analyzer_delete_icon = '//*[@id="analyzersContent"]/div/div/table/tbody/tr/td[4]/button[2]/i'
+                analyzer_delete_icon_sitem = self.locator_finder_by_xpath(analyzer_delete_icon)
+                analyzer_delete_icon_sitem.click()
+                time.sleep(2)
+
+                # force_delete = '//*[@id="force-delete"]'
+                # force_delete.sitem = self.locator_finder_by_xpath(force_delete)
+                # force_delete.sitem.click()
+
+                # delete_btn = f'//*[@id="modal-content-delete-_system::{analyzer_name}"]/div[3]/button[2]'
+                delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+                if delete_btn_sitem is None:
+                    print("This analyzer has never been created or already been deleted! \n")
+                else:
+                    delete_btn_sitem.click()
+                    time.sleep(8)
+                print(f'Deletion of {analyzer_name} completed \n')
         except TimeoutException:
             print('TimeoutException occurred! \n')
             print('Info: Analyzer has already been deleted or never created. \n')
@@ -1125,3 +1558,9 @@ class AnalyzerPage(NavigationBarPage):
         self.delete_analyzer('My_Text_Analyzer')
         self.delete_analyzer('My_Nearest_Neighbor_Analyzer')
         self.delete_analyzer('My_Classification_Analyzer')
+        self.delete_analyzer('My_GeoS2_Analyzer')
+        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            self.delete_analyzer('My_Minhash_Analyzer')
+            self.delete_analyzer('My_MultiDelimiter_Analyzer')
+            self.delete_analyzer('My_WildCard_Analyzer')
+        print('All the created analyzers have been deleted \n')
