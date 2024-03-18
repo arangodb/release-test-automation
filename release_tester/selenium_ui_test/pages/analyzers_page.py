@@ -482,18 +482,17 @@ class AnalyzerPage(NavigationBarPage):
                 print("skipped! \n")
             else:
                 stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-            
-            stopwords_sitem = self.locator_finder_by_xpath(stopwords)
-            stopwords_sitem.clear()
-            stopwords_sitem.send_keys('dog')
-            stopwords_sitem.send_keys(Keys.ENTER)
-            stopwords_sitem.send_keys('human')
-            stopwords_sitem.send_keys(Keys.ENTER)
-            stopwords_sitem.send_keys('tree')
-            stopwords_sitem.send_keys(Keys.ENTER)
-            stopwords_sitem.send_keys('of')
-            stopwords_sitem.send_keys(Keys.ENTER)
-            stopwords_sitem.send_keys('the')
+                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
+                stopwords_sitem.clear()
+                stopwords_sitem.send_keys('dog')
+                stopwords_sitem.send_keys(Keys.ENTER)
+                stopwords_sitem.send_keys('human')
+                stopwords_sitem.send_keys(Keys.ENTER)
+                stopwords_sitem.send_keys('tree')
+                stopwords_sitem.send_keys(Keys.ENTER)
+                stopwords_sitem.send_keys('of')
+                stopwords_sitem.send_keys(Keys.ENTER)
+                stopwords_sitem.send_keys('the')
 
             print(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
             if self.package_version >= semver.VersionInfo.parse('3.11.99'):
@@ -1193,15 +1192,18 @@ class AnalyzerPage(NavigationBarPage):
             if enterprise:
                 print('Adding GeoS2 analyzer \n')
                 self.add_new_analyzer('My_GeoS2_Analyzer')
+                
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                print('Adding MultiDelimiter analyzer \n')
+                self.add_new_analyzer('My_MultiDelimiter_Analyzer')
+
+                print('Adding WildCard analyzer \n')
+                self.add_new_analyzer('My_WildCard_Analyzer')
             
+            if self.package_version >= semver.VersionInfo.parse('3.11.99') and enterprise:
+                # UI only implemented for > v3.11.99
                 print('Adding Minhash analyzer \n')
                 self.add_new_analyzer('My_Minhash_Analyzer')
-
-            print('Adding MultiDelimiter analyzer \n')
-            self.add_new_analyzer('My_MultiDelimiter_Analyzer')
-
-            print('Adding WildCard analyzer \n')
-            self.add_new_analyzer('My_WildCard_Analyzer')
 
         else:
             print('Adding Pipeline analyzer \n')
