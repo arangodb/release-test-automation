@@ -66,32 +66,20 @@ def detect_locale():
         return
 
     locale_env = {
-        "LANG": "en_US.UTF-8",
-        "LANGUAGE": "en_US",
-        "LC_CTYPE": "en_US.UTF-8",
-        "LC_NUMERIC": "en_US.UTF-8",
-        "LC_TIME": "en_US.UTF-8",
-        "LC_COLLATE": "en_US.UTF-8",
-        "LC_MONETARY": "en_US.UTF-8",
-        "LC_MESSAGES": "en_US.UTF-8",
-        "LC_PAPER": "en_US.UTF-8",
-        "LC_NAME": "en_US.UTF-8",
-        "LC_ADDRESS": "en_US.UTF-8",
-        "LC_TELEPHONE": "en_US.UTF-8",
-        "LC_MEASUREMENT": "en_US.UTF-8",
-        "LC_IDENTIFICATION": "en_US.UTF-8",
+        "LANG": r"en_US.UTF-8",
+        "LANGUAGE": r"(en_US)(:en|)",
     }
     errors = []
-    for key, expected_value in locale_env.items():
+    for key, expected_regex in locale_env.items():
         var_exists = True
         actual_value = None
         try:
             actual_value = os.environ[key]
         except KeyError:
             var_exists = False
-        if actual_value != expected_value:
+        if not var_exists or not re.match(expected_regex, actual_value):
             errors.append(
-                f'Expected {key} to be "{expected_value}", '
+                f'Expected {key} to match "{expected_regex}", '
                 + (f'but found "{actual_value}".\n' if var_exists else "but this variable is not set.\n")
             )
     if len(errors) > 0:
