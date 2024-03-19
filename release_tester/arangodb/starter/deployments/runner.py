@@ -152,6 +152,7 @@ class Runner(ABC):
         properties: RunnerProperties,
         selenium_worker: str,
         selenium_driver_args: list,
+        selenium_include_suites: list,
         testrun_name: str,
     ):
         load_scenarios()
@@ -255,6 +256,7 @@ class Runner(ABC):
                 runner_type,
                 selenium_worker,
                 selenium_driver_args,
+                selenium_include_suites,
                 self.testrun_name,
                 self.cfg.ssl,
             )

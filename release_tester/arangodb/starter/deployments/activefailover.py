@@ -26,6 +26,7 @@ class ActiveFailover(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
+        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -38,6 +39,7 @@ class ActiveFailover(Runner):
             RunnerProperties("ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, 3),
             selenium,
             selenium_driver_args,
+            selenium_include_suites,
             testrun_name,
         )
         self.starter_instances = []

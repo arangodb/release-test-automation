@@ -18,6 +18,7 @@ from common_options import (
     full_common_options,
     hotbackup_options,
     matrix_options,
+    ui_test_suite_filtering_options,
 )
 from download import Download, DownloadOptions
 from test_driver import TestDriver
@@ -272,7 +273,10 @@ def upgrade_package_test(
                 params.enterprise = False
                 results.append(
                     test_driver.run_test_suites(
-                        include_suites=("DebuggerTestSuite", "BinaryComplianceTestSuite",),
+                        include_suites=(
+                            "DebuggerTestSuite",
+                            "BinaryComplianceTestSuite",
+                        ),
                         params=params,
                     )
                 )
@@ -297,6 +301,7 @@ def upgrade_package_test(
     test_suites_default_value=False,
 )
 @download_options(default_source="ftp:stage2", other_source=True)
+@ui_test_suite_filtering_options()
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument
 def main(**kwargs):

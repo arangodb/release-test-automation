@@ -42,6 +42,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.ui_data_dir = selenium_runner.cfg.ui_data_dir.resolve()
         self.is_enterprise = selenium_runner.cfg.enterprise
         self.is_headless = selenium_runner.is_headless
+        self.include_test_suites = selenium_runner.selenium_include_suites
         self.sub_suite_name = self.__doc__ or self.__class__.__name__
 
     def _init_allure(self):
@@ -206,3 +207,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
             assert ver["enterprise"] == "ENTERPRISE EDITION", "UI-Test: expected enterprise"
         else:
             assert ver["enterprise"] == "COMMUNITY EDITION", "UI-Test: expected community"
+
+    def run(self, *args, **kwargs):
+        if len(self.include_test_suites) == 0 or self.__class__.__name__ in self.include_test_suites:
+            super().run(*args, **kwargs)
