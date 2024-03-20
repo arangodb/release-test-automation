@@ -437,19 +437,19 @@ class InstallerBase(ABC):
                 )
             )
 
-            #self.arango_binaries.append(
-            #    BinaryDescription(
-            #        self.cfg.real_bin_dir,
-            #        "arangovpack",
-            #        "arangovpack - VelocyPack formatter",
-            #        False,
-            #        True,
-            #        "1.0.0",
-            #        "4.0.0",
-            #        [],
-            #        "c++",
-            #    )
-            #)
+            self.arango_binaries.append(
+                BinaryDescription(
+                    self.cfg.real_bin_dir,
+                    "arangovpack",
+                    "arangovpack - VelocyPack formatter",
+                    False,
+                    True,
+                    "1.0.0",
+                    "4.0.0",
+                    [],
+                    "c++",
+                )
+            )
 
             # enterprise
             self.arango_binaries.append(
