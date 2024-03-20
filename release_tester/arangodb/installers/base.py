@@ -536,7 +536,7 @@ class InstallerBase(ABC):
                     "rclone-arangodb",
                     "",
                     False,
-                    False,
+                    True,
                     "3.5.1",
                     "4.0.0",
                     [],
