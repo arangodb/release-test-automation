@@ -80,7 +80,7 @@ done
 
 DOCKER_ARGS+=(
        -v "$(pwd)/../:/work"
-       --env=WORK_DIR=/work/ArangoDB
+       --env=BASE_DIR=/work/ArangoDB
 )
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
