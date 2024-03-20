@@ -33,7 +33,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_help_filter_btn(self):
         """Selecting help button"""
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             print("select_help_filter_btn test skipped \n")
         else:
             self.webdriver.refresh()
@@ -143,7 +143,7 @@ class AnalyzerPage(NavigationBarPage):
         to the collection page then it's an error.
         """
 
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             print("checking_analyzer_page_transition test skipped \n")
         else:
             self.navbar_goto("analyzers")
@@ -182,7 +182,7 @@ class AnalyzerPage(NavigationBarPage):
             self.navbar_goto("analyzers")
     
     def checking_all_built_in_analyzer(self):
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             print("select_help_filter_btn test skipped \n")
         else:
             print('Showing in-built Analyzers list \n')
@@ -223,6 +223,7 @@ class AnalyzerPage(NavigationBarPage):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
         index = self.index
+    
         match name:
             case "My_Identity_Analyzer":
                 index = 0
@@ -245,56 +246,28 @@ class AnalyzerPage(NavigationBarPage):
             case "My_Segmentation_Alpha_Analyzer":
                 index = 9
             case "My_Nearest_Neighbor_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 10
+                index = 10 if self.version_is_newer_than('3.9.99') else 9
             case "My_Classification_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 11
+                index = 11 if self.version_is_newer_than('3.9.99') else 9
             case "My_Pipeline_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 12
-                else:
-                    index = 10
+                index = 12 if self.version_is_newer_than('3.9.99') else 10
             case "My_GeoJSON_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 13
-                else:
-                    index = 11
+                index = 13 if self.version_is_newer_than('3.9.99') else 11
             case "My_GeoPoint_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 14
-                else:
-                    index = 12
+                index = 14 if self.version_is_newer_than('3.9.99') else 12
             case "My_GeoS2_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 15
-                else:
-                    index = 13
+                index = 15 if self.version_is_newer_than('3.9.99') else 13
             case "My_Minhash_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 16
-                else:
-                    index = 14
-            case "My_Minhash_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 16
-                else:
-                    index = 14
+                index = 16 if self.version_is_newer_than('3.9.99') else 14
             case "My_MultiDelimiter_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 17
-                else:
-                    index = 15
+                index = 17 if self.version_is_newer_than('3.9.99') else 15
             case "My_WildCard_Analyzer":
-                if self.package_version >= semver.VersionInfo.parse('3.10.0'):
-                    index = 18
-                else:
-                    index = 16
-
+                index = 18 if self.version_is_newer_than('3.9.99') else 16
+        
         self.select_analyzers_page()
         self.webdriver.refresh()
 
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             add_new_analyzer_btn = '//*[@id="content-react"]/div/div[1]/span/button'
         else:
             add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
@@ -305,7 +278,7 @@ class AnalyzerPage(NavigationBarPage):
 
         print(f'Creating {name} started \n')
         # common attributes for all the analyzer
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             analyzer_name = "(//input[@id='name'])[1]"
             analyzer_type = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
             frequency = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[1]/span[1]/span'
@@ -331,7 +304,7 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         print('Selecting analyzer type \n')
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
             analyzer_type_sitem.click()
             time.sleep(2)
@@ -386,7 +359,7 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.send_keys(value)
 
             print('Selecting case for norm analyzer using index value \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 case_sitem = self.locator_finder_by_xpath(case_placeholder)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -395,7 +368,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.locator_finder_by_select_using_xpath(case_placeholder, 0)
 
             print('Selecting accent for norm analyzer \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
             else:
                 accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
@@ -423,7 +396,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Preserve original value for {name}\n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 preserve = "(//span[@class='chakra-switch__thumb css-7roig'])[5]"
             else:
                 preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
@@ -449,7 +422,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Stream type selection using index value for {name}\n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 stream_type = "(//label[normalize-space()='Stream Type'])[1]"
                 stream_type_sitem = self.locator_finder_by_xpath(stream_type)
                 stream_type_sitem.click()
@@ -478,7 +451,7 @@ class AnalyzerPage(NavigationBarPage):
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
             print(f'Selecting stopwords for the {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 print("skipped! \n")
             else:
                 stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
@@ -495,7 +468,7 @@ class AnalyzerPage(NavigationBarPage):
                 stopwords_sitem.send_keys('the')
 
             print(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 case = "(//label[normalize-space()='Case'])[1]"
                 case_sitem = self.locator_finder_by_xpath(case)
                 case_sitem.click()
@@ -505,7 +478,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.locator_finder_by_select_using_xpath(case_placeholder, 1)
 
             print('Selecting stem for the analyzer \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 stem = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[5]/div/div/label[2]/span/span'
             else:
                 stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
@@ -514,7 +487,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print('Selecting accent for the analyzer \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[6]/div/div/label[2]/span/span'
             else:
                 accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
@@ -537,13 +510,13 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting preserve original for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 preserve = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[9]/div/div/label[2]/span/span'
             else:
                 preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
             preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 print("skipped")
             else:
                 preserve_sitem.send_keys('3')
@@ -560,7 +533,7 @@ class AnalyzerPage(NavigationBarPage):
             batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
             batch_size_sitem = self.locator_finder_by_xpath(batch_size)
             batch_size_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             else:
                 batch_size_sitem.clear()
@@ -571,7 +544,7 @@ class AnalyzerPage(NavigationBarPage):
             memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
             memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
             memory_limit_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             else:
                 memory_limit_sitem.clear()
@@ -579,7 +552,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting collapse position for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 collapse = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[4]/div/div/label[2]/span/span'
             else:
                 collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
@@ -588,7 +561,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting keep null for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 print('Skipped \n')
             else:
                 keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
@@ -597,7 +570,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting Return type for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 return_type = "(//label[normalize-space()='Return Type'])[1]"
                 return_type_sitem = self.locator_finder_by_xpath(return_type)
                 return_type_sitem.click()
@@ -611,7 +584,7 @@ class AnalyzerPage(NavigationBarPage):
         # for stopwords
         elif name == "My_Stopwords_Analyzer":
             print(f'Selecting stopwords for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 stopwords = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div/div[1]/div[1]/div[2]'
                 stopwords_sitem = self.locator_finder_by_xpath(stopwords)
                 stopwords_sitem.click()
@@ -630,7 +603,7 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(1)
 
             print(f'Selecting hex value for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 hex_value = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[2]/div/div/label[2]/span/span'
             else:
                 hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
@@ -649,7 +622,7 @@ class AnalyzerPage(NavigationBarPage):
         # Segmentation alpha 
         elif name == "My_Segmentation_Alpha_Analyzer":
             print(f'Selecting segmentation break as alpha for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 alpha_break = "(//label[normalize-space()='Break'])[1]"
                 alpha_break_sitem = self.locator_finder_by_xpath(alpha_break)
                 alpha_break_sitem.click()
@@ -661,7 +634,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting segmentation case as lower for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 case_lower = "(//label[normalize-space()='Case'])[1]"
                 case_lower_sitem = self.locator_finder_by_xpath(case_lower)
                 case_lower_sitem.click()
@@ -711,7 +684,7 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "My_Pipeline_Analyzer":
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             print(f'Selecting add analyzer button for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 add_analyzer01 = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/button'
             else:
                 add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
@@ -720,7 +693,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(1)
 
             print(f'Selecting first pipeline analyzer as Norm for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 norm = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div/div/div/div[1]/div[2]'
                 norm_sitem = self.locator_finder_by_xpath(norm)
                 norm_sitem.click()
@@ -820,7 +793,7 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(2)
         # GeoJson
         elif name == "My_GeoJSON_Analyzer":
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 types = '//*[@id="field-11-label"]'
                 types_sitem = self.locator_finder_by_xpath(types)
                 types_sitem.click()
@@ -836,7 +809,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting max S2 cells value for {name} \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 max_s2_cells = '//*[@id="properties.options.maxCells"]'
             else:
                 max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
@@ -844,7 +817,7 @@ class AnalyzerPage(NavigationBarPage):
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
 
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             else:
@@ -858,7 +831,7 @@ class AnalyzerPage(NavigationBarPage):
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
 
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             else:
                 least_precise_sitem.clear()
@@ -870,7 +843,7 @@ class AnalyzerPage(NavigationBarPage):
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
 
@@ -883,7 +856,7 @@ class AnalyzerPage(NavigationBarPage):
             latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
             latitude_paths_sitem.click()
             latitude_paths_sitem.send_keys('40.78')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
@@ -892,7 +865,7 @@ class AnalyzerPage(NavigationBarPage):
             longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
             longitude_paths_sitem.click()
             longitude_paths_sitem.send_keys('-73.97')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
@@ -900,7 +873,7 @@ class AnalyzerPage(NavigationBarPage):
             max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             max_s2_cells_sitem.send_keys('20')
@@ -910,7 +883,7 @@ class AnalyzerPage(NavigationBarPage):
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             least_precise_sitem.send_keys('4')
             time.sleep(2)
@@ -919,7 +892,7 @@ class AnalyzerPage(NavigationBarPage):
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             most_precise_sitem.send_keys('23')
@@ -927,7 +900,7 @@ class AnalyzerPage(NavigationBarPage):
         # GeoS2
         elif name == 'My_GeoS2_Analyzer':
             print("Selecting type of geos2 analyzer")
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 types = "(//label[@id='field-11-label'])[1]"
             else:
                 types = "(//label[normalize-space()='Type'])[1]"
@@ -937,11 +910,11 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ARROW_DOWN)
 
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.ENTER)
 
             print("Selecting format of geos2 analyzer")
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 formats = "(//label[normalize-space()='format'])[1]"
             else:
                 formats = "(//label[normalize-space()='Format'])[1]"
@@ -950,14 +923,14 @@ class AnalyzerPage(NavigationBarPage):
             format_sitem.click()
             self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ARROW_DOWN)
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.ENTER)
 
             print(f"Selecting max s2 for {name} \n")
             max_s2_cell = "//*[text()='Max S2 Cells']"
             max_s2_cell_sitem = self.locator_finder_by_xpath(max_s2_cell)
             max_s2_cell_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             self.send_key_action("20")
@@ -967,7 +940,7 @@ class AnalyzerPage(NavigationBarPage):
             least_precise_s2_level = "//*[text()='Least Precise S2 Level']"
             least_precise_s2_level_sitem = self.locator_finder_by_xpath(least_precise_s2_level)
             least_precise_s2_level_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             self.send_key_action("4")
             time.sleep(2)
@@ -976,7 +949,7 @@ class AnalyzerPage(NavigationBarPage):
             most_precise_s2_level = "//*[text()='Most Precise S2 Level']"
             most_precise_s2_level_sitem = self.locator_finder_by_xpath(most_precise_s2_level)
             most_precise_s2_level_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             self.send_key_action("23")
@@ -1098,7 +1071,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         
         #todo need to fix this one for 3.11.x
-        if self.package_version >= semver.VersionInfo.parse('3.11.0'):
+        if self.version_is_newer_than('3.11.0'):
             print("skiped switching view for code view\n")
         else:
             print(f'Switching current view to form view for {name}\n')
@@ -1115,8 +1088,8 @@ class AnalyzerPage(NavigationBarPage):
 
         print(f"Selecting the create button for the {name} \n")
         print(f'Selecting the create button for the {name} \n')
-        if self.package_version >= semver.VersionInfo.parse('3.11.0'):
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.0'):
+            if self.version_is_newer_than('3.11.99'):
                 create = '//*[@id="chakra-modal-7"]/form/footer/div/button[2]'
             else:
                 create = '//*[@id="chakra-modal-2"]/footer/button[2]'
@@ -1140,80 +1113,121 @@ class AnalyzerPage(NavigationBarPage):
         print(f"Creating {name} completed successfully \n")
 
     
-    def creating_all_supported_analyzer(self, enterprise, model_location=None):
-        """This method will create all the supported version specific analyzers"""
-        print('Adding Identity analyzer \n')
-        self.add_new_analyzer('My_Identity_Analyzer')
+    # def creating_all_supported_analyzer(self, enterprise, model_location=None):
+    #     """This method will create all the supported version specific analyzers"""
+    #     print('Adding Identity analyzer \n')
+    #     self.add_new_analyzer('My_Identity_Analyzer')
 
-        print('Adding Delimiter analyzer \n')
-        self.add_new_analyzer('My_Delimiter_Analyzer')
+    #     print('Adding Delimiter analyzer \n')
+    #     self.add_new_analyzer('My_Delimiter_Analyzer')
 
-        print('Adding Stem analyzer \n')
-        self.add_new_analyzer('My_Stem_Analyzer')
+    #     print('Adding Stem analyzer \n')
+    #     self.add_new_analyzer('My_Stem_Analyzer')
 
-        print('Adding Norm analyzer \n')
-        self.add_new_analyzer('My_Norm_Analyzer')
+    #     print('Adding Norm analyzer \n')
+    #     self.add_new_analyzer('My_Norm_Analyzer')
 
-        print('Adding N-Gram analyzer \n')
-        self.add_new_analyzer('My_N-Gram_Analyzer')
+    #     print('Adding N-Gram analyzer \n')
+    #     self.add_new_analyzer('My_N-Gram_Analyzer')
 
-        print('Adding Text analyzer \n')
-        self.add_new_analyzer('My_Text_Analyzer')
+    #     print('Adding Text analyzer \n')
+    #     self.add_new_analyzer('My_Text_Analyzer')
 
-        print('Adding AQL analyzer \n')
-        self.add_new_analyzer('My_AQL_Analyzer')
+    #     print('Adding AQL analyzer \n')
+    #     self.add_new_analyzer('My_AQL_Analyzer')
 
-        print('Adding Stopwords analyzer \n')
-        self.add_new_analyzer('My_Stopwords_Analyzer')
+    #     print('Adding Stopwords analyzer \n')
+    #     self.add_new_analyzer('My_Stopwords_Analyzer')
 
-        print('Adding Collation analyzer \n')
-        self.add_new_analyzer('My_Collation_Analyzer')
+    #     print('Adding Collation analyzer \n')
+    #     self.add_new_analyzer('My_Collation_Analyzer')
 
-        print('Adding Segmentation analyzer \n')
-        self.add_new_analyzer('My_Segmentation_Alpha_Analyzer')
+    #     print('Adding Segmentation analyzer \n')
+    #     self.add_new_analyzer('My_Segmentation_Alpha_Analyzer')
 
-        if self.package_version >= semver.VersionInfo.parse('3.10.0'): 
-            if enterprise:
-                print('Adding nearest-neighbor analyzer \n')
-                self.add_new_analyzer('My_Nearest_Neighbor_Analyzer', model_location)
+    #     if self.version_is_newer_than('3.10.0'): 
+    #         if enterprise:
+    #             print('Adding nearest-neighbor analyzer \n')
+    #             self.add_new_analyzer('My_Nearest_Neighbor_Analyzer', model_location)
 
-                print('Adding classification analyzer \n')
-                self.add_new_analyzer('My_Classification_Analyzer', model_location)
+    #             print('Adding classification analyzer \n')
+    #             self.add_new_analyzer('My_Classification_Analyzer', model_location)
 
-            print('Adding Pipeline analyzer \n')
-            self.add_new_analyzer('My_Pipeline_Analyzer')
+    #         print('Adding Pipeline analyzer \n')
+    #         self.add_new_analyzer('My_Pipeline_Analyzer')
 
-            print('Adding GeoJSON analyzer \n')
-            self.add_new_analyzer('My_GeoJSON_Analyzer')
+    #         print('Adding GeoJSON analyzer \n')
+    #         self.add_new_analyzer('My_GeoJSON_Analyzer')
 
-            print('Adding GeoPoint analyzer \n')
-            self.add_new_analyzer('My_GeoPoint_Analyzer')
+    #         print('Adding GeoPoint analyzer \n')
+    #         self.add_new_analyzer('My_GeoPoint_Analyzer')
 
-            if enterprise:
-                print('Adding GeoS2 analyzer \n')
-                self.add_new_analyzer('My_GeoS2_Analyzer')
+    #         if enterprise:
+    #             print('Adding GeoS2 analyzer \n')
+    #             self.add_new_analyzer('My_GeoS2_Analyzer')
                 
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
-                print('Adding MultiDelimiter analyzer \n')
-                self.add_new_analyzer('My_MultiDelimiter_Analyzer')
+    #         if self.version_is_newer_than('3.11.99'):
+    #             print('Adding MultiDelimiter analyzer \n')
+    #             self.add_new_analyzer('My_MultiDelimiter_Analyzer')
 
-                print('Adding WildCard analyzer \n')
-                self.add_new_analyzer('My_WildCard_Analyzer')
+    #             print('Adding WildCard analyzer \n')
+    #             self.add_new_analyzer('My_WildCard_Analyzer')
             
-            if self.package_version >= semver.VersionInfo.parse('3.11.99') and enterprise:
-                # UI only implemented for > v3.11.99
-                print('Adding Minhash analyzer \n')
-                self.add_new_analyzer('My_Minhash_Analyzer')
+    #         if self.version_is_newer_than('3.11.99') and enterprise:
+    #             # UI only implemented for > v3.11.99
+    #             print('Adding Minhash analyzer \n')
+    #             self.add_new_analyzer('My_Minhash_Analyzer')
 
-        else:
-            print('Adding Pipeline analyzer \n')
-            self.add_new_analyzer('My_Pipeline_Analyzer')
+    #     else:
+    #         print('Adding Pipeline analyzer \n')
+    #         self.add_new_analyzer('My_Pipeline_Analyzer')
 
-            print('Adding GeoJSON analyzer \n')
-            self.add_new_analyzer('My_GeoJSON_Analyzer')
+    #         print('Adding GeoJSON analyzer \n')
+    #         self.add_new_analyzer('My_GeoJSON_Analyzer')
 
-            print('Adding GeoPoint analyzer \n')
-            self.add_new_analyzer('My_GeoPoint_Analyzer')
+    #         print('Adding GeoPoint analyzer \n')
+    #         self.add_new_analyzer('My_GeoPoint_Analyzer')
+        
+    def creating_all_supported_analyzer(self, enterprise, model_location=None):
+        """This method will create all the supported version-specific analyzers"""
+        decode_analyzers = {
+            "My_Identity_Analyzer": [0, None],
+            "My_Delimiter_Analyzer": [0, None],
+            "My_Stem_Analyzer": [0, None],
+            "My_Norm_Analyzer": [0, None],
+            "My_N-Gram_Analyzer": [0, None],
+            "My_Text_Analyzer": [0, None],
+            "My_AQL_Analyzer": [0, None],
+            "My_Stopwords_Analyzer": [0, None],
+            "My_Collation_Analyzer": [0, None],
+            "My_Segmentation_Alpha_Analyzer": [0, None],
+            "My_Pipeline_Analyzer": [0, semver.VersionInfo.parse('3.10.0')],
+            "My_GeoJSON_Analyzer": [0, semver.VersionInfo.parse('3.10.0')],
+            "My_GeoPoint_Analyzer": [0, semver.VersionInfo.parse('3.10.0')],
+            "My_MultiDelimiter_Analyzer": [0, semver.VersionInfo.parse('3.11.99')],
+            "My_WildCard_Analyzer": [0, semver.VersionInfo.parse('3.11.99')],
+            "My_Minhash_Analyzer": [0, semver.VersionInfo.parse('3.11.99')] if enterprise and self.version_is_newer_than('3.11.99') else [0, None],
+            "My_Nearest_Neighbor_Analyzer": [1 if enterprise else 0, semver.VersionInfo.parse('3.10.0')] if enterprise else [0, None],
+            "My_Classification_Analyzer": [1 if enterprise else 0, semver.VersionInfo.parse('3.10.0')] if enterprise else [0, None],
+            "My_GeoS2_Analyzer": [0, None] if enterprise else [0, None]
+        }
+
+        # Loop through each analyzer in the dictionary
+        for analyzer_name, config in decode_analyzers.items():
+            # Retrieve parameters and version requirement for the current analyzer
+            num_params, version_requirement = config
+            
+            # Check if the current package version meets the version requirement
+            if version_requirement is None or self.version_is_newer_than(str(version_requirement)):
+                print(f'Adding {analyzer_name} analyzer\n')
+                # Create the analyzer based on the number of parameters required
+                if num_params == 0:
+                    self.add_new_analyzer(analyzer_name)
+                elif num_params == 1:
+                    self.add_new_analyzer(analyzer_name, model_location)
+                else:
+                    # Additional handling can be added for analyzers with more parameters if needed in future
+                    pass
 
     
     def checking_search_filter_option(self, value, builtin=True):
@@ -1444,7 +1458,7 @@ class AnalyzerPage(NavigationBarPage):
                 )
 
             print(f"Closing the {name} check \n")
-            if self.package_version >= semver.VersionInfo.parse('3.11.0'):
+            if self.version_is_newer_than('3.11.0'):
                 close_btn = '//*[@id="chakra-modal-2"]/footer/button[1]'
             else:
                 close_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[1]'
@@ -1458,7 +1472,7 @@ class AnalyzerPage(NavigationBarPage):
     
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             print('Skipped \n')
         else:
             print('Checking negative scenario for the identity analyzers name \n')
@@ -1473,7 +1487,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def checking_search_filter(self):
         """This method will check analyzer's search filter option"""
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             print("Skipped \n")
         else:
             print('Checking analyzer search filter options started \n')
@@ -1489,9 +1503,8 @@ class AnalyzerPage(NavigationBarPage):
 
         try:
             print(f'Deletion of {analyzer_name} started \n')
-            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+            if self.version_is_newer_than('3.11.99'):
                 analyzer = f"//*[text()='_system::{analyzer_name}']"
-                print(analyzer)
                 analyzer_sitem = self.locator_finder_by_xpath(analyzer)
                 if analyzer_sitem is None:
                     print(f'This {analyzer_name} has never been created \n')
@@ -1561,7 +1574,7 @@ class AnalyzerPage(NavigationBarPage):
         self.delete_analyzer('My_Nearest_Neighbor_Analyzer')
         self.delete_analyzer('My_Classification_Analyzer')
         self.delete_analyzer('My_GeoS2_Analyzer')
-        if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+        if self.version_is_newer_than('3.11.99'):
             self.delete_analyzer('My_Minhash_Analyzer')
             self.delete_analyzer('My_MultiDelimiter_Analyzer')
             self.delete_analyzer('My_WildCard_Analyzer')

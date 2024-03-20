@@ -268,11 +268,23 @@ class BasePage:
         return ui_version >= compare_version
 
     def current_package_version(self):
-        """checking current package version from the dashboard"""
+        """ checking current package version from the dashboard"""
         package_version = "currentVersion"
         package_version = self.locator_finder_by_id(package_version).text
         print("Package Version: ", package_version)
         return semver.VersionInfo.parse(package_version)
+    
+    def version_is_newer_than(self, version_str):
+        """Check if the current package version is newer than the specified version."""
+        current_version = self.current_package_version()
+        specified_version = semver.VersionInfo.parse(version_str)
+        return current_version > specified_version
+
+    def version_is_older_than(self, version_str):
+        """Check if the current package version is older than the specified version."""
+        current_version = self.current_package_version()
+        specified_version = semver.VersionInfo.parse(version_str)
+        return current_version < specified_version
 
     def current_user(self):
         """get the currently logged in user from the page upper middle"""
