@@ -1111,83 +1111,7 @@ class AnalyzerPage(NavigationBarPage):
         except TimeoutException:
             print("Error occurred!! required manual inspection.\n")
         print(f"Creating {name} completed successfully \n")
-
     
-    # def creating_all_supported_analyzer(self, enterprise, model_location=None):
-    #     """This method will create all the supported version specific analyzers"""
-    #     print('Adding Identity analyzer \n')
-    #     self.add_new_analyzer('My_Identity_Analyzer')
-
-    #     print('Adding Delimiter analyzer \n')
-    #     self.add_new_analyzer('My_Delimiter_Analyzer')
-
-    #     print('Adding Stem analyzer \n')
-    #     self.add_new_analyzer('My_Stem_Analyzer')
-
-    #     print('Adding Norm analyzer \n')
-    #     self.add_new_analyzer('My_Norm_Analyzer')
-
-    #     print('Adding N-Gram analyzer \n')
-    #     self.add_new_analyzer('My_N-Gram_Analyzer')
-
-    #     print('Adding Text analyzer \n')
-    #     self.add_new_analyzer('My_Text_Analyzer')
-
-    #     print('Adding AQL analyzer \n')
-    #     self.add_new_analyzer('My_AQL_Analyzer')
-
-    #     print('Adding Stopwords analyzer \n')
-    #     self.add_new_analyzer('My_Stopwords_Analyzer')
-
-    #     print('Adding Collation analyzer \n')
-    #     self.add_new_analyzer('My_Collation_Analyzer')
-
-    #     print('Adding Segmentation analyzer \n')
-    #     self.add_new_analyzer('My_Segmentation_Alpha_Analyzer')
-
-    #     if self.version_is_newer_than('3.10.0'): 
-    #         if enterprise:
-    #             print('Adding nearest-neighbor analyzer \n')
-    #             self.add_new_analyzer('My_Nearest_Neighbor_Analyzer', model_location)
-
-    #             print('Adding classification analyzer \n')
-    #             self.add_new_analyzer('My_Classification_Analyzer', model_location)
-
-    #         print('Adding Pipeline analyzer \n')
-    #         self.add_new_analyzer('My_Pipeline_Analyzer')
-
-    #         print('Adding GeoJSON analyzer \n')
-    #         self.add_new_analyzer('My_GeoJSON_Analyzer')
-
-    #         print('Adding GeoPoint analyzer \n')
-    #         self.add_new_analyzer('My_GeoPoint_Analyzer')
-
-    #         if enterprise:
-    #             print('Adding GeoS2 analyzer \n')
-    #             self.add_new_analyzer('My_GeoS2_Analyzer')
-                
-    #         if self.version_is_newer_than('3.11.99'):
-    #             print('Adding MultiDelimiter analyzer \n')
-    #             self.add_new_analyzer('My_MultiDelimiter_Analyzer')
-
-    #             print('Adding WildCard analyzer \n')
-    #             self.add_new_analyzer('My_WildCard_Analyzer')
-            
-    #         if self.version_is_newer_than('3.11.99') and enterprise:
-    #             # UI only implemented for > v3.11.99
-    #             print('Adding Minhash analyzer \n')
-    #             self.add_new_analyzer('My_Minhash_Analyzer')
-
-    #     else:
-    #         print('Adding Pipeline analyzer \n')
-    #         self.add_new_analyzer('My_Pipeline_Analyzer')
-
-    #         print('Adding GeoJSON analyzer \n')
-    #         self.add_new_analyzer('My_GeoJSON_Analyzer')
-
-    #         print('Adding GeoPoint analyzer \n')
-    #         self.add_new_analyzer('My_GeoPoint_Analyzer')
-        
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
@@ -1221,6 +1145,9 @@ class AnalyzerPage(NavigationBarPage):
             if version_requirement is None or self.version_is_newer_than(str(version_requirement)):
                 print(f'Adding {analyzer_name} analyzer\n')
                 # Create the analyzer based on the number of parameters required
+                if analyzer_name == "My_Minhash_Analyzer" and (not enterprise or not self.version_is_newer_than('3.11.99')):
+                    print(f'Skipping {analyzer_name} creation\n')
+                    continue  # Skip creating the Minhash Analyzer for < v3.11.99
                 if num_params == 0:
                     self.add_new_analyzer(analyzer_name)
                 elif num_params == 1:
@@ -1228,6 +1155,7 @@ class AnalyzerPage(NavigationBarPage):
                 else:
                     # Additional handling can be added for analyzers with more parameters if needed in future
                     pass
+
 
     
     def checking_search_filter_option(self, value, builtin=True):
