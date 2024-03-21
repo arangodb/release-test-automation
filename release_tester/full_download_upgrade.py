@@ -12,7 +12,8 @@ import semver
 
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
+from common_options import very_common_options, common_options, download_options, full_common_options, \
+    hotbackup_options, ui_test_suite_filtering_options
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
@@ -162,6 +163,7 @@ def upgrade_package_test(
     test_data_dir="/home/test_dir",
 )
 @download_options(default_source="ftp:stage2", double_source=True)
+@ui_test_suite_filtering_options()
 def main(**kwargs):
     """main"""
     kwargs["interactive"] = False

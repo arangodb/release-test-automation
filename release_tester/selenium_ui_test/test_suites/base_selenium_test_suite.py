@@ -210,4 +210,4 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def run(self, *args, **kwargs):
         if len(self.include_test_suites) == 0 or self.__class__.__name__ in self.include_test_suites:
-            super().run(*args, **kwargs)
+            return super().run(*args, **kwargs)

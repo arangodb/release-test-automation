@@ -9,7 +9,8 @@ from pathlib import Path
 import click
 
 from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
+from common_options import very_common_options, common_options, download_options, full_common_options, \
+    hotbackup_options, ui_test_suite_filtering_options
 from download import DownloadOptions
 from full_download_upgrade_test import upgrade_package_test
 from test_driver import TestDriver
@@ -36,6 +37,7 @@ from tools.release_tracker_client.client import ReleaseTrackerApiClient, OS, Arc
     test_data_dir="/home/test_dir",
 )
 @download_options(default_source="ftp:stage2", other_source=True)
+@ui_test_suite_filtering_options()
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument, disable=invalid-name
 def main(**kwargs):
