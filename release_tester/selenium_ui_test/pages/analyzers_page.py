@@ -180,89 +180,70 @@ class AnalyzerPage(NavigationBarPage):
             self.webdriver.refresh()
             # going back to analyzer page for the rest of the tests
             self.navbar_goto("analyzers")
-    
+            
     def checking_all_built_in_analyzer(self):
+        built_in_analyzers = [
+            "identity",
+            "text_de",
+            "text_en",
+            "text_es",
+            "text_fi",
+            "text_fr",
+            "text_it",
+            "text_nl",
+            "text_no",
+            "text_pt",
+            "text_ru",
+            "text_sv",
+            "text_zh"
+        ]
+        
         if self.version_is_newer_than('3.11.99'):
             print("select_help_filter_btn test skipped \n")
         else:
             print('Showing in-built Analyzers list \n')
             self.select_built_in_analyzers_open()
-
-            print('Checking in-built identity analyzer \n')
-            self.select_analyzer_to_check("identity", '//tr/td[text()="identity"]/following-sibling::td[2]/button')
-            print('Checking in-built text_de analyzer \n')
-            self.select_analyzer_to_check("text_de", '//tr/td[text()="text_de"]/following-sibling::td[2]/button')
-            print('Checking in-built text_en analyzer \n')
-            self.select_analyzer_to_check('text_en', '//tr/td[text()="text_en"]/following-sibling::td[2]/button')
-            print('Checking in-built text_es analyzer \n')
-            self.select_analyzer_to_check('text_es', '//tr/td[text()="text_es"]/following-sibling::td[2]/button')
-            print('Checking in-built text_fi analyzer \n')
-            self.select_analyzer_to_check('text_fi', '//tr/td[text()="text_fi"]/following-sibling::td[2]/button')
-            print('Checking in-built text_fr analyzer \n')
-            self.select_analyzer_to_check('text_fr', '//tr/td[text()="text_fr"]/following-sibling::td[2]/button')
-            print('Checking in-built text_it analyzer \n')
-            self.select_analyzer_to_check('text_it', '//tr/td[text()="text_it"]/following-sibling::td[2]/button')
-            print('Checking in-built text_nl analyzer \n')
-            self.select_analyzer_to_check('text_nl', '//tr/td[text()="text_nl"]/following-sibling::td[2]/button')
-            print('Checking in-built text_no analyzer \n')
-            self.select_analyzer_to_check('text_no', '//tr/td[text()="text_no"]/following-sibling::td[2]/button')
-            print('Checking in-built text_pt analyzer \n')
-            self.select_analyzer_to_check('text_pt', '//tr/td[text()="text_pt"]/following-sibling::td[2]/button')
-            print('Checking in-built text_ru analyzer \n')
-            self.select_analyzer_to_check('text_ru', '//tr/td[text()="text_ru"]/following-sibling::td[2]/button')
-            print('Checking in-built text_sv analyzer \n')
-            self.select_analyzer_to_check('text_sv', '//tr/td[text()="text_sv"]/following-sibling::td[2]/button')
-            print('Checking in-built text_zh analyzer \n')
-            self.select_analyzer_to_check('text_zh', '//tr/td[text()="text_zh"]/following-sibling::td[2]/button')
-
+            
+            for analyzer in built_in_analyzers:
+                print(f'Checking in-built {analyzer} analyzer \n')
+                xpath = f'//tr/td[text()="{analyzer}"]/following-sibling::td[2]/button'
+                self.select_analyzer_to_check(analyzer, xpath)
+            
             print('Hiding in-built Analyzers list \n')
             self.select_built_in_analyzers_close()
+
+    def get_analyzer_index(self, name):
+        analyzer_lookup = {
+            "My_Identity_Analyzer": 0,
+            "My_Delimiter_Analyzer": 1,
+            "My_Stem_Analyzer": 2,
+            "My_Norm_Analyzer": 3,
+            "My_N-Gram_Analyzer": 4,
+            "My_Text_Analyzer": 5,
+            "My_AQL_Analyzer": 6,
+            "My_Stopwords_Analyzer": 7,
+            "My_Collation_Analyzer": 8,
+            "My_Segmentation_Alpha_Analyzer": 9,
+            "My_Nearest_Neighbor_Analyzer": 10 if self.version_is_newer_than('3.9.99') else 9,
+            "My_Classification_Analyzer": 11 if self.version_is_newer_than('3.9.99') else 9,
+            "My_Pipeline_Analyzer": 12 if self.version_is_newer_than('3.9.99') else 10,
+            "My_GeoJSON_Analyzer": 13 if self.version_is_newer_than('3.9.99') else 11,
+            "My_GeoPoint_Analyzer": 14 if self.version_is_newer_than('3.9.99') else 12,
+            "My_GeoS2_Analyzer": 15 if self.version_is_newer_than('3.9.99') else 13,
+            "My_Minhash_Analyzer": 16 if self.version_is_newer_than('3.9.99') else 14,
+            "My_MultiDelimiter_Analyzer": 17 if self.version_is_newer_than('3.9.99') else 15,
+            "My_WildCard_Analyzer": 18 if self.version_is_newer_than('3.9.99') else 16
+        }
+        return analyzer_lookup.get(name, -1)  # Return -1 if the analyzer name is not found
 
 
     def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
-        index = self.index
-    
-        match name:
-            case "My_Identity_Analyzer":
-                index = 0
-            case "My_Delimiter_Analyzer":
-                index = 1
-            case "My_Stem_Analyzer":
-                index = 2
-            case "My_Norm_Analyzer":
-                index = 3
-            case "My_N-Gram_Analyzer":
-                index = 4
-            case "My_Text_Analyzer":
-                index = 5
-            case "My_AQL_Analyzer":
-                index = 6
-            case "My_Stopwords_Analyzer":
-                index = 7
-            case "My_Collation_Analyzer":
-                index = 8
-            case "My_Segmentation_Alpha_Analyzer":
-                index = 9
-            case "My_Nearest_Neighbor_Analyzer":
-                index = 10 if self.version_is_newer_than('3.9.99') else 9
-            case "My_Classification_Analyzer":
-                index = 11 if self.version_is_newer_than('3.9.99') else 9
-            case "My_Pipeline_Analyzer":
-                index = 12 if self.version_is_newer_than('3.9.99') else 10
-            case "My_GeoJSON_Analyzer":
-                index = 13 if self.version_is_newer_than('3.9.99') else 11
-            case "My_GeoPoint_Analyzer":
-                index = 14 if self.version_is_newer_than('3.9.99') else 12
-            case "My_GeoS2_Analyzer":
-                index = 15 if self.version_is_newer_than('3.9.99') else 13
-            case "My_Minhash_Analyzer":
-                index = 16 if self.version_is_newer_than('3.9.99') else 14
-            case "My_MultiDelimiter_Analyzer":
-                index = 17 if self.version_is_newer_than('3.9.99') else 15
-            case "My_WildCard_Analyzer":
-                index = 18 if self.version_is_newer_than('3.9.99') else 16
+        index = self.get_analyzer_index(name)
+        if index == -1:
+            print(f"Analyzer '{name}' not found in the lookup table.")
+            return
         
         self.select_analyzers_page()
         self.webdriver.refresh()
