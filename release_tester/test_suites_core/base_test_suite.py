@@ -49,6 +49,9 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         self.sub_suite_name = None
         self.test_suite_context = None
         self.parent_test_suite_name = None
+        # If test suites are filtered, this can prevent the test suite from running,
+        # but still allow to run child suites if they are not filtered
+        self.run_own_test_cases = True
 
     def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(
@@ -117,7 +120,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     except:
                         pass
             if not self._is_disabled():
-                if self.has_own_testcases():
+                if self.has_own_testcases() and self.run_own_test_cases:
                     self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
                 for suite_class in self.child_classes:
                     suite = self.init_child_class(suite_class)

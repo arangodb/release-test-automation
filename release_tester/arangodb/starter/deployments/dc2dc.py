@@ -104,6 +104,7 @@ class Dc2Dc(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
+        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -116,6 +117,7 @@ class Dc2Dc(Runner):
             RunnerProperties("DC2DC", 0, 4500, True, ssl, replication2, use_auto_certs, 12),
             selenium,
             selenium_driver_args,
+            selenium_include_suites,
             testrun_name,
         )
         self.success = True
@@ -640,10 +642,9 @@ class Dc2Dc(Runner):
             raise Exception("check data on cluster1 failed after re-sync " + ret[1])
 
         self.progress(True, "checking whether volatile data has been removed from both DCs")
-        if (
-            not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2")
-            or not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2")
-        ):
+        if not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2") or not self.cluster2[
+            "instance"
+        ].arangosh.hotbackup_check_for_nonbackup_data("_DC2"):
             raise Exception("expected data created on disconnected follower DC to be gone!")
 
         self.progress(True, "stopping sync")
@@ -662,8 +663,7 @@ class Dc2Dc(Runner):
         self._get_in_sync(20)
 
     def shutdown_impl(self):
-        return (self.cluster1["instance"].terminate_instance() or
-                self.cluster2["instance"].terminate_instance())
+        return self.cluster1["instance"].terminate_instance() or self.cluster2["instance"].terminate_instance()
 
     def before_backup_create_impl(self):
         pass

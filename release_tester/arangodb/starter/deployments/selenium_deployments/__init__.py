@@ -14,12 +14,13 @@ def init(
     runner_type: RunnerType,
     selenium_worker: str,
     selenium_driver_args: list,
+    selenium_include_suites: list,
     testrun_name: str,
     ssl: bool,
 ) -> SeleniumRunner:
     """build selenium testcase for runner_type"""
-    if '_' in selenium_worker:
-        sw_split = selenium_worker.split('_')
+    if "_" in selenium_worker:
+        sw_split = selenium_worker.split("_")
         driver_func = getattr(webdriver, sw_split[0])
         selenium_worker = sw_split[1].lower()
         worker_options = ""
@@ -38,16 +39,16 @@ def init(
         options = opts_func()
         kwargs[worker_options + "options"] = options
         for opt in selenium_driver_args:
-            split_opts = opt.split('=')
+            split_opts = opt.split("=")
             if opt == "headless":
                 is_headless = True
             elif len(split_opts) == 2:
-                if split_opts[0] == 'command_executor':
+                if split_opts[0] == "command_executor":
                     is_headless = True
-                    kwargs['command_executor'] = split_opts[1]
+                    kwargs["command_executor"] = split_opts[1]
                     continue
             elif len(split_opts) >= 3:
-                key=split_opts.pop(0)
+                key = split_opts.pop(0)
                 where_to_put = {}
                 while len(split_opts) > 2:
                     if split_opts[0] not in where_to_put:
@@ -55,13 +56,13 @@ def init(
                     where_to_put = where_to_put[split_opts[0]]
                 if len(split_opts) == 2:
                     val = split_opts[1]
-                    if val == 'True':
+                    if val == "True":
                         val = True
-                    elif val == 'False':
+                    elif val == "False":
                         val = False
                     where_to_put[split_opts[0]] = val
                     options.set_capability(key, where_to_put)
-                    split_opts=[]
+                    split_opts = []
                 continue
             options.add_argument("--" + opt)
 
@@ -97,42 +98,42 @@ def init(
             Single,
         )
 
-        return Single(driver, is_headless, testrun_name, ssl)
+        return Single(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.selenium_deployments.leaderfollower import (
             LeaderFollower,
         )
 
-        return LeaderFollower(driver, is_headless, testrun_name, ssl)
+        return LeaderFollower(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.ACTIVE_FAILOVER:
         from arangodb.starter.deployments.selenium_deployments.activefailover import (
             ActiveFailover,
         )
 
-        return ActiveFailover(driver, is_headless, testrun_name, ssl)
+        return ActiveFailover(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.selenium_deployments.cluster import Cluster
 
-        return Cluster(driver, is_headless, testrun_name, ssl)
+        return Cluster(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.DC2DC:
         from arangodb.starter.deployments.selenium_deployments.dc2dc import Dc2Dc
 
-        return Dc2Dc(driver, is_headless, testrun_name, ssl)
+        return Dc2Dc(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.DC2DCENDURANCE:
         from arangodb.starter.deployments.selenium_deployments.dc2dc_endurance import (
             Dc2DcEndurance,
         )
 
-        return Dc2DcEndurance(driver, is_headless, testrun_name, ssl)
+        return Dc2DcEndurance(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.selenium_deployments.none import NoStarter
 
-        return NoStarter(driver, is_headless, testrun_name, ssl)
+        return NoStarter(driver, is_headless, testrun_name, ssl, selenium_include_suites)
 
     raise Exception("unknown starter type")
