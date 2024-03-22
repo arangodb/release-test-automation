@@ -535,7 +535,7 @@ class InstallerBase(ABC):
                     self.cfg.real_sbin_dir,
                     "rclone-arangodb",
                     "",
-                    False,
+                    True,
                     True,
                     "3.5.1",
                     "4.0.0",
