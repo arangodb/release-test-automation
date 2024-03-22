@@ -282,7 +282,7 @@ def upgrade_package_test(
                 )
 
     print("V" * 80)
-    if not write_table(results):
+    if not write_table(results, True):
         print("exiting with failure")
         return 1
     return 0
