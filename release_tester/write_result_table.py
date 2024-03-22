@@ -44,12 +44,12 @@ def write_table(results, statusFile=False):
         tablestr = str(table)
         Path("testfailures.txt").write_text(tablestr, encoding="utf8")
         if statusFile:
-            Path("status.json").write_text("true" if status else "false", encoding="utf8")
+            Path("status.json").write_text("0" if status else "1", encoding="utf8")
         print(tablestr)
         return status
     except Exception as ex:
         if statusFile:
-            Path("status.json").write_text("false", encoding="utf8")
+            Path("status.json").write_text("1", encoding="utf8")
         print("Write result table has thrown!")
         print(ex)
         pprint(results)
