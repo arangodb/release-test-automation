@@ -54,7 +54,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         finally:
             if self.package_version >= semver.VersionInfo.parse("3.9.0"):
                 print("Analyzer deletion started.")
-                analyzers.deleting_all_created_analyzers()
+                # analyzers.deleting_all_created_analyzers()
                 del analyzers
                 print("---------Analyzers Page Test Completed--------- \n")
                 if self.exception:

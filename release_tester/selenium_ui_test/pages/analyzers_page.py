@@ -1084,10 +1084,17 @@ class AnalyzerPage(NavigationBarPage):
         # checking the creation of the analyzer using the green notification bar appears at the bottom
         try:
             print(f"Checking successful creation of the {name} \n")
-            success_message = "noty_body"
-            success_message_sitem = self.locator_finder_by_class(success_message).text
-            print("Notification: ", success_message_sitem, "\n")
-            expected_msg = f"Success: Created Analyzer: _system::{name}"
+            if self.version_is_newer_than('3.11.99'):
+                success_message = "/html/body/div[10]/ul[5]/li/div/div/div/div"
+                success_message_sitem = self.locator_finder_by_xpath(success_message).text
+                print("Notification: ", success_message_sitem, "\n")
+                expected_msg = f"The analyzer: {name} was successfully created"
+            else:
+                success_message = "noty_body"
+                success_message_sitem = self.locator_finder_by_class(success_message).text
+                print("Notification: ", success_message_sitem, "\n")
+                expected_msg = f"Success: Created Analyzer: _system::{name}"
+
             assert expected_msg == success_message_sitem, f"Expected {expected_msg} but got {success_message_sitem}"
         except TimeoutException:
             print("Error occurred!! required manual inspection.\n")
@@ -1096,45 +1103,45 @@ class AnalyzerPage(NavigationBarPage):
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
-            "My_Identity_Analyzer": [0, None],
-            "My_Delimiter_Analyzer": [0, None],
-            "My_Stem_Analyzer": [0, None],
-            "My_Norm_Analyzer": [0, None],
-            "My_N-Gram_Analyzer": [0, None],
-            "My_Text_Analyzer": [0, None],
-            "My_AQL_Analyzer": [0, None],
-            "My_Stopwords_Analyzer": [0, None],
-            "My_Collation_Analyzer": [0, None],
-            "My_Segmentation_Alpha_Analyzer": [0, None],
-            "My_Pipeline_Analyzer": [0, semver.VersionInfo.parse('3.10.0')],
-            "My_GeoJSON_Analyzer": [0, semver.VersionInfo.parse('3.10.0')],
-            "My_GeoPoint_Analyzer": [0, semver.VersionInfo.parse('3.10.0')],
-            "My_MultiDelimiter_Analyzer": [0, semver.VersionInfo.parse('3.11.99')],
-            "My_WildCard_Analyzer": [0, semver.VersionInfo.parse('3.11.99')],
-            "My_Minhash_Analyzer": [0, semver.VersionInfo.parse('3.11.99')] if enterprise and self.version_is_newer_than('3.11.99') else [0, None],
-            "My_Nearest_Neighbor_Analyzer": [1 if enterprise else 0, semver.VersionInfo.parse('3.10.0')] if enterprise else [0, None],
-            "My_Classification_Analyzer": [1 if enterprise else 0, semver.VersionInfo.parse('3.10.0')] if enterprise else [0, None],
-            "My_GeoS2_Analyzer": [0, None] if enterprise else [0, None]
+            "My_Identity_Analyzer": (0, None, False),
+            "My_Delimiter_Analyzer": (0, None, False),
+            "My_Stem_Analyzer": (0, None, False),
+            "My_Norm_Analyzer": (0, None, False),
+            "My_N-Gram_Analyzer": (0, None, False),
+            "My_Text_Analyzer": (0, None, False),
+            "My_AQL_Analyzer": (0, None, False),
+            "My_Stopwords_Analyzer": (0, None, False),
+            "My_Collation_Analyzer": (0, None, False),
+            "My_Segmentation_Alpha_Analyzer": (0, None, False),
+            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
+            "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
+            "My_GeoS2_Analyzer": (0, None, not enterprise)
         }
 
         # Loop through each analyzer in the dictionary
         for analyzer_name, config in decode_analyzers.items():
-            # Retrieve parameters and version requirement for the current analyzer
-            num_params, version_requirement = config
-            
+            # Retrieve parameters, version requirement, and skip condition for the current analyzer
+            num_params, version_requirement, skip_condition = config
+            # Check if the analyzer should be skipped
+            if skip_condition:
+                print(f'Skipping {analyzer_name} creation\n')
+                continue
             # Check if the current package version meets the version requirement
             if version_requirement is None or self.version_is_newer_than(str(version_requirement)):
                 print(f'Adding {analyzer_name} analyzer\n')
                 # Create the analyzer based on the number of parameters required
-                if analyzer_name == "My_Minhash_Analyzer" and (not enterprise or not self.version_is_newer_than('3.11.99')):
-                    print(f'Skipping {analyzer_name} creation\n')
-                    continue  # Skip creating the Minhash Analyzer for < v3.11.99
                 if num_params == 0:
                     self.add_new_analyzer(analyzer_name)
                 elif num_params == 1:
                     self.add_new_analyzer(analyzer_name, model_location)
                 else:
-                    # Additional handling can be added for analyzers with more parameters if needed in future
+                    # Additional handling can be added for analyzers with more parameters if needed in the future
                     pass
 
 
