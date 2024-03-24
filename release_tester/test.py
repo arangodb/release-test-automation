@@ -8,7 +8,7 @@ import sys
 import click
 import semver
 
-from common_options import very_common_options, common_options, hotbackup_options, ui_test_suite_filtering_options
+from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
 
@@ -30,7 +30,6 @@ from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseCon
 @very_common_options()
 @hotbackup_options()
 @common_options(support_old=False)
-@ui_test_suite_filtering_options()
 def main(**kwargs):
     """main"""
     kwargs["stress_upgrade"] = False

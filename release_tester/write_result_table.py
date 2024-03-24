@@ -4,7 +4,7 @@ from pathlib import Path
 from pprint import pprint
 from beautifultable import BeautifulTable, ALIGN_LEFT
 
-def write_table(results, statusFile=False):
+def write_table(results):
     """write a nice ascii table with results"""
     try:
         status = True
@@ -43,13 +43,9 @@ def write_table(results, statusFile=False):
 
         tablestr = str(table)
         Path("testfailures.txt").write_text(tablestr, encoding="utf8")
-        if statusFile:
-            Path("status.json").write_text("0" if status else "1", encoding="utf8")
         print(tablestr)
         return status
     except Exception as ex:
-        if statusFile:
-            Path("status.json").write_text("1", encoding="utf8")
         print("Write result table has thrown!")
         print(ex)
         pprint(results)

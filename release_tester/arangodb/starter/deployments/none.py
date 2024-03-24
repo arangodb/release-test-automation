@@ -15,7 +15,6 @@ class NoStarter(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
-        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -29,7 +28,6 @@ class NoStarter(Runner):
             RunnerProperties("none", 0, 1, False, ssl, replication2, use_auto_certs, 1),
             selenium,
             selenium_driver_args,
-            selenium_include_suites,
             testrun_name,
         )
 
