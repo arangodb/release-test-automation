@@ -2,9 +2,9 @@ FROM centos:8
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
 ENV container docker
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+#ENV LANG en_US.UTF-8
+#ENV LANGUAGE en_US:en
+#ENV LC_ALL en_US.UTF-8
 ENV PYTHONPATH /home/release-test-automation/release_tester
 ARG PYTHON_VERSION="3.10.10"
 ARG OPENSSL_VERSION="1.1.1t"

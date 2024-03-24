@@ -35,7 +35,6 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
             use_auto_certs=False,
             selenium_worker="none",
             selenium_driver_args=[],
-            selenium_include_suites=[],
             runner_properties=RunProperties(
                 enterprise=True,
                 encryption_at_rest=False,

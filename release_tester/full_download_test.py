@@ -8,14 +8,7 @@ import sys
 import click
 import semver
 
-from common_options import (
-    very_common_options,
-    common_options,
-    download_options,
-    full_common_options,
-    hotbackup_options,
-    ui_test_suite_filtering_options,
-)
+from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
 
 from write_result_table import write_table
 
@@ -100,11 +93,7 @@ def package_test(
             params.enterprise = True
             results.append(
                 test_driver.run_test_suites(
-                    include_suites=(
-                        "DebuggerTestSuite",
-                        "BasicLicenseManagerTestSuite",
-                        "BinaryComplianceTestSuite",
-                    ),
+                    include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "BinaryComplianceTestSuite",),
                     params=params,
                 )
             )
@@ -112,10 +101,7 @@ def package_test(
             params.enterprise = False
             results.append(
                 test_driver.run_test_suites(
-                    include_suites=(
-                        "DebuggerTestSuite",
-                        "BinaryComplianceTestSuite",
-                    ),
+                    include_suites=("DebuggerTestSuite", "BinaryComplianceTestSuite",),
                     params=params,
                 )
             )
@@ -137,7 +123,6 @@ def package_test(
     test_data_dir="/home/test_dir",
 )
 @download_options(default_source="ftp:stage2", double_source=True)
-@ui_test_suite_filtering_options()
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument
 def main(**kwargs):

@@ -31,7 +31,6 @@ class Cluster(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
-        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -44,7 +43,6 @@ class Cluster(Runner):
             RunnerProperties("CLUSTER", 400, 600, True, ssl, replication2, use_auto_certs, 6),
             selenium,
             selenium_driver_args,
-            selenium_include_suites,
             testrun_name,
         )
         # self.cfg.frontends = []
@@ -151,7 +149,7 @@ db.testCollection.save({test: "document"})
         self.set_frontend_instances()
 
     def _check_for_shards_in_sync(self):
-        """wait for all shards to be in sync"""
+        """ wait for all shards to be in sync """
         lh.subsubsection("wait for all shards to be in sync - Jamming")
         retval = self.starter_instances[0].arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),

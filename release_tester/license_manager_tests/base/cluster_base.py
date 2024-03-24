@@ -34,7 +34,6 @@ class LicenseManagerClusterBaseTestSuite(LicenseManagerBaseTestSuite):
             abort_on_error=False,
             selenium_worker="none",
             selenium_driver_args=[],
-            selenium_include_suites=[],
             installer_set=self.installer_set,
             runner_properties=RunProperties(
                 enterprise=True,

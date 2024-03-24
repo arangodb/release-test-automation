@@ -16,27 +16,25 @@ from selenium.common.exceptions import InvalidSessionIdException
 
 FNRX = re.compile("[\n@]*")
 
-
 def cleanup_temp_files(is_headless):
-    """attempt to cleanup the selenoid docker contaires leftovers"""
+    """ attempt to cleanup the selenoid docker contaires leftovers """
     if is_headless and os.getuid() == 0:
-        tmpdir = "/tmp"  # tempfile.gettempdir()
-        trashme_rx = "(?:% s)" % f"|{tmpdir}/".join(
-            [
-                "pulse-*",
-                "xvfb-run.*",
-                ".X99-lock",
-                ".X11-unix",
-                ".org.chromium.Chromium.*",
-                ".com.google.Chrome.*",
-                ".org.chromium.Chromium.*",
-            ]
-        )
+        tmpdir = '/tmp' # tempfile.gettempdir()
+        trashme_rx = '(?:% s)' % f"|{tmpdir}/".join([
+            'pulse-*',
+            'xvfb-run.*',
+            '.X99-lock',
+            '.X11-unix',
+            '.org.chromium.Chromium.*',
+            '.com.google.Chrome.*',
+            '.org.chromium.Chromium.*'
+            ])
         print(f"cleanup headless files: {str(trashme_rx)}")
         for one_tmp_file in Path(tmpdir).iterdir():
             print(f"checking {str(one_tmp_file)}")
             try:
-                if re.match(trashme_rx, str(one_tmp_file)) and one_tmp_file.group() == "root":
+                if (re.match(trashme_rx, str(one_tmp_file)) and
+                    one_tmp_file.group() == 'root'):
                     print(f"Purging: {str(one_tmp_file)}")
                     if one_tmp_file.is_dir():
                         shutil.rmtree(one_tmp_file)
@@ -45,11 +43,10 @@ def cleanup_temp_files(is_headless):
             except FileNotFoundError:
                 pass
 
-
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     # pylint: disable=line-too-long disable=too-many-public-methods disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
+    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
         """hi"""
         self.ssl = ssl
         self.is_headless = is_headless
@@ -72,7 +69,6 @@ class SeleniumRunner(ABC):
         self.after_install_test_suite_list = []
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
-        self.selenium_include_suites = selenium_include_suites
 
     def _cleanup_temp_files(self):
         cleanup_temp_files(self.is_headless)
@@ -162,7 +158,7 @@ class SeleniumRunner(ABC):
             )
 
         self.progress("Taking screenshot")
-
+        
         # pylint: disable=broad-except
         try:
             if self.webdriver is not None:
@@ -182,7 +178,7 @@ class SeleniumRunner(ABC):
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
             screenshot = self.webdriver.get_screenshot_as_png()
-
+        
         self.get_browser_log_entries()
         self.progress("Saving screenshot to file: %s" % filename)
         with open(filename, "wb") as file:
@@ -193,6 +189,7 @@ class SeleniumRunner(ABC):
             name="Screenshot ({fn})".format(fn=filename),
             attachment_type=AttachmentType.PNG,
         )
+
 
     # pylint: disable=no-else-return
     def get_protocol(self):
