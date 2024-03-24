@@ -94,6 +94,7 @@ class TestDriver:
         self.use_auto_certs = kwargs["use_auto_certs"]
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
+        self.selenium_include_suites = [] if not "ui_include_test_suites" in kwargs else kwargs["ui_include_test_suites"]
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
@@ -193,7 +194,7 @@ class TestDriver:
         ]
         for runner_type in starter_mode:
             assert runner_type
-            runner = make_runner(runner_type, False, "none", [], installer_set, run_properties)
+            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties)
             runner.cleanup()
         if inst.calc_config_file_name().is_file():
             try:
@@ -262,6 +263,7 @@ class TestDriver:
                             self.abort_on_error,
                             self.selenium,
                             self.selenium_driver_args,
+                            self.selenium_include_suites,
                             installers,
                             run_props,
                             use_auto_certs=self.use_auto_certs,
@@ -425,6 +427,7 @@ class TestDriver:
                         self.abort_on_error,
                         self.selenium,
                         self.selenium_driver_args,
+                        self.selenium_include_suites,
                         installers,
                         run_props,
                         use_auto_certs=self.use_auto_certs,

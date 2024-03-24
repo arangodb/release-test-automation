@@ -42,7 +42,10 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.ui_data_dir = selenium_runner.cfg.ui_data_dir.resolve()
         self.is_enterprise = selenium_runner.cfg.enterprise
         self.is_headless = selenium_runner.is_headless
+        self.include_test_suites = selenium_runner.selenium_include_suites
         self.sub_suite_name = self.__doc__ or self.__class__.__name__
+        if len(self.include_test_suites) > 0 and self.__class__.__name__ not in self.include_test_suites:
+            self.run_own_test_cases = False
 
     def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(

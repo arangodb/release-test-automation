@@ -27,6 +27,7 @@ class LeaderFollower(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
+        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -39,6 +40,7 @@ class LeaderFollower(Runner):
             RunnerProperties("LeaderFollower", 400, 500, False, ssl, False, use_auto_certs, 2),
             selenium,
             selenium_driver_args,
+            selenium_include_suites,
             testrun_name,
         )
 

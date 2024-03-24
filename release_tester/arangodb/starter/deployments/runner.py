@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ baseclass to manage a starter based installation """
-# pylint: disable=too-many-lines disable=broad-exception-raised
+# pylint: disable=too-many-lines
 from abc import abstractmethod, ABC
 import copy
 from datetime import datetime, timedelta
@@ -60,6 +60,43 @@ def detect_file_ulimit():
         resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
 
 
+def detect_locale():
+    """check that system locale is set correctly"""
+    if sys.platform != "linux":
+        return
+
+    locale_env = {
+        "LANG": r"en_US(|:.*)",
+        "LANGUAGE": r"en_US(|:.*)",
+        "LC_CTYPE": r"(^$)|(en_US(|:.*))",
+        "LC_NUMERIC": r"(^$)|(en_US(|:.*))",
+        "LC_TIME": r"(^$)|(en_US(|:.*))",
+        "LC_COLLATE": r"(^$)|(en_US(|:.*))",
+        "LC_MONETARY": r"(^$)|(en_US(|:.*))",
+        "LC_MESSAGES": r"(^$)|(en_US(|:.*))",
+        "LC_PAPER": r"(^$)|(en_US(|:.*))",
+        "LC_NAME": r"(^$)|(en_US(|:.*))",
+        "LC_ADDRESS": r"(^$)|(en_US(|:.*))",
+        "LC_TELEPHONE": r"(^$)|(en_US(|:.*))",
+        "LC_MEASUREMENT": r"(^$)|(en_US(|:.*))",
+        "LC_IDENTIFICATION": r"(^$)|(en_US(|:.*))",
+    }
+    errors = []
+    for key, expected_regex in locale_env.items():
+        var_exists = True
+        try:
+            actual_value = os.environ[key]
+        except KeyError:
+            actual_value = ""
+        if not var_exists or not re.match(expected_regex, actual_value):
+            errors.append(
+                f'Expected {key} to match "{expected_regex}", '
+                + (f'but found "{actual_value}".\n' if var_exists else "but this variable is not set.\n")
+            )
+    if len(errors) > 0:
+        raise Exception("Incorrect locale environment variable(s):\n" + "".join(errors))
+
+
 def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
     path_to_cfg = Path(starter_dir, "setup.json")
@@ -115,6 +152,7 @@ class Runner(ABC):
         properties: RunnerProperties,
         selenium_worker: str,
         selenium_driver_args: list,
+        selenium_include_suites: list,
         testrun_name: str,
     ):
         load_scenarios()
@@ -218,6 +256,7 @@ class Runner(ABC):
                 runner_type,
                 selenium_worker,
                 selenium_driver_args,
+                selenium_include_suites,
                 self.testrun_name,
                 self.cfg.ssl,
             )
@@ -290,6 +329,7 @@ class Runner(ABC):
         # pylint: disable=too-many-statements disable=too-many-branches
         if self.do_starter_test and not self.remote:
             detect_file_ulimit()
+            detect_locale()
 
         versions_count = len(self.installers)
         is_single_test = versions_count == 1
@@ -970,7 +1010,7 @@ class Runner(ABC):
         )
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
-            if (self.hot_backup):
+            if self.hot_backup:
                 for starter in self.starter_instances:
                     starter.cleanup_hotbackup_in_instance()
                 # we just assume that we might have the "remote" directory in this subdir:
@@ -1166,7 +1206,7 @@ class Runner(ABC):
         logging.info("Removing from agency the server with UUID: " + str(server_uuid))
         body = '{"server": "%s"}' % server_uuid
         deadline = datetime.now() + timedelta(seconds=deadline)
-        while datetime.now() < deadline :
+        while datetime.now() < deadline:
             reply = self.starter_instances[0].send_request(
                 InstanceType.COORDINATOR,
                 requests.post,

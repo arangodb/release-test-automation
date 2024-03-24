@@ -27,9 +27,9 @@ fi
 if test -z "$OLD_VERSION"; then
     OLD_VERSION=3.11.0-nightly
 fi
-if test -z "$NEW_VERSION"; then
-    NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
-fi
+ if test -z "$NEW_VERSION"; then
+     NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
+ fi
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
@@ -79,9 +79,8 @@ done
 . ./jenkins/common/register_cleanup_trap.sh
 
 DOCKER_ARGS+=(
-       -v "$(pwd)/../../:/oskar"
        -v "$(pwd)/../:/work"
-       --env=BASE_DIR=/oskar
+       --env=BASE_DIR=/work/ArangoDB
 )
 # we need --init since our upgrade leans on zombies not happening:
 docker run \

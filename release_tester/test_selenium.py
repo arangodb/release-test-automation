@@ -5,7 +5,7 @@
 from pathlib import Path
 
 import click
-from common_options import very_common_options, common_options
+from common_options import very_common_options, common_options, ui_test_suite_filtering_options
 from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import RunnerType, make_runner, STARTER_MODES
 import tools.loghelper as lh
@@ -28,6 +28,7 @@ def run_upgrade(
     publicip,
     selenium,
     selenium_driver_args,
+    ui_include_test_suites,
     run_props: RunProperties,
 ):
     """execute upgrade tests"""
@@ -72,7 +73,15 @@ def run_upgrade(
         installers[0][0].add_frontend("http", "127.0.0.1", "8529")
         runner = None
         if runner_type:
-            runner = make_runner(runner_type, abort_on_error, selenium, selenium_driver_args, installers, run_props)
+            runner = make_runner(
+                runner_type,
+                abort_on_error,
+                selenium,
+                selenium_driver_args,
+                ui_include_test_suites,
+                installers,
+                run_props,
+            )
 
             if runner:
                 runner.run_selenium()
@@ -81,6 +90,7 @@ def run_upgrade(
 @click.command()
 @very_common_options()
 @common_options(support_old=True)
+@ui_test_suite_filtering_options()
 # fmt: off
 # pylint: disable=too-many-arguments disable=unused-argument
 def main(
@@ -91,13 +101,13 @@ def main(
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args, ssl):
+        selenium, selenium_driver_args, ui_include_test_suites, ssl):
     """ main trampoline """
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        zip_package, hot_backup, hb_provider, hb_storage_path_prefix, interactive,
                        starter_mode, stress_upgrade, abort_on_error,
-                       publicip, selenium, selenium_driver_args,
+                       publicip, selenium, selenium_driver_args, ui_include_test_suites,
                        RunProperties(enterprise,
                                      encryption_at_rest,
                                      ssl))

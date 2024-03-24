@@ -27,6 +27,7 @@ class Single(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
+        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -39,6 +40,7 @@ class Single(Runner):
             RunnerProperties("Single", 400, 500, True, ssl, False, use_auto_certs, 1),
             selenium,
             selenium_driver_args,
+            selenium_include_suites,
             testrun_name,
         )
 
