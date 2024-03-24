@@ -164,6 +164,23 @@ def test_suite_filtering_options():
     return inner_func
 
 
+def ui_test_suite_filtering_options():
+    """options for filtering UI test suites"""
+
+    def inner_func(function):
+        function = click.option(
+            "--ui-include-test-suite",
+            "ui_include_test_suites",
+            default=[],
+            type=click.STRING,
+            multiple=True,
+            help="List of UI test suite names to run.",
+        )(function)
+        return function
+
+    return inner_func
+
+
 def very_common_options(support_multi_version=False):
     """These options are in all scripts
     most => arangodb.installers.InstallerBaseConfig"""
@@ -282,6 +299,7 @@ def common_options(
         listen_ip = get_default_value("HOSTNAME", "", "127.0.0.1")
         if listen_ip != "127.0.0.1":
             import socket
+
             listen_ip = socket.gethostbyname(listen_ip)
         function = click.option("--publicip", default=listen_ip, help="IP for the click to browser hints.")(function)
         function = click.option(
