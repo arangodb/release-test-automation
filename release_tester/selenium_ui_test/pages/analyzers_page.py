@@ -886,29 +886,36 @@ class AnalyzerPage(NavigationBarPage):
             else:
                 types = "(//label[normalize-space()='Type'])[1]"
 
-            type_sitem = self.locator_finder_by_xpath(types)
-            type_sitem.click()
-            self.send_key_action(Keys.ARROW_DOWN)
-            self.send_key_action(Keys.ARROW_DOWN)
-
-            if self.version_is_newer_than('3.11.99'):
-                self.send_key_action(Keys.ENTER)
-
-            print("Selecting format of geos2 analyzer")
-            if self.version_is_newer_than('3.11.99'):
-                formats = "(//label[normalize-space()='format'])[1]"
+            if self.version_is_older_than('3.10.99'):
+                print("Type and Formate selection skipped for this version below 3.10 \n")
             else:
-                formats = "(//label[normalize-space()='Format'])[1]"
+                type_sitem = self.locator_finder_by_xpath(types)
+                type_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
 
-            format_sitem = self.locator_finder_by_xpath(formats)
-            format_sitem.click()
-            self.send_key_action(Keys.ARROW_DOWN)
-            self.send_key_action(Keys.ARROW_DOWN)
-            if self.version_is_newer_than('3.11.99'):
-                self.send_key_action(Keys.ENTER)
+                if self.version_is_newer_than('3.11.99'):
+                    self.send_key_action(Keys.ENTER)
+
+                print("Selecting format of geos2 analyzer")
+                if self.version_is_newer_than('3.11.99'):
+                    formats = "(//label[normalize-space()='format'])[1]"
+                else:
+                    formats = "(//label[normalize-space()='Format'])[1]"
+
+                format_sitem = self.locator_finder_by_xpath(formats)
+                format_sitem.click()
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
+                if self.version_is_newer_than('3.11.99'):
+                    self.send_key_action(Keys.ENTER)
 
             print(f"Selecting max s2 for {name} \n")
-            max_s2_cell = "//*[text()='Max S2 Cells']"
+            if self.version_is_older_than('3.10.99'):
+                max_s2_cell = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
+            else:
+                max_s2_cell = "//*[text()='Max S2 Cells']"
+            
             max_s2_cell_sitem = self.locator_finder_by_xpath(max_s2_cell)
             max_s2_cell_sitem.click()
             if self.version_is_newer_than('3.11.99'):
@@ -918,7 +925,10 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting least precise for {name} \n')
-            least_precise_s2_level = "//*[text()='Least Precise S2 Level']"
+            if self.version_is_older_than('3.10.99'):
+                least_precise_s2_level = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
+            else:
+                least_precise_s2_level = "//*[text()='Least Precise S2 Level']"
             least_precise_s2_level_sitem = self.locator_finder_by_xpath(least_precise_s2_level)
             least_precise_s2_level_sitem.click()
             if self.version_is_newer_than('3.11.99'):
@@ -927,7 +937,10 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             print(f'Selecting most precise S2 level for {name} \n')
-            most_precise_s2_level = "//*[text()='Most Precise S2 Level']"
+            if self.version_is_older_than('3.10.99'):
+                most_precise_s2_level = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
+            else:
+                most_precise_s2_level = "//*[text()='Most Precise S2 Level']"
             most_precise_s2_level_sitem = self.locator_finder_by_xpath(most_precise_s2_level)
             most_precise_s2_level_sitem.click()
             if self.version_is_newer_than('3.11.99'):
