@@ -138,6 +138,9 @@ def upgrade_package_test(
                     )
                     packages[version_name] = ver
                     continue
+                if not run_upgrade:
+                    # if we don't upgrade, no need to download old.
+                    continue
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
                 res = Download(
