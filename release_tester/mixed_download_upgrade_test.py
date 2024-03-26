@@ -131,7 +131,7 @@ def upgrade_package_test(
                         props.enterprise,
                         False,  # test_driver.base_config.zip_package,
                         True,  # test_driver.base_config.src_testing,
-                        source,
+                        None, # Source
                         versions,
                         fresh_versions,
                         git_version,
