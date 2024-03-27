@@ -303,6 +303,7 @@ Supported Parameters:
    - `C` community
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
+   - `OS` enterprise with forced one shard
  - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
@@ -368,6 +369,7 @@ Supported Parameters:
    - `C` community
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
+   - `OS` enterprise with forced one shard
  - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
@@ -436,6 +438,7 @@ Supported Parameters:
    - `C` community
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
+   - `OS` enterprise with forced one shard
  - `--test` filter for tests of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`

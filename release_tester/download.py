@@ -37,6 +37,7 @@ class Download:
     """manage package downloading from any known arango package source"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-branches disable=too-many-statements
     def __init__(
         self,
         options: DownloadOptions,
@@ -116,6 +117,7 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
+            one_shard=False,
             use_auto_certs=False,
             test="",
             arangods=[],
@@ -252,7 +254,7 @@ class Download:
                 retry = 100
             except requests.exceptions.ChunkedEncodingError as ex:
                 print(f"failed to download {url} try {retry} - {ex} - retrying.")
-                retry +=1
+                retry += 1
         if res.status_code == 200:
             print(
                 stage
@@ -299,14 +301,15 @@ class Download:
                 retry = 100
             except requests.exceptions.ChunkedEncodingError as ex:
                 print(f"failed to download {url} try {retry} - {ex} - retrying.")
-                retry +=1
+                retry += 1
         if res.status_code == 200:
             print(
                 "LIVE: writing {size} kbytes to {existing}{file}".format(
-                    **{"size": str(len(res.content) / 1024),
-                       "file": str(out),
-                       "existing": "existing " if exists else ""
-                       }
+                    **{
+                        "size": str(len(res.content) / 1024),
+                        "file": str(out),
+                        "existing": "existing " if exists else "",
+                    }
                 )
             )
             out.write_bytes(res.content)

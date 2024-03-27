@@ -3,11 +3,10 @@
 import copy
 import logging
 import time
-import traceback
 
 # import os
 from pathlib import Path
-from queue import Queue, Empty
+from queue import Queue
 from threading import Thread
 
 import psutil
@@ -20,14 +19,15 @@ from beautifultable import BeautifulTable
 import tools.interact as ti
 import tools.loghelper as lh
 from arangodb.starter.deployments.cluster import Cluster
+
 # from arangodb.starter.deployments.activefailover import ActiveFailover
 # from arangodb.starter.deployments.single import Single
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.stress import TestConfig
 from reporting.reporting_utils import step
 
 # from tools.prometheus import set_prometheus_jwt
 from tools.timestamp import timestamp
-
 
 # from arangodb.starter.deployments.activefailover import ActiveFailover
 
@@ -62,11 +62,7 @@ def result_line(wait, line, params):
     return True
 
 
-
-
-
-
-#class ClusterPerf(Single):
+# class ClusterPerf(Single):
 class ClusterPerf(Cluster):
     # class ClusterPerf(ActiveFailover):
     """this launches a cluster setup"""
@@ -80,6 +76,7 @@ class ClusterPerf(Cluster):
         installer_set,
         selenium,
         selenium_driver_args,
+        selenium_include_suites,
         testrun_name: str,
         ssl: bool,
         replication2: bool,
@@ -100,9 +97,12 @@ class ClusterPerf(Cluster):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, 6),
+            RunnerProperties(
+                "CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, False, 6
+            ),
             selenium,
             selenium_driver_args,
+            selenium_include_suites,
             testrun_name,
         )
         self.success = False
@@ -155,7 +155,8 @@ class ClusterPerf(Cluster):
                 "true" if scenario.single_shard else "false",
                 "--progress",
                 "true",
-            ] + scenario.makedata_args
+            ]
+            + scenario.makedata_args
         }
 
     def _generate_makedata_jobs(self):
@@ -169,7 +170,7 @@ class ClusterPerf(Cluster):
         for i in range(self.scenario.db_count_chunks):
             for one_job in self.scenario.dump_jobs:
                 job = copy.deepcopy(one_job)
-                job['dir'] = f"{job['dir']}_{i}"
+                job["dir"] = f"{job['dir']}_{i}"
                 self.jobs.put(job, i)
 
     def _generate_restore_jobs(self):
@@ -242,7 +243,7 @@ class ClusterPerf(Cluster):
         assert self.makedata_instances, "no makedata instance!"
         print("dump instances")
         while len(self.dump_workers) < self.scenario.parallelity:
-            print('launch')
+            print("launch")
             starter = frontends[len(self.dump_workers) % len(frontends)]
             assert starter.arango_dump, "no starter associated dump!"
             arango_dump = starter.arango_dump
@@ -251,13 +252,13 @@ class ClusterPerf(Cluster):
                 Thread(
                     target=dump_runner,
                     args=(
-                            self.jobs,
+                        self.jobs,
                         self.resultq,
                         arango_dump,
                         self.scenario.progressive_timeout,
                     ),
                 )
-                )
+            )
         self.thread_count += len(self.dump_workers)
         for worker in self.dump_workers:
             worker.start()
@@ -318,15 +319,15 @@ class ClusterPerf(Cluster):
 
     def _test_dump(self, frontends):
         if "jam_dump" in self.scenario.phase or "dump" in self.scenario.phase:
-            print('jam_dump')
+            print("jam_dump")
             self._generate_dump_jobs()
             self._start_dump_workers(frontends)
             time.sleep(30)
-            print('xxxx')
+            print("xxxx")
 
     def _test_dump_sequential(self, frontends):
         if "jam_dump_sequential" in self.scenario.phase:
-            print('dump')
+            print("dump")
             count = 0
             table = BeautifulTable(maxwidth=140)
             for dump_job in self.scenario.dump_jobs:
@@ -344,21 +345,18 @@ class ClusterPerf(Cluster):
                 table.rows.append([dump_job["dir"], t_end - t_start, res])
                 print(f"Res: {res} Duration: {str(t_end - t_start)}")
 
-            table.columns.header = [
-                "Dump run",
-                "Time used",
-                "Result"]
+            table.columns.header = ["Dump run", "Time used", "Result"]
             tablestr = str(table)
             Path("testtimes.txt").write_text(tablestr, encoding="utf8")
             print(tablestr)
 
     def _test_restore(self, frontends):
         if "restore" in self.scenario.phase:
-            print('restore')
+            print("restore")
             self._generate_restore_jobs()
             self._start_restore_workers(frontends)
             time.sleep(30)
-            print('xxxx')
+            print("xxxx")
 
     def _makedata_stress(self, frontends):
         if "backup" in self.scenario.phase:
@@ -414,7 +412,7 @@ class ClusterPerf(Cluster):
             args=makedata_job_params["args"],
             result_line_handler=result_line,
             progressive_timeout=self.scenario.progressive_timeout,
-            deadline=self.scenario.progressive_timeout * self.scenario.data_multiplier * self.scenario.db_count
+            deadline=self.scenario.progressive_timeout * self.scenario.data_multiplier * self.scenario.db_count,
         )
         frontends[0].hb_instance.create("AFTER_LOAD", progressive_timeout=1800)
         return makedata_job_params
@@ -425,8 +423,7 @@ class ClusterPerf(Cluster):
         assert starter.arangosh, "no starter associated arangosh!"
         arangosh = starter.arangosh
         arangosh.check_test_data(
-            "xx", supports_foxx_tests=True, args=makedata_job_params["args"],
-            result_line_handler=result_line
+            "xx", supports_foxx_tests=True, args=makedata_job_params["args"], result_line_handler=result_line
         )
 
     def _restore_defined_hb(self, frontends, all_backups, makedata_job_params):
@@ -546,7 +543,7 @@ class ClusterPerf(Cluster):
 
         time.sleep(count * 5)
         print(count)
-        print("p"*80)
+        print("p" * 80)
         try:
             self._create_many_hb(frontends)
             makedata_job_params = self._create_defined_backup_data(frontends, 9999)

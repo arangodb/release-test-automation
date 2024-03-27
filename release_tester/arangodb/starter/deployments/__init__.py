@@ -114,6 +114,7 @@ def make_runner(
         runner_properties.ssl,
         runner_properties.replication2,
         use_auto_certs,
+        runner_properties.one_shard,
     )
 
     if runner_type == RunnerType.SINGLE:
