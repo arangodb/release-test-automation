@@ -119,6 +119,7 @@ class Download:
             use_auto_certs=False,
             test="",
             arangods=[],
+            check_locale=True,
         )
 
         self.inst = make_installer(self.cfg)

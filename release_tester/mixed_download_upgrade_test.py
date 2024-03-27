@@ -69,6 +69,7 @@ class DownloadDummy:
             use_auto_certs=False,
             test="",
             arangods=[] if arangods is None else arangods,
+            check_locale=True,
         )
 
         self.inst = make_installer(self.cfg)

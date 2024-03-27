@@ -194,6 +194,7 @@ class InstallerConfig:
         use_auto_certs: bool,
         test: str,
         arangods: list,
+        check_locale: bool,
     ):
         self.publicip = publicip
         self.interactive = interactive
@@ -255,6 +256,7 @@ class InstallerConfig:
         )
         self.test = test
         self.arangods = arangods
+        self.check_locale = check_locale
 
     def __repr__(self):
         return """
@@ -330,6 +332,7 @@ test filter: {0.test}
             self.hot_backup_supported = other_cfg.hot_backup_supported
             self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
             self.test = other_cfg.test
+            self.check_locale = other.check_locale
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -521,6 +524,7 @@ class InstallerBaseConfig(OptionGroup):
     interactive: bool
     stress_upgrade: bool
     test: str
+    check_locale: bool
 
 
 # pylint: disable=too-many-locals
@@ -559,6 +563,7 @@ def create_config_installer_set(
             use_auto_certs,
             base_config.test,
             base_config.arangods,
+            base_config.check_locale
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

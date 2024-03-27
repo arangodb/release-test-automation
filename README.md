@@ -97,6 +97,7 @@ Supported Parameters:
  - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.
@@ -145,6 +146,7 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
@@ -179,6 +181,7 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -196,6 +199,7 @@ Supported Parameters:
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -207,6 +211,7 @@ Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -290,6 +295,7 @@ Supported Parameters:
  - `--httppassvoid` secret for stage http access
  - `--force` overwrite readily existing downloaded packages
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
@@ -665,6 +671,7 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
+ - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.

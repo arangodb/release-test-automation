@@ -205,6 +205,12 @@ def very_common_options(support_multi_version=False):
             default=defver,
         )(function)
         function = click.option(
+            "--check_locale",
+            is_flag=True,
+            default=True,
+            help="whether to skip the initial locale environment check.",
+        )(function)
+        function = click.option(
             "--verbose/--no-verbose",
             is_flag=True,
             default=False,

@@ -329,7 +329,8 @@ class Runner(ABC):
         # pylint: disable=too-many-statements disable=too-many-branches
         if self.do_starter_test and not self.remote:
             detect_file_ulimit()
-            detect_locale()
+            if self.cfg.check_locale:
+                detect_locale()
 
         versions_count = len(self.installers)
         is_single_test = versions_count == 1
