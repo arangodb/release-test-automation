@@ -36,17 +36,20 @@ class Cluster(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
     ):
+        name = "CLUSTER" if not one_shard else "SINGLE_SHARD_CLUSTER"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("CLUSTER", 400, 600, True, ssl, replication2, use_auto_certs, 6),
+            RunnerProperties(name, 400, 600, True, ssl, replication2, use_auto_certs, one_shard, 6),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
             testrun_name,
         )
+        self.one_shard = one_shard
         # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -69,7 +72,10 @@ db.testCollection.save({test: "document"})
                 "--all.log.level=replication2=debug",
                 "--all.log.level=rep-state=debug",
             ]
-        common_opts += ["--all.cluster.default-replication-factor=2"]
+        if self.one_shard:
+            common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
+        else:
+            common_opts += ["--all.cluster.default-replication-factor=2"]
         node1_opts = []
         node2_opts = ["--starter.join", "127.0.0.1:9528"]
         node3_opts = ["--starter.join", "127.0.0.1:9528"]

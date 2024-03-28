@@ -19,7 +19,9 @@ class Dc2DcEndurance(Dc2Dc):
         selenium_include_suites,
         testrun_name: str,
         ssl: bool,
+        replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
     ):
         super().__init__(
             runner_type,
@@ -30,7 +32,9 @@ class Dc2DcEndurance(Dc2Dc):
             selenium_include_suites,
             testrun_name,
             ssl,
+            replication2,
             use_auto_certs,
+            one_shard,
         )
         self.hot_backup = False
 

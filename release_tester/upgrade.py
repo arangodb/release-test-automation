@@ -32,7 +32,14 @@ def main(**kwargs):
         test_driver.set_r_limits()
         results = test_driver.run_upgrade(
             [semver.VersionInfo.parse(kwargs["old_version"]), semver.VersionInfo.parse(kwargs["new_version"])],
-            RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
+            RunProperties(
+                kwargs["enterprise"],
+                False,
+                kwargs["encryption_at_rest"],
+                kwargs["ssl"],
+                kwargs["replication2"],
+                kwargs["one_shard"],
+            ),
         )
     finally:
         test_driver.destructor()

@@ -32,12 +32,13 @@ class LeaderFollower(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("LeaderFollower", 400, 500, False, ssl, False, use_auto_certs, 2),
+            RunnerProperties("LeaderFollower", 400, 500, False, ssl, False, use_auto_certs, one_shard, 2),
             selenium,
             selenium_driver_args,
             selenium_include_suites,

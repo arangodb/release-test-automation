@@ -328,7 +328,7 @@ class StarterManager:
         return False
 
     def cleanup_hotbackup_in_instance(self):
-        """ remove hotbackup from the database directory """
+        """remove hotbackup from the database directory"""
         for instance in self.all_instances:
             instance.clean_hotbackup()
 
@@ -1078,7 +1078,7 @@ class StarterManager:
         if self.arangosh is None:
             config.port = self.get_frontend_port()
             config.passvoid = self.passvoid
-            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
+            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version, one_shard=self.cfg.one_shard)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())

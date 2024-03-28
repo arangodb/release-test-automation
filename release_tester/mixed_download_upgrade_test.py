@@ -66,6 +66,7 @@ class DownloadDummy:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
+            one_shard=False,
             use_auto_certs=False,
             test="",
             arangods=[] if arangods is None else arangods,
@@ -132,7 +133,7 @@ def upgrade_package_test(
                         props.enterprise,
                         False,  # test_driver.base_config.zip_package,
                         True,  # test_driver.base_config.src_testing,
-                        None, # Source
+                        None,  # Source
                         versions,
                         fresh_versions,
                         git_version,
