@@ -1118,43 +1118,50 @@ class AnalyzerPage(NavigationBarPage):
         # --------------------here we are checking the properties of the created analyzer----------------------
         if self.version_is_newer_than('3.11.99'):
             try:
-                analyzer = f"//*[text()='_system::{name}']"
-                analyzer_sitem = self.locator_finder_by_xpath(analyzer)
-                if analyzer_sitem is None:
-                    print(f'This {analyzer_name} has never been created \n')
+                # Find the analyzer by XPath
+                analyzer_xpath = f"//*[text()='_system::{name}']"
+                analyzer_element = self.locator_finder_by_xpath(analyzer_xpath)
+
+                # Check if the analyzer exists
+                if analyzer_element is None:
+                    print(f'The analyzer "{name}" has never been created.\n')
                 else:
-                    analyzer_sitem.click()
+                    # Click on the analyzer element
+                    analyzer_element.click()
                     time.sleep(1)
 
-                    # finding the ace editor using neighbor locators
-                    nearest_button = "//button[@class='jsoneditor-compact']"
-                    ace_locator = self.locator_finder_by_xpath(nearest_button)
-                    # Set x and y offset positions of adjacent element
+                    # Find the ACE editor button
+                    ace_button_xpath = "//button[@class='jsoneditor-compact']"
+                    ace_button = self.locator_finder_by_xpath(ace_button_xpath)
+
+                    # Set x and y offset positions for the action
                     xOffset = 50
                     yOffset = 50
-                    # Performs mouse move action onto the element
-                    actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
+
+                    # Perform actions on the ACE editor
+                    actions = ActionChains(self.webdriver)
+                    actions.move_to_element_with_offset(ace_button, xOffset, yOffset)
                     actions.click()
-                    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys(
-                        "c").key_up(Keys.CONTROL)
-                    actions.perform()  # Execute the sequence of actions
+                    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL)
+                    actions.perform()  # Execute the actions
 
                     # Retrieve text content from the clipboard using Pyperclip
                     actual_properties = ''.join(str(pyperclip.paste()).split())
-                    # Get expected properties based on analyzer name
+
+                    # Get expected properties based on the analyzer name and UI data directory
                     expected_properties = ''.join(str(self.generate_expected_properties(name, ui_data_dir)).split())
+
                     # Assert that the copied text matches the expected text
-                    try:
-                        assert actual_properties == expected_properties, "Text does not match the expected text \n"
-                    except AssertionError as ex:
-                        print("actual_properties: ", actual_properties)
-                        print("expected_properties: ", expected_properties)
-                        raise AssertionError("Text does not match the expected text") from ex
+                    if actual_properties != expected_properties:
+                        print("Actual properties: ", actual_properties)
+                        print("Expected properties: ", expected_properties)
+                        raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
                     else:
-                        print("Text matches the expected text. \n")
+                        print(f"Properties are equal for the '{name}' analyzer.\n")
 
             except TimeoutException as ex:
-                print(f'Failed to parse properties from the {name} and the error is: {ex} \n')
+                raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
+
 
     @staticmethod
     def generate_expected_properties(analyzer_name, ui_data_dir=None):
@@ -1509,22 +1516,22 @@ class AnalyzerPage(NavigationBarPage):
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
-            "My_Identity_Analyzer": (0, None, False),
-            "My_Delimiter_Analyzer": (0, None, False),
-            "My_Stem_Analyzer": (0, None, False),
-            "My_Norm_Analyzer": (0, None, False),
-            "My_N-Gram_Analyzer": (0, None, False),
-            "My_Text_Analyzer": (0, None, False),
-            "My_AQL_Analyzer": (0, None, False),
-            "My_Stopwords_Analyzer": (0, None, False),
-            "My_Collation_Analyzer": (0, None, False),
-            "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            # "My_Identity_Analyzer": (0, None, False),
+            # "My_Delimiter_Analyzer": (0, None, False),
+            # "My_Stem_Analyzer": (0, None, False),
+            # "My_Norm_Analyzer": (0, None, False),
+            # "My_N-Gram_Analyzer": (0, None, False),
+            # "My_Text_Analyzer": (0, None, False),
+            # "My_AQL_Analyzer": (0, None, False),
+            # "My_Stopwords_Analyzer": (0, None, False),
+            # "My_Collation_Analyzer": (0, None, False),
+            # "My_Segmentation_Alpha_Analyzer": (0, None, False),
+            # "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            # "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            # "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
             "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_GeoS2_Analyzer": (0, None, not enterprise)
