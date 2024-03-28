@@ -1142,7 +1142,7 @@ class AnalyzerPage(NavigationBarPage):
                     # Retrieve text content from the clipboard using Pyperclip
                     actual_properties = ''.join(str(pyperclip.paste()).split())
                     # Get expected properties based on analyzer name
-                    expected_properties = ''.join(str(self.generate_expected_properties(name)).split())
+                    expected_properties = ''.join(str(self.generate_expected_properties(name, ui_data_dir)).split())
                     # Assert that the copied text matches the expected text
                     try:
                         assert actual_properties == expected_properties, "Text does not match the expected text \n"
@@ -1157,7 +1157,7 @@ class AnalyzerPage(NavigationBarPage):
                 print(f'Failed to parse properties from the {name} and the error is: {ex} \n')
 
     @staticmethod
-    def generate_expected_properties(analyzer_name):
+    def generate_expected_properties(analyzer_name, ui_data_dir=None):
         """Define a method to generate expected text for a specific analyzer based on its name"""
         if analyzer_name == "My_Identity_Analyzer":
             return """{
@@ -1468,35 +1468,42 @@ class AnalyzerPage(NavigationBarPage):
                   ]
                 }"""
         elif analyzer_name == "My_Nearest_Neighbor_Analyzer":
-            return """{
-                "name": "_system::My_Nearest_Neighbor_Analyzer",
-                "type": "nearest_neighbors",
-                "properties": {
-                    "model_location": "/home/fattah/Downloads/release-test-automation/test_data/ui_data/analyzer_page/610_model_cooking.bin",
-                    "top_k": 2
-                },
-                "features": [
-                    "frequency",
-                    "position",
-                    "norm"
-                ]
-                }"""
+                location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
+                return (
+                    '{'
+                    '"name": "_system::My_Nearest_Neighbor_Analyzer",'
+                    '"type": "nearest_neighbors",'
+                    '"properties": {'
+                    f'"model_location": "{(str(location.absolute()))}",'
+                    '"top_k": 2'
+                    '},'
+                    '"features": ['
+                    '"frequency",'
+                    '"position",'
+                    '"norm"'
+                    ']'
+                    '}'
+                    )
 
         elif analyzer_name == "My_Classification_Analyzer":
-            return """{
-                "name": "_system::My_Classification_Analyzer",
-                "type": "classification",
-                "properties": {
-                    "model_location": "/home/fattah/Downloads/release-test-automation/test_data/ui_data/analyzer_page/610_model_cooking.bin",
-                    "top_k": 2,
-                    "threshold": 0.8
-                },
-                "features": [
-                    "frequency",
-                    "position",
-                    "norm"
-                ]
-                }"""
+                    location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
+                    return (
+                        '{'
+                        '"name": "_system::My_Classification_Analyzer",'
+                        '"type": "classification",'
+                        '"properties": {'
+                        f'"model_location": "{(str(location.absolute()))}",'
+                        '"top_k": 2,'
+                        '"threshold": 0.8'
+                        '},'
+                        '"features": ['
+                        '"frequency",'
+                        '"position",'
+                        '"norm"'
+                        ']'
+                        '}'
+                    )
+
 
     
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
