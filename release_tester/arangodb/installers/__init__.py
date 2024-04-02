@@ -334,7 +334,7 @@ test filter: {0.test}
             self.hot_backup_supported = other_cfg.hot_backup_supported
             self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
             self.test = other_cfg.test
-            self.check_locale = other.check_locale
+            self.check_locale = other_cfg.check_locale
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
