@@ -346,19 +346,21 @@ class AnalyzerPage(NavigationBarPage):
                 case_sitem = self.locator_finder_by_xpath(case_placeholder)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
+                self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
                 self.locator_finder_by_select_using_xpath(case_placeholder, 0)
 
             print('Selecting accent for norm analyzer \n')
             if self.version_is_newer_than('3.11.99'):
-                accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
+                print("Accent properties skipped \n")
+                # accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
             else:
                 accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-
-            accent_sitem = self.locator_finder_by_xpath(accent)
-            accent_sitem.click()
-            time.sleep(2)
+                accent_sitem = self.locator_finder_by_xpath(accent)
+                accent_sitem.click()
+                time.sleep(2)
 
         # for N-Gram
         elif name == "My_N-Gram_Analyzer":
@@ -366,15 +368,21 @@ class AnalyzerPage(NavigationBarPage):
             min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
             min_length_sitem = self.locator_finder_by_xpath(min_length)
             min_length_sitem.click()
-            min_length_sitem.clear()
-            min_length_sitem.send_keys('2')
+            if self.version_is_newer_than('3.11.99'):
+                self.clear_textfield()
+            else:
+                min_length_sitem.clear()
+            min_length_sitem.send_keys('3')
             time.sleep(2)
 
             print(f'Adding maximum n-gram length for {name} \n')
             max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
             max_length_sitem = self.locator_finder_by_xpath(max_length)
             max_length_sitem.click()
-            max_length_sitem.clear()
+            if self.version_is_newer_than('3.11.99'):
+                self.clear_textfield()
+            else:
+                max_length_sitem.clear()
             max_length_sitem.send_keys('3')
             time.sleep(2)
 
@@ -482,14 +490,14 @@ class AnalyzerPage(NavigationBarPage):
             ngram_length_min = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
             ngram_length_min_sitem = self.locator_finder_by_xpath(ngram_length_min)
             ngram_length_min_sitem.click()
-            ngram_length_min_sitem.send_keys('2')
+            ngram_length_min_sitem.send_keys('3')
             time.sleep(2)
 
             print(f'Selecting maximum N-Gram length for {name} \n')
             ngram_length_max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
             ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
             ngram_length_max_length_sitem.click()
-            ngram_length_max_length_sitem.send_keys('3')
+            ngram_length_max_length_sitem.send_keys('8')
             time.sleep(2)
 
             print(f'Selecting preserve original for {name} \n')
@@ -509,29 +517,31 @@ class AnalyzerPage(NavigationBarPage):
             print(f'Selecting query string for {name} \n')
             query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
             query_string_sitem = self.locator_finder_by_xpath(query_string)
-            query_string_sitem.send_keys('FOR year IN 2010..2015 RETURN year')
+            query_string_sitem.send_keys('RETURN SOUNDEX(@param)')
             time.sleep(2)
 
             print(f'Selecting batch size for {name} \n')
             batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
             batch_size_sitem = self.locator_finder_by_xpath(batch_size)
             batch_size_sitem.click()
-            if self.version_is_newer_than('3.11.99'):
-                self.send_key_action(Keys.BACKSPACE)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.clear_textfield()
             else:
                 batch_size_sitem.clear()
-                batch_size_sitem.send_keys('100')
+
+            batch_size_sitem.send_keys('10')
             time.sleep(2)
 
             print(f'Selecting memory limit for {name} \n')
             memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
             memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
             memory_limit_sitem.click()
-            if self.version_is_newer_than('3.11.99'):
-                self.send_key_action(Keys.BACKSPACE)
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
+                self.clear_textfield()
             else:
                 memory_limit_sitem.clear()
-                memory_limit_sitem.send_keys('200')
+
+            memory_limit_sitem.send_keys('1048576')
             time.sleep(2)
 
             print(f'Selecting collapse position for {name} \n')
@@ -572,6 +582,9 @@ class AnalyzerPage(NavigationBarPage):
                 stopwords_sitem = self.locator_finder_by_xpath(stopwords)
                 stopwords_sitem.click()
                 self.send_key_action('616e64')
+                self.send_key_action(Keys.ENTER)
+                time.sleep(1)
+                self.send_key_action('746865')
                 self.send_key_action(Keys.ENTER)
             else:
                 stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
@@ -1161,11 +1174,126 @@ class AnalyzerPage(NavigationBarPage):
 
             except TimeoutException as ex:
                 raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
+            
+            # -------------------- Running a query for each analyzer's after creation----------------------
+            try:
+                print(f'Running query for {name} started \n')
+                # Goto query tab
+                print("Selecting query tab \n")
+                self.navbar_goto("queries")
+                time.sleep(1)
+                print('Selecting query execution area \n')
+                self.select_query_execution_area()
+
+                print(f'Running query for {name} analyzer started\n')
+                # Get query and expected output based on analyzer name
+                analyzer_query = self.get_analyzer_query(name)
+                if analyzer_query is None:
+                    print(f"Analyzer '{name}' not found. Skipping test.")
+                    pass  # Skip this test and move to the next one
+                else:
+                    self.send_key_action(analyzer_query)
+
+                    self.query_execution_btn()
+                    self.scroll(1)
+
+                    print("Storing the query output \n")
+                    # Finding the ace editor using neighbor locators
+                    query_output = "(//div[@class='css-1new77s'])[1]"
+                    ace_locator = self.locator_finder_by_xpath(query_output)
+                    # Set x and y offset positions of adjacent element
+                    xOffset = 50
+                    yOffset = 50
+                    # Perform mouse move action onto the element
+                    actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
+                    actions.click()
+                    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys(
+                        "c").key_up(Keys.CONTROL)
+                    actions.perform()  # Execute the sequence of actions
+
+                    # Retrieve text content from the clipboard using Pyperclip
+                    query_actual_output = ''.join(str(pyperclip.paste()).split())
+                    # Get expected query output based on analyzer name
+                    query_expected_output = self.get_analyzer_expected_output(name)
+                    if query_expected_output is None:
+                        print(f"Analyzer '{name}' not found. Skipping test.")
+                        pass  # Skip this test and move to the next one
+                    else:
+                        # Assert that the copied text matches the expected text
+                        if query_actual_output != ''.join(str(query_expected_output).split()):
+                            print("query_actual_output: ", query_actual_output)
+                            print("query_expected_output: ", query_expected_output)
+                            raise Exception(f"Actual query output didn't matches the expected query output for {name}\n")
+                        else:
+                            print(f"Actual query output matches the expected query output for {name}\n")
+            except TimeoutException as ex:
+                raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
 
 
     @staticmethod
+    def generate_analyzer_queries(analyzer_name):
+        return {
+            "My_Identity_Analyzer": {
+                "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
+                "expected_output": [["UPPER lower dïäcríticš"]]
+            },
+            "My_Delimiter_Analyzer": {
+                "query": "RETURN TOKENS('some-delimited-words', 'My_Delimiter_Analyzer')",
+                "expected_output": [["some-delimited-words"]]
+            },
+            "My_Stem_Analyzer": {
+                "query": "RETURN TOKENS('databases', 'My_Stem_Analyzer')",
+                "expected_output": [["databas"]]
+            },
+            "My_Norm_Analyzer": {
+                "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Norm_Analyzer')",
+                "expected_output": [["UPPER LOWER DÏÄCRÍTICŠ"]]
+            },
+            "My_N-Gram_Analyzer": {
+                "query": "RETURN TOKENS('foobar', 'My_N-Gram_Analyzer')",
+                "expected_output": [["^foo", "^foobar", "foobar$", "oob", "oba", "bar$"]]
+            },
+            "My_Text_Analyzer": {
+                "query": "RETURN TOKENS('The quick brown fox jumps over the dogWithAVeryLongName', 'My_Text_Analyzer')",
+                "expected_output": [
+                    ["the", "qui", "quic", "quick", "bro", "brow", "brown", "fox", "jum", "jump", "jumps", "ove",
+                     "over", "the", "dog", "dogw", "dogwi", "dogwit", "dogwith", "dogwitha", "dogwithaverylongname"]]
+            },
+            "My_AQL_Analyzer": {
+                "query": "RETURN TOKENS('UPPER lower dïäcríticš','My_AQL_Analyzer')",
+                "expected_output": [["U164"]]
+            },
+            "My_Stopwords_Analyzer": {
+                "query": "RETURN FLATTEN(TOKENS(SPLIT('the fox and the dog and a theater', ' '), 'My_Stopwords_Analyzer'))",
+                "expected_output": [["fox", "dog", "a", "theater"]]
+            },
+            "My_Pipeline_Analyzer": {
+                "query": "RETURN TOKENS('Quick brown foX', 'My_Pipeline_Analyzer')",
+                "expected_output": [["QUICK BROWN FOX"]]
+            },
+
+
+            # Add more analyzers and their queries and expected outputs here
+        }.get(analyzer_name, {})
+
+    def get_analyzer_query(self, analyzer_name):
+        """get analyzer query based on the analyzer name"""
+        return self.generate_analyzer_queries(analyzer_name).get("query")
+
+    def get_analyzer_expected_output(self, analyzer_name):
+        """Get analyzer query's expected output based on the analyzer name"""
+        analyzer_data = self.generate_analyzer_queries(analyzer_name)
+        if analyzer_data:
+            expected_output = analyzer_data.get("expected_output")
+            # Convert the expected output to a string using double quotes
+            if isinstance(expected_output, list):
+                return str(expected_output).replace("'", '"')
+            return expected_output
+        return None
+
+    @staticmethod
     def generate_expected_properties(analyzer_name, ui_data_dir=None):
-        """Define a method to generate expected text for a specific analyzer based on its name"""
+        """Define a method to generate expected text for a specific analyzer"""
         if analyzer_name == "My_Identity_Analyzer":
             return """{
                 "name": "_system::My_Identity_Analyzer",
@@ -1209,8 +1337,8 @@ class AnalyzerPage(NavigationBarPage):
                   "type": "norm",
                   "properties": {
                     "locale": "en_US",
-                    "case": "none",
-                    "accent": false
+                    "case": "upper",
+                    "accent": true
                   },
                   "features": [
                     "frequency",
@@ -1223,8 +1351,8 @@ class AnalyzerPage(NavigationBarPage):
                   "name": "_system::My_N-Gram_Analyzer",
                   "type": "ngram",
                   "properties": {
-                    "min": 22,
-                    "max": 33,
+                    "min": 3,
+                    "max": 3,
                     "preserveOriginal": true,
                     "streamType": "utf8",
                     "startMarker": "^",
@@ -1246,8 +1374,8 @@ class AnalyzerPage(NavigationBarPage):
                     "accent": true,
                     "stemming": false,
                     "edgeNgram": {
-                      "min": 2,
-                      "max": 3,
+                      "min": 3,
+                      "max": 8,
                       "preserveOriginal": true
                     }
                   },
@@ -1262,11 +1390,11 @@ class AnalyzerPage(NavigationBarPage):
                   "name": "_system::My_AQL_Analyzer",
                   "type": "aql",
                   "properties": {
-                    "queryString": "FOR year IN 2010..2015 RETURN year",
+                    "queryString": "RETURN SOUNDEX(@param)",
                     "collapsePositions": true,
                     "keepNull": true,
-                    "batchSize": 1,
-                    "memoryLimit": 104857,
+                    "batchSize": 10,
+                    "memoryLimit": 1048576,
                     "returnType": "string"
                   },
                   "features": [
@@ -1281,7 +1409,8 @@ class AnalyzerPage(NavigationBarPage):
                   "type": "stopwords",
                   "properties": {
                     "stopwords": [
-                      "616e64"
+                      "616e64",
+                      "746865"
                     ],
                     "hex": true
                   },
@@ -1516,22 +1645,22 @@ class AnalyzerPage(NavigationBarPage):
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
-            # "My_Identity_Analyzer": (0, None, False),
-            # "My_Delimiter_Analyzer": (0, None, False),
-            # "My_Stem_Analyzer": (0, None, False),
-            # "My_Norm_Analyzer": (0, None, False),
-            # "My_N-Gram_Analyzer": (0, None, False),
-            # "My_Text_Analyzer": (0, None, False),
-            # "My_AQL_Analyzer": (0, None, False),
-            # "My_Stopwords_Analyzer": (0, None, False),
-            # "My_Collation_Analyzer": (0, None, False),
-            # "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            # "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            # "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            # "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            # "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            # "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            # "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            "My_Identity_Analyzer": (0, None, False),
+            "My_Delimiter_Analyzer": (0, None, False),
+            "My_Stem_Analyzer": (0, None, False),
+            "My_Norm_Analyzer": (0, None, False),
+            "My_N-Gram_Analyzer": (0, None, False),
+            "My_Text_Analyzer": (0, None, False),
+            "My_AQL_Analyzer": (0, None, False),
+            "My_Stopwords_Analyzer": (0, None, False),
+            "My_Collation_Analyzer": (0, None, False),
+            "My_Segmentation_Alpha_Analyzer": (0, None, False),
+            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
             "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_GeoS2_Analyzer": (0, None, not enterprise)
