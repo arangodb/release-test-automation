@@ -109,17 +109,19 @@ class Dc2Dc(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("DC2DC", 0, 4500, True, ssl, replication2, use_auto_certs, 12),
+            RunnerProperties("DC2DC", 0, 4500, True, ssl, replication2, use_auto_certs, one_shard, 12),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
             testrun_name,
         )
+        self.one_shard = one_shard
         self.success = True
         self.cfg.passvoid = ""
         self.sync_manager = None
@@ -257,6 +259,8 @@ class Dc2Dc(Runner):
                 "--coordinators.database.default-replication-version=2",
                 "--all.log.level=replication2=debug",
             ]
+        if self.one_shard:
+            common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         _add_starter(self.cluster1, port=7528, moreopts=common_opts)
         _add_starter(
             self.cluster2,

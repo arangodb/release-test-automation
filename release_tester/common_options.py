@@ -205,6 +205,12 @@ def very_common_options(support_multi_version=False):
             default=defver,
         )(function)
         function = click.option(
+            "--check_locale",
+            is_flag=True,
+            default=True,
+            help="whether to skip the initial locale environment check.",
+        )(function)
+        function = click.option(
             "--verbose/--no-verbose",
             is_flag=True,
             default=False,
@@ -298,6 +304,7 @@ def common_options(
         )(function)
         listen_ip = get_default_value("HOSTNAME", "", "127.0.0.1")
         if listen_ip != "127.0.0.1":
+            # pylint: disable=import-outside-toplevel
             import socket
 
             listen_ip = socket.gethostbyname(listen_ip)
@@ -330,6 +337,13 @@ def common_options(
             is_flag=True,
             default=False,
             help="use self-signed SSL certs",
+        )(function)
+        function = click.option(
+            "--one-shard/--no-one-shard",
+            "one_shard",
+            is_flag=True,
+            default=False,
+            help="force the OneShard mode for all collections/databases",
         )(function)
         function = click.option(
             "--monitoring/--no-monitoring",

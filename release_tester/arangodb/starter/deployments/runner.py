@@ -128,6 +128,7 @@ class RunnerProperties:
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
         no_arangods_non_agency: int,
     ):
         self.short_name = short_name
@@ -137,6 +138,7 @@ class RunnerProperties:
         self.ssl = ssl
         self.replication2 = replication2
         self.use_auto_certs = use_auto_certs
+        self.one_shard = one_shard
         self.no_arangods_non_agency = no_arangods_non_agency
 
 
@@ -282,6 +284,7 @@ class Runner(ABC):
                 )
                 and self.new_installer is None
             )
+            self.one_shard = False
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
@@ -329,7 +332,8 @@ class Runner(ABC):
         # pylint: disable=too-many-statements disable=too-many-branches
         if self.do_starter_test and not self.remote:
             detect_file_ulimit()
-            detect_locale()
+            if self.cfg.check_locale:
+                detect_locale()
 
         versions_count = len(self.installers)
         is_single_test = versions_count == 1
@@ -802,6 +806,8 @@ class Runner(ABC):
         ]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
+        if self.one_shard:
+            args += ["--singleShard", "true"]
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
@@ -825,7 +831,10 @@ class Runner(ABC):
         """check for data on the installation"""
         if self.has_makedata_data:
             try:
-                arangosh.check_test_data(self.name, supports_foxx_tests)
+                args = []
+                if self.one_shard:
+                    args += ["--singleShard", "true"]
+                arangosh.check_test_data(self.name, supports_foxx_tests, args=args)
             except CliExecutionException as exc:
                 if not self.cfg.verbose:
                     print(exc.execution_result[1])

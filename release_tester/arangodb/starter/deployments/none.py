@@ -20,13 +20,14 @@ class NoStarter(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
     ):
         self.msg = ""
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("none", 0, 1, False, ssl, replication2, use_auto_certs, 1),
+            RunnerProperties("none", 0, 1, False, ssl, replication2, use_auto_certs, one_shard, 1),
             selenium,
             selenium_driver_args,
             selenium_include_suites,

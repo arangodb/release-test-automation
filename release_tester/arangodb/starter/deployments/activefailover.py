@@ -31,12 +31,13 @@ class ActiveFailover(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, 3),
+            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, one_shard, 3),
             selenium,
             selenium_driver_args,
             selenium_include_suites,

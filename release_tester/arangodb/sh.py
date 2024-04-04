@@ -15,10 +15,11 @@ ON_POSIX = "posix" in sys.builtin_module_names
 class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    def __init__(self, config, connect_instance, old_version):
+    def __init__(self, config, connect_instance, old_version, one_shard=False):
         self.read_only = False
         super().__init__(config, connect_instance)
         self.old_version = old_version
+        self.one_shard = one_shard
 
     # pylint: disable=too-many-arguments
     def run_command(
@@ -316,7 +317,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def create_test_data(self, testname, args=None, result_line_handler=default_line_result, progressive_timeout=100, deadline=900):
+    def create_test_data(
+        self, testname, args=None, result_line_handler=default_line_result, progressive_timeout=100, deadline=900
+    ):
         """deploy testdata into the instance"""
         if args is None:
             args = []
@@ -327,6 +330,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.one_shard:
+            args += ["--singleShard", "true"]
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
@@ -353,6 +358,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.one_shard:
+            args += ["--singleShard", "true"]
         ret = self.run_script_monitored(
             cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
             # fmt: off

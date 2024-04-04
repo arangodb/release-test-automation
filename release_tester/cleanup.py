@@ -59,6 +59,7 @@ def main(**kwargs):
         print("Failed to load parameters from pre-saved configuration file.")
 
     kwargs["hb_cli_cfg"] = HotBackupCliCfg.from_dict(**kwargs)
+    kwargs["check_locale"] = False
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
 
     test_driver = TestDriver(**kwargs)
