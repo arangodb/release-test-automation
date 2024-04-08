@@ -134,7 +134,7 @@ class AnalyzerPage(NavigationBarPage):
     
 
     def checking_analyzer_page_transition(self, keyword):
-        """This methdo will check page transition error for BTS-902"""
+        """This method will check page transition error for BTS-902"""
         """
         To reproduce the issue we need to follow steps given below:
         Login to the web UI
