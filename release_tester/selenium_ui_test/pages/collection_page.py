@@ -49,7 +49,7 @@ class CollectionPage(NavigationBarPage):
         self.sort_by_type_id = '//*[@id="collectionsDropdown"]/ul[2]/li[3]/a/label/i'
         self.sort_descending_id = '//*[@id="collectionsDropdown"]/ul[2]/li[4]/a/label/i'
 
-        if self.current_package_version() >= semver.VersionInfo.parse("3.12.0"):
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             self.select_doc_collection_id = "(//a[normalize-space()='TestDoc'])[1]"
         else:
             self.select_doc_collection_id = '//*[@id="collection_TestDoc"]/div/h5'
@@ -772,7 +772,7 @@ class CollectionPage(NavigationBarPage):
             action = ActionChains(self.webdriver)
             self.select_desired_index_from_the_list('Inverted Index')
 
-            if self.current_package_version() >= semver.VersionInfo.parse("3.12.0"):
+            if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
                 fields = '//label[text()="Fields"][1]'
             else:
                 fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"
@@ -1459,7 +1459,7 @@ class CollectionPage(NavigationBarPage):
         """selecting testDoc collection"""
         print("Selecting TestDoc Collection \n")
         try:
-            if self.current_package_version() >= semver.VersionInfo.parse("3.12.0"):
+            if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
                 test_doc_col = "(//a[normalize-space()='TestDoc'])[1]"
             else:
                 test_doc_col = '//*[@id="collection_TestDoc"]/div/h5'
