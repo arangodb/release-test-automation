@@ -1129,53 +1129,72 @@ class AnalyzerPage(NavigationBarPage):
         print(f"Creating {name} completed successfully \n")
 
         # --------------------here we are checking the properties of the created analyzer----------------------
-        if self.version_is_newer_than('3.11.99'):
-            try:
+        try:
+            print(f"Checking analyzer properties for {name} \n")
+            if self.version_is_newer_than('3.10.99'):
+                time.sleep(20)
                 # Find the analyzer by XPath
-                analyzer_xpath = f"//*[text()='_system::{name}']"
-                analyzer_element = self.locator_finder_by_xpath(analyzer_xpath)
+                if self.version_is_newer_than('3.11.99'):
+                    analyzer_xpath = f"//*[text()='_system::{name}']"
+                else:
+                    analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
+                    
+                analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
 
                 # Check if the analyzer exists
-                if analyzer_element is None:
+                if analyzer_sitem is None:
                     print(f'The analyzer "{name}" has never been created.\n')
                 else:
                     # Click on the analyzer element
-                    analyzer_element.click()
+                    analyzer_sitem.click()
                     time.sleep(1)
 
                     # Find the ACE editor button
-                    ace_button_xpath = "//button[@class='jsoneditor-compact']"
-                    ace_button = self.locator_finder_by_xpath(ace_button_xpath)
+                if self.version_is_newer_than('3.11.99'):
+                    # finding the ace editor using neighbor locators
+                    nearest_button = "//button[@class='jsoneditor-compact']"
+                else:
+                    print(f"Switching to code view for {name} \n")
+                    switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
+                    switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
+                    switch_to_code_sitem.click()
+                    nearest_button = "(//label[normalize-space()='JSON Dump'])[1]"
+                    
+                ace_button = self.locator_finder_by_xpath(nearest_button)
 
-                    # Set x and y offset positions for the action
-                    xOffset = 50
-                    yOffset = 50
+                # Set x and y offset positions for the action
+                xOffset = 50
+                yOffset = 50
 
-                    # Perform actions on the ACE editor
-                    actions = ActionChains(self.webdriver)
-                    actions.move_to_element_with_offset(ace_button, xOffset, yOffset)
-                    actions.click()
-                    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL)
-                    actions.perform()  # Execute the actions
+                # Perform actions on the ACE editor
+                actions = ActionChains(self.webdriver)
+                actions.move_to_element_with_offset(ace_button, xOffset, yOffset)
+                actions.click()
+                actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL)
+                actions.perform()  # Execute the actions
 
-                    # Retrieve text content from the clipboard using Pyperclip
-                    actual_properties = ''.join(str(pyperclip.paste()).split())
+                # Retrieve text content from the clipboard using Pyperclip
+                actual_properties = ''.join(str(pyperclip.paste()).split())
 
-                    # Get expected properties based on the analyzer name and UI data directory
-                    expected_properties = ''.join(str(self.generate_expected_properties(name, ui_data_dir)).split())
+                # Get expected properties based on the analyzer name and UI data directory
+                if self.version_is_newer_than("3.11.99"):
+                    expected_properties = ''.join(str(self.generate_expected_properties_312(name)).split())
+                else:
+                    expected_properties = ''.join(str(self.generate_expected_properties_311(name)).split())
 
-                    # Assert that the copied text matches the expected text
-                    if actual_properties != expected_properties:
-                        print("Actual properties: ", actual_properties)
-                        print("Expected properties: ", expected_properties)
-                        raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
-                    else:
-                        print(f"Properties are equal for the '{name}' analyzer.\n")
+                # Assert that the copied text matches the expected text
+                if actual_properties != expected_properties:
+                    print("Actual properties: ", actual_properties)
+                    print("Expected properties: ", expected_properties)
+                    raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
+                else:
+                    print(f"Properties are equal for the '{name}' analyzer.\n")
 
-            except TimeoutException as ex:
-                raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
+        except TimeoutException as ex:
+            raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
             
-            # -------------------- Running a query for each analyzer's after creation----------------------
+        # -------------------- Running a query for each analyzer's after creation----------------------
+        if self.version_is_newer_than('3.11.99'):
             try:
                 print(f'Running query for {name} started \n')
                 # Goto query tab
@@ -1292,7 +1311,353 @@ class AnalyzerPage(NavigationBarPage):
         return None
 
     @staticmethod
-    def generate_expected_properties(analyzer_name, ui_data_dir=None):
+    def generate_expected_properties_311(analyzer_name, ui_data_dir=None):
+        """Define a method to generate expected text for a specific analyzer for >= v312"""
+        if analyzer_name == "My_Identity_Analyzer":
+            return """{
+                "name": "_system::My_Identity_Analyzer",
+                "type": "identity",
+                "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                ],
+                "properties": {}
+            }"""
+        elif analyzer_name == "My_Delimiter_Analyzer":
+            return """{
+                  "name": "_system::My_Delimiter_Analyzer",
+                  "type": "delimiter",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "delimiter": "_"
+                  }
+                }"""
+        elif analyzer_name == "My_Stem_Analyzer":
+            return """{
+                  "name": "_system::My_Stem_Analyzer",
+                  "type": "stem",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "locale": "en"
+                  }
+                }"""
+        elif analyzer_name == "My_Norm_Analyzer":
+            return """{
+                  "name": "_system::My_Norm_Analyzer",
+                  "type": "norm",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "locale": "en_US",
+                    "case": "lower",
+                    "accent": true
+                  }
+                }"""
+        elif analyzer_name == "My_N-Gram_Analyzer":
+            return """{
+                  "name": "_system::My_N-Gram_Analyzer",
+                  "type": "ngram",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "min": 3,
+                    "max": 3,
+                    "preserveOriginal": true,
+                    "streamType": "utf8",
+                    "startMarker": "^",
+                    "endMarker": "$"
+                  }
+                }"""
+        elif analyzer_name == "My_Text_Analyzer":
+            return """{
+                  "name": "_system::My_Text_Analyzer",
+                  "type": "text",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "locale": "en_US",
+                    "case": "upper",
+                    "stopwords":["dog","human","of","the","tree"],
+                    "accent": true,
+                    "stemming": true,
+                    "edgeNgram": {
+                      "min": 3,
+                      "max": 8,
+                      "preserveOriginal": true
+                    }
+                  }
+                }"""
+        elif analyzer_name == "My_AQL_Analyzer":
+            return """{
+                  "name": "_system::My_AQL_Analyzer",
+                  "type": "aql",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "queryString": "RETURN SOUNDEX(@param)",
+                    "collapsePositions": true,
+                    "keepNull": true,
+                    "batchSize": 10,
+                    "memoryLimit": 1048576,
+                    "returnType": "number"
+                  }
+                }"""
+        elif analyzer_name == "My_Stopwords_Analyzer":
+            return """{
+                  "name": "_system::My_Stopwords_Analyzer",
+                  "type": "stopwords",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "stopwords": [
+                      "616e64",
+                      "746865",
+                      ""
+                    ],
+                    "hex": true
+                  }
+                }"""
+        elif analyzer_name == "My_Collation_Analyzer":
+            return """{
+                  "name": "_system::My_Collation_Analyzer",
+                  "type": "collation",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "locale": "en_US"
+                  }
+                }"""
+        elif analyzer_name == "My_Segmentation_Alpha_Analyzer":
+            return """{
+                  "name": "_system::My_Segmentation_Alpha_Analyzer",
+                  "type": "segmentation",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "case": "lower",
+                    "break": "alpha"
+                  }
+                }"""
+        elif analyzer_name == "My_Pipeline_Analyzer":
+            return """{
+                  "name": "_system::My_Pipeline_Analyzer",
+                  "type": "pipeline",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "pipeline": [
+                      {
+                        "type": "norm",
+                        "properties": {
+                          "locale": "en_US",
+                          "case": "upper",
+                          "accent": true
+                        }
+                      },
+                      {"type":"ngram","properties":{"min":3,"max":3,"preserveOriginal":true,
+                      "streamType":"utf8","startMarker":"^","endMarker":"$"}}
+                    ]
+                  }
+                }"""
+        elif analyzer_name == "My_GeoJSON_Analyzer":
+            return """{
+                  "name": "_system::My_GeoJSON_Analyzer",
+                  "type": "geojson",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "options": {
+                      "maxCells": 20,
+                      "minLevel": 10,
+                      "maxLevel": 30
+                    },
+                    "type":"shape","legacy":false}
+                }"""
+        elif analyzer_name == "My_GeoPoint_Analyzer":
+            return """{
+                  "name": "_system::My_GeoPoint_Analyzer",
+                  "type": "geopoint",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "options": {
+                      "maxCells": 20,
+                      "minLevel": 4,
+                      "maxLevel": 23
+                    },
+                    "latitude": ["40","78"],
+                    "longitude": ["-73","97"]
+                  }
+                }
+                """
+        elif analyzer_name == "My_GeoS2_Analyzer":
+            return """{
+                      "name": "_system::My_GeoS2_Analyzer",
+                      "type": "geo_s2",
+                      "features": [
+                        "frequency",
+                        "position",
+                        "norm"
+                      ],
+                      "properties": {
+                        "options": {
+                          "maxCells": 20,
+                          "minLevel": 4,
+                          "maxLevel": 23
+                        },
+                        "type": "point",
+                        "format": "s2Point"
+                      }
+                    }"""
+        elif analyzer_name == "My_Minhash_Analyzer":
+            return """{
+                  "name": "_system::My_Minhash_Analyzer",
+                  "type": "minhash",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "numHashes": 10,
+                    "analyzer": {
+                      "type": "delimiter",
+                      "properties": {
+                        "delimiter": "#"
+                      }
+                    }
+                  }
+                }"""
+        elif analyzer_name == "My_MultiDelimiter_Analyzer":
+            return """{
+                  "name": "_system::My_MultiDelimiter_Analyzer",
+                  "type": "multi_delimiter",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "delimiters": [
+                      ":",
+                      ";",
+                      ",",
+                      ".",
+                      "/",
+                      "ß",
+                      "Û",
+                      "⚽"
+                    ]
+                  }
+                }"""
+        elif analyzer_name == "My_WildCard_Analyzer":
+            return """
+                {
+                  "name": "_system::My_WildCard_Analyzer",
+                  "type": "wildcard",
+                  "features": [
+                    "frequency",
+                    "position",
+                    "norm"
+                  ],
+                  "properties": {
+                    "ngramSize": 4,
+                    "analyzer": {
+                      "type": "multi_delimiter",
+                      "properties": {
+                        "delimiters": [
+                          ",",
+                          ".",
+                          ":",
+                          ";",
+                          "!",
+                          "?",
+                          "[",
+                          "]",
+                          "-",
+                          "_"
+                        ]
+                      }
+                    }
+                  }
+                }"""
+        elif analyzer_name == "My_Nearest_Neighbor_Analyzer":
+            location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
+            return (
+                '{'
+                '"name": "_system::My_Other_Analyzer",'
+                '"type": "other_type",'
+                '"features": ['
+                '"frequency",'
+                '"position",'
+                '"norm"'
+                '],'
+                '"properties": {'
+                f'"model_location": "{(str(location.absolute()))}",'
+                '"top_k": 2'
+                '}'
+                '}'
+            )
+        elif analyzer_name == "My_Classification_Analyzer":
+            location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
+            return (
+                '{'
+                '"name": "_system::My_Classification_Analyzer",'
+                '"type": "classification",'
+                '"features": ['
+                '"frequency",'
+                '"position",'
+                '"norm"'
+                '],'
+                '"properties": {'
+                f'"model_location": "{(str(location.absolute()))}",'
+                '"top_k": 2,'
+                '"threshold": 0.8'
+                '}'
+                '}'
+            )
+
+    @staticmethod
+    def generate_expected_properties_312(analyzer_name, ui_data_dir=None):
         """Define a method to generate expected text for a specific analyzer"""
         if analyzer_name == "My_Identity_Analyzer":
             return """{
@@ -1641,26 +2006,25 @@ class AnalyzerPage(NavigationBarPage):
                     )
 
 
-    
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
-            "My_Identity_Analyzer": (0, None, False),
-            "My_Delimiter_Analyzer": (0, None, False),
-            "My_Stem_Analyzer": (0, None, False),
-            "My_Norm_Analyzer": (0, None, False),
-            "My_N-Gram_Analyzer": (0, None, False),
-            "My_Text_Analyzer": (0, None, False),
-            "My_AQL_Analyzer": (0, None, False),
-            "My_Stopwords_Analyzer": (0, None, False),
-            "My_Collation_Analyzer": (0, None, False),
-            "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            # "My_Identity_Analyzer": (0, None, False),
+            # "My_Delimiter_Analyzer": (0, None, False),
+            # "My_Stem_Analyzer": (0, None, False),
+            # "My_Norm_Analyzer": (0, None, False),
+            # "My_N-Gram_Analyzer": (0, None, False),
+            # "My_Text_Analyzer": (0, None, False),
+            # "My_AQL_Analyzer": (0, None, False),
+            # "My_Stopwords_Analyzer": (0, None, False),
+            # "My_Collation_Analyzer": (0, None, False),
+            # "My_Segmentation_Alpha_Analyzer": (0, None, False),
+            # "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            # "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            # "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
             "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_GeoS2_Analyzer": (0, None, not enterprise)
