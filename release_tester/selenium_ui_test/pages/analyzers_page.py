@@ -1194,7 +1194,7 @@ class AnalyzerPage(NavigationBarPage):
             raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
             
         # -------------------- Running a query for each analyzer's after creation----------------------
-        if self.version_is_newer_than('3.11.99'):
+        if self.version_is_newer_than('3.10.99'):
             try:
                 print(f'Running query for {name} started \n')
                 # Goto query tab
