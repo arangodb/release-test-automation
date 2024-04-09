@@ -1132,7 +1132,7 @@ class AnalyzerPage(NavigationBarPage):
         try:
             print(f"Checking analyzer properties for {name} \n")
             if self.version_is_newer_than('3.10.99'):
-                time.sleep(20)
+                # time.sleep(10)
                 # Find the analyzer by XPath
                 if self.version_is_newer_than('3.11.99'):
                     analyzer_xpath = f"//*[text()='_system::{name}']"
@@ -2009,22 +2009,22 @@ class AnalyzerPage(NavigationBarPage):
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
-            # "My_Identity_Analyzer": (0, None, False),
-            # "My_Delimiter_Analyzer": (0, None, False),
-            # "My_Stem_Analyzer": (0, None, False),
-            # "My_Norm_Analyzer": (0, None, False),
-            # "My_N-Gram_Analyzer": (0, None, False),
-            # "My_Text_Analyzer": (0, None, False),
-            # "My_AQL_Analyzer": (0, None, False),
-            # "My_Stopwords_Analyzer": (0, None, False),
-            # "My_Collation_Analyzer": (0, None, False),
-            # "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            # "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            # "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            # "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            # "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            # "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            # "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            "My_Identity_Analyzer": (0, None, False),
+            "My_Delimiter_Analyzer": (0, None, False),
+            "My_Stem_Analyzer": (0, None, False),
+            "My_Norm_Analyzer": (0, None, False),
+            "My_N-Gram_Analyzer": (0, None, False),
+            "My_Text_Analyzer": (0, None, False),
+            "My_AQL_Analyzer": (0, None, False),
+            "My_Stopwords_Analyzer": (0, None, False),
+            "My_Collation_Analyzer": (0, None, False),
+            "My_Segmentation_Alpha_Analyzer": (0, None, False),
+            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
             "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
             "My_GeoS2_Analyzer": (0, None, not enterprise)
