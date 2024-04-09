@@ -77,7 +77,11 @@ INSTANCE_TYPE_STRING_MAP = {
 
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
-    return datetime.datetime.strptime(line.split(" ")[0], "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        return datetime.datetime.strptime(line.split(" ")[0], "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        pass
+    return datetime.datetime.strptime(line.split(" ")[0], "%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 class AfoServerState(IntEnum):
