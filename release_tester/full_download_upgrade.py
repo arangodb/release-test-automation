@@ -162,7 +162,7 @@ def upgrade_package_test(
     interactive=False,
     test_data_dir="/home/test_dir",
 )
-@download_options(default_source="ftp:stage2", double_source=True)
+@download_options(default_source="nightlypublic", double_source=True)
 @ui_test_suite_filtering_options()
 def main(**kwargs):
     """main"""

@@ -4,7 +4,6 @@
 """ Release testing script"""
 # pylint: disable=duplicate-code
 from dataclasses import dataclass
-from ftplib import FTP_TLS
 import os
 from pathlib import Path
 import platform
@@ -94,13 +93,7 @@ class Download:
             # external DNS to wuerg around docker dns issues...
             self.remote_host = options.remote_host
         else:
-            # dns split horizon...
-            if source in ["ftp:stage1", "ftp:stage2"]:
-                self.remote_host = "nas01.arangodb.biz"
-            elif source in ["http:stage2"]:
-                self.remote_host = "download.arangodb.com"
-            else:
-                self.remote_host = "download.arangodb.com"
+            self.remote_host = "download.arangodb.com"
         lh.section("startup")
         self.cfg = InstallerConfig(
             version=version,
@@ -178,12 +171,6 @@ class Download:
             self.params["path_architecture"] = ""
 
         self.directories = {
-            "ftp:stage1": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
-                **self.params
-            ),
-            "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
-                **self.params
-            ),
             "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
@@ -199,8 +186,6 @@ class Download:
         }
         self.funcs = {
             "http:stage2": self.acquire_stage2_http,
-            "ftp:stage1": self.acquire_stage1_ftp,
-            "ftp:stage2": self.acquire_stage2_ftp,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
             "local": self.acquire_local,
@@ -216,21 +201,6 @@ class Download:
                     **{"package": package, "local_dir": local_dir}
                 )
             )
-
-    def acquire_stage_ftp(self, directory, package, local_dir, force, stage):
-        """download one file from the ftp server"""
-        out = local_dir / package
-        if out.exists() and not force:
-            print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
-            return
-        ftp = FTP_TLS(self.remote_host)
-        print(stage + ": " + ftp.login(user="anonymous", passwd="anonymous", acct="anonymous"))
-        print(stage + ": Downloading from " + directory)
-        print(stage + ": " + ftp.cwd(directory))
-        ftp.set_pasv(True)
-        with out.open(mode="wb") as filedes:
-            print(stage + ": downloading from " + directory + " to " + str(out))
-            print(stage + ": " + ftp.retrbinary("RETR " + package, filedes.write))
 
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
         """download one file via http"""
@@ -273,14 +243,6 @@ class Download:
     def acquire_stage2_http(self, directory, package, local_dir, force):
         """download stage 2 from http"""
         self.acquire_stage_http(directory, package, local_dir, force, "STAGE_2_HTTP")
-
-    def acquire_stage1_ftp(self, directory, package, local_dir, force):
-        """download stage 1 from ftp"""
-        self.acquire_stage_ftp(directory, package, local_dir, force, "STAGE_1_FTP")
-
-    def acquire_stage2_ftp(self, directory, package, local_dir, force):
-        """download stage 2 from ftp"""
-        self.acquire_stage_ftp(directory, package, local_dir, force, "STAGE_2_FTP")
 
     def acquire_live(self, directory, package, local_dir, force):
         """download live files via http"""

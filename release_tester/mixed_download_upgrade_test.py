@@ -305,7 +305,7 @@ def upgrade_package_test(
     test_data_dir="/home/test_dir",
     test_suites_default_value=False,
 )
-@download_options(default_source="ftp:stage2", other_source=True)
+@download_options(default_source="nightlypublic", other_source=True)
 @ui_test_suite_filtering_options()
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument
