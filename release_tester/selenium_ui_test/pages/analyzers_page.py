@@ -1132,7 +1132,8 @@ class AnalyzerPage(NavigationBarPage):
         try:
             print(f"Checking analyzer properties for {name} \n")
             if self.version_is_newer_than('3.10.99'):
-                # time.sleep(10)
+                self.wait_for_ajax()
+                time.sleep(3)
                 # Find the analyzer by XPath
                 if self.version_is_newer_than('3.11.99'):
                     analyzer_xpath = f"//*[text()='_system::{name}']"
@@ -1178,9 +1179,9 @@ class AnalyzerPage(NavigationBarPage):
 
                 # Get expected properties based on the analyzer name and UI data directory
                 if self.version_is_newer_than("3.11.99"):
-                    expected_properties = ''.join(str(self.generate_expected_properties_312(name)).split())
+                    expected_properties = ''.join(str(self.generate_expected_properties_312(name, ui_data_dir)).split())
                 else:
-                    expected_properties = ''.join(str(self.generate_expected_properties_311(name)).split())
+                    expected_properties = ''.join(str(self.generate_expected_properties_311(name, ui_data_dir)).split())
 
                 # Assert that the copied text matches the expected text
                 if actual_properties != expected_properties:
@@ -1199,26 +1200,42 @@ class AnalyzerPage(NavigationBarPage):
                 print(f'Running query for {name} started \n')
                 # Goto query tab
                 print("Selecting query tab \n")
-                self.navbar_goto("queries")
-                time.sleep(1)
+                if self.version_is_newer_than('3.11.99'):
+                    self.navbar_goto("queries")
+                else:
+                    self.webdriver.refresh()
+                    self.navbar_goto("queries")
+                self.wait_for_ajax()
+
                 print('Selecting query execution area \n')
                 self.select_query_execution_area()
 
                 print(f'Running query for {name} analyzer started\n')
                 # Get query and expected output based on analyzer name
-                analyzer_query = self.get_analyzer_query(name)
+                if self.version_is_newer_than('3.11.99'):
+                    analyzer_query = self.get_analyzer_query_312(name)
+                else:
+                    analyzer_query = self.get_analyzer_query_311(name)
+                
                 if analyzer_query is None:
                     print(f"Analyzer '{name}' not found. Skipping test.")
                     pass  # Skip this test and move to the next one
                 else:
-                    self.send_key_action(analyzer_query)
-
+                    if self.version_is_newer_than('3.11.99'):
+                        self.send_key_action(analyzer_query)
+                    else:
+                        self.clear_textfield()
+                        self.send_key_action(analyzer_query)
                     self.query_execution_btn()
                     self.scroll(1)
 
                     print("Storing the query output \n")
                     # Finding the ace editor using neighbor locators
-                    query_output = "(//div[@class='css-1new77s'])[1]"
+                    if self.version_is_newer_than('3.11.99'):
+                        query_output = "(//div[@class='css-1new77s'])[1]"
+                    else:
+                        query_output = "//span[@class='toolbarType']"
+                    
                     ace_locator = self.locator_finder_by_xpath(query_output)
                     # Set x and y offset positions of adjacent element
                     xOffset = 50
@@ -1233,7 +1250,11 @@ class AnalyzerPage(NavigationBarPage):
                     # Retrieve text content from the clipboard using Pyperclip
                     query_actual_output = ''.join(str(pyperclip.paste()).split())
                     # Get expected query output based on analyzer name
-                    query_expected_output = self.get_analyzer_expected_output(name)
+                    if self.version_is_newer_than('3.11.99'):
+                        query_expected_output = self.get_analyzer_expected_output_312(name)
+                    else:
+                        query_expected_output = self.get_analyzer_expected_output_311(name)
+                    
                     if query_expected_output is None:
                         print(f"Analyzer '{name}' not found. Skipping test.")
                         pass  # Skip this test and move to the next one
@@ -1250,7 +1271,7 @@ class AnalyzerPage(NavigationBarPage):
 
 
     @staticmethod
-    def generate_analyzer_queries(analyzer_name):
+    def generate_analyzer_queries_312(analyzer_name):
         return {
             "My_Identity_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
@@ -1295,13 +1316,74 @@ class AnalyzerPage(NavigationBarPage):
             # Add more analyzers and their queries and expected outputs here
         }.get(analyzer_name, {})
 
-    def get_analyzer_query(self, analyzer_name):
+    def get_analyzer_query_312(self, analyzer_name):
         """get analyzer query based on the analyzer name"""
-        return self.generate_analyzer_queries(analyzer_name).get("query")
+        return self.generate_analyzer_queries_312(analyzer_name).get("query")
 
-    def get_analyzer_expected_output(self, analyzer_name):
+    def get_analyzer_expected_output_312(self, analyzer_name):
         """Get analyzer query's expected output based on the analyzer name"""
-        analyzer_data = self.generate_analyzer_queries(analyzer_name)
+        analyzer_data = self.generate_analyzer_queries_312(analyzer_name)
+        if analyzer_data:
+            expected_output = analyzer_data.get("expected_output")
+            # Convert the expected output to a string using double quotes
+            if isinstance(expected_output, list):
+                return str(expected_output).replace("'", '"')
+            return expected_output
+        return None
+
+    @staticmethod
+    def generate_analyzer_queries_311(analyzer_name):
+        return {
+            "My_Identity_Analyzer": {
+                "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
+                "expected_output": [["UPPER lower dïäcríticš"]]
+            },
+            "My_Delimiter_Analyzer": {
+                "query": "RETURN TOKENS('some-delimited-words', 'My_Delimiter_Analyzer')",
+                "expected_output": [["some-delimited-words"]]
+            },
+            "My_Stem_Analyzer": {
+                "query": "RETURN TOKENS('databases', 'My_Stem_Analyzer')",
+                "expected_output": [["databas"]]
+            },
+            "My_Norm_Analyzer": {
+                "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Norm_Analyzer')",
+                "expected_output": [["upper lower dïäcríticš"]]
+            },
+            "My_N-Gram_Analyzer": {
+                "query": "RETURN TOKENS('foobar', 'My_N-Gram_Analyzer')",
+                "expected_output": [["^foo", "^foobar", "foobar$", "oob", "oba", "bar$"]]
+            },
+            "My_Text_Analyzer": {
+                "query": "RETURN TOKENS('The quick brown fox jumps over the dogWithAVeryLongName', 'My_Text_Analyzer')",
+                "expected_output": [["THE","QUI","QUIC","QUICK","BRO","BROW","BROWN","FOX","JUM","JUMP","JUMPS",
+                                     "OVE","OVER","THE","DOG","DOGW","DOGWI","DOGWIT","DOGWITH",
+                                     "DOGWITHA","DOGWITHAVERYLONGNAME"]]
+            },
+            "My_AQL_Analyzer": {
+                "query": "RETURN TOKENS('UPPER lower dïäcríticš','My_AQL_Analyzer')",
+                "expected_output": [[["oIAAAAAAAAAA","sIAAAAAAAA==","wIAAAAA=","0IAA"]]]
+            },
+            "My_Stopwords_Analyzer": {
+                "query": "RETURN FLATTEN(TOKENS(SPLIT('the fox and the dog and a theater', ' '), 'My_Stopwords_Analyzer'))",
+                "expected_output": [["fox", "dog", "a", "theater"]]
+            },
+            "My_Pipeline_Analyzer": {
+                "query": "RETURN TOKENS('Quick brown foX', 'My_Pipeline_Analyzer')",
+                "expected_output": [["^QUI","^QUICKBROWNFOX","QUICKBROWNFOX$","UIC","ICK","CK","KB","BR","BRO",
+                                     "ROW","OWN","WN","NF","FO","FOX$"]]
+            },
+
+            # Add more analyzers and their queries and expected outputs here
+        }.get(analyzer_name, {})
+
+    def get_analyzer_query_311(self, analyzer_name):
+        """get analyzer query based on the analyzer name"""
+        return self.generate_analyzer_queries_311(analyzer_name).get("query")
+
+    def get_analyzer_expected_output_311(self, analyzer_name):
+        """Get analyzer query's expected output based on the analyzer name"""
+        analyzer_data = self.generate_analyzer_queries_311(analyzer_name)
         if analyzer_data:
             expected_output = analyzer_data.get("expected_output")
             # Convert the expected output to a string using double quotes
@@ -1312,7 +1394,7 @@ class AnalyzerPage(NavigationBarPage):
 
     @staticmethod
     def generate_expected_properties_311(analyzer_name, ui_data_dir=None):
-        """Define a method to generate expected text for a specific analyzer for >= v312"""
+        """Define a method to generate expected text for a specific analyzer for == v311"""
         if analyzer_name == "My_Identity_Analyzer":
             return """{
                 "name": "_system::My_Identity_Analyzer",
@@ -1624,8 +1706,8 @@ class AnalyzerPage(NavigationBarPage):
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
             return (
                 '{'
-                '"name": "_system::My_Other_Analyzer",'
-                '"type": "other_type",'
+                '"name": "_system::My_Nearest_Neighbor_Analyzer",'
+                '"type": "nearest_neighbors",'
                 '"features": ['
                 '"frequency",'
                 '"position",'
