@@ -237,6 +237,11 @@ class BasePage:
         actions = ActionChains(self.webdriver)
         actions.send_keys(key)
         actions.perform()
+    
+    def clear_textfield(self):
+        """This method will clear the textfield as necessary"""
+        actions = ActionChains(self.webdriver)
+        actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.DELETE).perform()
 
     def clear_text_field(self, locator):
         """This method will be used for clear all the text in single text field if .clear() does not work"""
