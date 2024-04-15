@@ -460,9 +460,9 @@ class ClusterPerf(Cluster):
         if self.scenario.system_makedata:
             super().make_data_impl()
 
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests, database_name):
         if self.scenario.system_makedata:
-            super().check_data_impl_sh(arangosh, supports_foxx_tests)
+            super().check_data_impl_sh(arangosh, supports_foxx_tests, database_name)
 
     def check_data_impl(self):
         if self.scenario.system_makedata:
