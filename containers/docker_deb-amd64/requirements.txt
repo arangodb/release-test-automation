@@ -23,6 +23,8 @@ docker; platform_system == "Linux"
 py7zr
 paramiko
 pyperclip
+xclip; platform_system == "Linux"
+xsel; platform_system == "Linux"
 scp
 unipath
 pre-commit
