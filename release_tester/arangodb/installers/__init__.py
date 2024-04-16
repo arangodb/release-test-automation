@@ -481,6 +481,8 @@ class RunProperties:
         minimum_supported_version: str = "3.5.0",
     ):
         """set the values for this testrun"""
+        if (create_oneshard_db or force_one_shard) and not enterprise:
+            raise Exception("--create-oneshard-db and --force-oneshard options are not supported in Community edition")
         self.enterprise = enterprise
         self.force_dl = force_dl
         self.encryption_at_rest = encryption_at_rest
