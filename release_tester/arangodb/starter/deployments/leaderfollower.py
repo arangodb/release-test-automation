@@ -195,12 +195,12 @@ while (true) {{
         )
 
     @step
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests, database_name):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """we want to see stuff is in sync!"""
         print("Checking whether the follower has caught up")
         if not self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"]):
             raise Exception("the follower would not catch up in time!")
-        super().check_data_impl_sh(arangosh, supports_foxx_tests, database_name)
+        super().check_data_impl_sh(arangosh, supports_foxx_tests)
 
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()

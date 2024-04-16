@@ -242,7 +242,7 @@ class Runner(ABC):
         self.makedata_instances = []
         self.has_makedata_data = False
 
-        # list of custom databases to run makedata tests, besides "_system"
+        # list of databases to run makedata tests, besides "_system"
         self.custom_databases = []
 
         # errors that occured during run
@@ -379,7 +379,7 @@ class Runner(ABC):
                     self.finish_setup()
                 if self.create_oneshard_db:
                     self.create_database("oneshard_makedata", True)
-                    self.custom_databases += ["oneshard_makedata"]
+                    self.custom_databases.append(["oneshard_makedata", True])
                 self.make_data()
                 self.after_makedata_check()
                 self.check_data_impl()
@@ -661,7 +661,7 @@ class Runner(ABC):
     def create_database(self, database_name: str, oneshard: bool = False):
         """create a new database"""
         arangosh = self.makedata_instances[0].arangosh
-        cmd = 'db._createDatabase("{%s}", {%s})' % (database_name, '"sharding": "single"' if oneshard else "")
+        cmd = 'db._createDatabase("%s", {%s})' % (database_name, '"sharding": "single"' if oneshard else "")
         arangosh.run_command(['create database "%s"' % database_name, cmd])
 
     @step
@@ -669,8 +669,6 @@ class Runner(ABC):
         """check if setup is functional"""
         self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
-        for db_name in self.custom_databases:
-            self.make_data_impl(db_name)
 
     @step
     def test_setup(self):
@@ -811,13 +809,12 @@ class Runner(ABC):
         print_instances_table(instances)
 
     @step
-    def make_data_impl(self, database_name: str = "_system"):
+    def make_data_impl(self):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-        args = [database_name]
-        args += [
+        args = [
             "--tempDataDir",
             str(self.cfg.base_test_dir / self.basedir / "makedata_tmp"),
             "--excludePreviouslyExecutedTests",
@@ -825,58 +822,61 @@ class Runner(ABC):
         ]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
-        if self.force_one_shard:
-            args += ["--singleShard", "true"]
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
 
             # must be writabe that the setup may not have already data
             if not arangosh.read_only:  # and not self.has_makedata_data:
-                try:
-                    arangosh.create_test_data(self.name, args=args)
-                except CliExecutionException as exc:
-                    if self.cfg.verbose:
-                        print(exc.execution_result[1])
-                    self.ask_continue_or_exit(
-                        f"make_data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
-                    )
+                for db_name, one_shard in self.makedata_databases():
+                    try:
+                        arangosh.create_test_data(self.name, args, one_shard=one_shard, database_name=db_name)
+                    except CliExecutionException as exc:
+                        if self.cfg.verbose:
+                            print(exc.execution_result[1])
+                        self.ask_continue_or_exit(
+                            f"make_data failed for {self.name} in database {db_name} with {exc}",
+                            exc.execution_result[1],
+                            False,
+                            exc,
+                        )
                 self.has_makedata_data = True
         if not self.has_makedata_data:
             raise Exception("didn't find makedata instances, no data created!")
 
     @step
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests, database_name):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """check for data on the installation"""
         if self.has_makedata_data:
-            try:
-                args = []
-                if self.force_one_shard:
-                    args += ["--singleShard", "true"]
-                arangosh.check_test_data(self.name, supports_foxx_tests, args=args)
-            except CliExecutionException as exc:
-                if not self.cfg.verbose:
-                    print(exc.execution_result[1])
-                self.ask_continue_or_exit(
-                    f"check_data has data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
-                )
+            for db_name, one_shard in self.makedata_databases():
+                try:
+                    args = []
+                    arangosh.check_test_data(
+                        self.name, supports_foxx_tests, args=args, database_name=db_name, one_shard=one_shard
+                    )
+                except CliExecutionException as exc:
+                    if not self.cfg.verbose:
+                        print(exc.execution_result[1])
+                    self.ask_continue_or_exit(
+                        f"check_data has failed for {self.name} in database {db_name} with {exc}",
+                        exc.execution_result[1],
+                        False,
+                        exc,
+                    )
 
     @step
     def check_data_impl(self):
         """check for data on the installation"""
-        databases = ["_system"]
-        databases += self.custom_databases
-        for db_name in databases:
-            frontend_found = False
-            for starter in self.makedata_instances:
-                if not starter.is_leader:
-                    continue
-                assert starter.arangosh, "check: this starter doesn't have an arangosh!"
-                frontend_found = True
-                arangosh = starter.arangosh
-                self.check_data_impl_sh(arangosh, starter.supports_foxx_tests, db_name)
-            if not frontend_found:
-                raise Exception("no frontend found.")
+        frontend_found = False
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arangosh, "check: this starter doesn't have an arangosh!"
+            frontend_found = True
+            arangosh = starter.arangosh
+            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+        if not frontend_found:
+            raise Exception("no frontend found.")
 
     @step
     def create_non_backup_data(self):
@@ -1256,3 +1256,7 @@ class Runner(ABC):
             f"Status code: {str(reply[0].status_code)}\n"
             f"Body: {str(reply[0].content)}"
         )
+
+    def makedata_databases(self):
+        """ return a list of databases that makedata tests must be ran in """
+        return [["_system", self.force_one_shard]] + self.custom_databases.copy()

@@ -15,11 +15,10 @@ ON_POSIX = "posix" in sys.builtin_module_names
 class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    def __init__(self, config, connect_instance, old_version, one_shard=False):
+    def __init__(self, config, connect_instance, old_version):
         self.read_only = False
         super().__init__(config, connect_instance)
         self.old_version = old_version
-        self.one_shard = one_shard
 
     # pylint: disable=too-many-arguments
     def run_command(
@@ -200,10 +199,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             eh.ask_continue_or_exit("setting passvoid failed", self.cfg.interactive)
         return res
 
-    @step(
-        """Create a collection with documents after taking a backup
-          (to verify its not in the backup)"""
-    )
+    @step
     def hotbackup_create_nonbackup_data(self, suff=""):
         """
         create a collection with documents after taking a backup
@@ -318,11 +314,21 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def create_test_data(
-        self, testname, args=None, result_line_handler=default_line_result, progressive_timeout=100, deadline=900
+        self,
+        testname,
+        args=None,
+        result_line_handler=default_line_result,
+        progressive_timeout=100,
+        deadline=900,
+        one_shard: bool = False,
+        database_name: str = "_system",
     ):
         """deploy testdata into the instance"""
         if args is None:
             args = []
+        args = [database_name] + args
+        if one_shard:
+            args += ["--singleShard", "true"]
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
@@ -330,8 +336,6 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
-        if self.one_shard:
-            args += ["--singleShard", "true"]
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
@@ -351,6 +355,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         testname,
         supports_foxx_tests,
         args=None,
+        one_shard: bool = False,
         database_name: str = "_system",
         result_line_handler=default_line_result,
     ):
@@ -358,6 +363,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         if args is None:
             args = []
         args.append(database_name)
+        if one_shard:
+            args += ["--singleShard", "true"]
         if testname:
             logging.info("checking test data for {0}".format(testname))
         else:
@@ -366,8 +373,6 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
-        if self.one_shard:
-            args += ["--singleShard", "true"]
         ret = self.run_script_monitored(
             cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
             # fmt: off

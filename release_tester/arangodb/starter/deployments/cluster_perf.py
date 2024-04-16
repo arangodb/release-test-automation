@@ -24,6 +24,10 @@ from arangodb.starter.deployments.cluster import Cluster
 # from arangodb.starter.deployments.single import Single
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.stress import TestConfig
+from arangodb.stress.arangosh import arangosh_runner
+from arangodb.stress.dump import dump_runner
+from arangodb.stress.makedata import makedata_runner
+from arangodb.stress.restore import restore_runner
 from reporting.reporting_utils import step
 
 # from tools.prometheus import set_prometheus_jwt
@@ -202,6 +206,7 @@ class ClusterPerf(Cluster):
                             self.jobs,
                             self.resultq,
                             arangosh,
+                            False,
                             self.scenario.progressive_timeout,
                         ),
                     )
@@ -300,6 +305,7 @@ class ClusterPerf(Cluster):
                 if name.startswith("arangosh"):
                     print(f"killing {process.name}  {process.pid}")
                     process.kill()
+            # pylint: disable=broad-except
             except Exception as ex:
                 logging.error(ex)
         for worker in self.arangobench_workers:
@@ -460,9 +466,9 @@ class ClusterPerf(Cluster):
         if self.scenario.system_makedata:
             super().make_data_impl()
 
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests, database_name):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         if self.scenario.system_makedata:
-            super().check_data_impl_sh(arangosh, supports_foxx_tests, database_name)
+            super().check_data_impl_sh(arangosh, supports_foxx_tests)
 
     def check_data_impl(self):
         if self.scenario.system_makedata:

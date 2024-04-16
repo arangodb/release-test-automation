@@ -380,17 +380,13 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.jam_step_1()
 
-        ret = self.starter_instances[0].arangosh.check_test_data(
-            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
-
-        ret = self.starter_instances[survive_instance].arangosh.check_test_data(
-            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
+            for db_name, oneshard in self.makedata_databases():
+                ret = starter_instance.arangosh.check_test_data(
+                    "Cluster one node missing", True, ["--disabledDbserverUUID", uuid], oneshard, db_name
+                )
+                if not ret[0]:
+                    raise Exception("check data failed in database %s :\n" % db_name + ret[1])
 
         self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
 
