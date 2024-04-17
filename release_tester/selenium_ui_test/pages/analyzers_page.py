@@ -6,7 +6,6 @@ import semver
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 
 
@@ -1197,80 +1196,81 @@ class AnalyzerPage(NavigationBarPage):
         except TimeoutException as ex:
             print(f'Failed to parse properties from the {name} and the error is: {ex} \n')
             
-        # # -------------------- Running a query for each analyzer's after creation----------------------
-        # if self.version_is_newer_than('3.10.99'):
-        #     try:
-        #         print(f'Running query for {name} started \n')
-        #         # Goto query tab
-        #         print("Selecting query tab \n")
-        #         if self.version_is_newer_than('3.11.99'):
-        #             self.navbar_goto("queries")
-        #         else:
-        #             self.webdriver.refresh()
-        #             self.navbar_goto("queries")
-        #         self.wait_for_ajax()
+        # -------------------- Running a query for each analyzer's after creation----------------------
+        try:
+            print(f"Checking analyzer query for {name} \n")
+            if self.version_is_older_than('3.11.99'):
+                print(f'Running query for {name} started \n')
+                # Goto query tab
+                print("Selecting query tab \n")
+                if self.version_is_newer_than('3.11.99'):
+                    self.locator_finder_by_id('queries').click()
+                else:
+                    self.webdriver.refresh()
+                    self.locator_finder_by_id('queries').click()
+                time.sleep(1)
+                print('Selecting query execution area \n')
+                self.select_query_execution_area()
 
-        #         print('Selecting query execution area \n')
-        #         self.select_query_execution_area()
+                print(f'Running query for {name} analyzer started\n')
+                # Get query and expected output based on analyzer name
+                if self.version_is_newer_than('3.11.99'):
+                    analyzer_query = self.get_analyzer_query_312(name)
+                else:
+                    analyzer_query = self.get_analyzer_query_311(name)
 
-        #         print(f'Running query for {name} analyzer started\n')
-        #         # Get query and expected output based on analyzer name
-        #         if self.version_is_newer_than('3.11.99'):
-        #             analyzer_query = self.get_analyzer_query_312(name)
-        #         else:
-        #             analyzer_query = self.get_analyzer_query_311(name)
-                
-        #         if analyzer_query is None:
-        #             print(f"Analyzer '{name}' not found. Skipping test.")
-        #             pass  # Skip this test and move to the next one
-        #         else:
-        #             if self.version_is_newer_than('3.11.99'):
-        #                 self.send_key_action(analyzer_query)
-        #             else:
-        #                 self.clear_textfield()
-        #                 self.send_key_action(analyzer_query)
-        #             self.query_execution_btn()
-        #             self.scroll(1)
+                if analyzer_query is None:
+                    print(f"Analyzer '{name}' not found. Skipping test.")
+                    pass  # Skip this test and move to the next one
+                else:
+                    if self.version_is_newer_than('3.11.99'):
+                        self.send_key_action(analyzer_query)
+                    else:
+                        self.clear_textfield()
+                        self.send_key_action(analyzer_query)
 
-        #             print("Storing the query output \n")
-        #             # Finding the ace editor using neighbor locators
-        #             if self.version_is_newer_than('3.11.99'):
-        #                 query_output = "(//div[@class='css-1new77s'])[1]"
-        #             else:
-        #                 query_output = "//span[@class='toolbarType']"
-                    
-        #             ace_locator = self.locator_finder_by_xpath(query_output)
-        #             # Set x and y offset positions of adjacent element
-        #             xOffset = 50
-        #             yOffset = 50
-        #             # Perform mouse move action onto the element
-        #             actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
-        #             actions.click()
-        #             actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys(
-        #                 "c").key_up(Keys.CONTROL)
-        #             actions.perform()  # Execute the sequence of actions
+                    self.query_execution_btn()
+                    self.scroll(1)
 
-        #             # Retrieve text content from the clipboard using Pyperclip
-        #             query_actual_output = ''.join(str(pyperclip.paste()).split())
-        #             # Get expected query output based on analyzer name
-        #             if self.version_is_newer_than('3.11.99'):
-        #                 query_expected_output = self.get_analyzer_expected_output_312(name)
-        #             else:
-        #                 query_expected_output = self.get_analyzer_expected_output_311(name)
-                    
-        #             if query_expected_output is None:
-        #                 print(f"Analyzer '{name}' not found. Skipping test.")
-        #                 pass  # Skip this test and move to the next one
-        #             else:
-        #                 # Assert that the copied text matches the expected text
-        #                 if query_actual_output != ''.join(str(query_expected_output).split()):
-        #                     print("query_actual_output: ", query_actual_output)
-        #                     print("query_expected_output: ", query_expected_output)
-        #                     raise Exception(f"Actual query output didn't matches the expected query output for {name}\n")
-        #                 else:
-        #                     print(f"Actual query output matches the expected query output for {name}\n")
-        #     except TimeoutException as ex:
-        #         raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
+                    # from here we need to locate the query output
+                    # Find all elements matching the XPath from the ace editor
+                    if self.version_is_older_than('3.11.99'):
+                        # maximizing the window will help to locate all the ace_text-layer
+                        self.webdriver.maximize_window()
+
+                        ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
+                        ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
+                        # Initialize an empty list to store text
+                        text_list = []
+                        # Iterate over each element and extract its text
+                        for element in ace_line_groups:
+                            text_list.append(element.text.strip())  # Append text from each line group
+                            time.sleep(1)
+
+                        # Join the text from all elements into a single string
+                        final_text = ''.join(text_list)  # Join the text without splitting
+                        query_actual_output = ''.join(str(final_text).split())
+                        print(f"query_actual_output: {query_actual_output} \n")
+
+                    if self.version_is_newer_than('3.11.99'):
+                        query_expected_output = self.get_analyzer_expected_output_312(name)
+                    else:
+                        query_expected_output = self.get_analyzer_expected_output_311(name)
+
+                    if query_expected_output is None:
+                        print(f"Analyzer '{name}' not found. Skipping test.")
+                        pass  # Skip this test and move to the next one
+                    else:
+                        # Assert that the copied text matches the expected text
+                        if query_actual_output != ''.join(str(query_expected_output).split()):
+                            print("query_actual_output: ", query_actual_output)
+                            print("query_expected_output: ", query_expected_output)
+                            raise Exception(
+                                f"Actual query output didn't matches the expected query output for {name}\n")
+                        else:
+                            print(f"Actual query output matches the expected query output for {name}\n")
+        except TimeoutException as ex:
+            raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
 
 
     @staticmethod
