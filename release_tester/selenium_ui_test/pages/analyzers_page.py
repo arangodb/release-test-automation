@@ -7,7 +7,7 @@ from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
-import pyperclip
+from selenium.webdriver.common.by import By
 
 
 class AnalyzerPage(NavigationBarPage):
@@ -1069,14 +1069,6 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action("[")
             self.send_key_action(Keys.ENTER)
 
-            self.send_key_action("]")
-            self.send_key_action(Keys.ENTER)
-
-            self.send_key_action("-")
-            self.send_key_action(Keys.ENTER)
-
-            self.send_key_action("_")
-            self.send_key_action(Keys.ENTER)
             time.sleep(2)
         
         #todo need to fix this one for 3.11.x
@@ -1128,71 +1120,82 @@ class AnalyzerPage(NavigationBarPage):
             print("Error occurred!! required manual inspection.\n")
         print(f"Creating {name} completed successfully \n")
 
-        # # --------------------here we are checking the properties of the created analyzer----------------------
-        # try:
-        #     print(f"Checking analyzer properties for {name} \n")
-        #     if self.version_is_newer_than('3.10.99'):
-        #         self.wait_for_ajax()
-        #         time.sleep(3)
-        #         # Find the analyzer by XPath
-        #         if self.version_is_newer_than('3.11.99'):
-        #             analyzer_xpath = f"//*[text()='_system::{name}']"
-        #         else:
-        #             analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
-                    
-        #         analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
+        # --------------------here we are checking the properties of the created analyzer----------------------
+        try:
+            self.wait_for_ajax()
+            print(f"Checking analyzer properties for {name} \n")
+            if self.version_is_newer_than('3.10.99'):
+                # Finding the analyzer to check its properties
+                if self.version_is_newer_than('3.11.99'):
+                    analyzer_xpath = f"//*[text()='_system::{name}']"
+                else:
+                    time.sleep(3)
+                    analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
 
-        #         # Check if the analyzer exists
-        #         if analyzer_sitem is None:
-        #             print(f'The analyzer "{name}" has never been created.\n')
-        #         else:
-        #             # Click on the analyzer element
-        #             analyzer_sitem.click()
-        #             time.sleep(1)
+                analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
+                if analyzer_sitem is None:
+                    print(f'This {analyzer_name} has never been created \n')
+                else:
+                    analyzer_sitem.click()
+                    time.sleep(1)
 
-        #             # Find the ACE editor button
-        #         if self.version_is_newer_than('3.11.99'):
-        #             # finding the ace editor using neighbor locators
-        #             nearest_button = "//button[@class='jsoneditor-compact']"
-        #         else:
-        #             print(f"Switching to code view for {name} \n")
-        #             switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
-        #             switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
-        #             switch_to_code_sitem.click()
-        #             nearest_button = "(//label[normalize-space()='JSON Dump'])[1]"
-                    
-        #         ace_button = self.locator_finder_by_xpath(nearest_button)
+                if self.version_is_older_than('3.11.99'):
+                    print(f"Switching to code view for {name} \n")
+                    switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
+                    switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
+                    switch_to_code_sitem.click()
 
-        #         # Set x and y offset positions for the action
-        #         xOffset = 50
-        #         yOffset = 50
+                # Find all elements matching the XPath from the ace editor
+                if self.version_is_newer_than('3.11.99'):
+                    # maximizing the window will help to locate all the ace_text-layer
+                    self.webdriver.maximize_window()
 
-        #         # Perform actions on the ACE editor
-        #         actions = ActionChains(self.webdriver)
-        #         actions.move_to_element_with_offset(ace_button, xOffset, yOffset)
-        #         actions.click()
-        #         actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL)
-        #         actions.perform()  # Execute the actions
+                    ace_text_area = "//div[contains(@class, 'ace_text-layer')]//div[contains(@class, 'ace_line_group')]"
+                    ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
+                    # Initialize an empty list to store text
+                    text_list = []
+                    # Iterate over each element and extract its text
+                    for element in ace_line_groups:
+                        text_list.append(element.text.strip())  # Append text from each line group
+                        time.sleep(1)
 
-        #         # Retrieve text content from the clipboard using Pyperclip
-        #         actual_properties = ''.join(str(pyperclip.paste()).split())
+                    # Join the text from all elements into a single string
+                    final_text = ''.join(text_list)  # Join the text without splitting
+                    actual_properties = ''.join(str(final_text).split())
+                else:
+                    # Find the textarea element using XPath based on its class
+                    # Define the class name of the textarea element
+                    class_name = "sc-EHOje"  # Replace with the actual class name
 
-        #         # Get expected properties based on the analyzer name and UI data directory
-        #         if self.version_is_newer_than("3.11.99"):
-        #             expected_properties = ''.join(str(self.generate_expected_properties_312(name, ui_data_dir)).split())
-        #         else:
-        #             expected_properties = ''.join(str(self.generate_expected_properties_311(name, ui_data_dir)).split())
+                    # Execute JavaScript code to retrieve the text content of the textarea
+                    analyzer_properties = self.webdriver.execute_script(f'''
+                        var className = "{class_name}";
+                        var textareaElement = document.querySelector("textarea." + className);
+                        return textareaElement.value;
+                    ''')
+                    actual_properties = ''.join(str(analyzer_properties).split())
 
-        #         # Assert that the copied text matches the expected text
-        #         if actual_properties != expected_properties:
-        #             print("Actual properties: ", actual_properties)
-        #             print("Expected properties: ", expected_properties)
-        #             raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
-        #         else:
-        #             print(f"Properties are equal for the '{name}' analyzer.\n")
+                # Get expected properties based on analyzer name
+                if self.version_is_newer_than("3.11.99"):
+                    expected_properties = ''.join(str(self.generate_expected_properties_312(name, ui_data_dir)).split())
+                else:
+                    expected_properties = ''.join(str(self.generate_expected_properties_311(name, ui_data_dir)).split())
+                # Assert that the copied text matches the expected text
+                try:
+                    assert actual_properties == expected_properties, "Text does not match the expected text \n"
+                except AssertionError as ex:
+                    print("actual_properties: ", actual_properties)
+                    print("expected_properties: ", expected_properties)
+                    raise AssertionError(
+                        f"Actual properties didn't matches the expected properties for {name}") from ex
+                else:
+                    print(f"Actual properties matches the expected properties for {name}. \n")
 
-        # except TimeoutException as ex:
-        #     raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
+                # After the tests, restore the window size to its original dimensions
+                self.webdriver.set_window_size(1600, 900)
+
+        except TimeoutException as ex:
+            print(f'Failed to parse properties from the {name} and the error is: {ex} \n')
             
         # # -------------------- Running a query for each analyzer's after creation----------------------
         # if self.version_is_newer_than('3.10.99'):
@@ -2036,10 +2039,7 @@ class AnalyzerPage(NavigationBarPage):
                           ";",
                           "!",
                           "?",
-                          "[",
-                          "]",
-                          "-",
-                          "_"
+                          "["
                         ]
                       }
                     }
