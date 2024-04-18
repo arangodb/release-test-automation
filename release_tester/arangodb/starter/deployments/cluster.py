@@ -57,6 +57,28 @@ class Cluster(Runner):
         self.min_replication_factor = 2
 
     def starter_prepare_env_impl(self, sm=None):
+        # pylint: disable=invalid-name
+        def add_starter(name, port, opts, sm, hasAgency):
+            agencyInstance = []
+            if hasAgency:
+                agencyInstance = [InstanceType.AGENT]
+            if sm is None:
+                sm = StarterManager
+            self.starter_instances.append(
+                sm(
+                    self.cfg,
+                    self.basedir,
+                    name,
+                    mode="cluster",
+                    jwt_str=self.jwtdatastr,
+                    port=port,
+                    expect_instances= agencyInstance + [
+                        InstanceType.COORDINATOR,
+                        InstanceType.DBSERVER,
+                    ],
+                    moreopts=opts,
+                )
+            )
         self.create_test_collection = (
             "create test collection",
             """
@@ -76,47 +98,26 @@ db.testCollection.save({test: "document"})
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         else:
             common_opts += ["--all.cluster.default-replication-factor=2"]
-        node1_opts = []
-        node2_opts = ["--starter.join", "127.0.0.1:9528"]
-        node3_opts = ["--starter.join", "127.0.0.1:9528"]
+        node_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
-            node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
-            node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
-            node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
-
-            for keyfile in [node1_tls_keyfile, node2_tls_keyfile, node3_tls_keyfile]:
-                self.generate_keyfile(keyfile)
-
-            node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
-            node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-            node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
-
-        # pylint: disable=invalid-name
-        def add_starter(name, port, opts, sm):
-            if sm is None:
-                sm = StarterManager
-            self.starter_instances.append(
-                sm(
-                    self.cfg,
-                    self.basedir,
-                    name,
-                    mode="cluster",
-                    jwt_str=self.jwtdatastr,
-                    port=port,
-                    expect_instances=[
-                        InstanceType.AGENT,
-                        InstanceType.COORDINATOR,
-                        InstanceType.DBSERVER,
-                    ],
-                    moreopts=opts,
-                )
-            )
-
-        add_starter("node1", 9528, node1_opts + common_opts, sm)
-        add_starter("node2", 9628, node2_opts + common_opts, sm)
-        add_starter("node3", 9728, node3_opts + common_opts, sm)
-
+        port = 9528
+        count = 0;
+        for this_node in [1, 2, 3, 4, 5]:
+            node = []
+            node_opts.append(node)
+            if this_node != 1:
+                node += ["--starter.join", "127.0.0.1:9528"]
+            if self.cfg.ssl and not self.cfg.use_auto_certs:
+                node_tls_keyfile = self.cert_dir / Path(f"node{this_node}") / "tls.keyfile"
+                self.generate_keyfile(node_tls_keyfile)
+                node.append(f"--ssl.keyfile={node_tls_keyfile}")
+            add_starter(f"node{this_node}", port, node + common_opts, sm, count < 3)
+            port += 100
+            count += 1
+        self.backup_instance_count = count
+        print(count)
+        print('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
         for instance in self.starter_instances:
             instance.is_leader = True
 
