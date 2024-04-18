@@ -242,6 +242,9 @@ class Runner(ABC):
         self.makedata_instances = []
         self.has_makedata_data = False
 
+        # list of custom databases to run makedata tests, besides "_system"
+        self.custom_databases = []
+
         # errors that occured during run
         self.errors = []
         self.starter_instances = []
@@ -287,6 +290,7 @@ class Runner(ABC):
                 and self.new_installer is None
             )
             self.force_one_shard = False
+            self.create_oneshard_db = False
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
@@ -373,6 +377,9 @@ class Runner(ABC):
                     self.starter_prepare_env()
                     self.starter_run()
                     self.finish_setup()
+                if self.create_oneshard_db:
+                    self.create_database("oneshard_makedata", True)
+                    self.custom_databases += ["oneshard_makedata"]
                 self.make_data()
                 self.after_makedata_check()
                 self.check_data_impl()
@@ -651,10 +658,19 @@ class Runner(ABC):
         """just after makedata..."""
 
     @step
+    def create_database(self, database_name: str, oneshard: bool = False):
+        """create a new database"""
+        arangosh = self.makedata_instances[0].arangosh
+        cmd = 'db._createDatabase("{%s}", {%s})' % (database_name, '"sharding": "single"' if oneshard else "")
+        arangosh.run_command(['create database "%s"' % database_name, cmd])
+
+    @step
     def make_data(self):
         """check if setup is functional"""
         self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
+        for db_name in self.custom_databases:
+            self.make_data_impl(db_name)
 
     @step
     def test_setup(self):
@@ -795,12 +811,13 @@ class Runner(ABC):
         print_instances_table(instances)
 
     @step
-    def make_data_impl(self):
+    def make_data_impl(self, database_name: str = "_system"):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
         logging.debug("makedata instances")
         self.print_makedata_instances_table()
-        args = [
+        args = [database_name]
+        args += [
             "--tempDataDir",
             str(self.cfg.base_test_dir / self.basedir / "makedata_tmp"),
             "--excludePreviouslyExecutedTests",
@@ -829,7 +846,7 @@ class Runner(ABC):
             raise Exception("didn't find makedata instances, no data created!")
 
     @step
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests, database_name):
         """check for data on the installation"""
         if self.has_makedata_data:
             try:
@@ -847,13 +864,19 @@ class Runner(ABC):
     @step
     def check_data_impl(self):
         """check for data on the installation"""
-        for starter in self.makedata_instances:
-            if not starter.is_leader:
-                continue
-            assert starter.arangosh, "check: this starter doesn't have an arangosh!"
-            arangosh = starter.arangosh
-            return self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
-        raise Exception("no frontend found.")
+        databases = ["_system"]
+        databases += self.custom_databases
+        for db_name in databases:
+            frontend_found = False
+            for starter in self.makedata_instances:
+                if not starter.is_leader:
+                    continue
+                assert starter.arangosh, "check: this starter doesn't have an arangosh!"
+                frontend_found = True
+                arangosh = starter.arangosh
+                self.check_data_impl_sh(arangosh, starter.supports_foxx_tests, db_name)
+            if not frontend_found:
+                raise Exception("no frontend found.")
 
     @step
     def create_non_backup_data(self):

@@ -54,6 +54,7 @@ class Cluster(Runner):
             testrun_name,
         )
         self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())

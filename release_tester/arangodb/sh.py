@@ -346,10 +346,18 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def check_test_data(self, testname, supports_foxx_tests, args=None, result_line_handler=default_line_result):
+    def check_test_data(
+        self,
+        testname,
+        supports_foxx_tests,
+        args=None,
+        database_name: str = "_system",
+        result_line_handler=default_line_result,
+    ):
         """check back the testdata in the instance"""
         if args is None:
             args = []
+        args.append(database_name)
         if testname:
             logging.info("checking test data for {0}".format(testname))
         else:

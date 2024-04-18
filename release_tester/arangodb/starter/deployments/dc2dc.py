@@ -127,6 +127,7 @@ class Dc2Dc(Runner):
             testrun_name,
         )
         self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         self.success = True
         self.cfg.passvoid = ""
         self.sync_manager = None
