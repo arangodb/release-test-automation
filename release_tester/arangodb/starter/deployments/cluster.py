@@ -116,8 +116,6 @@ db.testCollection.save({test: "document"})
             port += 100
             count += 1
         self.backup_instance_count = count
-        print(count)
-        print('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
         for instance in self.starter_instances:
             instance.is_leader = True
 
