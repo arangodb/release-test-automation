@@ -328,7 +328,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             args = []
         args = [database_name] + args
         if one_shard:
-            args += ["--singleShard", "true"]
+            args += ["--singleShard", "true", "--createOneShardDatabase", "true"]
         if testname:
             logging.info("adding test data for {0}".format(testname))
         else:
@@ -362,7 +362,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         """check back the testdata in the instance"""
         if args is None:
             args = []
-        args.append(database_name)
+        args = [database_name] + args
         if one_shard:
             args += ["--singleShard", "true"]
         if testname:
