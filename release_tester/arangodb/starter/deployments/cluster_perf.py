@@ -81,6 +81,8 @@ class ClusterPerf(Cluster):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        one_shard: bool,
+        cluster_nodes: int,
     ):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         cfg = installer_set[0][1].cfg

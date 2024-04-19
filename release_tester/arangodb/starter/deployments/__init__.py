@@ -68,6 +68,7 @@ def make_runner(
     installer_set: list,
     runner_properties: RunProperties,
     use_auto_certs: bool = True,
+    cluster_nodes: int = 3,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
     # pylint: disable=too-many-return-statements
@@ -115,6 +116,7 @@ def make_runner(
         runner_properties.replication2,
         use_auto_certs,
         runner_properties.one_shard,
+        cluster_nodes,
     )
 
     if runner_type == RunnerType.SINGLE:

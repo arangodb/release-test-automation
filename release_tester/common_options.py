@@ -339,6 +339,13 @@ def common_options(
             help="use self-signed SSL certs",
         )(function)
         function = click.option(
+            "--cluster-nodes",
+            "cluster_nodes",
+            is_flag=False,
+            default=3,
+            help="Number of nodes to run clusters with",
+        )(function)
+        function = click.option(
             "--one-shard/--no-one-shard",
             "one_shard",
             is_flag=True,
