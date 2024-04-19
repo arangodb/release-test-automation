@@ -21,6 +21,7 @@ class NoStarter(Runner):
         replication2: bool,
         use_auto_certs: bool,
         one_shard: bool,
+        cluster_nodes: int,
     ):
         self.msg = ""
         super().__init__(

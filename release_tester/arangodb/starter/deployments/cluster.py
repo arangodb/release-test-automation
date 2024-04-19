@@ -37,6 +37,7 @@ class Cluster(Runner):
         replication2: bool,
         use_auto_certs: bool,
         one_shard: bool,
+        cluster_nodes: int,
     ):
         name = "CLUSTER" if not one_shard else "SINGLE_SHARD_CLUSTER"
         super().__init__(
@@ -55,6 +56,7 @@ class Cluster(Runner):
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
+        self.cluster_nodes = cluster_nodes
 
     def starter_prepare_env_impl(self, sm=None):
         # pylint: disable=invalid-name
@@ -103,7 +105,7 @@ db.testCollection.save({test: "document"})
             self.create_tls_ca_cert()
         port = 9528
         count = 0;
-        for this_node in [1, 2, 3, 4, 5]:
+        for this_node in list(range(1, self.cluster_nodes + 1)):
             node = []
             node_opts.append(node)
             if this_node != 1:

@@ -33,6 +33,7 @@ class LeaderFollower(Runner):
         replication2: bool,
         use_auto_certs: bool,
         one_shard: bool,
+        cluster_nodes: int,
     ):
         super().__init__(
             runner_type,

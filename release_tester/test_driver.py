@@ -84,6 +84,7 @@ class TestDriver:
         if not kwargs["package_dir"].exists():
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
         kwargs["base_config"].package_dir = kwargs["package_dir"]
+        self.cluster_nodes = kwargs["cluster_nodes"]
         self.base_config = kwargs["base_config"]
         self.arangods = []
         self.base_config.arangods = self.arangods
@@ -194,7 +195,7 @@ class TestDriver:
         ]
         for runner_type in starter_mode:
             assert runner_type
-            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties)
+            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties, self.cluster_nodes)
             runner.cleanup()
         if inst.calc_config_file_name().is_file():
             try:
@@ -267,6 +268,7 @@ class TestDriver:
                             installers,
                             run_props,
                             use_auto_certs=self.use_auto_certs,
+                            cluster_nodes=self.cluster_nodes,
                         )
                         if not runner or runner.runner_type == RunnerType.NONE:
                             testcase.context.status = Status.SKIPPED
@@ -438,6 +440,7 @@ class TestDriver:
                         installers,
                         run_props,
                         use_auto_certs=self.use_auto_certs,
+                        cluster_nodes=self.cluster_nodes
                     )
                     if not runner or runner.runner_type == RunnerType.NONE:
                         testcase.context.status = Status.SKIPPED
