@@ -28,6 +28,14 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.create_example_graph_for_312("Social Graph")
             graph.create_example_graph_for_312("City Graph")
 
+            graph.deleting_example_graphs("knows_graph")
+            graph.deleting_example_graphs("traversalGraph")
+            graph.deleting_example_graphs("kShortestPathsGraph")
+            graph.deleting_example_graphs("mps_graph")
+            graph.deleting_example_graphs("worldCountry")
+            graph.deleting_example_graphs("social")
+            graph.deleting_example_graphs("routeplanner")
+
         else:
             graph.create_example_graph("Knows Graph")
             graph.create_example_graph("Traversal Graph")
@@ -38,14 +46,14 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.create_example_graph("City Graph")
             # graph.create_example_graph("Connected Components Graph") # overlapped with a kshortest path collection
 
-        print("Deleting all example graphs started")
-        graph.deleting_example_graphs("Knows Graph")
-        graph.deleting_example_graphs("Traversal Graph")
-        graph.deleting_example_graphs("k Shortest Paths Graph")
-        graph.deleting_example_graphs("Mps Graph")
-        graph.deleting_example_graphs("World Graph")
-        graph.deleting_example_graphs("Social Graph")
-        graph.deleting_example_graphs("City Graph")
+            print("Deleting all example graphs started")
+            graph.deleting_example_graphs("Knows Graph")
+            graph.deleting_example_graphs("Traversal Graph")
+            graph.deleting_example_graphs("k Shortest Paths Graph")
+            graph.deleting_example_graphs("Mps Graph")
+            graph.deleting_example_graphs("World Graph")
+            graph.deleting_example_graphs("Social Graph")
+            graph.deleting_example_graphs("City Graph")
         
         # print("Manual Graph creation started \n")
         # this_graph.select_graph_page()

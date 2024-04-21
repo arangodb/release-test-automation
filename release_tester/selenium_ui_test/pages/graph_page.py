@@ -4,6 +4,7 @@ import time
 from enum import IntEnum
 import semver
 from selenium_ui_test.pages.base_page import Keys
+from selenium.webdriver.common.by import By
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 
@@ -1303,9 +1304,14 @@ class GraphPage(NavigationBarPage):
                     time.sleep(2)
                     self.wait_for_ajax()
 
-                    select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
-                    graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
-                    graph_settings_id_sitem.click()
+                    # Find the <a> element with the text "knows_graph"
+                    a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
+                    # Navigate to the parent <td> element
+                    td_element = a_element.find_element(By.XPATH, "./ancestor::td")
+                    # Find the <button> element within the same row
+                    button_element = td_element.find_element(By.XPATH, "./following-sibling::td//button[@type='button']")
+                    # Click the button
+                    button_element.click()
 
                     time.sleep(0.1)
                     self.wait_for_ajax()
