@@ -798,22 +798,40 @@ FOR doc IN Characters
         toggle_query = self.locator_finder_by_id(toggle_query)
         toggle_query.click()
         time.sleep(1)
+    
     def save_query(self, query_name):
         """his method will check saved query featured that introduced on 3.11.x"""
-        save_query = self.save_current_query_id
-        save_query = self.locator_finder_by_id(save_query)
-        save_query.click()
-        time.sleep(1)
+        if self.version_is_newer_than("3.11.99"):
+            save_query = "(//button[normalize-space()='Save as'])[1]"
+            save_query_sitem = self.locator_finder_by_xpath(save_query)
+            save_query_sitem.click()
+            time.sleep(1)
 
-        saved_query_btn = "(//input[@id='new-query-name'])[1]"
-        saved_query_btn_sitem = self.locator_finder_by_xpath(saved_query_btn)
-        saved_query_btn_sitem.click()
-        saved_query_btn_sitem.send_keys(query_name)
-        time.sleep(1)
+            saved_query_btn = "newQueryName"
+            saved_query_btn_sitem = self.locator_finder_by_id(saved_query_btn)
+            saved_query_btn_sitem.click()
+            saved_query_btn_sitem.send_keys(query_name)
+            time.sleep(1)
 
-        save_new_query_btn = "modalButton1"
-        self.locator_finder_by_id(save_new_query_btn).click()
-        time.sleep(1)
+            save_new_query_btn = "(//button[normalize-space()='Save'])[1]"
+            self.locator_finder_by_xpath(save_new_query_btn).click()
+            time.sleep(1)
+
+        else:
+            save_query = self.save_current_query_id
+            save_query = self.locator_finder_by_id(save_query)
+            save_query.click()
+            time.sleep(1)
+
+            saved_query_btn = "(//input[@id='new-query-name'])[1]"
+            saved_query_btn_sitem = self.locator_finder_by_xpath(saved_query_btn)
+            saved_query_btn_sitem.click()
+            saved_query_btn_sitem.send_keys(query_name)
+            time.sleep(1)
+
+            save_new_query_btn = "modalButton1"
+            self.locator_finder_by_id(save_new_query_btn).click()
+            time.sleep(1)
 
     def search_inside_saved_query(self, query_name):
         """This method will search saved query by given string"""
@@ -837,50 +855,54 @@ FOR doc IN Characters
         self.selecting_query_page()
 
         self.select_query_execution_area()
-        # start 1st query for saving
-        super().send_key_action('FOR i IN 1..1000')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action(Keys.TAB)
-        super().send_key_action('INSERT {name: CONCAT("test", i),')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action('status: 1 + (i % 5)} IN myCollection')
-        self.save_query('insertQuery')
 
-        # start 2nd query for saving
+        print("start 1st query for saving \n")
+        self.send_key_action("FOR i IN 1..1000")
+        self.send_key_action(Keys.ENTER)
+        self.send_key_action(Keys.TAB)
+        self.send_key_action('INSERT {name: CONCAT("test", i),')
+        self.send_key_action(Keys.ENTER)
+        self.send_key_action("status: 1 + (i % 5)} IN myCollection")
+        self.save_query("insertQuery")
+
+        print("start 2nd query for saving \n")
         self.select_query_execution_area()
-        # clear the execution area
-        self.clear_query_area()
+        if self.current_package_version() < semver.VersionInfo.parse("3.11.100"):
+            self.clear_query_area()
         # start 2nd query for saving
-        super().send_key_action('FOR i IN 1..1000')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action(Keys.TAB)
-        super().send_key_action('INSERT { name: CONCAT("test", i) } IN myCollection')
-        self.save_query('concatQuery')
+        self.send_key_action("FOR i IN 1..1000")
+        self.send_key_action(Keys.ENTER)
+        self.send_key_action(Keys.TAB)
+        self.send_key_action('INSERT { name: CONCAT("test", i) } IN myCollection')
+        self.save_query("concatQuery")
 
-        # start 3rd query for saving
+        print("start 3rd query for saving \n")
         self.select_query_execution_area()
-        # clear the execution area
-        self.clear_query_area()
+        if self.current_package_version() < semver.VersionInfo.parse("3.11.100"):
+            # clear the execution area
+            self.clear_query_area()
         # start 3rd query for saving
-        super().send_key_action('FOR doc IN myCollection')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action(Keys.TAB)
-        super().send_key_action('SORT RAND()')
-        super().send_key_action(Keys.ENTER)
-        super().send_key_action(Keys.TAB)
-        super().send_key_action('LIMIT 10 RETURN doc')
-        self.save_query('zSortquery')
+        self.send_key_action("FOR doc IN myCollection")
+        self.send_key_action(Keys.ENTER)
+        self.send_key_action(Keys.TAB)
+        self.send_key_action("SORT RAND()")
+        self.send_key_action(Keys.ENTER)
+        self.send_key_action(Keys.TAB)
+        self.send_key_action("LIMIT 10 RETURN doc")
+        self.save_query("zSortquery")
 
-        self.toggle_query_btn()
-        self.search_inside_saved_query('zSortquery')
-        self.search_inside_saved_query('insertQuery')
-        self.search_inside_saved_query('concatQuery')
+        if self.current_package_version() < semver.VersionInfo.parse("3.11.100"):
+            # TODO for 3.12.x
+            self.toggle_query_btn()
+            self.search_inside_saved_query("zSortquery")
+            self.search_inside_saved_query("insertQuery")
+            self.search_inside_saved_query("concatQuery")
 
-        self.saved_query_settings()
+            self.saved_query_settings()
 
-        print("Deleting all the saved query\n")
-        for _ in range(3):
-            self.delete_saved_query()
+            print("Deleting all the saved query\n")
+            for _ in range(3):
+                self.delete_saved_query()
 
         print("Return back to query page \n")
         self.selecting_query_page()

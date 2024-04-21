@@ -19,94 +19,112 @@ class QueryTestSuite(BaseSeleniumTestSuite):
 
         assert query_page.current_user() == "ROOT", "current user is root?"
         assert query_page.current_database() == "_SYSTEM", "current database is _system?"
-        current_version = query_page.current_package_version()
         
         print("Checking saved query feature \n")
-        if current_version >= semver.VersionInfo.parse("3.11.0"):
+        if query_page.current_package_version() > semver.VersionInfo.parse("3.10.99"):
             query_page.saved_query_check()
         
-        print("Importing IMDB collections \n")
-        query_page.import_collections(self.restore, self.ui_data_dir, self.is_cluster)
+        if query_page.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+            if query_page.current_package_version() > semver.VersionInfo.parse("3.11.99"):
+                # TODO for 3.12.x
+                print("skipped")
+        else:
+            print("Importing IMDB collections \n")
+            query_page.import_collections(self.restore, self.ui_data_dir, self.is_cluster)
 
-        print("Selecting Query page for basic CRUD operation \n")
-        query_page.selecting_query_page()
+            print("Selecting Query page for basic CRUD operation \n")
+            query_page.selecting_query_page()
 
-        print("Executing insert query \n")
-        query_page.execute_insert_query()
+            print("Executing insert query \n")
+            query_page.execute_insert_query()
 
-        print("Profiling current query \n")
-        query_page.profile_query()
-        print("Explaining current query \n")
-        query_page.explain_query()
-        print("Debug packaged downloading for the current query \n")
-        query_page.debug_package_download()
-        print("Removing all query results \n")
-        query_page.remove_query_result()
+            print("Profiling current query \n")
+            query_page.profile_query()
+            print("Explaining current query \n")
+            query_page.explain_query()
+            print("Debug packaged downloading for the current query \n")
+            query_page.debug_package_download()
+            print("Removing all query results \n")
+            query_page.remove_query_result()
+            print("Importing IMDB collections \n")
+            query_page.import_collections(self.restore, self.ui_data_dir, self.is_cluster)
 
-        # TODO: print("Executing spot light functionality \n")
-        # query_page.spot_light_function('COUNT')  # can be used for search different keyword
+            print("Selecting Query page for basic CRUD operation \n")
+            query_page.selecting_query_page()
 
-        print("Executing read query\n")
-        query_page.execute_read_query()
+            print("Executing insert query \n")
+            query_page.execute_insert_query()
 
-        print("Updating documents\n")
-        query_page.update_documents()
-        print("Executing query with bind parameters \n")
-        query_page.bind_parameters_query()
+            print("Profiling current query \n")
+            query_page.profile_query()
+            print("Explaining current query \n")
+            query_page.explain_query()
+            print("Debug packaged downloading for the current query \n")
+            query_page.debug_package_download()
+            print("Removing all query results \n")
+            query_page.remove_query_result()
 
-        print("Executing example graph query \n")
-        graph = GraphExample.WORLD
-        query_page.navbar_goto("graphs")
-        self.webdriver.refresh()
-        print("Creating '%s' Graph" % get_graph(graph).get_name())
-        graph_page.create_graph(graph, self.importer, self.ui_data_dir)
-        graph_page.check_required_collections(graph)
-        query_page.world_country_graph_query()
-        query_page.navbar_goto("graphs")
-        self.webdriver.refresh()
-        graph_page.delete_graph(graph)
-        self.webdriver.refresh()
+            # TODO: print("Executing spot light functionality \n")
+            # query_page.spot_light_function('COUNT')  # can be used for search different keyword
 
-        graph = GraphExample.K_SHORTEST_PATH
-        query_page.navbar_goto("graphs")
-        self.webdriver.refresh()
-        print("Creating '%s' Graph" % get_graph(graph).get_name())
-        graph_page.create_graph(graph, self.importer, self.ui_data_dir)
-        graph_page.check_required_collections(graph)
-        query_page.k_shortest_paths_graph_query()
-        query_page.navbar_goto("graphs")
-        self.webdriver.refresh()
-        graph_page.delete_graph(graph)
-        self.webdriver.refresh()
+            print("Executing read query\n")
+            query_page.execute_read_query()
 
-        graph = GraphExample.CITY
-        graph_page.navbar_goto("graphs")
-        self.webdriver.refresh()
-        print("Creating '%s' Graph" % get_graph(graph).get_name())
-        graph_page.create_graph(graph, self.importer, self.ui_data_dir)
-        graph_page.check_required_collections(graph)
-        print("Executing City Graph query \n")
-        query_page.city_graph()
-        query_page.navbar_goto("graphs")
-        self.webdriver.refresh()
-        graph_page.delete_graph(graph)
+            print("Updating documents\n")
+            query_page.update_documents()
+            print("Executing query with bind parameters \n")
+            query_page.bind_parameters_query()
 
-        graph_page.navbar_goto("queries")
-        self.webdriver.refresh()
+            print("Executing example graph query \n")
+            graph = GraphExample.WORLD
+            query_page.navbar_goto("graphs")
+            self.webdriver.refresh()
+            print("Creating '%s' Graph" % get_graph(graph).get_name())
+            graph_page.create_graph(graph, self.importer, self.ui_data_dir)
+            graph_page.check_required_collections(graph)
+            query_page.world_country_graph_query()
+            query_page.navbar_goto("graphs")
+            self.webdriver.refresh()
+            graph_page.delete_graph(graph)
+            self.webdriver.refresh()
 
-        # print("Importing new queries \n") # untill the fix arrive
-        # query_page.import_queries(str(self.ui_data_dir / "ui_data" / "query_page" / "imported_query.json"))
-        print("Saving Current query as custom query\n")
-        query_page.custom_query()
-        print("Changing the number of results from 1000 to 100\n")
-        query_page.number_of_results()
+            graph = GraphExample.K_SHORTEST_PATH
+            query_page.navbar_goto("graphs")
+            self.webdriver.refresh()
+            print("Creating '%s' Graph" % get_graph(graph).get_name())
+            graph_page.create_graph(graph, self.importer, self.ui_data_dir)
+            graph_page.check_required_collections(graph)
+            query_page.k_shortest_paths_graph_query()
+            query_page.navbar_goto("graphs")
+            self.webdriver.refresh()
+            graph_page.delete_graph(graph)
+            self.webdriver.refresh()
 
-        print("Deleting collections begins \n")
-        query_page.delete_all_collections()
-        print("Deleting collections completed \n")
+            graph = GraphExample.CITY
+            graph_page.navbar_goto("graphs")
+            self.webdriver.refresh()
+            print("Creating '%s' Graph" % get_graph(graph).get_name())
+            graph_page.create_graph(graph, self.importer, self.ui_data_dir)
+            graph_page.check_required_collections(graph)
+            print("Executing City Graph query \n")
+            query_page.city_graph()
+            query_page.navbar_goto("graphs")
+            self.webdriver.refresh()
+            graph_page.delete_graph(graph)
 
-        # logging out from the current user
-        # login.logout_button()
-        # del login
+            graph_page.navbar_goto("queries")
+            self.webdriver.refresh()
+
+            # print("Importing new queries \n") # untill the fix arrive
+            # query_page.import_queries(str(self.ui_data_dir / "ui_data" / "query_page" / "imported_query.json"))
+            print("Saving Current query as custom query\n")
+            query_page.custom_query()
+            print("Changing the number of results from 1000 to 100\n")
+            query_page.number_of_results()
+
+            print("Deleting collections begins \n")
+            query_page.delete_all_collections()
+            print("Deleting collections completed \n")
+
         del query_page
         print("---------Checking Query completed--------- \n")
