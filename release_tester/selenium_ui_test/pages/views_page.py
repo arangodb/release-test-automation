@@ -645,7 +645,7 @@ class ViewsPage(NavigationBarPage):
         if self.current_package_version() <= semver.VersionInfo.parse("3.11.100"):
             create_new_views = "//*[contains(text(),'Add View')]"
         else:
-            create_new_views = '//*[@id="content-react"]/div/div[1]/button'
+            create_new_views = "(//button[normalize-space()='Add view'])[1]"
 
         create_new_views_id = self.locator_finder_by_xpath(create_new_views)
         create_new_views_id.click()
@@ -756,7 +756,7 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
         print(f"Selecting creation button for {view_name} \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
-            create = '//*[@id="chakra-modal-1"]/form/footer/div/button[2]'
+            create = "(//button[normalize-space()='Create'])[1]"
         else:
             create = '//*[@id="chakra-modal-3"]/form/footer/div/button[2]'
 
