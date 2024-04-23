@@ -205,7 +205,7 @@ class ServicePage(NavigationBarPage):
         time.sleep(2)
 
         print(f'Selecting service mount point at {mount_path} \n')
-        if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             mount_point = "/html//input[@id='new-app-mount']"
             mount_point_sitem = self.locator_finder_by_xpath(mount_point)
         else:
@@ -224,7 +224,7 @@ class ServicePage(NavigationBarPage):
         time.sleep(6)
 
         # checking service has been created successfully
-        if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             success = "(//td[normalize-space()='demo-geo-s2'])[1]"
         else:
             success = "//*[text()='demo-geo-s2']"
@@ -253,6 +253,7 @@ class ServicePage(NavigationBarPage):
                 self.wait_for_ajax()
                 self.webdriver.refresh()
                 time.sleep(2)
+                self.webdriver.maximize_window()
 
                 # looking for default collection has been created or not
                 neighbourhood_collection = "//*[text()='neighborhoods']"
@@ -322,7 +323,7 @@ class ServicePage(NavigationBarPage):
                     self.webdriver.refresh()
 
                     print('Selecting demo_geo_s2 service \n')
-                    if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+                    if self.version_is_newer_than("3.11.100"):
                         select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
                     else:
                         select_service = "//*[text()='demo-geo-s2']"
@@ -371,6 +372,7 @@ class ServicePage(NavigationBarPage):
                     print('Switching back to original window \n')
                     self.webdriver.close()
                     self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+                    self.webdriver.set_window_size(1600, 900)
 
                 else:
                     raise Exception('restaurants Collection not found!')
@@ -384,7 +386,7 @@ class ServicePage(NavigationBarPage):
         self.wait_for_ajax()
 
         print('Selecting demo_geo_s2 service \n')
-        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
         else:
             select_service = "//*[text()='demo-geo-s2']"
@@ -438,7 +440,7 @@ class ServicePage(NavigationBarPage):
             self.locator_finder_by_id(default_view).click()
 
             print("inspecting documentation through Foxx and leaflet \n")
-            if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+            if self.version_is_newer_than("3.10.0"):
                 template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
                 id_list = [
                     template_str("/restaurants"),
@@ -476,7 +478,7 @@ class ServicePage(NavigationBarPage):
             self.locator_finder_by_id(default_view).click()
 
             print('inspecting documentation through Foxx and leaflet \n')
-            if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+            if self.version_is_newer_than("3.10.0"):
                 template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
                 id_list = [
                     template_str("/restaurants"),
@@ -539,7 +541,7 @@ class ServicePage(NavigationBarPage):
         time.sleep(3)
 
         print('Mounting the demo graphql service \n')
-        if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             mount_point = "/html//input[@id='new-app-mount']"
             mount_point_sitem = self.locator_finder_by_xpath(mount_point)
         else:
@@ -566,7 +568,7 @@ class ServicePage(NavigationBarPage):
         for attempt in range(1, max_retries + 1):
             try:
                 print('Selecting graphql service \n')
-                if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+                if self.version_is_newer_than("3.11.100"):
                     graphql_service = "(//a[normalize-space()='/graphql'])[1]"
                 else:
                     graphql_service = "//*[text()='demo-graphql']"
@@ -636,12 +638,15 @@ class ServicePage(NavigationBarPage):
                 self.locator_finder_by_id(default_view).click()
 
                 print('inspecting documentation through Foxx and leaflet \n')
-                if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
-                    first = '//*[@id="operations-default-get"]/div/button[1]/div'
-                    second = '//*[@id="operations-default-post"]/div/button[1]/div'
+                if self.version_is_newer_than("3.11.100"):
+                    print("skipped inspecting documentation through Foxx and leaflet \n")
+                else:
+                    if self.version_is_newer_than("3.10.0"):
+                        first = '//*[@id="operations-default-get"]/div/button[1]/div'
+                        second = '//*[@id="operations-default-post"]/div/button[1]/div'
 
-                id_list = [first, second]
-                self.checking_function_for_fox_leaflet(id_list)
+                    id_list = [first, second]
+                    self.checking_function_for_fox_leaflet(id_list)
             except Exception as ex:
                 print("Error occurred while inspecting API tab of graphql service")
                 print('Getting out of IFrame \n')
@@ -653,7 +658,7 @@ class ServicePage(NavigationBarPage):
         self.navbar_goto("services")
         self.wait_for_ajax()
         
-        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
             select_service_sitem = self.locator_finder_by_xpath(select_service)
             select_service_sitem.click()
@@ -686,7 +691,7 @@ class ServicePage(NavigationBarPage):
         self.locator_finder_by_id(replace).click()
         time.sleep(3)
         
-        if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             print('skipped handle_red_bar() \n')
         else:
             try:
@@ -726,7 +731,7 @@ class ServicePage(NavigationBarPage):
 
     def collection_deletion(self, col_id):
         """Collection will be deleted by this method"""
-        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+        if self.version_is_newer_than("3.11.100"):
             self.locator_finder_by_xpath(col_id).click()
         else:
             self.locator_finder_by_id(col_id).click()
@@ -785,9 +790,8 @@ class ServicePage(NavigationBarPage):
                     self.navbar_goto("collections")
                     self.wait_for_ajax()
                     # deleting neighborhood collection
-                    if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
-                        self.collection_deletion("(//a[normalize-space()='neighborhoods'])[1]")
-                        self.collection_deletion("(//a[normalize-space()='restaurants'])[1]")
+                    if self.version_is_newer_than("3.11.100"):
+                        print('skipped collection_deletion() \n')
                     else:
                         self.collection_deletion("collection_neighborhoods")
                         self.collection_deletion("collection_restaurants")

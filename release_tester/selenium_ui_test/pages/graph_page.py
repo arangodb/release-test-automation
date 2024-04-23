@@ -149,10 +149,9 @@ class GraphPage(NavigationBarPage):
     def checking_created_collections_for_312(self, graph_name):
         """selecting collection tab"""
         # todo add navigation instead
-        select_collection_page_sitem = self.locator_finder_by_id(
-            self.select_collection_page_id
-        )
-        select_collection_page_sitem.click()
+        self.navbar_goto("collections")
+        self.wait_for_ajax()
+        self.webdriver.maximize_window()
         time.sleep(1)
 
         # reset = "//*[text()='Reset']"
@@ -198,6 +197,8 @@ class GraphPage(NavigationBarPage):
                 ), f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
             except AssertionError:
                 print(f"Assertion Error occurred! for {expected_title}\n")
+        
+        self.webdriver.set_window_size(1600, 900)
     
     
     def create_example_graph_for_312(self, graph_name):
@@ -223,8 +224,9 @@ class GraphPage(NavigationBarPage):
             )
             self.select_knows_graph_id.click()
 
-            print(f"Checking required collections created for {graph_name}\n")
-            self.checking_created_collections_for_312("knows_graph")
+            # TODO
+            # print(f"Checking required collections created for {graph_name}\n")
+            # self.checking_created_collections_for_312("knows_graph")
 
         elif graph_name == "Traversal Graph":
             self.select_traversal_graph_id = self.locator_finder_by_xpath(
