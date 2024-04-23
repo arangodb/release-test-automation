@@ -32,14 +32,17 @@ class Single(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
         cluster_nodes: int,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("Single", 400, 500, True, ssl, False, use_auto_certs, one_shard, 1),
+            RunnerProperties(
+                "Single", 400, 500, True, ssl, False, use_auto_certs, force_one_shard, create_oneshard_db, 1
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,

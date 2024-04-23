@@ -109,20 +109,24 @@ class Dc2Dc(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
         cluster_nodes: int,
     ):
+        name = "DC2DC" if not force_one_shard else "FORCED_ONESHARD_DC2DC"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("DC2DC", 0, 4500, True, ssl, replication2, use_auto_certs, one_shard, 12),
+            RunnerProperties(
+                name, 0, 4500, True, ssl, replication2, use_auto_certs, force_one_shard, create_oneshard_db, 12
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
             testrun_name,
         )
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
         self.success = True
         self.cfg.passvoid = ""
         self.sync_manager = None
@@ -260,7 +264,7 @@ class Dc2Dc(Runner):
                 "--coordinators.database.default-replication-version=2",
                 "--all.log.level=replication2=debug",
             ]
-        if self.one_shard:
+        if self.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         _add_starter(self.cluster1, port=7528, moreopts=common_opts)
         _add_starter(

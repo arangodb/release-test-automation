@@ -68,9 +68,9 @@ class StarterManager:
             self.moreopts = []
         else:
             self.moreopts = moreopts
-        #if self.cfg.verbose:
+        # if self.cfg.verbose:
         self.moreopts += ["--log.verbose=true"]
-            # self.moreopts += ['--all.log', 'startup=debug']
+        # self.moreopts += ['--all.log', 'startup=debug']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
@@ -1078,7 +1078,9 @@ class StarterManager:
         if self.arangosh is None:
             config.port = self.get_frontend_port()
             config.passvoid = self.passvoid
-            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version, one_shard=self.cfg.one_shard)
+            self.arangosh = ArangoshExecutor(
+                config, self.get_frontend(), old_version, one_shard=self.cfg.force_one_shard
+            )
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())

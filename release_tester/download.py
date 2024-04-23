@@ -117,7 +117,7 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
-            one_shard=False,
+            force_one_shard=False,
             use_auto_certs=False,
             test="",
             arangods=[],

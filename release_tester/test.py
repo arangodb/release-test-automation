@@ -55,7 +55,8 @@ def main(**kwargs):
                 kwargs["encryption_at_rest"],
                 kwargs["ssl"],
                 kwargs["replication2"],
-                kwargs["one_shard"],
+                kwargs["force_one_shard"],
+                kwargs["create_oneshard_db"],
             ),
         )
         print("V" * 80)

@@ -100,7 +100,7 @@ class ClusterPerf(Cluster):
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, False, 6
+                "CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, False, False, 6
             ),
             selenium,
             selenium_driver_args,

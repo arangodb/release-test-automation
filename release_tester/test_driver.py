@@ -95,7 +95,9 @@ class TestDriver:
         self.use_auto_certs = kwargs["use_auto_certs"]
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
-        self.selenium_include_suites = [] if not "ui_include_test_suites" in kwargs else kwargs["ui_include_test_suites"]
+        self.selenium_include_suites = (
+            [] if not "ui_include_test_suites" in kwargs else kwargs["ui_include_test_suites"]
+        )
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
@@ -277,7 +279,7 @@ class TestDriver:
                                 one_result["message"] += runner.msg
                             print(f"Skipping {runner_type}")
                             continue
-                        if run_props.one_shard and not runner.one_shard:
+                        if run_props.force_one_shard and not runner.force_one_shard:
                             testcase.context.status = Status.SKIPPED
                             testcase.context.statusDetails = StatusDetails(
                                 message=f"One shard is not supported for {runner.name}"
@@ -449,7 +451,7 @@ class TestDriver:
                             one_result["message"] += runner.msg
                         print(f"Skipping {runner_type}")
                         continue
-                    if run_props.one_shard and not runner.one_shard:
+                    if run_props.force_one_shard and not runner.force_one_shard:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                         message=f"One shard is not supported for {runner.name}"

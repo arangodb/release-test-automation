@@ -191,7 +191,7 @@ class InstallerConfig:
         interactive: bool,
         stress_upgrade: bool,
         ssl: bool,
-        one_shard: bool,
+        force_one_shard: bool,
         use_auto_certs: bool,
         test: str,
         arangods: list,
@@ -227,7 +227,7 @@ class InstallerConfig:
         self.port = 8529
         self.localhost = "localhost"
         self.ssl = ssl
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
         self.use_auto_certs = use_auto_certs
 
         self.all_instances = {}
@@ -474,7 +474,8 @@ class RunProperties:
         encryption_at_rest: bool = False,
         ssl: bool = False,
         replication2: bool = False,
-        one_shard: bool = False,
+        force_one_shard: bool = False,
+        create_oneshard_db: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
         minimum_supported_version: str = "3.5.0",
@@ -487,7 +488,8 @@ class RunProperties:
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
         self.replication2 = replication2
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         self.minimum_supported_version = semver.VersionInfo.parse(minimum_supported_version)
 
     def __repr__(self):
@@ -504,13 +506,13 @@ directory_suffix: {0.directory_suffix}""".format(
 
 # pylint: disable=too-many-function-args
 EXECUTION_PLAN = [
-    RunProperties(True, True, True, True, False, False, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, True, True, True, False, True, "Enterprise\nOneShard", "OS"),
-    # RunProperties(True, True, True, True, True, False, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
-    RunProperties(True, False, False, False, False, False, "Enterprise", "EP"),
-    # RunProperties(True, False, False, False, True, False, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
-    RunProperties(False, True, False, False, False, False, "Community", "C"),
-    # RunProperties(False, True, False, False, True, False, "Community\nreplication v.2", "Cr2", "3.11.999"),
+    RunProperties(True, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
+    # RunProperties(True, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
+    RunProperties(True, False, False, False, False, False, True, "Enterprise", "EP"),
+    # RunProperties(True, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
+    RunProperties(False, True, False, False, False, False, False, "Community", "C"),
+    # RunProperties(False, True, False, False, True, False, False, "Community\nreplication v.2", "Cr2", "3.11.999"),
 ]
 
 
@@ -566,11 +568,11 @@ def create_config_installer_set(
             base_config.interactive,
             base_config.stress_upgrade,
             run_properties.ssl,
-            run_properties.one_shard,
+            run_properties.force_one_shard,
             use_auto_certs,
             base_config.test,
             base_config.arangods,
-            base_config.check_locale
+            base_config.check_locale,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

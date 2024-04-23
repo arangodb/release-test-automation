@@ -36,21 +36,24 @@ class Cluster(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
         cluster_nodes: int,
+        create_oneshard_db: bool,
     ):
-        name = "CLUSTER" if not one_shard else "SINGLE_SHARD_CLUSTER"
+        name = "CLUSTER" if not force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(name, 400, 600, True, ssl, replication2, use_auto_certs, one_shard, 6),
+            RunnerProperties(
+                name, 400, 600, True, ssl, replication2, use_auto_certs, force_one_shard, create_oneshard_db, 6
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
             testrun_name,
         )
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
         # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
@@ -74,13 +77,15 @@ class Cluster(Runner):
                     mode="cluster",
                     jwt_str=self.jwtdatastr,
                     port=port,
-                    expect_instances= agencyInstance + [
+                    expect_instances=agencyInstance
+                    + [
                         InstanceType.COORDINATOR,
                         InstanceType.DBSERVER,
                     ],
                     moreopts=opts,
                 )
             )
+
         self.create_test_collection = (
             "create test collection",
             """
@@ -96,7 +101,7 @@ db.testCollection.save({test: "document"})
                 "--all.log.level=replication2=debug",
                 "--all.log.level=rep-state=debug",
             ]
-        if self.one_shard:
+        if self.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         else:
             common_opts += ["--all.cluster.default-replication-factor=2"]
@@ -104,7 +109,7 @@ db.testCollection.save({test: "document"})
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
         port = 9528
-        count = 0;
+        count = 0
         for this_node in list(range(1, self.cluster_nodes + 1)):
             node = []
             node_opts.append(node)

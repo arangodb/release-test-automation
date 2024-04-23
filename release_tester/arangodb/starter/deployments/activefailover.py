@@ -33,12 +33,17 @@ class ActiveFailover(Runner):
         use_auto_certs: bool,
         one_shard: bool,
         cluster_nodes: int,
+        cluster_nodes: int,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, one_shard, 3),
+            RunnerProperties(
+                "ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, force_one_shard, create_oneshard_db, 3
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,

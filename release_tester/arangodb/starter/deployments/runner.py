@@ -128,7 +128,8 @@ class RunnerProperties:
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
         no_arangods_non_agency: int,
     ):
         self.short_name = short_name
@@ -138,7 +139,8 @@ class RunnerProperties:
         self.ssl = ssl
         self.replication2 = replication2
         self.use_auto_certs = use_auto_certs
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         self.no_arangods_non_agency = no_arangods_non_agency
 
 
@@ -284,7 +286,7 @@ class Runner(ABC):
                 )
                 and self.new_installer is None
             )
-            self.one_shard = False
+            self.force_one_shard = False
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
@@ -806,7 +808,7 @@ class Runner(ABC):
         ]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
-        if self.one_shard:
+        if self.force_one_shard:
             args += ["--singleShard", "true"]
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
@@ -832,7 +834,7 @@ class Runner(ABC):
         if self.has_makedata_data:
             try:
                 args = []
-                if self.one_shard:
+                if self.force_one_shard:
                     args += ["--singleShard", "true"]
                 arangosh.check_test_data(self.name, supports_foxx_tests, args=args)
             except CliExecutionException as exc:
@@ -1038,8 +1040,8 @@ class Runner(ABC):
                         shutil.copyfile(path, self.cfg.base_test_dir / self.basedir / path.name)
             for installer_set in self.installers:
                 installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
-            archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
+            archive = shutil.make_archive(filename, "zip", self.cfg.base_test_dir, self.basedir)
+            attach.file(archive, "test dir archive", "application/zip", "zip")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
