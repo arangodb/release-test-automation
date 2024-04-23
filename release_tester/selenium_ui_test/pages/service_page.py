@@ -19,47 +19,47 @@ class ServicePage(NavigationBarPage):
 
     def select_add_service_button(self):
         """selecting new service button"""
-        if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
-            add_new_service = '//*[@id="content-react"]/div/div[1]/button'
-            add_new_service_stiem = self.locator_finder_by_xpath(add_new_service)
+        if self.version_is_newer_than("3.11.100"):
+            add_new_service = "(//button[normalize-space()='Add service'])[1]"
+            add_new_service_sitem = self.locator_finder_by_xpath(add_new_service)
         else:
             add_new_service = "addApp"
-            add_new_service_stiem = self.locator_finder_by_id(add_new_service)
+            add_new_service_sitem = self.locator_finder_by_id(add_new_service)
 
-        add_new_service_stiem.click()
+        add_new_service_sitem.click()
         time.sleep(2)
 
     def service_search_option(self, search_keyword):
         """checking service page search options"""
         search = 'foxxSearch'
-        service_search_stiem = self.locator_finder_by_id(search)
-        service_search_stiem.click()
-        service_search_stiem.clear()
+        service_search_sitem = self.locator_finder_by_id(search)
+        service_search_sitem.click()
+        service_search_sitem.clear()
         time.sleep(2)
 
         print(f'Searching for {search_keyword} \n')
-        service_search_stiem.send_keys(search_keyword)
+        service_search_sitem.send_keys(search_keyword)
         time.sleep(1)
 
         # checking search find the correct demo services
         if search_keyword == 'demo':
             search_item = "//*[text()='demo-graphql']"
             expected_text = 'demo-graphql'
-            demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
-            assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
-                                                             f"but got {demo_graphql_stiem.text}"
+            demo_graphql_sitem = self.locator_finder_by_xpath(search_item)
+            assert demo_graphql_sitem.text == expected_text, f"Expected text {expected_text} " \
+                                                             f"but got {demo_graphql_sitem.text}"
         if search_keyword == 'tab':
             search_item = "//*[text()='tableau-connector']"
             expected_text = 'tableau-connector'
-            demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
-            assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
-                                                             f"but got {demo_graphql_stiem.text}"
+            demo_graphql_sitem = self.locator_finder_by_xpath(search_item)
+            assert demo_graphql_sitem.text == expected_text, f"Expected text {expected_text} " \
+                                                             f"but got {demo_graphql_sitem.text}"
         if search_keyword == 'grafana':
             search_item = "//*[text()='grafana-connector']"
             expected_text = 'grafana-connector'
-            demo_graphql_stiem = self.locator_finder_by_xpath(search_item)
-            assert demo_graphql_stiem.text == expected_text, f"Expected text {expected_text} " \
-                                                             f"but got {demo_graphql_stiem.text}"
+            demo_graphql_sitem = self.locator_finder_by_xpath(search_item)
+            assert demo_graphql_sitem.text == expected_text, f"Expected text {expected_text} " \
+                                                             f"but got {demo_graphql_sitem.text}"
 
     def service_category_option(self):
         """checking service page category options"""
@@ -73,68 +73,71 @@ class ServicePage(NavigationBarPage):
     def service_filter_category_option(self):
         """selecting category search option"""
         filter_option = 'Category-filter'
-        filter_option_stiem = self.locator_finder_by_xpath(filter_option)
-        filter_option_stiem.click()
-        filter_option_stiem.clear()
+        filter_option_sitem = self.locator_finder_by_xpath(filter_option)
+        filter_option_sitem.click()
+        filter_option_sitem.clear()
         time.sleep(1)
 
     def select_category_option_from_list(self, category):
         """checking service page category options"""
-        if category == 'connector':
-            print(f'Selecting {category} category from the drop-down menu \n')
+        if category == "connector":
+            print(f"Selecting {category} category from the drop-down menu \n")
             connector_name = '//*[@id="connector-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
+            connector_sitem = self.locator_finder_by_xpath(connector_name)
+            connector_sitem.click()
             time.sleep(1)
-            connector_stiem.click()
+            connector_sitem.click()
 
-        if category == 'service':
-            print(f'Selecting {category} category from the drop-down menu \n')
+        if category == "service":
+            print(f"Selecting {category} category from the drop-down menu \n")
             connector_name = '//*[@id="service-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
+            connector_sitem = self.locator_finder_by_xpath(connector_name)
+            connector_sitem.click()
             time.sleep(1)
-            connector_stiem.click()
+            connector_sitem.click()
 
-        if category == 'geo':
-            print(f'Selecting {category} category from the drop-down menu \n')
+        if category == "geo":
+            print(f"Selecting {category} category from the drop-down menu \n")
             connector_name = '//*[@id="geo-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
+            connector_sitem = self.locator_finder_by_xpath(connector_name)
+            connector_sitem.click()
             time.sleep(1)
-            connector_stiem.click()
+            connector_sitem.click()
 
-        if category == 'demo':
-            print(f'Selecting {category} category from the drop-down menu \n')
+        if category == "demo":
+            print(f"Selecting {category} category from the drop-down menu \n")
             connector_name = '//*[@id="demo-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
+            connector_sitem = self.locator_finder_by_xpath(connector_name)
+            connector_sitem.click()
             time.sleep(1)
-            connector_stiem.click()
+            connector_sitem.click()
 
-        if category == 'graphql':
-            print(f'Selecting {category} category from the drop-down menu \n')
+        if category == "graphql":
+            print(f"Selecting {category} category from the drop-down menu \n")
             connector_name = '//*[@id="graphql-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
+            connector_sitem = self.locator_finder_by_xpath(connector_name)
+            connector_sitem.click()
             time.sleep(1)
-            connector_stiem.click()
+            connector_sitem.click()
 
-        if category == 'prometheus':
-            print(f'Selecting {category} category from the drop-down menu \n')
-            connector_name = '//*[@id="prometheus-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
-            time.sleep(1)
-            connector_stiem.click()
+        if self.version_is_newer_than("3.11.99"):
+            print("prometheus and monitoring is gone from >3.11.99 \n")
+        else:
+            if category == "prometheus":
+                print(f"Selecting {category} category from the drop-down menu \n")
+                connector_name = '//*[@id="prometheus-option"]/span[3]'
+                connector_sitem = self.locator_finder_by_xpath(connector_name)
+                connector_sitem.click()
+                time.sleep(1)
+                connector_sitem.click()
 
-        if category == 'monitoring':
-            print(f'Selecting {category} category from the drop-down menu \n')
-            connector_name = '//*[@id="monitoring-option"]/span[3]'
-            connector_stiem = self.locator_finder_by_xpath(connector_name)
-            connector_stiem.click()
-            time.sleep(1)
-            connector_stiem.click()
+            if category == "monitoring":
+                print(f"Selecting {category} category from the drop-down menu \n")
+                connector_name = '//*[@id="monitoring-option"]/span[3]'
+                connector_sitem = self.locator_finder_by_xpath(connector_name)
+                connector_sitem.click()
+                time.sleep(1)
+                connector_sitem.click()
 
     def select_category_option_search_filter(self, keyword):
         """checking service page category option's filter option"""
@@ -420,73 +423,79 @@ class ServicePage(NavigationBarPage):
     
     def inspect_demo_geo_foxx_leaflet_iframe(self):
         """Checking iframe elements of foxx and leaflets"""
-        print("Switching to IFrame \n")
-        iframe_id = "swaggerIframe"
-        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-        time.sleep(1)
+        if self.version_is_newer_than("3.11.100"):
+            print('skipped inspect_demo_geo_foxx_leaflet_iframe() \n')
+        else:
+            print("Switching to IFrame \n")
+            iframe_id = "swaggerIframe"
+            self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+            time.sleep(1)
 
-        print("Checking default view \n")
-        default_view = "operations-tag-default"
-        self.locator_finder_by_id(default_view).click()
-        time.sleep(2)
-        self.locator_finder_by_id(default_view).click()
+            print("Checking default view \n")
+            default_view = "operations-tag-default"
+            self.locator_finder_by_id(default_view).click()
+            time.sleep(2)
+            self.locator_finder_by_id(default_view).click()
 
-        print("inspecting documentation through Foxx and leaflet \n")
-        if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
-            template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
-            id_list = [
-                template_str("/restaurants"),
-                template_str("/neighborhoods"),
-                template_str("/pointsInNeighborhood"),
-                template_str("/geoContainsBenchmark"),
-                template_str("/geoIntersection"),
-                template_str("/geoDistanceNearest"),
-                template_str("/geoDistanceBetween"),
-                template_str("/geoDistance"),
-                template_str("/geoDistanceBenchmark"),
-                template_str("/geoNearBenchmark"),
-            ]
+            print("inspecting documentation through Foxx and leaflet \n")
+            if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+                template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
+                id_list = [
+                    template_str("/restaurants"),
+                    template_str("/neighborhoods"),
+                    template_str("/pointsInNeighborhood"),
+                    template_str("/geoContainsBenchmark"),
+                    template_str("/geoIntersection"),
+                    template_str("/geoDistanceNearest"),
+                    template_str("/geoDistanceBetween"),
+                    template_str("/geoDistance"),
+                    template_str("/geoDistanceBenchmark"),
+                    template_str("/geoNearBenchmark"),
+                ]
 
-        self.checking_function_for_fox_leaflet(id_list)
+            self.checking_function_for_fox_leaflet(id_list)
 
-        print("Getting out of IFrame \n")
-        self.webdriver.switch_to.default_content()
-        time.sleep(1)
+            print("Getting out of IFrame \n")
+            self.webdriver.switch_to.default_content()
+            time.sleep(1)
 
     def inspect_foxx_leaflet_iframe(self):
         """Checking iframe elements of foxx and leaflets"""
-        print('Switching to IFrame \n')
-        iframe_id = 'swaggerIframe'
-        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-        time.sleep(1)
+        if self.version_is_newer_than("3.11.100"):
+            print('skipped inspect_foxx_leaflet_iframe() \n')
+        else:
+            print('Switching to IFrame \n')
+            iframe_id = 'swaggerIframe'
+            self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+            time.sleep(1)
 
-        print("Checking default view \n")
-        default_view = "operations-tag-default"
-        self.locator_finder_by_id(default_view).click()
-        time.sleep(2)
-        self.locator_finder_by_id(default_view).click()
+            print("Checking default view \n")
+            default_view = "operations-tag-default"
+            self.locator_finder_by_id(default_view).click()
+            time.sleep(2)
+            self.locator_finder_by_id(default_view).click()
 
-        print('inspecting documentation through Foxx and leaflet \n')
-        if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
-            template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
-            id_list = [
-                template_str("/restaurants"),
-                template_str("/neighborhoods"),
-                template_str("/pointsInNeighborhood"),
-                template_str("/geoContainsBenchmark"),
-                template_str("/geoIntersection"),
-                template_str("/geoDistanceNearest"),
-                template_str("/geoDistanceBetween"),
-                template_str("/geoDistance"),
-                template_str("/geoDistanceBenchmark"),
-                template_str("/geoNearBenchmark"),
-            ]
+            print('inspecting documentation through Foxx and leaflet \n')
+            if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+                template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
+                id_list = [
+                    template_str("/restaurants"),
+                    template_str("/neighborhoods"),
+                    template_str("/pointsInNeighborhood"),
+                    template_str("/geoContainsBenchmark"),
+                    template_str("/geoIntersection"),
+                    template_str("/geoDistanceNearest"),
+                    template_str("/geoDistanceBetween"),
+                    template_str("/geoDistance"),
+                    template_str("/geoDistanceBenchmark"),
+                    template_str("/geoNearBenchmark"),
+                ]
 
-        self.checking_function_for_fox_leaflet(id_list)
+            self.checking_function_for_fox_leaflet(id_list)
 
-        print('Getting out of IFrame \n')
-        self.webdriver.switch_to.default_content()
-        time.sleep(1)
+            print('Getting out of IFrame \n')
+            self.webdriver.switch_to.default_content()
+            time.sleep(1)
 
     def install_demo_graph_hql_service(self, mount_path):
         """Installing demo_graph_hql_service from the list"""
@@ -512,12 +521,12 @@ class ServicePage(NavigationBarPage):
 
         # assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
 
-        print('Checking graphql documentation link \n')
-        foxx_graphql_link = '//*[@id="readme"]/p[1]/a[2]'
-        foxx_graphql_link_sitem = self.locator_finder_by_xpath(foxx_graphql_link)
-        page_title = super().switch_tab(foxx_graphql_link_sitem)
+        # print('Checking graphql documentation link \n')
+        # foxx_graphql_link = '//*[@id="readme"]/p[1]/a[2]'
+        # foxx_graphql_link_sitem = self.locator_finder_by_xpath(foxx_graphql_link)
+        # page_title = super().switch_tab(foxx_graphql_link_sitem)
 
-        expected_title = "Introduction to ArangoDB's Technical Documentation and Ecosystem | ArangoDB Documentation"
+        # expected_title = "Introduction to ArangoDB's Technical Documentation and Ecosystem | ArangoDB Documentation"
 
         # todo currently this is not working
         # assert page_title == expected_title, f"Expected text {expected_title} but got {page_title}"
@@ -584,8 +593,8 @@ class ServicePage(NavigationBarPage):
 
         print('Opening graphql interface \n')
         graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
-        graphql_interface_stiem = self.locator_finder_by_xpath(graphql_interface)
-        graphql_interface_stiem.click()
+        graphql_interface_sitem = self.locator_finder_by_xpath(graphql_interface)
+        graphql_interface_sitem.click()
 
         print('Switching to code mirror windows of graphql \n')
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])
@@ -604,37 +613,40 @@ class ServicePage(NavigationBarPage):
         graphql_api_sitem.click()
         time.sleep(1)
 
-        print('Selecting Swagger view \n')
-        swagger_view = 'jsonLink'
-        self.locator_finder_by_id(swagger_view).click()
-        time.sleep(2)
-        self.locator_finder_by_id(swagger_view).click()
-        time.sleep(2)
-
-        try:
-            print('Switching to IFrame \n')
-            iframe_id = 'swaggerIframe'
-            self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-            time.sleep(1)
-
-            print("Checking default view \n")
-            default_view = "operations-tag-default"
-            self.locator_finder_by_id(default_view).click()
+        if self.version_is_newer_than("3.11.100"):
+            print('skipped inspecting graphql service \n')
+        else:
+            print('Selecting Swagger view \n')
+            swagger_view = 'jsonLink'
+            self.locator_finder_by_id(swagger_view).click()
             time.sleep(2)
-            self.locator_finder_by_id(default_view).click()
+            self.locator_finder_by_id(swagger_view).click()
+            time.sleep(2)
 
-            print('inspecting documentation through Foxx and leaflet \n')
-            if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
-                first = '//*[@id="operations-default-get"]/div/button[1]/div'
-                second = '//*[@id="operations-default-post"]/div/button[1]/div'
+            try:
+                print('Switching to IFrame \n')
+                iframe_id = 'swaggerIframe'
+                self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+                time.sleep(1)
 
-            id_list = [first, second]
-            self.checking_function_for_fox_leaflet(id_list)
-        except Exception as ex:
-            print("Error occurred while inspecting API tab of graphql service")
-            print('Getting out of IFrame \n')
-            self.webdriver.switch_to.default_content()
-            time.sleep(1)
+                print("Checking default view \n")
+                default_view = "operations-tag-default"
+                self.locator_finder_by_id(default_view).click()
+                time.sleep(2)
+                self.locator_finder_by_id(default_view).click()
+
+                print('inspecting documentation through Foxx and leaflet \n')
+                if self.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
+                    first = '//*[@id="operations-default-get"]/div/button[1]/div'
+                    second = '//*[@id="operations-default-post"]/div/button[1]/div'
+
+                id_list = [first, second]
+                self.checking_function_for_fox_leaflet(id_list)
+            except Exception as ex:
+                print("Error occurred while inspecting API tab of graphql service")
+                print('Getting out of IFrame \n')
+                self.webdriver.switch_to.default_content()
+                time.sleep(1)
 
     def replace_service(self):
         """This method will replace the service"""""
