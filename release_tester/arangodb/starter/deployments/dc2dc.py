@@ -96,7 +96,7 @@ def _get_sync_status(cluster):
 class Dc2Dc(Runner):
     """this launches two clusters in dc2dc mode"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -486,9 +486,13 @@ class Dc2Dc(Runner):
                 raise Exception(f"failed to get the DCs in sync {str(counts)}")
 
     def test_setup_impl(self):
-        for db_name, one_shard in self.makedata_databases():
+        for db_name, one_shard, count_offset in self.makedata_databases():
             ret = self.cluster1["instance"].arangosh.check_test_data(
-                "dc2dc (post setup - dc1)", True, database_name=db_name, one_shard=one_shard
+                "dc2dc (post setup - dc1)",
+                True,
+                args=["--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 raise Exception("check data on source cluster failed " + ret[1])
@@ -498,7 +502,11 @@ class Dc2Dc(Runner):
                 InstanceType.COORDINATOR, requests.post, "/_admin/routing/reload", ""
             )
             ret = self.cluster2["instance"].arangosh.check_test_data(
-                "dc2dc (post setup - dc2)", True, ["--readOnly", "true"], database_name=db_name, one_shard=one_shard
+                "dc2dc (post setup - dc2)",
+                True,
+                ["--readOnly", "true", "--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 if not self.cfg.verbose:
@@ -638,28 +646,44 @@ class Dc2Dc(Runner):
         self._stop_sync(240)
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data("_DC2")
-        for db_name, one_shard in self.makedata_databases():
+        for db_name, one_shard, count_offset in self.makedata_databases():
             ret = self.cluster1["instance"].arangosh.check_test_data(
-                "cluster1 after dissolving", True, database_name=db_name, one_shard=one_shard
+                "cluster1 after dissolving",
+                True,
+                args=["--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
             ret = self.cluster2["instance"].arangosh.check_test_data(
-                "cluster2 after dissolving", True, database_name=db_name, one_shard=one_shard
+                "cluster2 after dissolving",
+                True,
+                args=["--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 raise Exception("check data on cluster2 after dissolving failed " + ret[1])
         self.progress(True, "restarting sync")
         self._launch_sync(True)
         self._get_in_sync(20)
-        for db_name, one_shard in self.makedata_databases():
+        for db_name, one_shard, count_offset in self.makedata_databases():
             ret = self.cluster2["instance"].arangosh.check_test_data(
-                "cluster2 after re-syncing", True, ["--readOnly", "true"], database_name=db_name, one_shard=one_shard
+                "cluster2 after re-syncing",
+                True,
+                ["--readOnly", "true", "--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 raise Exception("check data on cluster1 failed after re-sync \n" + ret[1])
             ret = self.cluster1["instance"].arangosh.check_test_data(
-                "cluster1 after re-syncing", True, database_name=db_name, one_shard=one_shard
+                "cluster1 after re-syncing",
+                True,
+                args=["--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 raise Exception("check data on cluster1 failed after re-sync " + ret[1])
@@ -675,9 +699,13 @@ class Dc2Dc(Runner):
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
         self._get_in_sync(20)
-        for db_name, one_shard in self.makedata_databases():
+        for db_name, one_shard, count_offset in self.makedata_databases():
             ret = self.cluster2["instance"].arangosh.check_test_data(
-                "cluster2 after reversing direction", True, database_name=db_name, one_shard=one_shard
+                "cluster2 after reversing direction",
+                True,
+                args=["--countOffset", str(count_offset)],
+                database_name=db_name,
+                one_shard=one_shard,
             )
             if not ret[0]:
                 raise Exception("check data on cluster 2 failed after reversing " + ret[1])

@@ -381,8 +381,7 @@ db.testCollection.save({test: "document"})
             self.selenium.jam_step_1()
 
         for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
-            count_offset = 0
-            for db_name, oneshard in self.makedata_databases():
+            for db_name, oneshard, count_offset in self.makedata_databases():
                 ret = starter_instance.arangosh.check_test_data(
                     "Cluster one node missing",
                     True,
@@ -390,7 +389,6 @@ db.testCollection.save({test: "document"})
                     oneshard,
                     db_name,
                 )
-                count_offset += 1
                 if not ret[0]:
                     raise Exception("check data failed in database %s :\n" % db_name + ret[1])
 

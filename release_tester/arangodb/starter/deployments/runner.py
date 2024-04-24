@@ -378,7 +378,7 @@ class Runner(ABC):
                     self.starter_run()
                     self.finish_setup()
                 if self.create_oneshard_db:
-                    self.custom_databases.append(["system_oneshard_makedata", True])
+                    self.custom_databases.append(["system_oneshard_makedata", True, 1])
                 self.make_data()
                 self.after_makedata_check()
                 self.check_data_impl()
@@ -827,11 +827,14 @@ class Runner(ABC):
 
             # must be writabe that the setup may not have already data
             if not arangosh.read_only:  # and not self.has_makedata_data:
-                count_offset = 0
-                for db_name, one_shard in self.makedata_databases():
+                for db_name, one_shard, count_offset in self.makedata_databases():
                     try:
-                        arangosh.create_test_data(self.name, args + ["--countOffset", str(count_offset)], one_shard=one_shard, database_name=db_name)
-                        count_offset += 1
+                        arangosh.create_test_data(
+                            self.name,
+                            args + ["--countOffset", str(count_offset)],
+                            one_shard=one_shard,
+                            database_name=db_name,
+                        )
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
                             print(exc.execution_result[1])
@@ -849,13 +852,15 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """check for data on the installation"""
         if self.has_makedata_data:
-            count_offset = 0
-            for db_name, one_shard in self.makedata_databases():
+            for db_name, one_shard, count_offset in self.makedata_databases():
                 try:
                     arangosh.check_test_data(
-                        self.name, supports_foxx_tests, args=["--countOffset", str(count_offset)], database_name=db_name, one_shard=one_shard
+                        self.name,
+                        supports_foxx_tests,
+                        args=["--countOffset", str(count_offset)],
+                        database_name=db_name,
+                        one_shard=one_shard,
                     )
-                    count_offset += 1
                 except CliExecutionException as exc:
                     if not self.cfg.verbose:
                         print(exc.execution_result[1])
@@ -1260,5 +1265,5 @@ class Runner(ABC):
         )
 
     def makedata_databases(self):
-        """ return a list of databases that makedata tests must be ran in """
-        return [["_system", self.force_one_shard]] + self.custom_databases.copy()
+        """return a list of databases that makedata tests must be ran in"""
+        return [["_system", self.force_one_shard, 0]] + self.custom_databases.copy()
