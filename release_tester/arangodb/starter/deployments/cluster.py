@@ -37,8 +37,8 @@ class Cluster(Runner):
         replication2: bool,
         use_auto_certs: bool,
         force_one_shard: bool,
-        cluster_nodes: int,
         create_oneshard_db: bool,
+        cluster_nodes: int,
     ):
         name = "CLUSTER" if not force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(

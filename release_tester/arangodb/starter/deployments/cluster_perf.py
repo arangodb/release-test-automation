@@ -85,7 +85,8 @@ class ClusterPerf(Cluster):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
         cluster_nodes: int,
     ):
         global OTHER_SH_OUTPUT, RESULTS_TXT

@@ -31,10 +31,9 @@ class ActiveFailover(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
-        cluster_nodes: int,
         force_one_shard: bool,
         create_oneshard_db: bool,
+        cluster_nodes: int,
     ):
         super().__init__(
             runner_type,
