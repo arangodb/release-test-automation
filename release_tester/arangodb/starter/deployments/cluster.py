@@ -104,7 +104,7 @@ db.testCollection.save({test: "document"})
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
         port = 9528
-        count = 0;
+        count = 0
         for this_node in list(range(1, self.cluster_nodes + 1)):
             node = []
             node_opts.append(node)
