@@ -63,9 +63,7 @@ class Cluster(Runner):
         self.cluster_nodes = cluster_nodes
         if cluster_nodes > 3:
             ver_found = 0
-            versions = [ self.cfg.semver ]
-            if self.new_cfg is not None:
-                versions.append(self.new_cfg.semver)
+            versions = self.get_versions_concerned()
             for ver_pair in more_nodes_supported_starter:
                 for version in versions:
                     if ver_pair[0] <= version < ver_pair[1]:

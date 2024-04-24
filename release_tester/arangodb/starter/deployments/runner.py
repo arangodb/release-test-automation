@@ -286,6 +286,13 @@ class Runner(ABC):
             )
             self.one_shard = False
 
+    def get_versions_concerned(self):
+        """ get all versions that will be worked on """
+        versions = [ self.cfg.semver ]
+        if self.new_cfg is not None:
+            versions.append(self.new_cfg.semver)
+        return versions
+
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
         if self.selenium:
