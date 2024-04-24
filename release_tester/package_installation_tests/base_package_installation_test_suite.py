@@ -91,5 +91,5 @@ class BasePackageInstallationTestSuite(CliStartedTestSuite):
         inst = self.installers["enterprise"][0][1]
         data_dir = inst.cfg.dbdir
         if data_dir.exists():
-            archive = shutil.make_archive("datadir", "zip", data_dir, data_dir)
-            attach.file(archive, "data directory archive", "application/zip", "zip")
+            archive = shutil.make_archive("datadir", "7zip", data_dir, data_dir)
+            attach.file(archive, "data directory archive", "application/x-7z-compressed", "7z")

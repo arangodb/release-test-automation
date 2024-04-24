@@ -1070,8 +1070,8 @@ class Runner(ABC):
                         shutil.copyfile(path, self.cfg.base_test_dir / self.basedir / path.name)
             for installer_set in self.installers:
                 installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
-            archive = shutil.make_archive(filename, "zip", self.cfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive", "application/zip", "zip")
+            archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
+            attach.file(archive, "test dir archive",  "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
