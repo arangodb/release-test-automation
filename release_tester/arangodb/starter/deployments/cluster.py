@@ -66,14 +66,10 @@ class Cluster(Runner):
             versions = [ self.cfg.semver ]
             if self.new_cfg is not None:
                 versions.append(self.new_cfg.semver)
-            print(versions)
             for ver_pair in more_nodes_supported_starter:
                 for version in versions:
                     if ver_pair[0] <= version < ver_pair[1]:
-                        print(version)
-                        print('xxx')
                         ver_found += 1
-            print(ver_found)
             if ver_found < len(versions):
                 print("One deployment doesn't support starters with more nodes!")
                 self.cluster_nodes = 3
