@@ -33,7 +33,6 @@ class ActiveFailover(Runner):
         use_auto_certs: bool,
         one_shard: bool,
         cluster_nodes: int,
-        cluster_nodes: int,
         force_one_shard: bool,
         create_oneshard_db: bool,
     ):
