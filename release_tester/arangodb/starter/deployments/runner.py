@@ -15,7 +15,6 @@ import sys
 import time
 import psutil
 import py7zr
-import semver
 
 from allure_commons._allure import attach
 import certifi
@@ -289,7 +288,7 @@ class Runner(ABC):
 
     def get_versions_concerned(self):
         """get all versions that will be worked on"""
-        return [semver.VersionInfo.parse(installer[0].version) for installer in self.installers]
+        return [installer[1].semver for installer in self.installers]
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
