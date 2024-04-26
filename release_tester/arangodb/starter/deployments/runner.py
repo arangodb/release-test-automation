@@ -286,6 +286,10 @@ class Runner(ABC):
             )
             self.one_shard = False
 
+    def get_versions_concerned(self):
+        """get all versions that will be worked on"""
+        return [installer[1].semver for installer in self.installers]
+
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
         if self.selenium:

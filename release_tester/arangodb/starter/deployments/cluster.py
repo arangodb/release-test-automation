@@ -19,6 +19,10 @@ arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
 }
 
+more_nodes_supported_starter = [
+    [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
+    [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
+]
 
 class Cluster(Runner):
     """this launches a cluster setup"""
@@ -57,6 +61,16 @@ class Cluster(Runner):
         self.create_test_collection = ""
         self.min_replication_factor = 2
         self.cluster_nodes = cluster_nodes
+        if cluster_nodes > 3:
+            ver_found = 0
+            versions = self.get_versions_concerned()
+            for ver_pair in more_nodes_supported_starter:
+                for version in versions:
+                    if ver_pair[0] <= version < ver_pair[1]:
+                        ver_found += 1
+            if ver_found < len(versions):
+                print("One deployment doesn't support starters with more nodes!")
+                self.cluster_nodes = 3
 
     def starter_prepare_env_impl(self, sm=None):
         # pylint: disable=invalid-name
@@ -104,7 +118,7 @@ db.testCollection.save({test: "document"})
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
         port = 9528
-        count = 0;
+        count = 0
         for this_node in list(range(1, self.cluster_nodes + 1)):
             node = []
             node_opts.append(node)
