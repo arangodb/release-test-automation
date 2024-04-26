@@ -19,7 +19,7 @@ from test_suites_core.base_test_suite import (
     run_before_suite,
     run_after_suite,
     run_after_each_testcase,
-    collect_crash_data,
+    run_on_fail,
 )
 from reporting.reporting_utils import attach_table, AllureTestSuiteContext
 
@@ -147,7 +147,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """state print todo"""
         print(arg)
 
-    @collect_crash_data
+    @run_on_fail
     def save_browser_data(self):
         """save page source, screenshot and browser console log"""
         self.save_page_source()

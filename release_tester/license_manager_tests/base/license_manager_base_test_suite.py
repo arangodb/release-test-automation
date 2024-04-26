@@ -12,7 +12,7 @@ from arangodb.installers import create_config_installer_set
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     run_after_suite,
-    collect_crash_data,
+    run_on_fail,
 )
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
@@ -73,7 +73,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             self.runner.starter_shutdown()
         kill_all_processes()
 
-    @collect_crash_data
+    @run_on_fail
     def save_data_dir(self):
         """save data dir and logs in case a test failed"""
         kill_all_processes()

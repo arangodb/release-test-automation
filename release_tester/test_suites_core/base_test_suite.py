@@ -172,9 +172,9 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         """list methods that are marked to be ran before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_each_testcase")]
 
-    def get_collect_crash_data_methods(self):
-        """list methods that are used to collect crash data in case a test failed"""
-        return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "collect_crash_data")]
+    def get_run_on_fail_methods(self):
+        """list methods that need to be ran when a test failed"""
+        return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_on_fail")]
 
     def run_before_fixtures(self, funcs):
         """run a set of fixtures before the test suite or test case"""
@@ -237,7 +237,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
 
     def add_crash_data_to_report(self):
         """add eventual crash data"""
-        self.run_after_fixtures(self.get_collect_crash_data_methods())
+        self.run_after_fixtures(self.get_run_on_fail_methods())
 
     def there_are_failed_tests(self):
         """check whether there are failed tests"""
@@ -300,12 +300,12 @@ def run_after_each_testcase(func):
     raise Exception("Only functions can be marked with @run_after_each_testcase decorator")
 
 
-def collect_crash_data(func):
-    """mark methods that are used to collect crash data in case a test failed"""
+def run_on_fail(func):
+    """mark methods that are ran when test failed, e.g. to collect crash data"""
     if callable(func):
-        func.collect_crash_data = True
+        func.run_on_fail = True
         return func
-    raise Exception("Only functions can be marked with @collect_crash_data decorator")
+    raise Exception("Only functions can be marked with @run_on_fail decorator")
 
 
 def disable(arg):

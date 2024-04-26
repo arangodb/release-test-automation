@@ -10,7 +10,7 @@ from test_suites_core.base_test_suite import (
     run_before_suite,
     run_after_suite,
     run_after_each_testcase,
-    collect_crash_data,
+    run_on_fail,
 )
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 
@@ -73,7 +73,7 @@ class BasePackageInstallationTestSuite(CliStartedTestSuite):
             installer.cfg.debug_package_is_installed = False
             installer.cfg.client_package_is_installed = False
 
-    @collect_crash_data
+    @run_on_fail
     def save_log_file_and_data_dir(self):
         """save log file and data dir"""
         self.save_log_file()

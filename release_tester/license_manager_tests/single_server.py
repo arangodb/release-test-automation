@@ -17,6 +17,7 @@ class LicenseManagerSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
     @testcase
     def clean_install_temp_license(self):
         """Check that server gets a 60-minute license after installation on a clean system"""
+        assert False
         self.check_that_license_is_not_expired(50 * 60)
 
     @testcase

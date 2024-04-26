@@ -23,7 +23,7 @@ from test_suites_core.base_test_suite import (
     run_after_suite,
     run_after_each_testcase,
     windows_only,
-    collect_crash_data,
+    run_on_fail,
     parameters,
     disable,
 )
@@ -122,7 +122,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
         kill_all_processes()
         # If there are failed test cases, save the contents of the installation directories.
         # This must be done not more than once per suite run to save space,
-        # therefore it shouldn't be done in a @collect_crash_data method.
+        # therefore it shouldn't be done in a @run_on_fail method.
         if self.there_are_failed_tests():
             if self.installer.cfg.debug_install_prefix.exists():
                 archive = shutil.make_archive(
@@ -141,7 +141,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
                 )
                 attach.file(archive, "Server package installation directory", "application/x-tar", "tgz")
 
-    @collect_crash_data
+    @run_on_fail
     def save_test_data(self):
         """save test data"""
         test_dir = DebuggerTestSuite.TEST_DATA_DIR
