@@ -41,6 +41,7 @@ import tools.loghelper as lh
 from tools.killall import get_process_tree
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
+from tools.utils import ARANGOSEARCH_COLUMNS_CACHE_LIMIT
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -222,7 +223,7 @@ class StarterManager:
             and semver.compare(version, "3.10.0") != 0
             and semver.compare(version, "3.10.1") != 0
         ):
-            result += ["--args.all.arangosearch.columns-cache-limit=10000"]
+            result += [f"--args.all.arangosearch.columns-cache-limit={ARANGOSEARCH_COLUMNS_CACHE_LIMIT}"]
 
         return result
 

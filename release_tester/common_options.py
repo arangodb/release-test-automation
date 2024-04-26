@@ -342,7 +342,7 @@ def common_options(
             "--cluster-nodes",
             "cluster_nodes",
             is_flag=False,
-            default=3,
+            default=5,
             help="Number of nodes to run clusters with",
         )(function)
         function = click.option(

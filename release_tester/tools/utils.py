@@ -2,7 +2,10 @@
 import re
 import semver
 
-COLUMN_CACHE_ARGUMENT = "--args.all.arangosearch.columns-cache-limit=10000"
+# 402_views.js expects this limit to be 5000. If this value is changed, it must be changed here, in 402_views.js
+# and also in js/client/modules/arangodb/testsuites/rta_makedata.js(in the arangodb repo)
+ARANGOSEARCH_COLUMNS_CACHE_LIMIT = 5000
+COLUMN_CACHE_ARGUMENT = f"--args.all.arangosearch.columns-cache-limit={ARANGOSEARCH_COLUMNS_CACHE_LIMIT}"
 
 def extract_version(version_str):
     match = re.match(r"\w+\[(.+)\]", version_str)
