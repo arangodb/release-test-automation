@@ -4,6 +4,8 @@ import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
+from selenium_ui_test.pages.base_page import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
