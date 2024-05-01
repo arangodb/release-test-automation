@@ -18,7 +18,7 @@ class DatabasePage(NavigationBarPage):
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
         self.select_db_opt_id_sitem = "loginDatabase"
 
-    def create_new_db(self, db_name, index, cluster):
+    def create_new_db(self, db_name, index, cluster, enterprise):
         """Creating and checking new database"""
         # pylint: disable=too-many-locals
         self.navbar_goto("databases")
@@ -69,7 +69,7 @@ class DatabasePage(NavigationBarPage):
             write_concern_sitem.send_keys("3")
             time.sleep(1)
 
-            if self.check_server_package() == "COMMUNITY EDITION":
+            if not enterprise:
                 pass
             elif self.check_server_package() == "ENTERPRISE EDITION":
                 if self.version_is_newer_than("3.11.99"):

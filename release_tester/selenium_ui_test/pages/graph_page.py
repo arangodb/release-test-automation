@@ -203,8 +203,8 @@ class GraphPage(NavigationBarPage):
     
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
-        self.navbar_goto("graphs")
         self.webdriver.refresh()
+        self.navbar_goto("graphs")
         self.wait_for_ajax()
 
         print(f"selecting {graph_name} \n")

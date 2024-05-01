@@ -30,8 +30,8 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
             user.add_new_user("tester01")
 
             
-            db.create_new_db("Sharded", 0, self.is_cluster)  # 0 = sharded DB
-            db.create_new_db("OneShard", 1, self.is_cluster)  # 1 = one shard DB
+            db.create_new_db("Sharded", 0, self.is_cluster, self.is_enterprise)  # 0 = sharded DB
+            db.create_new_db("OneShard", 1, self.is_cluster, self.is_enterprise)  # 1 = one shard DB
 
             if db.version_is_newer_than("3.11.99"):
                 print("Skipped \n")
