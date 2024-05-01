@@ -204,6 +204,7 @@ class GraphPage(NavigationBarPage):
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
         self.navbar_goto("graphs")
+        self.webdriver.refresh()
         self.wait_for_ajax()
 
         print(f"selecting {graph_name} \n")
@@ -260,7 +261,8 @@ class GraphPage(NavigationBarPage):
             self.select_city_graph_id.click()
         else:
             print("Invalid Graph\n")
-        time.sleep(2)
+        time.sleep(3)
+        self.wait_for_ajax()
     
     def checking_created_collections(self, graph_name):
         """This method will check all the example graphs created collections"""
@@ -1241,9 +1243,8 @@ class GraphPage(NavigationBarPage):
         while True:
             try:
                 print(f"Deleting {graph_name} Graph \n")
-                self.webdriver.refresh()
-                time.sleep(2)
                 self.navbar_goto("graphs")
+                self.webdriver.refresh()
                 self.wait_for_ajax()
 
                 if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
@@ -1304,10 +1305,6 @@ class GraphPage(NavigationBarPage):
                     time.sleep(1)
                     break
                 else:
-                    self.webdriver.refresh()
-                    time.sleep(2)
-                    self.wait_for_ajax()
-
                     # Find the <a> element with the text "knows_graph"
                     a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
                     # Navigate to the parent <td> element
@@ -1317,13 +1314,13 @@ class GraphPage(NavigationBarPage):
                     # Click the button
                     button_element.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_btn = "(//button[normalize-space()='Delete'])[1]"
                     delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
                     delete_btn_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_with_collection = (
                         "(//label[normalize-space()='Also drop collections'])[1]"
@@ -1334,7 +1331,7 @@ class GraphPage(NavigationBarPage):
                     )
                     delete_with_collection_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
                     delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
