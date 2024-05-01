@@ -21,13 +21,13 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
         retry_count = 0
         while not done:
             node_count = cluster_page.cluster_dashboard_get_count()
-            done = (node_count["dbservers"] == "3") and (node_count["coordinators"] == "3")
+            done = (node_count["dbservers"] == "5") and (node_count["coordinators"] == "5")
             if not done:
                 time.sleep(3)
             retry_count += 1
             self.ui_assert(
                 retry_count < 10,
-                "UI-Test: expected 3 instances each, have: DB "
+                "UI-Test: expected 5 instances each, have: DB "
                 + node_count["dbservers"]
                 + " C "
                 + node_count["coordinators"],
