@@ -340,6 +340,7 @@ class ServicePage(NavigationBarPage):
                     self.webdriver.switch_to.window(self.webdriver.window_handles[1])
 
                     # inspecting from the service interface started here
+                    self.wait_for_ajax()
                     print('Visualize random Restaurant \n')
                     random_restaurant = 'randomRestaurant'
                     self.locator_finder_by_id(random_restaurant).click()
@@ -372,6 +373,7 @@ class ServicePage(NavigationBarPage):
                     print('Switching back to original window \n')
                     self.webdriver.close()
                     self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+                    self.wait_for_ajax()
                     self.webdriver.set_window_size(1600, 900)
 
                 else:
@@ -600,7 +602,7 @@ class ServicePage(NavigationBarPage):
 
         print('Switching to code mirror windows of graphql \n')
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-
+        self.wait_for_ajax()
         graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
         graphql_interface_execute_btn_sitem = \
             self.locator_finder_by_xpath(graphql_interface_execute_btn)
@@ -609,6 +611,7 @@ class ServicePage(NavigationBarPage):
         self.webdriver.close() # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
+        self.wait_for_ajax()
         print('Checking API tab of graphql service \n')
         graphql_api_name = 'service-api'
         graphql_api_sitem = self.locator_finder_by_id(graphql_api_name)
