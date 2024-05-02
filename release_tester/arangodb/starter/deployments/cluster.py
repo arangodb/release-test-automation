@@ -19,6 +19,10 @@ arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
 }
 
+more_nodes_supported_starter = [
+    [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
+    [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
+]
 
 class Cluster(Runner):
     """this launches a cluster setup"""
@@ -36,27 +40,41 @@ class Cluster(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
         cluster_nodes: int,
     ):
-        name = "CLUSTER" if not one_shard else "SINGLE_SHARD_CLUSTER"
+        name = "CLUSTER" if not force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(name, 400, 600, True, ssl, replication2, use_auto_certs, one_shard, 6),
+            RunnerProperties(
+                name, 400, 600, True, ssl, replication2, use_auto_certs, force_one_shard, create_oneshard_db, 6
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
             testrun_name,
         )
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
         self.cluster_nodes = cluster_nodes
+        if cluster_nodes > 3:
+            ver_found = 0
+            versions = self.get_versions_concerned()
+            for ver_pair in more_nodes_supported_starter:
+                for version in versions:
+                    if ver_pair[0] <= version < ver_pair[1]:
+                        ver_found += 1
+            if ver_found < len(versions):
+                print("One deployment doesn't support starters with more nodes!")
+                self.cluster_nodes = 3
 
     def starter_prepare_env_impl(self, sm=None):
         # pylint: disable=invalid-name
@@ -74,13 +92,15 @@ class Cluster(Runner):
                     mode="cluster",
                     jwt_str=self.jwtdatastr,
                     port=port,
-                    expect_instances= agencyInstance + [
+                    expect_instances=agencyInstance
+                    + [
                         InstanceType.COORDINATOR,
                         InstanceType.DBSERVER,
                     ],
                     moreopts=opts,
                 )
             )
+
         self.create_test_collection = (
             "create test collection",
             """
@@ -96,7 +116,7 @@ db.testCollection.save({test: "document"})
                 "--all.log.level=replication2=debug",
                 "--all.log.level=rep-state=debug",
             ]
-        if self.one_shard:
+        if self.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         else:
             common_opts += ["--all.cluster.default-replication-factor=2"]
@@ -104,7 +124,7 @@ db.testCollection.save({test: "document"})
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
         port = 9528
-        count = 0;
+        count = 0
         for this_node in list(range(1, self.cluster_nodes + 1)):
             node = []
             node_opts.append(node)
@@ -374,17 +394,17 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.jam_step_1()
 
-        ret = self.starter_instances[0].arangosh.check_test_data(
-            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
-
-        ret = self.starter_instances[survive_instance].arangosh.check_test_data(
-            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
+            for db_name, oneshard, count_offset in self.makedata_databases():
+                ret = starter_instance.arangosh.check_test_data(
+                    "Cluster one node missing",
+                    True,
+                    ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
+                    oneshard,
+                    db_name,
+                )
+                if not ret[0]:
+                    raise Exception("check data failed in database %s :\n" % db_name + ret[1])
 
         self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
 

@@ -24,25 +24,31 @@ def generate_suite_name(properties: RunProperties, versions: list, runner_type, 
         else:
             package_type = "deb/rpm/nsis/dmg"
     if len(versions) == 1:
-        test_suite_name = "ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (repl v{}){} (clean install)".format(
-            str(versions[0]),
-            edition,
-            package_type,
-            "ON" if properties.encryption_at_rest else "OFF",
-            "ON" if properties.ssl else "OFF",
-            "2" if properties.replication2 else "1",
-            " (OneShard)" if properties.one_shard else "",
+        test_suite_name = (
+            "ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (repl v{}){}{} (clean install)".format(
+                str(versions[0]),
+                edition,
+                package_type,
+                "ON" if properties.encryption_at_rest else "OFF",
+                "ON" if properties.ssl else "OFF",
+                "2" if properties.replication2 else "1",
+                " (forced OneShard)" if properties.force_one_shard else "",
+                " (sharded + OneShard)" if properties.create_oneshard_db else "",
+            )
         )
     else:
         versions_str = " -> ".join(list(map(lambda v: "v. " + str(v), versions)))
-        test_suite_name = "ArangoDB ({}) ({} package) upgrade sequence: {} (enc@rest: {}) (SSL: {}) (repl v{}){}".format(
-            edition,
-            package_type,
-            versions_str,
-            "ON" if properties.encryption_at_rest else "OFF",
-            "ON" if properties.ssl else "OFF",
-            "2" if properties.replication2 else "1",
-            " (OneShard)" if properties.one_shard else "",
+        test_suite_name = (
+            "ArangoDB ({}) ({} package) upgrade sequence: {} (enc@rest: {}) (SSL: {}) (repl v{}){}{}".format(
+                edition,
+                package_type,
+                versions_str,
+                "ON" if properties.encryption_at_rest else "OFF",
+                "ON" if properties.ssl else "OFF",
+                "2" if properties.replication2 else "1",
+                " (forced OneShard)" if properties.force_one_shard else "",
+                " (sharded + OneShard)" if properties.create_oneshard_db else "",
+            )
         )
     if runner_type:
         test_suite_name = "[" + str(runner_type) + "] " + test_suite_name

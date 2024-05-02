@@ -41,6 +41,7 @@ import tools.loghelper as lh
 from tools.killall import get_process_tree
 
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
+from tools.utils import ARANGOSEARCH_COLUMNS_CACHE_LIMIT
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -68,9 +69,9 @@ class StarterManager:
             self.moreopts = []
         else:
             self.moreopts = moreopts
-        #if self.cfg.verbose:
+        # if self.cfg.verbose:
         self.moreopts += ["--log.verbose=true"]
-            # self.moreopts += ['--all.log', 'startup=debug']
+        # self.moreopts += ['--all.log', 'startup=debug']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--all.log.level=arangosearch=trace"]
@@ -222,7 +223,7 @@ class StarterManager:
             and semver.compare(version, "3.10.0") != 0
             and semver.compare(version, "3.10.1") != 0
         ):
-            result += ["--args.all.arangosearch.columns-cache-limit=10000"]
+            result += [f"--args.all.arangosearch.columns-cache-limit={ARANGOSEARCH_COLUMNS_CACHE_LIMIT}"]
 
         return result
 
@@ -1078,7 +1079,7 @@ class StarterManager:
         if self.arangosh is None:
             config.port = self.get_frontend_port()
             config.passvoid = self.passvoid
-            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version, one_shard=self.cfg.one_shard)
+            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
