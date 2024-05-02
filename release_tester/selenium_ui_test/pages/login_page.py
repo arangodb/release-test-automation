@@ -87,7 +87,7 @@ class LoginPage(BasePage):
         select = Select(self.locator_finder_by_xpath(self.database_select))
         select.select_by_visible_text(database_name)
         return True
-
+    
     def login_webif(self, user, passvoid, database="_system", recurse=0):
         """log into an arangodb webinterface"""
         print("Logging %s into %s with passvoid %s" % (user, database, passvoid))

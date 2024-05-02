@@ -35,8 +35,5 @@ class SupportTestSuite(BaseSeleniumTestSuite):
         # print("Checking Rest API tab \n")
         # # support.rest_api()
 
-        # logging out from the current user
-        # login.logout_button()
-        # del login
         del support
         print("---------Checking Support page completed--------- \n")

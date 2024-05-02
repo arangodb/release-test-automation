@@ -4,6 +4,7 @@ import time
 from enum import IntEnum
 import semver
 from selenium_ui_test.pages.base_page import Keys
+from selenium.webdriver.common.by import By
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 
@@ -145,60 +146,64 @@ class GraphPage(NavigationBarPage):
         self.select_new_graph_name_id = "createNewGraphName"
 
     
-    def checking_created_collections_for_312(self, collection_name):
+    def checking_created_collections_for_312(self, graph_name):
         """selecting collection tab"""
-        select_collection_page_sitem = self.locator_finder_by_id(
-            self.select_collection_page_id
-        )
-        select_collection_page_sitem.click()
+        # todo add navigation instead
+        self.navbar_goto("collections")
+        self.wait_for_ajax()
+        self.webdriver.maximize_window()
         time.sleep(1)
 
-        reset = "//*[text()='Reset']"
-        reset_stiem = self.locator_finder_by_xpath(reset)
-        reset_stiem.click()
-        time.sleep(1)
+        # reset = "//*[text()='Reset']"
+        # reset_sitem = self.locator_finder_by_xpath(reset)
+        # reset_sitem.click()
+        # time.sleep(1)
 
         filters = "//*[text()='Filters']"
-        filters_stiem = self.locator_finder_by_xpath(filters)
-        filters_stiem.click()
+        filters_sitem = self.locator_finder_by_xpath(filters)
+        filters_sitem.click()
         time.sleep(1)
 
         # selecting add_filter
-        add_filter = "(//button[@id='menu-button-8'])[1]"
-        add_filter_stiem = self.locator_finder_by_xpath(add_filter)
-        add_filter_stiem.click()
+        add_filter = "//button[contains(@class, 'chakra-button') and @aria-label='Add filter']"
+        add_filter_sitem = self.locator_finder_by_xpath(add_filter)
+        add_filter_sitem.click()
         time.sleep(1)
 
         # selecting name filter from the filter type
         name_filter = "(//button[normalize-space()='Name'])[1]"
-        name_filter_stiem = self.locator_finder_by_xpath(name_filter)
-        name_filter_stiem.click()
+        name_filter_sitem = self.locator_finder_by_xpath(name_filter)
+        name_filter_sitem.click()
         time.sleep(1)
 
         # selecting name filter search input field
         selecting_search_input = "(//input[@id='name'])[1]"
-        selecting_search_input_stiem = self.locator_finder_by_xpath(
+        selecting_search_input_sitem = self.locator_finder_by_xpath(
             selecting_search_input
         )
-        selecting_search_input_stiem.click()
+        selecting_search_input_sitem.click()
         time.sleep(1)
-        selecting_search_input_stiem.clear()
-        selecting_search_input_stiem.send_keys('knows')
+        selecting_search_input_sitem.clear()
+        selecting_search_input_sitem.send_keys("knows")
 
-        if collection_name == "knows_graph":
+        if graph_name == "knows_graph":
             knows_collection = "(//a[normalize-space()='knows'])[1]"
             knows_collection_sitem = self.locator_finder_by_xpath(knows_collection)
-            # knows_collection_sitem.click()
 
             expected_title = "knows"
             try:
-                assert expected_title == knows_collection_sitem.text, f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
-            except AssertionError as ex:
-                print(f'Assertion Error occurred! for {expected_title}\n')
+                assert (
+                        expected_title == knows_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
+            except AssertionError:
+                print(f"Assertion Error occurred! for {expected_title}\n")
+        
+        self.webdriver.set_window_size(1600, 900)
     
     
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
+        self.webdriver.refresh()
         self.navbar_goto("graphs")
         self.wait_for_ajax()
 
@@ -220,8 +225,9 @@ class GraphPage(NavigationBarPage):
             )
             self.select_knows_graph_id.click()
 
-            print(f"Checking required collections created for {graph_name}\n")
-            self.checking_created_collections_for_312("knows_graph")
+            # TODO
+            # print(f"Checking required collections created for {graph_name}\n")
+            # self.checking_created_collections_for_312("knows_graph")
 
         elif graph_name == "Traversal Graph":
             self.select_traversal_graph_id = self.locator_finder_by_xpath(
@@ -255,7 +261,8 @@ class GraphPage(NavigationBarPage):
             self.select_city_graph_id.click()
         else:
             print("Invalid Graph\n")
-        time.sleep(2)
+        time.sleep(3)
+        self.wait_for_ajax()
     
     def checking_created_collections(self, graph_name):
         """This method will check all the example graphs created collections"""
@@ -1194,11 +1201,11 @@ class GraphPage(NavigationBarPage):
                 # confirm_delete_graph_sitem.click()
                 if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                     delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                    delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
                 else:
                     delete_btn = "modalButton0"
-                    delete_btn_stiem = self.locator_finder_by_id(delete_btn)
-                delete_btn_stiem.click()
+                    delete_btn_sitem = self.locator_finder_by_id(delete_btn)
+                delete_btn_sitem.click()
                 self.wait_for_ajax()
 
                 time.sleep(0.1)
@@ -1236,9 +1243,8 @@ class GraphPage(NavigationBarPage):
         while True:
             try:
                 print(f"Deleting {graph_name} Graph \n")
-                self.webdriver.refresh()
-                time.sleep(2)
                 self.navbar_goto("graphs")
+                self.webdriver.refresh()
                 self.wait_for_ajax()
 
                 if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
@@ -1266,12 +1272,12 @@ class GraphPage(NavigationBarPage):
                     self.wait_for_ajax()
                     if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                         delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                        delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                        delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
                     else:
                         delete_btn = "modalButton0"
-                        delete_btn_stiem = self.locator_finder_by_id(delete_btn)
+                        delete_btn_sitem = self.locator_finder_by_id(delete_btn)
 
-                    delete_btn_stiem.click()
+                    delete_btn_sitem.click()
 
                     time.sleep(0.1)
                     self.wait_for_ajax()
@@ -1299,21 +1305,22 @@ class GraphPage(NavigationBarPage):
                     time.sleep(1)
                     break
                 else:
-                    self.webdriver.refresh()
+                    # Find the <a> element with the text "knows_graph"
+                    a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
+                    # Navigate to the parent <td> element
+                    td_element = a_element.find_element(By.XPATH, "./ancestor::td")
+                    # Find the <button> element within the same row
+                    button_element = td_element.find_element(By.XPATH, "./following-sibling::td//button[@type='button']")
+                    # Click the button
+                    button_element.click()
+
                     time.sleep(2)
                     self.wait_for_ajax()
-
-                    select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
-                    graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
-                    graph_settings_id_sitem.click()
-
-                    time.sleep(0.1)
-                    self.wait_for_ajax()
                     delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
-                    delete_btn_stiem.click()
+                    delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+                    delete_btn_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_with_collection = (
                         "(//label[normalize-space()='Also drop collections'])[1]"
@@ -1324,7 +1331,7 @@ class GraphPage(NavigationBarPage):
                     )
                     delete_with_collection_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
                     delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)

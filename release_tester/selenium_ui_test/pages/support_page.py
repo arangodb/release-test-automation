@@ -100,14 +100,20 @@ class SupportPage(NavigationBarPage):
             go_to_manual_start_page,
         ]
 
-        manual_link_assertion_check = [
-            "Getting Started | Manual | ArangoDB Documentation",
-            "Modeling Data for ArangoDB | ArangoDB Documentation",
-            "Administration | Manual | ArangoDB Documentation",
-            "Scaling | Manual | ArangoDB Documentation",
-            "Graphs | Manual | ArangoDB Documentation",
-            "Introduction to ArangoDB Documentation | ArangoDB Documentation",
-        ]
+        if self.version_is_newer_than("3.11.99"):
+            manual_link_assertion_check = ['Get Started | ArangoDB Documentation',
+                                           'Data Models | ArangoDB Documentation',
+                                           'Administration | ArangoDB Documentation',
+                                           'The scalability of ArangoDB and its data models | ArangoDB Documentation',
+                                           'Graphs | ArangoDB Documentation',
+                                           'Recommended Resources | ArangoDB Documentation']
+        else:
+            manual_link_assertion_check = ['Getting Started | Manual | ArangoDB Documentation',
+                                           'Modeling Data for ArangoDB | ArangoDB Documentation',
+                                           'Administration | Manual | ArangoDB Documentation',
+                                           'Scaling | Manual | ArangoDB Documentation',
+                                           'Graphs | Manual | ArangoDB Documentation',
+                                           'Introduction to ArangoDB Documentation | ArangoDB Documentation']
 
         self.loop_through_link_traversal(
             manual_link_list_print_statement, manual_link_list, manual_link_assertion_check
@@ -135,13 +141,18 @@ class SupportPage(NavigationBarPage):
         ]
         aql_link_list = [fundamentals, data_queries, functions, usual_query_patterns, go_to_aql_query_page]
 
-        fundamental_link_assertion_check = [
-            "AQL Fundamentals | AQL | ArangoDB Documentation",
-            "AQL Data Queries | ArangoDB Documentation",
-            "ArangoDB Query Language AQL Functions | ArangoDB Documentation",
-            "AQL Query Patterns & Examples | ArangoDB Documentation",
-            "ArangoDB Query Language (AQL) Introduction | ArangoDB Documentation",
-        ]
+        if self.version_is_newer_than("3.11.99"):
+            fundamental_link_assertion_check = ['AQL Fundamentals | ArangoDB Documentation',
+                                                'AQL Data Queries | ArangoDB Documentation',
+                                                'AQL functions | ArangoDB Documentation',
+                                                'AQL Query Patterns and Examples | ArangoDB Documentation',
+                                                'AQL Documentation | ArangoDB Documentation']
+        else:
+            fundamental_link_assertion_check = ['AQL Fundamentals | AQL | ArangoDB Documentation',
+                                                'AQL Data Queries | ArangoDB Documentation',
+                                                'ArangoDB Query Language AQL Functions | ArangoDB Documentation',
+                                                'AQL Query Patterns & Examples | ArangoDB Documentation',
+                                                'ArangoDB Query Language (AQL) Introduction | ArangoDB Documentation']
 
         self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list, fundamental_link_assertion_check)
 
@@ -168,17 +179,20 @@ class SupportPage(NavigationBarPage):
 
         fox_framework_list = [micro_service, guides, reference, deployment, go_to_fox_start]
 
-        fox_framework_assertion_check = [
-            "Getting started | Foxx Microservices | Manual | ArangoDB Documentation",
-            "Guides | Foxx Microservices | Manual | ArangoDB Documentation",
-            "Reference | Foxx Microservices | Manual | ArangoDB Documentation",
-            "Deployment | Foxx Microservices | Manual | ArangoDB Documentation",
-            "Foxx Microservices | ArangoDB Documentation",
-        ]
+        if self.version_is_newer_than("3.11.99"):
+            fox_framework_assertion_Check = ['Getting Started | ArangoDB Documentation',
+                                             'Guides | ArangoDB Documentation',
+                                             'Foxx reference | ArangoDB Documentation',
+                                             'Deployment | ArangoDB Documentation',
+                                             'Foxx Microservices | ArangoDB Documentation']
+        else:
+            fox_framework_assertion_Check = ['Getting started | Foxx Microservices | Manual | ArangoDB Documentation',
+                                             'Guides | Foxx Microservices | Manual | ArangoDB Documentation',
+                                             'Reference | Foxx Microservices | Manual | ArangoDB Documentation',
+                                             'Deployment | Foxx Microservices | Manual | ArangoDB Documentation',
+                                             'Foxx Microservices | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(
-            fox_framework_print_statement, fox_framework_list, fox_framework_assertion_check
-        )
+        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
 
         print("Checking all arangodb Fox Framework link completed\n")
 
@@ -186,50 +200,65 @@ class SupportPage(NavigationBarPage):
         """Clicking all the links official drivers and integration link tab"""
         print("Checking all Drivers and Integration link started\n")
 
-        # link name for all the Drivers and Integration link
-        arangodb_java_driver = '//*[@id="documentation"]/div/div[5]/ul/li[1]/a'
-        arangojs_java_script = '//*[@id="documentation"]/div/div[5]/ul/li[2]/a'
-        arangodb_php = '//*[@id="documentation"]/div/div[5]/ul/li[3]/a'
-        arangodb_go_driver = '//*[@id="documentation"]/div/div[5]/ul/li[4]/a'
-        arangodb_spring_data = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
-        arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
-        driver_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[7]/a'
+        if self.version_is_newer_than("3.11.99"):
+            # link name for all the Drivers and Integration link
+            arangodb_java_driver = '//*[@id="documentation"]/div/div[5]/ul/li[1]/a'
+            arangojs_java_script = '//*[@id="documentation"]/div/div[5]/ul/li[2]/a'
+            arangodb_php = '//*[@id="documentation"]/div/div[5]/ul/li[3]/a'
+            arangodb_go_driver = '//*[@id="documentation"]/div/div[5]/ul/li[4]/a'
+            arangodb_spring_data = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
+            arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
 
-        official_print_statement = [
-            "Checking ArangoDB Java Driver link \n",
-            "Checking ArangoJS - Javascript Driver link \n",
-            "Checking ArangoDB-PHP link \n",
-            "Checking ArangoDB Go Driver link \n",
-            "Checking Go to ArangoDB Spring Data page link \n",
-            "Checking Go to ArangoDB Spark Connections page link\n",
-            "Checking Go to Drivers & Integrations start page link \n",
-        ]
+            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+                                        'Checking ArangoJS - Javascript Driver link \n',
+                                        'Checking ArangoDB-PHP link \n',
+                                        'Checking ArangoDB Go Driver link \n',
+                                        'Checking Go to ArangoDB Spring Data page link \n',
+                                        'Checking Go to ArangoDB Spark Connections page link\n']
 
-        drivers_and_integration = [
-            arangodb_java_driver,
-            arangojs_java_script,
-            arangodb_php,
-            arangodb_go_driver,
-            arangodb_spring_data,
-            arangodb_spark_connector,
-            driver_and_integration,
-        ]
+            drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
+                                       arangodb_spring_data, arangodb_spark_connector]
 
-        driver_integration_assertion_check = [
-            "Java Driver | Drivers | ArangoDB Documentation",
-            "ArangoDB JavaScript Driver | ArangoDB Documentation",
-            "ArangoDB-PHP | Drivers | ArangoDB Documentation",
-            "ArangoDB Go Driver | Drivers | ArangoDB Documentation",
-            "Spring Data ArangoDB | Drivers | ArangoDB Documentation",
-            "ArangoDB Spark Connector | Drivers | ArangoDB Documentation",
-            "Install Official Drivers, Integrations and Community Drivers | ArangoDB Documentation",
-        ]
+            driver_integration_assertion_check = ['ArangoDB Java driver | ArangoDB Documentation',
+                                                  'ArangoDB Node.js driver | ArangoDB Documentation',
+                                                  'ArangoDB Go driver | ArangoDB Documentation',
+                                                  'Spring Data ArangoDB | ArangoDB Documentation',
+                                                  'ArangoDB Datasource for Apache Spark | ArangoDB Documentation',
+                                                  'Official ArangoDB drivers | ArangoDB Documentation']
+        else:
+            # link name for all the Drivers and Integration link
+            arangodb_java_driver = '//*[@id="documentation"]/div/div[5]/ul/li[1]/a'
+            arangojs_java_script = '//*[@id="documentation"]/div/div[5]/ul/li[2]/a'
+            arangodb_php = '//*[@id="documentation"]/div/div[5]/ul/li[3]/a'
+            arangodb_go_driver = '//*[@id="documentation"]/div/div[5]/ul/li[4]/a'
+            arangodb_spring_data = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
+            arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
+            driver_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[7]/a'
 
-        self.loop_through_link_traversal(
-            official_print_statement, drivers_and_integration, driver_integration_assertion_check
-        )
+            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+                                        'Checking ArangoJS - Javascript Driver link \n',
+                                        'Checking ArangoDB-PHP link \n',
+                                        'Checking ArangoDB Go Driver link \n',
+                                        'Checking Go to ArangoDB Spring Data page link \n',
+                                        'Checking Go to ArangoDB Spark Connections page link\n',
+                                        'Checking Go to Drivers & Integrations start page link \n']
 
-        print("Checking all arangodb Drivers and Integration link completed\n")
+            drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
+                                       arangodb_spring_data, arangodb_spark_connector, driver_and_integration]
+
+            driver_integration_assertion_check = ['Java Driver | Drivers | ArangoDB Documentation',
+                                                  'ArangoDB JavaScript Driver | ArangoDB Documentation',
+                                                  'ArangoDB-PHP | Drivers | ArangoDB Documentation',
+                                                  'ArangoDB Go Driver | Drivers | ArangoDB Documentation',
+                                                  'Spring Data ArangoDB | Drivers | ArangoDB Documentation',
+                                                  'ArangoDB Spark Connector | Drivers | ArangoDB Documentation',
+                                                  'Install Official Drivers, Integrations and Community Drivers | '
+                                                  'ArangoDB Documentation']
+
+        self.loop_through_link_traversal(Official_print_statement, drivers_and_integration,
+                                         driver_integration_assertion_check)
+
+        print('Checking all arangodb Drivers and Integration link completed\n')
 
     def community_support_link(self):
         """Checking community support link"""
@@ -273,17 +302,26 @@ class SupportPage(NavigationBarPage):
             arangodb_contact_us,
         ]
 
-        support_link_assertion_check = [
-            "ArangoDB - Jira Service Management",
-            "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
-            "with flexible data models for documents, graphs, and key-values. Build high "
-            "performance applications using a convenient SQL-like query language or "
-            "JavaScript extensions.",
-            "Newest 'arangodb' Questions - Stack Overflow",
-            "Join ArangoDB Community on Slack!",
-            "Redirecting to Google Groups",
-            "Contact - ArangoDB",
-        ]
+        if self.version_is_newer_than("3.11.99"):
+            support_link_assertion_check = ["Jira Service Management",
+                                            "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
+                                            "with flexible data models for documents, graphs, and key-values. Build high "
+                                            "performance applications using a convenient SQL-like query language or "
+                                            "JavaScript extensions.",
+                                            "Newest 'arangodb' Questions - Stack Overflow",
+                                            "Slack",
+                                            "Redirecting to Google Groups",
+                                            "contact - ArangoDB"]
+        else:
+            support_link_assertion_check = ["ArangoDB - Jira Service Management",
+                                            "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
+                                            "with flexible data models for documents, graphs, and key-values. Build high "
+                                            "performance applications using a convenient SQL-like query language or "
+                                            "JavaScript extensions.",
+                                            "Newest 'arangodb' Questions - Stack Overflow",
+                                            "Join ArangoDB Community on Slack!",
+                                            "Redirecting to Google Groups",
+                                            "Contact - ArangoDB"]
 
         self.loop_through_link_traversal(support_tab_print_statement, support_list, support_link_assertion_check)
 

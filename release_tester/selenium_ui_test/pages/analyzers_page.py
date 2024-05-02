@@ -7,7 +7,6 @@ from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
-import pyperclip
 
 
 class AnalyzerPage(NavigationBarPage):

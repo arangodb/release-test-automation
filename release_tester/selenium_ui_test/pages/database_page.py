@@ -4,6 +4,8 @@ import time
 import semver
 import traceback
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # pylint: disable=too-many-statements
@@ -16,62 +18,103 @@ class DatabasePage(NavigationBarPage):
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
         self.select_db_opt_id_sitem = "loginDatabase"
 
-    def create_new_db(self, db_name, index, cluster):
+    def create_new_db(self, db_name, index, cluster, enterprise):
         """Creating and checking new database"""
         # pylint: disable=too-many-locals
         self.navbar_goto("databases")
         self.wait_for_ajax()
-        print(f"Creating {db_name} database started \n")
-        create_new_db_btn = self.create_new_db_btn
-        create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
+        print(f'Creating {db_name} database started \n')
+        if self.version_is_newer_than("3.11.99"):
+            create_new_db_btn = "(//button[normalize-space()='Add database'])[1]"
+            create_new_db_btn_sitem = self.locator_finder_by_xpath(create_new_db_btn)
+        else:
+            create_new_db_btn = self.create_new_db_btn
+            create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
+
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
         # fill up all the database details
-        new_db_name = "newDatabaseName"
-        new_db_name_sitem = self.locator_finder_by_id(new_db_name)
+        if self.version_is_newer_than("3.11.99"):
+            new_db_name = "(//input[@id='name'])[1]"
+            new_db_name_sitem = self.locator_finder_by_xpath(new_db_name)
+        else:
+            new_db_name = 'newDatabaseName'
+            new_db_name_sitem = self.locator_finder_by_id(new_db_name)
+
         new_db_name_sitem.click()
         new_db_name_sitem.send_keys(db_name)
         time.sleep(1)
 
         if cluster:
-            replication_factor = "new-replication-factor"
+            if self.version_is_newer_than("3.11.99"):
+                replication_factor = 'replicationFactor'
+            else:
+                replication_factor = 'new-replication-factor'
+            
             replication_factor_sitem = self.locator_finder_by_id(replication_factor)
             replication_factor_sitem.click()
             replication_factor_sitem.clear()
             replication_factor_sitem.send_keys("3")
             time.sleep(1)
 
-            write_concern = "new-write-concern"
+            if self.version_is_newer_than("3.11.99"):
+                write_concern = 'writeConcern'
+            else:
+                write_concern = 'new-write-concern'
+            
             write_concern_sitem = self.locator_finder_by_id(write_concern)
             write_concern_sitem.click()
             write_concern_sitem.clear()
             write_concern_sitem.send_keys("3")
             time.sleep(1)
 
-            if self.check_server_package() == "COMMUNITY EDITION":
+            if not enterprise:
                 pass
             elif self.check_server_package() == "ENTERPRISE EDITION":
-                # selecting sharded option from drop down using index
-                select_sharded_db = "newSharding"
-                self.locator_finder_by_select(select_sharded_db, index)
-                time.sleep(1)
+                if self.version_is_newer_than("3.11.99"):
+                    # selecting one shard database
+                    if db_name == "OneShard":
+                        one_shard = '//*[@id="chakra-modal--body-3"]/div/div/div[2]/div[5]/div/div/label/span/span'
+                        one_shard_sitem = self.locator_finder_by_xpath(one_shard)
+                        one_shard_sitem.click()
+                    else:
+                        pass
+                else:
+                    # selecting sharded option from drop down using index
+                    select_sharded_db = "newSharding"
+                    self.locator_finder_by_select(select_sharded_db, index)
+                    time.sleep(1)
             else:
-                print("Can not determined the ")
+                print(f"Can not determined the database {db_name}\n")
 
         # selecting user option from drop down using index for choosing root user.
-        select_user = "newUser"
-        self.locator_finder_by_select(select_user, 0)  # 0 for root user
-        time.sleep(1)
+        if self.version_is_newer_than("3.11.99"):
+            select_user = "(//input[@id='users'])[1]"
+            select_user_sitem = self.locator_finder_by_xpath(select_user)  # 0 for root user
+            select_user_sitem.send_keys("tester")
+            actions = ActionChains(self.webdriver)
+            actions.send_keys(Keys.RETURN)
+            actions.perform()
+            time.sleep(1)
+
+        else:
+            select_user = "newUser"
+            self.locator_finder_by_select(select_user, 0)  # 0 for root user
+            time.sleep(1)
 
         # clicking create button
-        create_db = "modalButton1"
-        create_db_sitem = self.locator_finder_by_id(create_db)
+        if self.version_is_newer_than("3.11.99"):
+            create_db = "(//button[normalize-space()='Create'])[1]"
+            create_db_sitem = self.locator_finder_by_xpath(create_db)
+        else:
+            create_db = "modalButton1"
+            create_db_sitem = self.locator_finder_by_id(create_db)
+        
         create_db_sitem.click()
         time.sleep(4)
 
         print(f"Creating {db_name} database completed \n")
-
         if self.current_package_version() < semver.VersionInfo.parse("3.11.0"):
             print(f"Logging into newly created {db_name} database \n")
             change_db = '//*[@id="dbStatus"]/a[3]/i'
@@ -347,22 +390,45 @@ class DatabasePage(NavigationBarPage):
 
             print(f'{db_name} deleting started \n')
             if db_name == 'OneShard':
-                db_search = 'OneShard_edit-database'
-                db_sitem = self.locator_finder_by_id(db_search)
-                db_sitem.click()
+                if self.version_is_newer_than("3.11.99"):
+                    db_select = "(//a[normalize-space()='OneShard'])[1]"
+                    db_select_sitem = self.locator_finder_by_xpath(db_select)
+                    db_select_sitem.click()
+                    time.sleep(1)
+                else:
+                    db_search = 'OneShard_edit-database'
+                    db_sitem = self.locator_finder_by_id(db_search)
+                    db_sitem.click()
 
-            if db_name == 'Sharded':
-                db_search = 'Sharded_edit-database'
-                db_sitem = self.locator_finder_by_id(db_search)
-                db_sitem.click()
+            else:
+                # for sharded database deletion
+                if self.version_is_newer_than("3.11.99"):
+                    db_select = "(//a[normalize-space()='Sharded'])[1]"
+                    db_select_sitem = self.locator_finder_by_xpath(db_select)
+                    db_select_sitem.click()
+                    time.sleep(1)
+                else:
+                    db_search = 'Sharded_edit-database'
+                    db_sitem = self.locator_finder_by_id(db_search)
+                    db_sitem.click()
 
-            delete_btn = 'modalButton1'
-            delete_btn_sitem = self.locator_finder_by_id(delete_btn)
+            if self.version_is_newer_than('3.11.99'):
+                delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+            else:
+                delete_btn = 'modalButton1'
+                delete_btn_sitem = self.locator_finder_by_id(delete_btn)
+
             delete_btn_sitem.click()
             time.sleep(1)
 
-            delete_confirm_btn = 'modal-confirm-delete'
-            delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn)
+            if self.version_is_newer_than("3.11.99"):
+                delete_confirm_btn = '//footer//button[2]'
+                delete_confirm_btn_sitem = self.locator_finder_by_xpath(delete_confirm_btn)
+            else:
+                delete_confirm_btn = 'modal-confirm-delete'
+                delete_confirm_btn_sitem = self.locator_finder_by_id(delete_confirm_btn)
+
             delete_confirm_btn_sitem.click()
             time.sleep(1)
 
@@ -382,8 +448,13 @@ class DatabasePage(NavigationBarPage):
         try:
             self.webdriver.refresh()
             print('Selecting user for deletion \n')
-            tester = "//h5[text()='tester (tester)']"
-            tester01 = "//h5[text()='tester01 (tester01)']"
+            if self.version_is_newer_than("3.11.99"):
+                tester = "(//a[normalize-space()='tester'])[1]"
+                tester01 = "(//a[normalize-space()='tester01'])[1]"
+            else:
+                tester = "//h5[text()='tester (tester)']"
+                tester01 = "//h5[text()='tester01 (tester01)']"
+
             if username == 'tester':
                 self.locator_finder_by_xpath(tester).click()
             elif username == 'tester01':
@@ -392,15 +463,24 @@ class DatabasePage(NavigationBarPage):
                 raise Exception('Wrong user has been chosen for deletion!!! \n')
             time.sleep(2)
 
-            print(f'Deleting {username} begins \n')
-            del_button = 'modalButton0'
-            self.locator_finder_by_id(del_button).click()
+            if self.version_is_newer_than("3.11.99"):
+                select_user_delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                select_user_delete_btn_sitem = self.locator_finder_by_xpath(select_user_delete_btn)
+                select_user_delete_btn_sitem.click()
 
-            # confirming delete user
-            confirm_btn = 'modal-confirm-delete'
-            self.locator_finder_by_id(confirm_btn).click()
-            print(f'Deleting {username} completed \n')
-            time.sleep(2)
+                select_confirm_delete_btn = "(//button[normalize-space()='Yes'])[1]"
+                select_confirm_delete_btn_sitem = self.locator_finder_by_xpath(select_confirm_delete_btn)
+                select_confirm_delete_btn_sitem.click()
+            else:
+                print(f'Deleting {username} begins \n')
+                del_button = 'modalButton0'
+                self.locator_finder_by_id(del_button).click()
+
+                # confirming delete user
+                confirm_btn = 'modal-confirm-delete'
+                self.locator_finder_by_id(confirm_btn).click()
+                print(f'Deleting {username} completed \n')
+                time.sleep(2)
         except TimeoutException:
             print('TimeoutException occurred! \n')
             print('Info: User has already been deleted or never created. \n')
