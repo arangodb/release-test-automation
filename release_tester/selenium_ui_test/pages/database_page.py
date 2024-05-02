@@ -86,7 +86,7 @@ class DatabasePage(NavigationBarPage):
                     self.locator_finder_by_select(select_sharded_db, index)
                     time.sleep(1)
             else:
-                print("Can not determined the databse \n")
+                print(f"Can not determined the database {db_name}\n")
 
         # selecting user option from drop down using index for choosing root user.
         if self.version_is_newer_than("3.11.99"):

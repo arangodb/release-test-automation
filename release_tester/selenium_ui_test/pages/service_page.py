@@ -559,9 +559,9 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
         time.sleep(2)
-        self.navbar_goto("services")
+        self.webdriver.refresh()
         self.wait_for_ajax()
-
+        self.navbar_goto("services")
         # at this point it will be back to service page
         self.webdriver.refresh()
         time.sleep(5)
@@ -640,14 +640,10 @@ class ServicePage(NavigationBarPage):
                 time.sleep(2)
                 self.locator_finder_by_id(default_view).click()
 
-                print('inspecting documentation through Foxx and leaflet \n')
-                if self.version_is_newer_than("3.11.100"):
-                    print("skipped inspecting documentation through Foxx and leaflet \n")
-                else:
-                    if self.version_is_newer_than("3.10.0"):
-                        first = '//*[@id="operations-default-get"]/div/button[1]/div'
-                        second = '//*[@id="operations-default-post"]/div/button[1]/div'
-
+                if self.version_is_older_than("3.10.0"):
+                    print('inspecting documentation through Foxx and leaflet \n')
+                    first = '//*[@id="operations-default-get"]/div/button[1]/div'
+                    second = '//*[@id="operations-default-post"]/div/button[1]/div'
                     id_list = [first, second]
                     self.checking_function_for_fox_leaflet(id_list)
             except Exception as ex:
