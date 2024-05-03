@@ -214,7 +214,7 @@ class StarterManager:
 
         # Telemetry was introduced in 3.11.0
         if (semversion.major == 3 and semversion.minor >= 11) or (semversion.major > 3):
-            result += ["--all.server.telemetrics-api=false"]
+            result += ["--args.all.server.telemetrics-api=false"]
 
         # Column cache
         if (

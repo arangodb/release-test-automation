@@ -119,7 +119,7 @@ db.testCollection.save({test: "document"})
         if self.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         else:
-            common_opts += ["--all.cluster.default-replication-factor=2"]
+            common_opts += ["--args.all.cluster.default-replication-factor=2"]
         node_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
