@@ -72,9 +72,9 @@ class ActiveFailover(Runner):
 
     def starter_prepare_env_impl(self):
         # fmt: off
-        node1_opts = ['--all.log.level=replication=debug']
-        node2_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
-        node3_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node1_opts = ['--args.all.log.level=replication=debug']
+        node2_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node3_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
         # fmt: on
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()

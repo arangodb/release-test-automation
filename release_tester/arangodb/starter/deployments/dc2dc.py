@@ -213,8 +213,8 @@ class Dc2Dc(Runner):
                 moreopts.append('--args.syncworkers.worker.max-initial-sync-tasks=8')
             opts = [
                     '--args.all.cluster.default-replication-factor=2',
-                    '--all.log.level=backup=trace',
-                    # '--all.log.level=requests=debug',
+                    '--args.all.log.level=backup=trace',
+                    # '--args.all.log.level=requests=debug',
                     '--args.syncmasters.log.level=debug',
                     '--args.syncworkers.log.level=debug',
                     '--args.sync.log.stderr=false',
@@ -263,7 +263,7 @@ class Dc2Dc(Runner):
             common_opts += [
                 "--dbservers.database.default-replication-version=2",
                 "--coordinators.database.default-replication-version=2",
-                "--all.log.level=replication2=debug",
+                "--args.all.log.level=replication2=debug",
             ]
         if self.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]

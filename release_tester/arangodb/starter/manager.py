@@ -74,17 +74,17 @@ class StarterManager:
         # self.moreopts += ['--all.log', 'startup=debug']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
-        # self.moreopts += ["--all.log.level=arangosearch=trace"]
+        # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
         if not IS_WINDOWS:
-            self.moreopts += ["--all.log.level=maintenance=trace"]
-            self.moreopts += ["--all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
-        # self.moreopts += ["--all.log.level=startup=trace"]
-        # self.moreopts += ["--all.log.level=engines=trace"]
+            self.moreopts += ["--args.all.log.level=maintenance=trace"]
+            self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
+        # self.moreopts += ["--args.all.log.level=startup=trace"]
+        # self.moreopts += ["--args.all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
         # Split logmessages of facilities into several logfiles to reduce load on the main log:
-        # self.moreopts += ["--all.log.output=general=file://@ARANGODB_SERVER_DIR@/arangod.log"]
-        # self.moreopts += ["--all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
+        # self.moreopts += ["--args.all.log.output=general=file://@ARANGODB_SERVER_DIR@/arangod.log"]
+        # self.moreopts += ["--args.all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
 
@@ -110,9 +110,9 @@ class StarterManager:
 
         self.hotbackup_args = []
         if self.cfg.hot_backup_supported:
-            self.moreopts += ["--all.log.level=backup=trace"]
+            self.moreopts += ["--args.all.log.level=backup=trace"]
             self.hotbackup_args = [
-                "--all.rclone.executable",
+                "--args.all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
 
@@ -762,7 +762,7 @@ class StarterManager:
         self.cfg.set_directories(new_install_cfg)
         if self.cfg.hot_backup_supported:
             self.hotbackup_args = [
-                "--all.rclone.executable",
+                "--args.all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
 

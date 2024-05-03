@@ -113,8 +113,8 @@ db.testCollection.save({test: "document"})
             common_opts += [
                 "--dbservers.database.default-replication-version=2",
                 "--coordinators.database.default-replication-version=2",
-                "--all.log.level=replication2=debug",
-                "--all.log.level=rep-state=debug",
+                "--args.all.log.level=replication2=debug",
+                "--args.all.log.level=rep-state=debug",
             ]
         if self.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
