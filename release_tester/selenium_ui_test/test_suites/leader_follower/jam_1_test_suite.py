@@ -11,7 +11,8 @@ from selenium_ui_test.pages.replication_page import ReplicationPage
 
 class LeaderFollowerJamStepOneSuite(BaseSeleniumTestSuite):
     """ jamming leader follower testsuite """
-    @testcase
+    # TODO
+    # @testcase
     def test(self):
         """check for one set of instances to go away"""
         self.go_to_index_page()

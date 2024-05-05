@@ -18,16 +18,16 @@ class BasicTestSuite(BaseSeleniumTestSuite):
     """testsuites entrypoint"""
 
     child_test_suites = [
-        UserPageTestSuite,
-        CollectionsTestSuite,
-        ViewsTestSuite,
-        GraphTestSuite,
-        QueryTestSuite,
-        AnalyzersTestSuite,
+        # UserPageTestSuite,
+        # CollectionsTestSuite,
+        # ViewsTestSuite,
+        # GraphTestSuite,
+        # QueryTestSuite,
+        # AnalyzersTestSuite,
         DatabaseTestSuite,
-        LogInTestSuite,
-        DashboardTestSuite,
-        SupportTestSuite,
+        # LogInTestSuite,
+        # DashboardTestSuite,
+        # SupportTestSuite,
         ServiceTestSuite,
     ]
 

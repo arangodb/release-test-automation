@@ -59,7 +59,7 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
             print("Database deletion started.")
             db.deleting_database('Sharded')
             db.deleting_database('OneShard')
-            # delete created user
+            print("delete created users \n")
             user.user_tab()
             db.deleting_user('tester')
             db.deleting_user('tester01')

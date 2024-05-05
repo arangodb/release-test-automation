@@ -34,7 +34,7 @@ class DatabasePage(NavigationBarPage):
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
-        # fill up all the database details
+        print("fill up all the database details \n")
         if self.version_is_newer_than("3.11.99"):
             new_db_name = "(//input[@id='name'])[1]"
             new_db_name_sitem = self.locator_finder_by_xpath(new_db_name)
@@ -47,6 +47,7 @@ class DatabasePage(NavigationBarPage):
         time.sleep(1)
 
         if cluster:
+            print(f"Cluster deployment selected for {db_name} \n")
             if self.version_is_newer_than("3.11.99"):
                 replication_factor = 'replicationFactor'
             else:
@@ -54,7 +55,12 @@ class DatabasePage(NavigationBarPage):
             
             replication_factor_sitem = self.locator_finder_by_id(replication_factor)
             replication_factor_sitem.click()
-            replication_factor_sitem.clear()
+            if self.version_is_newer_than("3.11.99"):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
+            else:
+                replication_factor_sitem.clear()
+
             replication_factor_sitem.send_keys("3")
             time.sleep(1)
 
@@ -65,30 +71,32 @@ class DatabasePage(NavigationBarPage):
             
             write_concern_sitem = self.locator_finder_by_id(write_concern)
             write_concern_sitem.click()
-            write_concern_sitem.clear()
+            if self.version_is_newer_than("3.11.99"):
+                self.send_key_action(Keys.BACKSPACE)
+                self.send_key_action(Keys.BACKSPACE)
+            else:
+                write_concern_sitem.clear()
             write_concern_sitem.send_keys("3")
             time.sleep(1)
 
-            if not enterprise:
-                pass
-            elif self.check_server_package() == "ENTERPRISE EDITION":
+            if enterprise:
                 if self.version_is_newer_than("3.11.99"):
-                    # selecting one shard database
+                    print(f"selecting one shard database for {db_name}\n")
                     if db_name == "OneShard":
-                        one_shard = '//*[@id="chakra-modal--body-3"]/div/div/div[2]/div[5]/div/div/label/span/span'
+                        one_shard = '//*[@id="chakra-modal--body-4"]/div/div/div[2]/div[5]/div/div/label/span/span'
                         one_shard_sitem = self.locator_finder_by_xpath(one_shard)
                         one_shard_sitem.click()
                     else:
                         pass
                 else:
-                    # selecting sharded option from drop down using index
+                    print(f"selecting sharded option from drop down using index for {db_name}\n")
                     select_sharded_db = "newSharding"
                     self.locator_finder_by_select(select_sharded_db, index)
                     time.sleep(1)
             else:
-                print(f"Can not determined the database {db_name}\n")
+                print(f"Skipped for Community or < v3.11.99 for {db_name}\n")
 
-        # selecting user option from drop down using index for choosing root user.
+        print(f"selecting user option from drop down using index for choosing root user for {db_name} \n")
         if self.version_is_newer_than("3.11.99"):
             select_user = "(//input[@id='users'])[1]"
             select_user_sitem = self.locator_finder_by_xpath(select_user)  # 0 for root user
@@ -113,8 +121,8 @@ class DatabasePage(NavigationBarPage):
         
         create_db_sitem.click()
         time.sleep(4)
-
         print(f"Creating {db_name} database completed \n")
+        
         if self.current_package_version() < semver.VersionInfo.parse("3.11.0"):
             print(f"Logging into newly created {db_name} database \n")
             change_db = '//*[@id="dbStatus"]/a[3]/i'
@@ -128,7 +136,7 @@ class DatabasePage(NavigationBarPage):
 
             if db_name == "Sharded":
                 # selecting newly created db for login from the dropdown menu
-                self.locator_finder_by_select(db_opt, 1)
+                self.locator_finder_by_select(db_opt, 0)
             if db_name == "OneShard":
                 # OneShard took place over Sharded database thus used index value 1
                 self.locator_finder_by_select(db_opt, 1)
