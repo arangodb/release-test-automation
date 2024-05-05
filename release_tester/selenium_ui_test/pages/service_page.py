@@ -563,7 +563,6 @@ class ServicePage(NavigationBarPage):
         self.wait_for_ajax()
         self.navbar_goto("services")
         # at this point it will be back to service page
-        self.webdriver.refresh()
         time.sleep(5)
         max_retries = 3
 
@@ -573,7 +572,7 @@ class ServicePage(NavigationBarPage):
                 if self.version_is_newer_than("3.11.100"):
                     graphql_service = "(//a[normalize-space()='/graphql'])[1]"
                 else:
-                    graphql_service = "//*[text()='demo-graphql']"
+                    graphql_service = "(//span[normalize-space()='/graphql'])[1]"
 
                 graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
                 graphql_service_sitem.click()
@@ -618,7 +617,7 @@ class ServicePage(NavigationBarPage):
         graphql_api_sitem.click()
         time.sleep(1)
 
-        if self.version_is_newer_than("3.11.100"):
+        if self.version_is_newer_than("3.10.100"):
             print('skipped inspecting graphql service \n')
         else:
             print('Selecting Swagger view \n')
@@ -629,18 +628,19 @@ class ServicePage(NavigationBarPage):
             time.sleep(2)
 
             try:
-                print('Switching to IFrame \n')
-                iframe_id = 'swaggerIframe'
-                self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-                time.sleep(1)
-
-                print("Checking default view \n")
-                default_view = "operations-tag-default"
-                self.locator_finder_by_id(default_view).click()
-                time.sleep(2)
-                self.locator_finder_by_id(default_view).click()
-
                 if self.version_is_older_than("3.10.0"):
+
+                    print('Switching to IFrame \n')
+                    iframe_id = 'swaggerIframe'
+                    self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+                    time.sleep(1)
+
+                    print("Checking default view \n")
+                    default_view = "operations-tag-default"
+                    self.locator_finder_by_id(default_view).click()
+                    time.sleep(2)
+                    self.locator_finder_by_id(default_view).click()
+
                     print('inspecting documentation through Foxx and leaflet \n')
                     first = '//*[@id="operations-default-get"]/div/button[1]/div'
                     second = '//*[@id="operations-default-post"]/div/button[1]/div'
@@ -771,29 +771,10 @@ class ServicePage(NavigationBarPage):
                     self.select_service_settings()
                     time.sleep(1)
 
-                    delete_service = '//*[@id="settings"]/div/button[1]'
-                    self.locator_finder_by_xpath(delete_service).click()
-                    time.sleep(1)
-
-                    confirm_delete = 'modalButton1'
-                    self.locator_finder_by_id(confirm_delete).click()
-                    time.sleep(1)
-
-                    pressing_yes = 'modal-confirm-delete'
-                    self.locator_finder_by_id(pressing_yes).click()
-                    time.sleep(1)
+                    self.delete_service_from_setting_tab()
 
                     self.webdriver.refresh()
                     print(f'{service_sitem} service has been deleted successfully \n')
-
-                    self.navbar_goto("collections")
-                    self.wait_for_ajax()
-                    # deleting neighborhood collection
-                    if self.version_is_newer_than("3.11.100"):
-                        print('skipped collection_deletion() \n')
-                    else:
-                        self.collection_deletion("collection_neighborhoods")
-                        self.collection_deletion("collection_restaurants")
                         
             except TimeoutException:
                 print('TimeoutException occurred! \n')
