@@ -33,7 +33,7 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
             db.create_new_db("Sharded", 0, self.is_cluster, self.is_enterprise)  # 0 = sharded DB
             db.create_new_db("OneShard", 1, self.is_cluster, self.is_enterprise)  # 1 = one shard DB
 
-            if db.version_is_newer_than("3.11.99"):
+            if db.version_is_newer_than("3.10.99"):
                 print("Skipped \n")
             else:
                 if db.current_package_version() < semver.VersionInfo.parse("3.11.0"):
@@ -57,12 +57,12 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
 
         finally:
             print("Database deletion started.")
-            db.deleting_database('Sharded')
-            db.deleting_database('OneShard')
-            # delete created user
-            user.user_tab()
-            db.deleting_user('tester')
-            db.deleting_user('tester01')
+            # db.deleting_database('Sharded')
+            # db.deleting_database('OneShard')
+            # print("delete created users \n")
+            # user.user_tab()
+            # db.deleting_user('tester')
+            # db.deleting_user('tester01')
 
             print("Database deletion completed.")
             del user

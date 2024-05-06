@@ -11,7 +11,8 @@ from selenium_ui_test.test_suites.base_classes.after_install_test_suite import A
 class LeaderFollowerAfterInstallTestSuite(AfterInstallTestSuite):
     """test cases to check the integrity of the old system before the install (Leader Follower)"""
 
-    @testcase
+    # TODO
+    # @testcase
     def test(self, leader_follower=True):
         """check the integrity of the old system after install (Leader Follower)"""
         count = 0

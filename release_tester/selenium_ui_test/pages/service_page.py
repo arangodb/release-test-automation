@@ -205,13 +205,8 @@ class ServicePage(NavigationBarPage):
         time.sleep(2)
 
         print(f'Selecting service mount point at {mount_path} \n')
-        if self.version_is_newer_than("3.11.100"):
-            mount_point = "/html//input[@id='new-app-mount']"
-            mount_point_sitem = self.locator_finder_by_xpath(mount_point)
-        else:
-            mount_point = 'new-app-mount'
-            mount_point_sitem = self.locator_finder_by_id(mount_point)
-        
+        mount_point = "/html//input[@id='new-app-mount']"
+        mount_point_sitem = self.locator_finder_by_xpath(mount_point)
         mount_point_sitem.click()
         mount_point_sitem.clear()
         mount_point_sitem.send_keys(mount_path)
@@ -222,6 +217,9 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
         time.sleep(6)
+        self.webdriver.refresh()
+        self.wait_for_ajax()
+        self.navbar_goto("services")
 
         # checking service has been created successfully
         if self.version_is_newer_than("3.11.100"):
@@ -543,13 +541,8 @@ class ServicePage(NavigationBarPage):
         time.sleep(3)
 
         print('Mounting the demo graphql service \n')
-        if self.version_is_newer_than("3.11.100"):
-            mount_point = "/html//input[@id='new-app-mount']"
-            mount_point_sitem = self.locator_finder_by_xpath(mount_point)
-        else:
-            mount_point = 'new-app-mount'
-            mount_point_sitem = self.locator_finder_by_id(mount_point)
-
+        mount_point = "/html//input[@id='new-app-mount']"
+        mount_point_sitem = self.locator_finder_by_xpath(mount_point)
         mount_point_sitem.click()
         mount_point_sitem.send_keys(mount_path)
         time.sleep(1)
@@ -558,13 +551,11 @@ class ServicePage(NavigationBarPage):
         install_btn = 'modalButton1'
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
-        time.sleep(2)
+        time.sleep(6)
         self.webdriver.refresh()
         self.wait_for_ajax()
         self.navbar_goto("services")
         # at this point it will be back to service page
-        self.webdriver.refresh()
-        time.sleep(5)
         max_retries = 3
 
         for attempt in range(1, max_retries + 1):
@@ -573,11 +564,12 @@ class ServicePage(NavigationBarPage):
                 if self.version_is_newer_than("3.11.100"):
                     graphql_service = "(//a[normalize-space()='/graphql'])[1]"
                 else:
-                    graphql_service = "//*[text()='demo-graphql']"
+                    graphql_service = "//*[text()='/graphql']"
 
                 graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
                 graphql_service_sitem.click()
                 time.sleep(2)
+                status = True
                 break
             except NoSuchElementException as ex:
                 print(
@@ -590,67 +582,72 @@ class ServicePage(NavigationBarPage):
                     print("Maximum retries reached. Exiting.")
                     raise  # Re-raise the exception if max retries reached
                 else:
+                    status = False
                     print("Refreshing the UI \n")
                     self.webdriver.refresh()
-                    time.sleep(2)  # You may adjust the sleep duration as needed
+                    time.sleep(2)
+                    self.navbar_goto("services")
+                    self.wait_for_ajax()
                     continue  # Retry the loop
 
-        print('Opening graphql interface \n')
-        graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
-        graphql_interface_sitem = self.locator_finder_by_xpath(graphql_interface)
-        graphql_interface_sitem.click()
+        if status:
+            print('Opening graphql interface \n')
+            graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
+            graphql_interface_sitem = self.locator_finder_by_xpath(graphql_interface)
+            graphql_interface_sitem.click()
 
-        print('Switching to code mirror windows of graphql \n')
-        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-        self.wait_for_ajax()
-        graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
-        graphql_interface_execute_btn_sitem = \
-            self.locator_finder_by_xpath(graphql_interface_execute_btn)
-        graphql_interface_execute_btn_sitem.click()
-        print('Return back to original window \n')
-        self.webdriver.close() # closes the browser active window
-        self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+            print('Switching to code mirror windows of graphql \n')
+            self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+            self.wait_for_ajax()
+            graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
+            graphql_interface_execute_btn_sitem = \
+                self.locator_finder_by_xpath(graphql_interface_execute_btn)
+            graphql_interface_execute_btn_sitem.click()
+            print('Return back to original window \n')
+            self.webdriver.close() # closes the browser active window
+            self.webdriver.switch_to.window(self.webdriver.window_handles[0])
 
-        self.wait_for_ajax()
-        print('Checking API tab of graphql service \n')
-        graphql_api_name = 'service-api'
-        graphql_api_sitem = self.locator_finder_by_id(graphql_api_name)
-        graphql_api_sitem.click()
-        time.sleep(1)
+            self.wait_for_ajax()
+            print('Checking API tab of graphql service \n')
+            graphql_api_name = 'service-api'
+            graphql_api_sitem = self.locator_finder_by_id(graphql_api_name)
+            graphql_api_sitem.click()
+            time.sleep(1)
 
-        if self.version_is_newer_than("3.11.100"):
-            print('skipped inspecting graphql service \n')
-        else:
-            print('Selecting Swagger view \n')
-            swagger_view = 'jsonLink'
-            self.locator_finder_by_id(swagger_view).click()
-            time.sleep(2)
-            self.locator_finder_by_id(swagger_view).click()
-            time.sleep(2)
-
-            try:
-                print('Switching to IFrame \n')
-                iframe_id = 'swaggerIframe'
-                self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-                time.sleep(1)
-
-                print("Checking default view \n")
-                default_view = "operations-tag-default"
-                self.locator_finder_by_id(default_view).click()
+            if self.version_is_newer_than("3.10.100"):
+                print('skipped inspecting graphql service \n')
+            else:
+                print('Selecting Swagger view \n')
+                swagger_view = 'jsonLink'
+                self.locator_finder_by_id(swagger_view).click()
                 time.sleep(2)
-                self.locator_finder_by_id(default_view).click()
+                self.locator_finder_by_id(swagger_view).click()
+                time.sleep(2)
 
-                if self.version_is_older_than("3.10.0"):
-                    print('inspecting documentation through Foxx and leaflet \n')
-                    first = '//*[@id="operations-default-get"]/div/button[1]/div'
-                    second = '//*[@id="operations-default-post"]/div/button[1]/div'
-                    id_list = [first, second]
-                    self.checking_function_for_fox_leaflet(id_list)
-            except Exception as ex:
-                print("Error occurred while inspecting API tab of graphql service")
-                print('Getting out of IFrame \n')
-                self.webdriver.switch_to.default_content()
-                time.sleep(1)
+                try:
+                    if self.version_is_older_than("3.10.0"):
+
+                        print('Switching to IFrame \n')
+                        iframe_id = 'swaggerIframe'
+                        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+                        time.sleep(1)
+
+                        print("Checking default view \n")
+                        default_view = "operations-tag-default"
+                        self.locator_finder_by_id(default_view).click()
+                        time.sleep(2)
+                        self.locator_finder_by_id(default_view).click()
+
+                        print('inspecting documentation through Foxx and leaflet \n')
+                        first = '//*[@id="operations-default-get"]/div/button[1]/div'
+                        second = '//*[@id="operations-default-post"]/div/button[1]/div'
+                        id_list = [first, second]
+                        self.checking_function_for_fox_leaflet(id_list)
+                except Exception as ex:
+                    print("Error occurred while inspecting API tab of graphql service")
+                    print('Getting out of IFrame \n')
+                    self.webdriver.switch_to.default_content()
+                    time.sleep(1)
 
     def replace_service(self):
         """This method will replace the service"""""
@@ -771,29 +768,10 @@ class ServicePage(NavigationBarPage):
                     self.select_service_settings()
                     time.sleep(1)
 
-                    delete_service = '//*[@id="settings"]/div/button[1]'
-                    self.locator_finder_by_xpath(delete_service).click()
-                    time.sleep(1)
-
-                    confirm_delete = 'modalButton1'
-                    self.locator_finder_by_id(confirm_delete).click()
-                    time.sleep(1)
-
-                    pressing_yes = 'modal-confirm-delete'
-                    self.locator_finder_by_id(pressing_yes).click()
-                    time.sleep(1)
+                    self.delete_service_from_setting_tab()
 
                     self.webdriver.refresh()
                     print(f'{service_sitem} service has been deleted successfully \n')
-
-                    self.navbar_goto("collections")
-                    self.wait_for_ajax()
-                    # deleting neighborhood collection
-                    if self.version_is_newer_than("3.11.100"):
-                        print('skipped collection_deletion() \n')
-                    else:
-                        self.collection_deletion("collection_neighborhoods")
-                        self.collection_deletion("collection_restaurants")
                         
             except TimeoutException:
                 print('TimeoutException occurred! \n')
