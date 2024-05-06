@@ -473,6 +473,7 @@ class GraphPage(NavigationBarPage):
     
     def create_example_graph(self, graph_name):
         """This method will create all the example graphs"""
+        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.navbar_goto("graphs")
         self.wait_for_ajax()
@@ -543,6 +544,8 @@ class GraphPage(NavigationBarPage):
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
+
+        self.webdriver.set_window_size(1600, 900)
     
     # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
@@ -1239,6 +1242,7 @@ class GraphPage(NavigationBarPage):
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
+        self.webdriver.maximize_window()
         retry = 0
         while True:
             try:
@@ -1303,6 +1307,7 @@ class GraphPage(NavigationBarPage):
                     delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
                     delete_confirm_sitem.click()
                     time.sleep(1)
+                    self.webdriver.set_window_size(1600, 900)
                     break
                 else:
                     # Find the <a> element with the text "knows_graph"

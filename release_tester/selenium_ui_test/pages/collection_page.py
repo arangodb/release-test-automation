@@ -209,6 +209,7 @@ class CollectionPage(NavigationBarPage):
         self.navbar_goto("collections")
         time.sleep(1)
 
+        self.webdriver.maximize_window()
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             select_create_collection_id = "//*[text()='Add collection']"
             select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id)
@@ -313,6 +314,7 @@ class CollectionPage(NavigationBarPage):
             create_new_collection_btn_sitem = self.locator_finder_by_id("modalButton1")
             create_new_collection_btn_sitem.click()
         time.sleep(3)
+        self.webdriver.set_window_size(1600, 900)
         self.webdriver.refresh()
 
     def ace_set_value(self, query):
@@ -680,6 +682,7 @@ class CollectionPage(NavigationBarPage):
 
         print(f"selecting {index_name} from the list\n")
 
+        self.webdriver.maximize_window()
         if index_name == 'Persistent':
             # selecting persistent index's filed
             persistent_field = "/html//input[@id='fields']"
@@ -1014,6 +1017,7 @@ class CollectionPage(NavigationBarPage):
         create_btn = "//*[text()='Create']"
         create_btn_sitem = self.locator_finder_by_xpath(create_btn)
         create_btn_sitem.click()
+        self.webdriver.set_window_size(1600, 900)
         time.sleep(2)
 
 

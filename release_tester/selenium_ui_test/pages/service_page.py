@@ -195,6 +195,7 @@ class ServicePage(NavigationBarPage):
 
     def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
+        self.webdriver.maximize_window()
         self.wait_for_ajax()
         self.select_demo_geo_s2_service()
 
@@ -380,6 +381,7 @@ class ServicePage(NavigationBarPage):
                     else:
                         raise Exception('restaurants Collection not found!')
 
+                self.webdriver.set_window_size(1600, 900)
             except Exception as ex:
                 raise Exception('Failed to create the service!!') from ex
 
@@ -756,6 +758,7 @@ class ServicePage(NavigationBarPage):
 
     def delete_service(self, service_name):
         """Delete all the services"""
+        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.navbar_goto("services")
         self.wait_for_ajax()
@@ -803,7 +806,7 @@ class ServicePage(NavigationBarPage):
 
                     self.delete_service_from_setting_tab()
                     print(f'{service_sitem} service has been deleted successfully \n')
-
+                self.webdriver.set_window_size(1600, 900)
             except TimeoutException:
                 print('TimeoutException occurred! \n')
                 print(f'Info: {service_name} has already been deleted or never created. \n')
