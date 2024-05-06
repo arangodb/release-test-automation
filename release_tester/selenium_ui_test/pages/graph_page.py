@@ -1272,7 +1272,7 @@ class GraphPage(NavigationBarPage):
                     graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
                     graph_settings_id_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                         delete_btn = "(//button[normalize-space()='Delete'])[1]"
@@ -1283,7 +1283,7 @@ class GraphPage(NavigationBarPage):
 
                     delete_btn_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     try:
                         delete_with_collection = '//*[@id="dropGraphCollections"]'
@@ -1292,7 +1292,7 @@ class GraphPage(NavigationBarPage):
                         print(f"An error occurred: {e} trying different xpath locator \n")
                         # Attempting to use an alternative method
                         try:
-                            time.sleep(0.1)
+                            time.sleep(2)
                             self.wait_for_ajax()
                             delete_with_collection = "//*[text()='also drop collections?']"
                             delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
@@ -1310,6 +1310,7 @@ class GraphPage(NavigationBarPage):
                     self.webdriver.set_window_size(1600, 900)
                     break
                 else:
+                    self.webdriver.maximize_window()
                     # Find the <a> element with the text "knows_graph"
                     a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
                     # Navigate to the parent <td> element
@@ -1341,6 +1342,7 @@ class GraphPage(NavigationBarPage):
                     delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
                     delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
                     delete_confirm_sitem.click()
+                    self.webdriver.set_window_size(1600, 900)
                     break
             except TimeoutException as exc:
                 retry += 1
