@@ -23,7 +23,8 @@ class SupportTestSuite(BaseSeleniumTestSuite):
         print("Selecting documentation tab \n")
         support.select_documentation_support()
         print("Checking all arangodb manual link\n")
-        support.manual_link()
+        if support.version_is_older_than("3.11.99"):
+            support.manual_link()
         print("Checking all AQL Query Language link\n")
         support.aql_query_language_link()
         print("Checking all Fox Framework link \n")

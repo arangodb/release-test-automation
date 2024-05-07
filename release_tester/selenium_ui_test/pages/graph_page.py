@@ -473,6 +473,7 @@ class GraphPage(NavigationBarPage):
     
     def create_example_graph(self, graph_name):
         """This method will create all the example graphs"""
+        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.navbar_goto("graphs")
         self.wait_for_ajax()
@@ -543,6 +544,8 @@ class GraphPage(NavigationBarPage):
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
+
+        self.webdriver.set_window_size(1600, 900)
     
     # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
@@ -1239,6 +1242,7 @@ class GraphPage(NavigationBarPage):
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
+        self.webdriver.maximize_window()
         retry = 0
         while True:
             try:
@@ -1268,7 +1272,7 @@ class GraphPage(NavigationBarPage):
                     graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
                     graph_settings_id_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                         delete_btn = "(//button[normalize-space()='Delete'])[1]"
@@ -1279,7 +1283,7 @@ class GraphPage(NavigationBarPage):
 
                     delete_btn_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     try:
                         delete_with_collection = '//*[@id="dropGraphCollections"]'
@@ -1288,7 +1292,7 @@ class GraphPage(NavigationBarPage):
                         print(f"An error occurred: {e} trying different xpath locator \n")
                         # Attempting to use an alternative method
                         try:
-                            time.sleep(0.1)
+                            time.sleep(2)
                             self.wait_for_ajax()
                             delete_with_collection = "//*[text()='also drop collections?']"
                             delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
@@ -1303,8 +1307,10 @@ class GraphPage(NavigationBarPage):
                     delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
                     delete_confirm_sitem.click()
                     time.sleep(1)
+                    self.webdriver.set_window_size(1600, 900)
                     break
                 else:
+                    self.webdriver.maximize_window()
                     # Find the <a> element with the text "knows_graph"
                     a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
                     # Navigate to the parent <td> element
@@ -1336,6 +1342,7 @@ class GraphPage(NavigationBarPage):
                     delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
                     delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
                     delete_confirm_sitem.click()
+                    self.webdriver.set_window_size(1600, 900)
                     break
             except TimeoutException as exc:
                 retry += 1

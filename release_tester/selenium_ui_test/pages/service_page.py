@@ -195,6 +195,7 @@ class ServicePage(NavigationBarPage):
 
     def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
+        self.webdriver.maximize_window()
         self.wait_for_ajax()
         self.select_demo_geo_s2_service()
 
@@ -221,164 +222,168 @@ class ServicePage(NavigationBarPage):
         self.wait_for_ajax()
         self.navbar_goto("services")
 
-        # checking service has been created successfully
-        if self.version_is_newer_than("3.11.100"):
-            success = "(//td[normalize-space()='demo-geo-s2'])[1]"
+        if self.version_is_newer_than("3.10.100"):
+            # TODO
+            print('skipped for now\n')
         else:
-            success = "//*[text()='demo-geo-s2']"
-
-        try:
-            success_sitem = self.locator_finder_by_xpath(success).text
-            if success_sitem == 'demo-geo-s2':
-                print(f"{success_sitem} has been successfully created \n")
-                status = True
+            # checking service has been created successfully
+            if self.version_is_newer_than("3.11.100"):
+                success = "(//td[normalize-space()='demo-geo-s2'])[1]"
             else:
-                print('Could not locate the desired service! refreshing the UI \n')
-                self.webdriver.refresh()
-                time.sleep(1)
+                success = "//*[text()='demo-geo-s2']"
+
+            try:
                 success_sitem = self.locator_finder_by_xpath(success).text
                 if success_sitem == 'demo-geo-s2':
                     print(f"{success_sitem} has been successfully created \n")
                     status = True
                 else:
-                    status = False
-                time.sleep(2)
-
-            # populating collections with necessary data
-            if status:
-                # got to collection tab
-                self.navbar_goto("collections")
-                self.wait_for_ajax()
-                self.webdriver.refresh()
-                time.sleep(2)
-                self.webdriver.maximize_window()
-
-                # looking for default collection has been created or not
-                neighbourhood_collection = "//*[text()='neighborhoods']"
-                neighbourhoods_collection_sitem = self.locator_finder_by_xpath(
-                    neighbourhood_collection
-                )
-
-                if neighbourhoods_collection_sitem.text == "neighborhoods":
-                    print("open it and populate necessary data into it \n")
-                    neighbourhoods_collection_sitem.click()
-
-                    # selecting content submenu
-                    content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
-                    content_sitem = self.locator_finder_by_xpath(content)
-                    content_sitem.click()
+                    print('Could not locate the desired service! refreshing the UI \n')
+                    self.webdriver.refresh()
                     time.sleep(1)
+                    success_sitem = self.locator_finder_by_xpath(success).text
+                    if success_sitem == 'demo-geo-s2':
+                        print(f"{success_sitem} has been successfully created \n")
+                        status = True
+                    else:
+                        status = False
+                    time.sleep(2)
 
-                    print('select upload button \n')
-                    upload = '//*[@id="importCollection"]/span/i'
-                    self.locator_finder_by_xpath(upload).click()
-                    time.sleep(1)
-
-                    path1 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
-                    print(f'Providing neighborhood collection path {path1} \n')
-                    choose_file_btn = 'importDocuments'
-                    choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
-                    choose_file_btn_sitem.send_keys(str(path1.absolute()))
-                    time.sleep(1)
-
-                else:
-                    raise Exception('neighbourhood Collection not found!')
-
-                self.navbar_goto("collections")
-                self.wait_for_ajax()
-                time.sleep(1)
-                
-                # looking for restaurants collection has been created or not
-                restaurants_collection = "//*[text()='restaurants']"
-                restaurants_collection_sitem = self.locator_finder_by_xpath(
-                    restaurants_collection
-                )
-                time.sleep(1)
-
-                if restaurants_collection_sitem.text == 'restaurants':
-                    print('open it and populate necessary data into it \n')
-                    restaurants_collection_sitem.click()
-                    # selecting content submenu
-                    content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
-                    content_sitem = self.locator_finder_by_xpath(content)
-                    content_sitem.click()
-                    time.sleep(1)
-
-                    print('select upload button \n')
-                    upload = '//*[@id="importCollection"]/span/i'
-                    self.locator_finder_by_xpath(upload).click()
-                    time.sleep(1)
-
-                    path2 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
-                    print(f'Providing restaurants collection path {path2} \n')
-                    choose_file_btn = 'importDocuments'
-                    choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
-                    choose_file_btn_sitem.send_keys(str(path2.absolute()))
-                    time.sleep(1)
-
-                    self.navbar_goto("services")
+                # populating collections with necessary data
+                if status:
+                    # got to collection tab
+                    self.navbar_goto("collections")
                     self.wait_for_ajax()
                     self.webdriver.refresh()
+                    time.sleep(2)
+                    self.webdriver.maximize_window()
 
-                    print('Selecting demo_geo_s2 service \n')
-                    if self.version_is_newer_than("3.11.100"):
-                        select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
+                    # looking for default collection has been created or not
+                    neighbourhood_collection = "//*[text()='neighborhoods']"
+                    neighbourhoods_collection_sitem = self.locator_finder_by_xpath(
+                        neighbourhood_collection
+                    )
+
+                    if neighbourhoods_collection_sitem.text == "neighborhoods":
+                        print("open it and populate necessary data into it \n")
+                        neighbourhoods_collection_sitem.click()
+
+                        # selecting content submenu
+                        content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+                        content_sitem = self.locator_finder_by_xpath(content)
+                        content_sitem.click()
+                        time.sleep(1)
+
+                        print('select upload button \n')
+                        upload = '//*[@id="importCollection"]/span/i'
+                        self.locator_finder_by_xpath(upload).click()
+                        time.sleep(1)
+
+                        path1 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
+                        print(f'Providing neighborhood collection path {path1} \n')
+                        choose_file_btn = 'importDocuments'
+                        choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
+                        choose_file_btn_sitem.send_keys(str(path1.absolute()))
+                        time.sleep(1)
+
                     else:
-                        select_service = "//*[text()='demo-geo-s2']"
-                        
-                    self.locator_finder_by_xpath(select_service).click()
+                        raise Exception('neighbourhood Collection not found!')
+
+                    self.navbar_goto("collections")
+                    self.wait_for_ajax()
+                    time.sleep(1)
+                    
+                    # looking for restaurants collection has been created or not
+                    restaurants_collection = "//*[text()='restaurants']"
+                    restaurants_collection_sitem = self.locator_finder_by_xpath(
+                        restaurants_collection
+                    )
                     time.sleep(1)
 
-                    print('inspecting demo_geo_s2 service interface \n')
-                    geo_service = '//*[@id="information"]/div/div[2]/div[2]/input'
-                    self.locator_finder_by_xpath(geo_service).click()
-                    time.sleep(4)
+                    if restaurants_collection_sitem.text == 'restaurants':
+                        print('open it and populate necessary data into it \n')
+                        restaurants_collection_sitem.click()
+                        # selecting content submenu
+                        content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
+                        content_sitem = self.locator_finder_by_xpath(content)
+                        content_sitem.click()
+                        time.sleep(1)
 
-                    print('Switching interface tab \n')
-                    self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+                        print('select upload button \n')
+                        upload = '//*[@id="importCollection"]/span/i'
+                        self.locator_finder_by_xpath(upload).click()
+                        time.sleep(1)
 
-                    # inspecting from the service interface started here
-                    self.wait_for_ajax()
-                    print('Visualize random Restaurant \n')
-                    random_restaurant = 'randomRestaurant'
-                    self.locator_finder_by_id(random_restaurant).click()
-                    time.sleep(3)
+                        path2 = ui_data_dir / "ui_data" / "service_page" / "demo_geo_s2" / "neighborhoods.json"
+                        print(f'Providing restaurants collection path {path2} \n')
+                        choose_file_btn = 'importDocuments'
+                        choose_file_btn_sitem = self.locator_finder_by_id(choose_file_btn)
+                        choose_file_btn_sitem.send_keys(str(path2.absolute()))
+                        time.sleep(1)
 
-                    print('Visualize random Neighborhood \n')
-                    random_neighborhood = 'randomNeighborhood'
-                    self.locator_finder_by_id(random_neighborhood).click()
-                    time.sleep(3)
+                        self.navbar_goto("services")
+                        self.wait_for_ajax()
+                        self.webdriver.refresh()
 
-                    print('Visualize Distance \n')
-                    distance = 'geoDistance'
-                    self.locator_finder_by_id(distance).click()
-                    time.sleep(3)
+                        print('Selecting demo_geo_s2 service \n')
+                        if self.version_is_newer_than("3.11.100"):
+                            select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
+                        else:
+                            select_service = "//*[text()='demo-geo-s2']"
+                            
+                        self.locator_finder_by_xpath(select_service).click()
+                        time.sleep(1)
 
-                    print('Visualize Distance between \n')
-                    distance_between = 'geoDistanceBetween'
-                    self.locator_finder_by_id(distance_between).click()
-                    time.sleep(3)
+                        print('inspecting demo_geo_s2 service interface \n')
+                        geo_service = '//*[@id="information"]/div/div[2]/div[2]/input'
+                        self.locator_finder_by_xpath(geo_service).click()
+                        time.sleep(4)
 
-                    print('Visualize Geo distance nearest \n')
-                    distance_nearest = 'geoDistanceNearest'
-                    self.locator_finder_by_id(distance_nearest).click()
-                    time.sleep(3)
+                        print('Switching interface tab \n')
+                        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
 
-                    print('Visualize Geo intersection \n')
-                    intersection = 'geoIntersection'
-                    self.locator_finder_by_id(intersection).click()
-                    time.sleep(3)
-                    print('Switching back to original window \n')
-                    self.webdriver.close()
-                    self.webdriver.switch_to.window(self.webdriver.window_handles[0])
-                    self.wait_for_ajax()
-                    self.webdriver.set_window_size(1600, 900)
+                        # inspecting from the service interface started here
+                        self.wait_for_ajax()
+                        print('Visualize random Restaurant \n')
+                        random_restaurant = 'randomRestaurant'
+                        self.locator_finder_by_id(random_restaurant).click()
+                        time.sleep(3)
 
-                else:
-                    raise Exception('restaurants Collection not found!')
+                        print('Visualize random Neighborhood \n')
+                        random_neighborhood = 'randomNeighborhood'
+                        self.locator_finder_by_id(random_neighborhood).click()
+                        time.sleep(3)
 
-        except Exception as ex:
-            raise Exception('Failed to create the service!!') from ex
+                        print('Visualize Distance \n')
+                        distance = 'geoDistance'
+                        self.locator_finder_by_id(distance).click()
+                        time.sleep(3)
+
+                        print('Visualize Distance between \n')
+                        distance_between = 'geoDistanceBetween'
+                        self.locator_finder_by_id(distance_between).click()
+                        time.sleep(3)
+
+                        print('Visualize Geo distance nearest \n')
+                        distance_nearest = 'geoDistanceNearest'
+                        self.locator_finder_by_id(distance_nearest).click()
+                        time.sleep(3)
+
+                        print('Visualize Geo intersection \n')
+                        intersection = 'geoIntersection'
+                        self.locator_finder_by_id(intersection).click()
+                        time.sleep(3)
+                        print('Switching back to original window \n')
+                        self.webdriver.close()
+                        self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+                        self.wait_for_ajax()
+                        self.webdriver.set_window_size(1600, 900)
+                    else:
+                        raise Exception('restaurants Collection not found!')
+
+                self.webdriver.set_window_size(1600, 900)
+            except Exception as ex:
+                raise Exception('Failed to create the service!!') from ex
 
     def check_demo_geo_s2_service_api(self):
         """Checking demo_geo_s2 service's API"""
@@ -552,102 +557,107 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn)
         install_btn_sitem.click()
         time.sleep(6)
-        self.webdriver.refresh()
-        self.wait_for_ajax()
-        self.navbar_goto("services")
-        # at this point it will be back to service page
-        max_retries = 3
-
-        for attempt in range(1, max_retries + 1):
-            try:
-                print('Selecting graphql service \n')
-                if self.version_is_newer_than("3.11.100"):
-                    graphql_service = "(//a[normalize-space()='/graphql'])[1]"
-                else:
-                    graphql_service = "//*[text()='/graphql']"
-
-                graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
-                graphql_service_sitem.click()
-                time.sleep(2)
-                status = True
-                break
-            except NoSuchElementException as ex:
-                print(
-                    f"Error occurred while selecting graphql service. Attempt {attempt} \n"
-                )
-
-                time.sleep(2)
-                print(f"Attempt {attempt}: Element not found. Retrying...")
-                if attempt == max_retries:
-                    print("Maximum retries reached. Exiting.")
-                    raise  # Re-raise the exception if max retries reached
-                else:
-                    status = False
-                    print("Refreshing the UI \n")
-                    self.webdriver.refresh()
-                    time.sleep(2)
-                    self.navbar_goto("services")
-                    self.wait_for_ajax()
-                    continue  # Retry the loop
-
-        if status:
-            print('Opening graphql interface \n')
-            graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
-            graphql_interface_sitem = self.locator_finder_by_xpath(graphql_interface)
-            graphql_interface_sitem.click()
-
-            print('Switching to code mirror windows of graphql \n')
-            self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+        
+        if self.version_is_newer_than("3.10.100"):
+            # TODO
+            print('skipped for now\n')
+        else:
+            self.webdriver.refresh()
             self.wait_for_ajax()
-            graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
-            graphql_interface_execute_btn_sitem = \
-                self.locator_finder_by_xpath(graphql_interface_execute_btn)
-            graphql_interface_execute_btn_sitem.click()
-            print('Return back to original window \n')
-            self.webdriver.close() # closes the browser active window
-            self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+            self.navbar_goto("services")
+            # at this point it will be back to service page
+            max_retries = 3
 
-            self.wait_for_ajax()
-            print('Checking API tab of graphql service \n')
-            graphql_api_name = 'service-api'
-            graphql_api_sitem = self.locator_finder_by_id(graphql_api_name)
-            graphql_api_sitem.click()
-            time.sleep(1)
-
-            if self.version_is_newer_than("3.10.100"):
-                print('skipped inspecting graphql service \n')
-            else:
-                print('Selecting Swagger view \n')
-                swagger_view = 'jsonLink'
-                self.locator_finder_by_id(swagger_view).click()
-                time.sleep(2)
-                self.locator_finder_by_id(swagger_view).click()
-                time.sleep(2)
-
+            for attempt in range(1, max_retries + 1):
                 try:
-                    if self.version_is_older_than("3.10.0"):
+                    print('Selecting graphql service \n')
+                    if self.version_is_newer_than("3.11.100"):
+                        graphql_service = "(//a[normalize-space()='/graphql'])[1]"
+                    else:
+                        graphql_service = "//*[text()='/graphql']"
 
-                        print('Switching to IFrame \n')
-                        iframe_id = 'swaggerIframe'
-                        self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
-                        time.sleep(1)
+                    graphql_service_sitem = self.locator_finder_by_xpath(graphql_service)
+                    graphql_service_sitem.click()
+                    time.sleep(2)
+                    status = True
+                    break
+                except NoSuchElementException as ex:
+                    print(
+                        f"Error occurred while selecting graphql service. Attempt {attempt} \n"
+                    )
 
-                        print("Checking default view \n")
-                        default_view = "operations-tag-default"
-                        self.locator_finder_by_id(default_view).click()
+                    time.sleep(2)
+                    print(f"Attempt {attempt}: Element not found. Retrying...")
+                    if attempt == max_retries:
+                        print("Maximum retries reached. Exiting.")
+                        raise  # Re-raise the exception if max retries reached
+                    else:
+                        status = False
+                        print("Refreshing the UI \n")
+                        self.webdriver.refresh()
                         time.sleep(2)
-                        self.locator_finder_by_id(default_view).click()
+                        self.navbar_goto("services")
+                        self.wait_for_ajax()
+                        continue  # Retry the loop
 
-                        print('inspecting documentation through Foxx and leaflet \n')
-                        first = '//*[@id="operations-default-get"]/div/button[1]/div'
-                        second = '//*[@id="operations-default-post"]/div/button[1]/div'
-                        id_list = [first, second]
-                        self.checking_function_for_fox_leaflet(id_list)
-                except Exception as ex:
-                    print("Error occurred while inspecting API tab of graphql service")
-                    print('Getting out of IFrame \n')
-                    self.webdriver.switch_to.default_content()
-                    time.sleep(1)
+            if status:
+                print('Opening graphql interface \n')
+                graphql_interface = '//*[@id="information"]/div/div[2]/div[2]/input'
+                graphql_interface_sitem = self.locator_finder_by_xpath(graphql_interface)
+                graphql_interface_sitem.click()
+
+                print('Switching to code mirror windows of graphql \n')
+                self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+                self.wait_for_ajax()
+                graphql_interface_execute_btn = '//*[@id="graphiql-container"]/div[1]/div[1]/div/div[2]/button'
+                graphql_interface_execute_btn_sitem = \
+                    self.locator_finder_by_xpath(graphql_interface_execute_btn)
+                graphql_interface_execute_btn_sitem.click()
+                print('Return back to original window \n')
+                self.webdriver.close() # closes the browser active window
+                self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+
+                self.wait_for_ajax()
+                print('Checking API tab of graphql service \n')
+                graphql_api_name = 'service-api'
+                graphql_api_sitem = self.locator_finder_by_id(graphql_api_name)
+                graphql_api_sitem.click()
+                time.sleep(1)
+
+                if self.version_is_newer_than("3.10.100"):
+                    print('skipped inspecting graphql service \n')
+                else:
+                    print('Selecting Swagger view \n')
+                    swagger_view = 'jsonLink'
+                    self.locator_finder_by_id(swagger_view).click()
+                    time.sleep(2)
+                    self.locator_finder_by_id(swagger_view).click()
+                    time.sleep(2)
+
+                    try:
+                        if self.version_is_older_than("3.10.0"):
+
+                            print('Switching to IFrame \n')
+                            iframe_id = 'swaggerIframe'
+                            self.webdriver.switch_to.frame(self.locator_finder_by_id(iframe_id))
+                            time.sleep(1)
+
+                            print("Checking default view \n")
+                            default_view = "operations-tag-default"
+                            self.locator_finder_by_id(default_view).click()
+                            time.sleep(2)
+                            self.locator_finder_by_id(default_view).click()
+
+                            print('inspecting documentation through Foxx and leaflet \n')
+                            first = '//*[@id="operations-default-get"]/div/button[1]/div'
+                            second = '//*[@id="operations-default-post"]/div/button[1]/div'
+                            id_list = [first, second]
+                            self.checking_function_for_fox_leaflet(id_list)
+                    except Exception as ex:
+                        print("Error occurred while inspecting API tab of graphql service")
+                        print('Getting out of IFrame \n')
+                        self.webdriver.switch_to.default_content()
+                        time.sleep(1)
 
     def replace_service(self):
         """This method will replace the service"""""
@@ -748,6 +758,7 @@ class ServicePage(NavigationBarPage):
 
     def delete_service(self, service_name):
         """Delete all the services"""
+        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.navbar_goto("services")
         self.wait_for_ajax()
@@ -795,7 +806,7 @@ class ServicePage(NavigationBarPage):
 
                     self.delete_service_from_setting_tab()
                     print(f'{service_sitem} service has been deleted successfully \n')
-
+                self.webdriver.set_window_size(1600, 900)
             except TimeoutException:
                 print('TimeoutException occurred! \n')
                 print(f'Info: {service_name} has already been deleted or never created. \n')

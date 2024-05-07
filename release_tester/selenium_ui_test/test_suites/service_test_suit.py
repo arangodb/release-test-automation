@@ -41,7 +41,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             service.install_demo_geo_s2_service("/geo", self.ui_data_dir)
             # service.check_demo_geo_s2_service_api()
             # service.inspect_foxx_leaflet_iframe()
-            # service.install_demo_graph_hql_service("/graphql")
+            service.install_demo_graph_hql_service("/graphql")
             # service.replace_service()
 
         except BaseException:
@@ -50,8 +50,8 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
-            # service.delete_service("/geo")
-            # service.delete_service("/graphql")
+            service.delete_service("/geo")
+            service.delete_service("/graphql")
             del service
             print("---------Service Page Test Completed--------- \n")
             if self.exception:

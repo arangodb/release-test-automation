@@ -43,7 +43,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.create_example_graph("Mps Graph")
             graph.create_example_graph("World Graph")
             graph.create_example_graph("Social Graph")
-            graph.create_example_graph("City Graph")
+            # graph.create_example_graph("City Graph")
             # graph.create_example_graph("Connected Components Graph") # overlapped with a kshortest path collection
 
             print("Deleting all example graphs started")
@@ -53,7 +53,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.deleting_example_graphs("Mps Graph")
             graph.deleting_example_graphs("World Graph")
             graph.deleting_example_graphs("Social Graph")
-            graph.deleting_example_graphs("City Graph")
+            # graph.deleting_example_graphs("City Graph")
         
         # print("Manual Graph creation started \n")
         # this_graph.select_graph_page()
