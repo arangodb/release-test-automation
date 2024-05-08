@@ -5,6 +5,7 @@ import logging
 import re
 import time
 
+from arangodb.starter.deployments.runner import RunnerProperties
 from arangodb.starter.deployments.selenium_deployments.selenoid_swiper import cleanup_temp_files
 from arangodb.starter.deployments.selenium_deployments.selenium_session_spawner import spawn_selenium_session
 from allure_commons._allure import attach
@@ -21,7 +22,12 @@ FNRX = re.compile("[\n@]*")
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     # pylint: disable=line-too-long disable=too-many-public-methods disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(self, selenium_args, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
+    def __init__(self,
+                 selenium_args,
+                 properties: RunnerProperties,
+                 testrun_name: str,
+                 ssl: bool,
+                 selenium_include_suites: list[str]):
         """hi"""
         self.ssl = ssl
         self.testrun_name = testrun_name
@@ -40,7 +46,8 @@ class SeleniumRunner(ABC):
         self.selenium_include_suites = selenium_include_suites
         mylist = list(
             selenium_args['selenium_driver_args'])
-        mylist.append(f"selenoid:options=videoName={testrun_name}.mp4".replace('\n', '_'))
+        mylist.append(
+            f"selenoid:options=videoName={properties.short_name}{testrun_name}.mp4".replace('\n', '_'))
         selenium_args['selenium_driver_args'] = mylist
         print(selenium_args)
         (self.is_headless, self.webdriver) = spawn_selenium_session(**selenium_args)

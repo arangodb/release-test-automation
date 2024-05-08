@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ test the UI of a leader follower setup """
+from arangodb.starter.deployments.runner import RunnerProperties
 from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunner
 
 from selenium_ui_test.test_suites.basic_test_suite import BasicTestSuite
@@ -10,9 +11,9 @@ from selenium_ui_test.test_suites.leader_follower.jam_1_test_suite import Leader
 class LeaderFollower(SeleniumRunner):
     """check the leader follower setup and its properties"""
 
-    def __init__(self, selenium_args, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
+    def __init__(self, selenium_args, properties: RunnerProperties, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
         # pylint: disable=useless-super-delegation
-        super().__init__(selenium_args, testrun_name, ssl, selenium_include_suites)
+        super().__init__(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
         self.main_test_suite_list = [BasicTestSuite]
         self.after_install_test_suite_list = [LeaderFollowerAfterInstallTestSuite]
         self.jam_test_suite_list = [LeaderFollowerJamStepOneSuite]

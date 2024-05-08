@@ -159,6 +159,7 @@ class Runner(ABC):
         selenium_include_suites: list,
         testrun_name: str,
     ):
+        self.properties = properties
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         mem = psutil.virtual_memory()
@@ -261,6 +262,7 @@ class Runner(ABC):
 
             self.selenium = init_selenium(
                 runner_type,
+                self.properties,
                 selenium_worker,
                 selenium_driver_args,
                 selenium_include_suites,
