@@ -13,9 +13,9 @@ from selenium_ui_test.test_suites.activefailover.wait_for_upgrade_test_suite imp
 class ActiveFailover(SeleniumRunner):
     """check the active failover setup and its properties"""
 
-    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
+    def __init__(self, selenium_args, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
         # pylint: disable=useless-super-delegation
-        super().__init__(webdriver, is_headless, testrun_name, ssl, selenium_include_suites)
+        super().__init__(selenium_args, testrun_name, ssl, selenium_include_suites)
         self.main_test_suite_list = [BasicTestSuite]
         self.after_install_test_suite_list = [ActiveFailoverAfterInstallTestSuite]
         self.wait_for_upgrade_test_suite_list = [ActiveFailoverWaitForUpgradeTestSuite]
