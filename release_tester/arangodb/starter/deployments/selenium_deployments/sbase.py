@@ -40,7 +40,7 @@ class SeleniumRunner(ABC):
         self.selenium_include_suites = selenium_include_suites
         mylist = list(
             selenium_args['selenium_driver_args'])
-        mylist.append(f"selenoid:options=videoName={testrun_name}.mp4")
+        mylist.append(f"selenoid:options=videoName={testrun_name}.mp4".replace('\n', '_'))
         selenium_args['selenium_driver_args'] = mylist
         print(selenium_args)
         (self.is_headless, self.webdriver) = spawn_selenium_session(**selenium_args)
