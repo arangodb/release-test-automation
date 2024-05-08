@@ -1084,9 +1084,12 @@ class Runner(ABC):
         """remove all directories created by this test"""
         testdir = self.cfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
+        # pylint: disable=broad-exception-caught
         try:
             if testdir.exists():
                 shutil.rmtree(testdir)
+        except Exception as ex:
+            print(f"Ignoring cleanup error: {ex}")
         finally:
             if "REQUESTS_CA_BUNDLE" in os.environ:
                 del os.environ["REQUESTS_CA_BUNDLE"]
