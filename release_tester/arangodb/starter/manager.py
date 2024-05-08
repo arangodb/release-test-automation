@@ -40,8 +40,8 @@ from tools.timestamp import timestamp
 import tools.loghelper as lh
 from tools.killall import get_process_tree
 
-from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 from tools.utils import ARANGOSEARCH_COLUMNS_CACHE_LIMIT
+from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -331,7 +331,11 @@ class StarterManager:
     def cleanup_hotbackup_in_instance(self):
         """remove hotbackup from the database directory"""
         for instance in self.all_instances:
-            instance.clean_hotbackup()
+            # pylint: disable=broad-exception-caught
+            try:
+                instance.clean_hotbackup()
+            except Exception as ex:
+                print(f"ignoring error during cleaning hot backup: {ex}")
 
     def get_instance_essentials(self):
         """get the essentials of all instances controlled by this starter"""
