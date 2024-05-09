@@ -674,6 +674,7 @@ class CollectionPage(NavigationBarPage):
     
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
+        self.webdriver.maximize_window()
         print(f"Creating {index_name} index started \n")
         add_index = '//*[@id="content-react"]/div/div/button'
         create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
@@ -1304,6 +1305,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_computedValueCol(self):
         """this method will select ComputedValueCol"""
+        self.wait_for_ajax()
         col = "//*[text()='ComputedValueCol']"
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
@@ -1317,12 +1319,13 @@ class CollectionPage(NavigationBarPage):
 
     def test_computed_values(self):
         """ Testing computed value feature for v3.10.x"""
+        self.webdriver.maximize_window()
         self.navbar_goto("collections")
+        self.webdriver.refresh()
+        self.wait_for_ajax()
+        time.sleep(2)
         print("Selecting computed values collections. \n")
-        if self.current_package_version() >= semver.VersionInfo.parse('3.11.99'):
-            col = "//*[text()='ComputedValueCol']"
-        else:
-            col = '//*[@id="collection_ComputedValueCol"]/div/h5'
+        col = "//*[text()='ComputedValueCol']"
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
 
@@ -1414,6 +1417,7 @@ class CollectionPage(NavigationBarPage):
 
         # go back to collection page
         self.navbar_goto("collections")
+        self.webdriver.set_window_size(1600, 900)
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
@@ -1512,6 +1516,7 @@ class CollectionPage(NavigationBarPage):
     def delete_collection(self, collection_name, collection_locator, is_cluster):
         """This method will delete all the collection"""
         print(f"Deleting {collection_name} collection started \n")
+        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.wait_for_ajax()
         self.navbar_goto("collections")
@@ -1547,3 +1552,4 @@ class CollectionPage(NavigationBarPage):
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
         self.webdriver.refresh()
         self.wait_for_ajax()
+        self.webdriver.set_window_size(1600, 900)
