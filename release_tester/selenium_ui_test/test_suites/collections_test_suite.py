@@ -32,11 +32,11 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             col.create_new_collections('Test', 0, self.is_cluster)
             col.create_new_collections('ComputedValueCol', 0, self.is_cluster)
 
-            if col.current_package_version() >= semver.VersionInfo.parse("3.9.100"):
+            if col.version_is_newer_than("3.9.99"):
                 col.test_computed_values()
             
             print("checking Search options\n")
-            if col.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            if col.version_is_newer_than("3.11.99"):
                 col.checking_search_options()
             else:
                 print("Searching using keyword 'Doc'\n")
@@ -50,9 +50,9 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 self.webdriver.refresh()
 
             # basic collection page feature check for
-            if col.current_package_version() >= semver.VersionInfo.parse("3.9.99"):
+            if col.version_is_newer_than("3.9.99"):
                 col.select_collection_page()
-                if col.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+                if col.version_is_newer_than("3.11.99"):
                     print("basic feature will be added later on!")
                 else:
                     print("Selecting Settings\n")
@@ -140,7 +140,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                 print("Create new index\n")
                 version = col.current_package_version()
                 
-                if version >= semver.VersionInfo.parse("3.11.0"):
+                if col.version_is_newer_than("3.11.0"):
                     col.create_index('Persistent')
                     col.create_index('Geo')
                     col.create_index('Fulltext')
@@ -155,15 +155,15 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     col.create_new_index("Fulltext", 3, self.is_cluster)
                     col.create_new_index("TTL", 4, self.is_cluster)
                     
-                if version <= semver.VersionInfo.parse("3.10.99"):
-                    if version > semver.VersionInfo.parse("3.9.99"):
+                if col.version_is_older_than("3.10.99"):
+                    if col.version_is_newer_than("3.9.99"):
                         col.create_new_index('ZKD', 5, self.is_cluster, True)
                     else:
                         col.create_new_index('ZKD', 5, self.is_cluster)
 
                     print("Deleting all index started for < v3.11.x\n")
                     for i in range(4):
-                        col.delete_all_index(True)
+                        col.delete_index_311(True)
                     print("Deleting all index completed\n")
                 else:
                     print("Deleting all index started for > v3.11.x\n")
@@ -172,10 +172,10 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     col.select_doc_collection()
                     col.select_index_menu()
                     for index in range(4):
-                        col.delete_index(index)
+                        col.delete_index_312(index)
                     print("Deleting all index completed\n")
 
-                if col.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+                if col.version_is_newer_than("3.11.99"):
                     print("basic feature will be added later on!")
                 else:
                     print("Select Info tab\n")
