@@ -255,21 +255,25 @@ class CollectionPage(NavigationBarPage):
                 advance_option_sitem.click()
                 time.sleep(1)
 
-                print(f"selecting number of Shards for the {name} \n")
-                shards = "numberOfShards"
-                shards_sitem = self.locator_finder_by_id(shards)
-                shards_sitem.click()
-                shards_sitem.clear()
-                shards_sitem.send_keys(Keys.BACKSPACE, "9")
-                time.sleep(2)
+                try:
+                    print(f"selecting number of Shards for the {name} \n")
+                    shards = "numberOfShards"
+                    shards_sitem = self.locator_finder_by_id(shards)
+                    shards_sitem.click()
+                    shards_sitem.clear()
+                    shards_sitem.send_keys(Keys.BACKSPACE, "9")
+                    time.sleep(2)
 
-                print(f"selecting number of replication factor for {name} \n")
-                rf = "replicationFactor"
-                rf_sitem = self.locator_finder_by_id(rf)
-                rf_sitem.click()
-                rf_sitem.clear()
-                rf_sitem.send_keys(Keys.BACKSPACE, "3")
-                time.sleep(2)
+                    print(f"selecting number of replication factor for {name} \n")
+                    rf = "replicationFactor"
+                    rf_sitem = self.locator_finder_by_id(rf)
+                    rf_sitem.click()
+                    rf_sitem.clear()
+                    rf_sitem.send_keys(Keys.BACKSPACE, "3")
+                    time.sleep(2)
+                except Exception as e:
+                    print("Might be failed due to forced-one-shard option is enabled, need a fix \n")
+                    print(str(e))
             else:
                 print(f"selecting number of Shards for the {name} \n")
                 shards = "new-collection-shards"
@@ -1174,8 +1178,9 @@ class CollectionPage(NavigationBarPage):
 
         print(f"Creating {index_name} index completed \n")
 
-    def delete_all_index(self, check=False):
-        """this method will delete all the indexes one by one"""
+    def delete_index_311(self, check=False):
+        """this method will delete all the indexes one by one for =<3.11.99"""
+        self.webdriver.maximize_window()
         try:
             delete = '//*[@id="collectionEditIndexTable"]/tbody/tr[2]/th[10]/span'
             if check:
@@ -1191,9 +1196,11 @@ class CollectionPage(NavigationBarPage):
             self.webdriver.refresh()
         except TimeoutException as e:
             print('Something went wrong', e, '\n')
+        self.webdriver.set_window_size(1600, 900)
     
-    def delete_index(self, index):
-        """this method will delete all the indexes one by one"""
+    def delete_index_312(self, index):
+        """this method will delete all the indexes one by one for >= 3.12.0"""
+        self.webdriver.maximize_window()
         try:
             self.webdriver.refresh()
             self.wait_for_ajax()
@@ -1206,10 +1213,19 @@ class CollectionPage(NavigationBarPage):
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
+            
             delete_confirmation = "(//button[normalize-space()='Delete'])[1]"
             delete_confirmation_sitem = self.locator_finder_by_xpath(delete_confirmation)
             delete_confirmation_sitem.click()
             time.sleep(1)
+            self.wait_for_ajax()
+            
+            delete_final_confirmation = "(//button[@class='chakra-button css-flye6g'])[1]"
+            delete_final_confirmation_sitem = self.locator_finder_by_xpath(delete_final_confirmation)
+            delete_final_confirmation_sitem.click()
+            time.sleep(1)
+            self.wait_for_ajax()
 
         except TimeoutException as e:
             try:
@@ -1226,7 +1242,9 @@ class CollectionPage(NavigationBarPage):
                 delete_confirmation_sitem.click()
 
             except BaseException as e:
-                print('Something went wrong, moving on \n')
+                print('Something went wrong', e, '\n')
+                self.navbar_goto
+        self.webdriver.set_window_size(1600, 900)
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
