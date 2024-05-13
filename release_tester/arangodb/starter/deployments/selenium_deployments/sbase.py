@@ -47,7 +47,7 @@ class SeleniumRunner(ABC):
         mylist = list(
             selenium_args['selenium_driver_args'])
         mylist.append(
-            f"selenoid:options=videoName={properties.short_name}_{testrun_name}.mp4".replace(
+            f"selenoid:options=videoName=/opt/selenoid/video/{properties.short_name}_{testrun_name}.mp4".replace(
                 '\n', '_').replace('@', '_')
         )
         selenium_args['selenium_driver_args'] = mylist
