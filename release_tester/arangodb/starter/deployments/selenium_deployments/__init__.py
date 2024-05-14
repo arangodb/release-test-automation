@@ -75,6 +75,7 @@ def init(
             driver = driver_func(**kwargs)
         except TypeError:
             try:
+                print(kwargs)
                 driver = driver_func.webdriver.WebDriver(**kwargs)
             except SessionNotCreatedException as ex:
                 if count == 10:
