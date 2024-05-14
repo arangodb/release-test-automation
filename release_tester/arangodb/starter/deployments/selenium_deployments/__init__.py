@@ -35,8 +35,11 @@ def init(
     print(selenium_driver_args)
     if len(selenium_driver_args) > 0:
         opts_func = getattr(webdriver, selenium_worker)
+        print(opts_func)
         opts_func = getattr(opts_func, "options")
+        print(opts_func)
         opts_func = getattr(opts_func, "Options")
+        print(opts_func)
         options = opts_func()
         kwargs[worker_options + "options"] = options
         for opt in selenium_driver_args:
