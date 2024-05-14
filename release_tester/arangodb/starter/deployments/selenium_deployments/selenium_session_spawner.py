@@ -26,6 +26,7 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
 
     kwargs = {}
     is_headless = False
+    print(selenium_driver_args)
     if len(selenium_driver_args) > 0:
         opts_func = getattr(webdriver, selenium_worker)
         opts_func = getattr(opts_func, "options")
