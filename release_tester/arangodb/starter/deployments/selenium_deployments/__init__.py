@@ -32,6 +32,7 @@ def init(
 
     kwargs = {}
     is_headless = False
+    print(selenium_driver_args)
     if len(selenium_driver_args) > 0:
         opts_func = getattr(webdriver, selenium_worker)
         opts_func = getattr(opts_func, "options")
@@ -65,6 +66,7 @@ def init(
                     split_opts = []
                 continue
             options.add_argument("--" + opt)
+    print(options)
 
     cleanup_temp_files(is_headless)
     driver = None
