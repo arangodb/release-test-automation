@@ -36,6 +36,7 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
         print(opts_func)
         options = opts_func()
         kwargs[worker_options + "options"] = options
+        selenoid_options = {}
         for opt in selenium_driver_args:
             split_opts = opt.split("=")
             if opt == "headless":
@@ -59,10 +60,16 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
                     elif val == "False":
                         val = False
                     where_to_put[split_opts[0]] = val
-                    options.set_capability(key, where_to_put)
+                    print(f"{key} => {where_to_put}")
+                    if key == "selenoid:options":
+                        selenoid_options.update(where_to_put)
+                    else:
+                        options.set_capability(key, where_to_put)
                     split_opts = []
                 continue
             options.add_argument("--" + opt)
+        print(selenoid_options)
+        options.set_capability("selenoid:options", selenoid_options)
     print('options')
     print(options)
     
