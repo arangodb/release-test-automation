@@ -29,8 +29,11 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
     print(selenium_driver_args)
     if len(selenium_driver_args) > 0:
         opts_func = getattr(webdriver, selenium_worker)
+        print(opts_func)
         opts_func = getattr(opts_func, "options")
+        print(opts_func)
         opts_func = getattr(opts_func, "Options")
+        print(opts_func)
         options = opts_func()
         kwargs[worker_options + "options"] = options
         for opt in selenium_driver_args:
@@ -60,7 +63,9 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
                     split_opts = []
                 continue
             options.add_argument("--" + opt)
-
+    print('options')
+    print(options)
+    
     cleanup_temp_files(is_headless)
     driver = None
     count = 0
