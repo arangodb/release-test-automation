@@ -31,5 +31,7 @@ def cleanup_temp_files(is_headless):
                         shutil.rmtree(one_tmp_file)
                     else:
                         one_tmp_file.unlink()
+            except KeyError:
+                pass
             except FileNotFoundError:
                 pass
