@@ -20,7 +20,8 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
         worker_options = ""
     else:
         driver_func = getattr(webdriver, selenium_worker)
-        worker_options = selenium_worker = selenium_worker.lower() + "_"
+        selenium_worker = selenium_worker.lower()
+        worker_options = ""
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
 
