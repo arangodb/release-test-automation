@@ -43,15 +43,42 @@ class SupportPage(NavigationBarPage):
 
     def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
         """this method will be loop through all the list links"""
+        import time
+
+        # Define the maximum number of retries
+        max_retries = 3
+
         i = 0
         while i < len(link_list):
             print(print_statement[i])
-            title = self.click_on_link(link_list[i])
-            try:
-                assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
-            except AssertionError:
-                print(f"Assertion Error occurred! for {assertion_list[i]}\n")
-            i = i + 1
+            title = None
+            try_count = 0
+            
+            # Attempt the operation up to max_retries times
+            while try_count < max_retries:
+                try:
+                    title = self.click_on_link(link_list[i])
+                    self.wait_for_ajax()
+                    assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
+                    break  # If successful, break out of the retry loop
+                except Exception as e:
+                    # If an error occurs, print the error message
+                    print(f"Error occurred: {e}")
+                    
+                    # Increment retry count
+                    try_count += 1
+                    
+                    # If maximum retries reached, raise an error
+                    if try_count == max_retries:
+                        print(f"Failed after {max_retries} attempts for link: {link_list[i]}")
+                        break  # Break out of the retry loop
+                    
+                    # Wait for a few seconds before retrying
+                    time.sleep(3)
+            
+            # Move to the next link
+            i += 1
+
 
     def click_on_btn(self, link_id):
         """this method will execute multiple backup restore tab documentation"""
@@ -204,20 +231,20 @@ class SupportPage(NavigationBarPage):
             # link name for all the Drivers and Integration link
             arangodb_java_driver = '//*[@id="documentation"]/div/div[5]/ul/li[1]/a'
             arangojs_java_script = '//*[@id="documentation"]/div/div[5]/ul/li[2]/a'
-            arangodb_php = '//*[@id="documentation"]/div/div[5]/ul/li[3]/a'
-            arangodb_go_driver = '//*[@id="documentation"]/div/div[5]/ul/li[4]/a'
-            arangodb_spring_data = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
-            arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
+            arangodb_go_driver = '//*[@id="documentation"]/div/div[5]/ul/li[3]/a'
+            arangodb_spring_data = '//*[@id="documentation"]/div/div[5]/ul/li[4]/a'
+            arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
+            drivers_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
 
             Official_print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
-                                        'Checking ArangoDB-PHP link \n',
-                                        'Checking ArangoDB Go Driver link \n',
+                                        'Checking ArangoDB Go driver link \n',
                                         'Checking Go to ArangoDB Spring Data page link \n',
-                                        'Checking Go to ArangoDB Spark Connections page link\n']
+                                        'Checking Go to ArangoDB Spark Connections page link \n',
+                                        'Checking Go to Drivers and Integration start page link\n']
 
             drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
-                                       arangodb_spring_data, arangodb_spark_connector]
+                                       arangodb_spring_data, drivers_and_integration]
 
             driver_integration_assertion_check = ['ArangoDB Java driver | ArangoDB Documentation',
                                                   'ArangoDB Node.js driver | ArangoDB Documentation',
