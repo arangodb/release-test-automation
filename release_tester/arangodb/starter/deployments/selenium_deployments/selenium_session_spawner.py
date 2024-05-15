@@ -64,7 +64,7 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
                 continue
             options.add_argument("--" + opt)
         options.set_capability("selenoid:options", selenoid_options)
-    
+
     cleanup_temp_files(is_headless)
     driver = None
     count = 0
