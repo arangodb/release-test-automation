@@ -51,7 +51,6 @@ class SeleniumRunner(ABC):
                 '\n', '_').replace('@', '_')
         )
         selenium_args['selenium_driver_args'] = mylist
-        print(selenium_args)
         (self.is_headless, self.webdriver) = spawn_selenium_session(**selenium_args)
         self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
         self.original_window_handle = None

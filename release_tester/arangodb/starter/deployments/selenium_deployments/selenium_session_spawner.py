@@ -26,14 +26,10 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
 
     kwargs = {}
     is_headless = False
-    print(selenium_driver_args)
     if len(selenium_driver_args) > 0:
         opts_func = getattr(webdriver, selenium_worker)
-        print(opts_func)
         opts_func = getattr(opts_func, "options")
-        print(opts_func)
         opts_func = getattr(opts_func, "Options")
-        print(opts_func)
         options = opts_func()
         kwargs[worker_options + "options"] = options
         selenoid_options = {}
@@ -60,7 +56,6 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
                     elif val == "False":
                         val = False
                     where_to_put[split_opts[0]] = val
-                    print(f"{key} => {where_to_put}")
                     if key == "selenoid:options":
                         selenoid_options.update(where_to_put)
                     else:
@@ -68,10 +63,7 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
                     split_opts = []
                 continue
             options.add_argument("--" + opt)
-        print(selenoid_options)
         options.set_capability("selenoid:options", selenoid_options)
-    print('options')
-    print(options)
     
     cleanup_temp_files(is_headless)
     driver = None
@@ -82,7 +74,6 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
             driver = driver_func(**kwargs)
         except TypeError:
             try:
-                print(kwargs)
                 driver = driver_func.webdriver.WebDriver(**kwargs)
             except SessionNotCreatedException as ex:
                 if count == 10:
