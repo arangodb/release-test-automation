@@ -106,7 +106,7 @@ class CollectionPage(NavigationBarPage):
 
         self.select_schema_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[5]/a"
 
-        self.select_settings_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[4]/a"
+        
         self.select_settings_name_textbox_id = '//*[@id="change-collection-name"]'
         self.select_settings_wait_type_id = "change-collection-sync"
         self.select_newer_settings_save_btn_id = "modalButton4"
@@ -138,7 +138,6 @@ class CollectionPage(NavigationBarPage):
         self.select_row4_id = "//div[@id='docPureTable']/div[2]/div[5]"
         self.document_id = "document-id"
         self.select_filter_reset_btn_id = "/html//button[@id='resetView']"
-        self.select_settings_tab_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
         self.select_renamed_doc_collection_id = '//*[@id="collection_testDocRenamed"]/div/h5'
         self.select_computedValueCol_id = '//*[@id="collection_ComputedValueCol"]/div/h5'
 
@@ -1269,6 +1268,8 @@ class CollectionPage(NavigationBarPage):
     def select_settings_tab(self, is_cluster, check=False):
         """Selecting settings tab from the collection submenu"""
         self.click_submenu_entry("Settings")
+        time.sleep(10)
+        self.wait_for_ajax()
         if check:
             if not is_cluster:
                 select_settings_name_textbox_sitem = self.locator_finder_by_xpath(self.select_settings_name_textbox_id)
@@ -1369,10 +1370,38 @@ class CollectionPage(NavigationBarPage):
         warning = 'button-warning'
         self.ace_set_value(warning, compute_query, True)
 
-        # print('go back to collection tab')
-        self.navbar_goto("collections")
-        self.select_computedValueCol()
-        
+        print('go back to collection tab')
+        # Define the maximum number of retries
+        max_retries = 3
+        retry_count = 0
+
+        while retry_count < max_retries:
+            try:
+                self.webdriver.refresh()
+                self.wait_for_ajax()
+                # Navigate to collections page
+                self.navbar_goto("collections")
+                self.wait_for_ajax()
+                
+                # Attempt to select computed value column
+                self.select_computedValueCol()
+                
+                # If successful, break out of the loop
+                break
+            except Exception as e:
+                # If an error occurs, print the error message
+                print(f"Error occurred while selecting computed value column: {e}")
+                
+                # Increment retry count
+                retry_count += 1
+                
+                # If maximum retries reached, raise an error
+                if retry_count == max_retries:
+                    raise RuntimeError("Failed to select computed value column after multiple retries")
+                
+                # Wait for a few seconds before retrying
+                time.sleep(3)
+
         self.navigate_to_col_content_tab()
 
         # print('Select add new document to collection button')
