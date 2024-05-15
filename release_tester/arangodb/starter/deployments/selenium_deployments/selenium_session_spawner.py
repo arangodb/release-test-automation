@@ -13,6 +13,7 @@ from arangodb.starter.deployments.selenium_deployments.selenoid_swiper import cl
 # pylint: disable=too-many-return-statements
 def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
     """ launch selenium if prompted and return the instance """
+    print(f"selenium worker {selenium_worker}")
     if "_" in selenium_worker:
         sw_split = selenium_worker.split("_")
         driver_func = getattr(webdriver, sw_split[0])
@@ -20,7 +21,8 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
         worker_options = ""
     else:
         driver_func = getattr(webdriver, selenium_worker)
-        worker_options = selenium_worker = selenium_worker.lower() + "_"
+        selenium_worker = selenium_worker.lower()
+        worker_options = ""
     if driver_func is None:
         raise Exception("webdriver " + selenium_worker + "unknown")
 
