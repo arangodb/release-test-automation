@@ -352,6 +352,7 @@ class Runner(ABC):
         bound = 1 if is_single_test else versions_count - 1
 
         for i in range(0, bound):
+            print('yyyyyyyyyyyyyyyyyyyyyyy')
             self.old_installer = self.installers[i][1]
             if i == 0:
                 # if i != 0, it means that self.cfg was already updated after chain-upgrade
@@ -385,6 +386,10 @@ class Runner(ABC):
                     self.finish_setup()
                 if self.create_oneshard_db:
                     self.custom_databases.append(["system_oneshard_makedata", True, 1])
+                if self.hot_backup:
+                    self.progress(False, "TESTING empty HOTBACKUP")
+                    self.empty_backup_name = self.create_backup("empty_" + self.name)
+
                 self.make_data()
                 self.after_makedata_check()
                 self.check_data_impl()
@@ -418,6 +423,15 @@ class Runner(ABC):
                     if backups[len(backups) - 1] != self.backup_name:
                         raise Exception("downloaded backup has different name? " + str(backups))
                     self.before_backup()
+                    self.restore_backup(backups[len(backups) - 1])
+                    self.tcp_ping_all_nodes()
+                    self.after_backup()
+                    time.sleep(20)  # TODO fix
+                    self.check_data_impl()
+                    if not self.check_non_backup_data():
+                        raise Exception("data created after backup is still there??")
+                    self.clear_data_impl()
+                    print('zzzzzzzzzzzzzzzzzzzzzzzzzz')
                     self.restore_backup(backups[len(backups) - 1])
                     self.tcp_ping_all_nodes()
                     self.after_backup()
@@ -892,6 +906,42 @@ class Runner(ABC):
             raise Exception("no frontend found.")
 
     @step
+    def clear_data_impl(self):
+        """clear the data on the installation"""
+        frontend_found = False
+        if self.has_makedata_data:
+            print(self.makedata_instances)
+            for starter in self.makedata_instances:
+                if not starter.is_leader:
+                    continue
+                assert starter.arangosh, "check: this starter doesn't have an arangosh!"
+                frontend_found = True
+                arangosh = starter.arangosh
+                for db_name, one_shard, count_offset in self.makedata_databases():
+                    try:
+                        print(count_offset)
+                        starter.arangosh.clear_test_data(
+                            self.name,
+                            starter.supports_foxx_tests,
+                            args=["--countOffset", str(count_offset)],
+                            database_name=db_name,
+                            one_shard=one_shard,
+                        )
+                        break
+                    except CliExecutionException as exc:
+                        if not self.cfg.verbose:
+                            print(exc.execution_result[1])
+                            self.ask_continue_or_exit(
+                                f"check_data has failed for {self.name} in database {db_name} with {exc}",
+                                exc.execution_result[1],
+                                False,
+                                exc,
+                            )
+            return
+        if not frontend_found:
+            raise Exception("no frontend found.")
+
+    @step
     def create_non_backup_data(self):
         """create data to be zapped by the restore operation"""
         for starter in self.makedata_instances:
@@ -1040,6 +1090,7 @@ class Runner(ABC):
     @step
     def zip_test_dir(self):
         """💾 store the test directory for later analysis"""
+        return #TODO
         build_number = os.environ.get("BUILD_NUMBER")
         if build_number:
             build_number = "_" + build_number
