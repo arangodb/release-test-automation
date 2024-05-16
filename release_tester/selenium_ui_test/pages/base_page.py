@@ -620,7 +620,11 @@ class BasePage:
 
     def progress(self, arg):
         """state print""" # todo
-        self.tprint(arg)
+        try:
+            self.tprint(arg)
+        except Exception as ex:
+            print('eeeeeee')
+            print(ex)
 
     def xpath(self, path):
         """shortcut xpath"""
