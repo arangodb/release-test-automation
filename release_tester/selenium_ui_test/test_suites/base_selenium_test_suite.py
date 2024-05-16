@@ -53,11 +53,10 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         print('xxx')
         try:
             print(string)
-            print(f"d{str(datetime.now() - self.video_start_time)}")
-            print(f"{string}")
-            print(f"d{str(datetime.now() - self.video_start_time)} {string}")
+            print(f" {str(datetime.now() - self.video_start_time)} - {string}")
         except Exception as ex:
-          print(ex)
+            print('yyyy?')
+            print(ex)
           
 
     def _init_allure(self):
