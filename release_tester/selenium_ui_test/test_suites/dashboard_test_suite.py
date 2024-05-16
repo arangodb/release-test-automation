@@ -11,7 +11,7 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_dashboard(self):
         """testing dashboard page"""
-        self.print("---------Checking Dashboard started--------- \n")
+        self.tprint("---------Checking Dashboard started--------- \n")
         # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
@@ -29,25 +29,25 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
             dash.check_db_uptime()
             # TODO: version dependend? cluster?
             dash.check_responsiveness_for_dashboard()
-            self.print("\nSwitch to System Resource tab\n")
+            self.tprint("\nSwitch to System Resource tab\n")
             dash.check_system_resource()
-            self.print("Switch to Metrics tab\n")
+            self.tprint("Switch to Metrics tab\n")
             dash.check_system_metrics()
 
         if self.is_cluster and version >= semver.VersionInfo.parse("3.8.0"):
-            self.print("Checking distribution tab \n")
+            self.tprint("Checking distribution tab \n")
             dash.check_distribution_tab()
-            self.print("Checking maintenance tab \n")
+            self.tprint("Checking maintenance tab \n")
             dash.check_maintenance_tab()
 
         dash.navbar_goto("support")
-        self.print("Opening Twitter link \n")
+        self.tprint("Opening Twitter link \n")
         dash.click_twitter_link()
-        self.print("Opening Slack link \n")
+        self.tprint("Opening Slack link \n")
         dash.click_slack_link()
-        self.print("Opening Stackoverflow link \n")
+        self.tprint("Opening Stackoverflow link \n")
         dash.click_stackoverflow_link()
-        self.print("Opening Google group link \n")
+        self.tprint("Opening Google group link \n")
         dash.click_google_group_link()
         # login.logout_button()
-        self.print("---------Checking Dashboard Completed--------- \n")
+        self.tprint("---------Checking Dashboard Completed--------- \n")

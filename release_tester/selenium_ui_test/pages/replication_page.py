@@ -52,7 +52,7 @@ class ReplicationPage(NavigationBarPage):
                     row_data.append(cell.text)
                 follower_table.append(row_data)
             except NoSuchElementException:
-                self.print("UI-Test: no more lines.")
+                self.tprint("UI-Test: no more lines.")
                 more_lines = False
             count += 1
         return {
@@ -100,14 +100,14 @@ class ReplicationPage(NavigationBarPage):
 
     def get_replication_information(self):
         """checking replication information"""
-        self.print("checking replication tab is available\n")
+        self.tprint("checking replication tab is available\n")
         replication = '//*[@id="replication"]'
         replication_sitem = self.locator_finder_by_xpath(replication)
         replication = replication_sitem.text
         time.sleep(1)
         assert replication == "REPLICATION", f"Expected REPLICATION but got {replication}"
 
-        self.print("checking replication mode\n")
+        self.tprint("checking replication mode\n")
         replication_mode = "info-mode-id"
         replication_mode_sitem = self.locator_finder_by_id(replication_mode)
         replication_mode = replication_mode_sitem.text
@@ -116,14 +116,14 @@ class ReplicationPage(NavigationBarPage):
 
         ip_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729"]
 
-        self.print("checking leader id\n")
+        self.tprint("checking leader id\n")
         leader_id = "nodes-leader-id"
         leader_id_sitem = self.locator_finder_by_id(leader_id)
         leader = leader_id_sitem.text
         time.sleep(1)
         assert leader in ip_list, f"Error occcured, Couldn't find expected leader ip"
 
-        self.print("checking follower id\n")
+        self.tprint("checking follower id\n")
         follower_id = '//*[@id="nodes-followers-id"]/span'
         follower_id_sitem = self.locator_finder_by_xpath(follower_id)
         follower = follower_id_sitem.text

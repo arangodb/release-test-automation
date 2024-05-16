@@ -45,7 +45,7 @@ class UserPage(NavigationBarPage):
 
     def add_new_user(self, tester):
         """User page selecting add new user"""
-        self.print(f"New user {tester} creation begins \n")
+        self.tprint(f"New user {tester} creation begins \n")
         if self.version_is_newer_than("3.11.99"):
             new_user = "(//button[normalize-space()='Add user'])[1]"
             add_new_user_id_sitem = self.locator_finder_by_xpath(new_user)
@@ -75,14 +75,14 @@ class UserPage(NavigationBarPage):
         enter_new_name_id_sitem.click()
         enter_new_name_id_sitem.send_keys(tester)
 
-        self.print("Adding Gravatar email address \n")
+        self.tprint("Adding Gravatar email address \n")
         if self.version_is_newer_than("3.11.99"):
             new_name = "(//input[@id='extra.img'])[1]"
             enter_new_name_id_sitem = self.locator_finder_by_xpath(new_name)
             enter_new_name_id_sitem.click()
             enter_new_name_id_sitem.send_keys("bluedio2020@gmail.com")
 
-        self.print('entering new user pass \n')
+        self.tprint('entering new user pass \n')
         if self.version_is_newer_than("3.11.99"):
             new_password = "(//input[@id='passwd'])[1]"
             enter_new_password_id_sitem = self.locator_finder_by_xpath(new_password)
@@ -92,7 +92,7 @@ class UserPage(NavigationBarPage):
         enter_new_password_id_sitem.click()
         enter_new_password_id_sitem.send_keys(tester)
 
-        self.print('User page selecting add new user \n')
+        self.tprint('User page selecting add new user \n')
         if self.version_is_newer_than("3.11.99"):
             create_user = "(//button[normalize-space()='Create'])[1]"
             create_user_btn_id_sitem = self.locator_finder_by_xpath(create_user)
@@ -102,7 +102,7 @@ class UserPage(NavigationBarPage):
 
         create_user_btn_id_sitem.click()
         time.sleep(3)
-        self.print(f"New user {tester} creation completed \n")
+        self.tprint(f"New user {tester} creation completed \n")
     def selecting_user_tester(self):
         """Selecting tester user with pass tester"""
         if self.version_is_newer_than("3.11.99"):
@@ -125,7 +125,7 @@ class UserPage(NavigationBarPage):
             self.click_submenu_entry("General")
         except StaleElementReferenceException:
             # javascript may be doing stuff to the DOM so we retry once here...
-            self.print("reloading...")
+            self.tprint("reloading...")
             self.webdriver.refresh()
             time.sleep(1)
             self.selecting_permission_tab()
@@ -177,14 +177,14 @@ class UserPage(NavigationBarPage):
 
             # Check if create_collection is None and version is >= 3.11.99
             if create_collection is None and self.version_is_newer_than('3.11.99'):
-                self.print("create_collection not found, but it's expected scenario for version >= 3.11.99.")
+                self.tprint("create_collection not found, but it's expected scenario for version >= 3.11.99.")
                 return  # Exit the method if element not found
 
             if create_collection is not None:
                 create_collection.click()
                 time.sleep(2)
             else:
-                self.print("Element 'create_collection' option not found.")
+                self.tprint("Element 'create_collection' option not found.")
                 return  # Exit the method if element not found
 
             # Providing new collection name
@@ -206,7 +206,7 @@ class UserPage(NavigationBarPage):
                 assert notification.text == expected_text, f"Expected text{expected_text} but got {notification.text}"
 
                 try:
-                    self.print('Deleting testDoc collection \n')
+                    self.tprint('Deleting testDoc collection \n')
 
                     select_test_doc_collection_id = '//*[@id="collection_testDoc"]/div/h5'
                     select_collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
@@ -226,16 +226,16 @@ class UserPage(NavigationBarPage):
                     delete_collection_confirm_id = self.locator_finder_by_xpath(delete_collection_confirm_id)
                     delete_collection_confirm_id.click()
 
-                    self.print('Deleting testDoc collection completed\n')
+                    self.tprint('Deleting testDoc collection completed\n')
                 except TimeoutException:
-                    self.print('Deleting testDoc collection failed which is expected. \n')
+                    self.tprint('Deleting testDoc collection failed which is expected. \n')
 
             except TimeoutException:
-                self.print('FAIL: Unexpected error occurred! \n')
+                self.tprint('FAIL: Unexpected error occurred! \n')
 
         except TimeoutException:
             if test_name == 'access':
-                self.print("Collection creation failed, which is expected\n")
+                self.tprint("Collection creation failed, which is expected\n")
             elif test_name == 'read/write':
                 raise Exception("FAIL: Unexpected error occurred!\n")
     
@@ -262,7 +262,7 @@ class UserPage(NavigationBarPage):
 
     def check_user_collection_sort(self):
         """This method will check user's collection sorting in user's permission tab"""
-        self.print("check_user_collection_sort started \n")
+        self.tprint("check_user_collection_sort started \n")
         # selecting root user
         root_user = '//h5[@class="collectionName"][text()="root "]'
         root_user_sitem = self.locator_finder_by_xpath(root_user)
@@ -295,6 +295,6 @@ class UserPage(NavigationBarPage):
                 pass
 
         if a_first < m_middle < z_last:
-            self.print("Sorting check successfully completed.\n")
+            self.tprint("Sorting check successfully completed.\n")
         else:
             raise Exception("Sorting inside user collection failed and need manual inspection!\n")

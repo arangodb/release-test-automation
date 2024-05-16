@@ -17,7 +17,7 @@ class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
             NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
             replication_page = ReplicationPage(self.webdriver, self.cfg)
             replication_table = replication_page.get_replication_screen(True)
-            self.print(replication_table)
+            self.tprint(replication_table)
             if len(replication_table["follower_table"]) != expect_follower_count + 1:
                 time.sleep(5)
                 retry_count -= 1

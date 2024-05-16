@@ -52,17 +52,17 @@ class BasePage:
         """This method will be used for the basic driver setup"""
 
         # browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
-        # self.print(*browser_list, sep="\n")
+        # self.tprint(*browser_list, sep="\n")
         # cls.browser_name = None
 
         # while cls.browser_name not in {1, 2, 3, 4}:
         #     cls.browser_name = int(input('Choose your browser: '))
         #
         #     if cls.browser_name == 1:
-        #         self.print("You have chosen: Chrome browser \n")
+        #         self.tprint("You have chosen: Chrome browser \n")
         #         cls.driver = webdriver.Chrome(ChromeDriverManager().install())
         #     elif cls.browser_name == 2:
-        #         self.print("You have chosen: Firefox browser \n")
+        #         self.tprint("You have chosen: Firefox browser \n")
         #
         #         # This preference will disappear download bar for firefox
         #         profile = webdriver.FirefoxProfile()
@@ -75,13 +75,13 @@ class BasePage:
         #         cls.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
         #
         #     elif cls.browser_name == 3:
-        #         self.print("You have chosen: Edge browser \n")
+        #         self.tprint("You have chosen: Edge browser \n")
         #         cls.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
         #     elif cls.browser_name == 4:
-        #         self.print("You have chosen: Chromium browser \n")
+        #         self.tprint("You have chosen: Chromium browser \n")
         #         cls.driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
         #     else:
-        #         self.print("Kindly provide a specific browser name from the list. \n")
+        #         self.tprint("Kindly provide a specific browser name from the list. \n")
 
         # cls.driver.set_window_size(1250, 1000)  # custom window size
         # cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
@@ -91,7 +91,7 @@ class BasePage:
         """This method will be used for teardown the driver instance"""
         time.sleep(5)
         # cls.driver.close()
-        self.print("\n--------Now Quiting--------\n")
+        self.tprint("\n--------Now Quiting--------\n")
         # cls.driver.quit()
 
     def switch_to_iframe(self, iframe_id):
@@ -115,11 +115,11 @@ class BasePage:
 
     def clear_all_text(self, locator=None):
         """This method will select all text and clean it"""
-        self.print("Cleaning input field \n")
+        self.tprint("Cleaning input field \n")
         if locator is not None:
             locator = self.locator_finder_by_xpath(locator)
 
-        self.print("Cleaning input field \n")
+        self.tprint("Cleaning input field \n")
         actions = ActionChains(self.webdriver)
         actions.click(locator)
         actions.key_down(Keys.CONTROL)
@@ -130,51 +130,51 @@ class BasePage:
 
     def check_ui_responsiveness(self):
         """Checking LOG tab causes unresponsive UI (found in 3.8 server package"""
-        self.print("\n")
-        self.print("Clicking on Log tab \n")
+        self.tprint("\n")
+        self.tprint("Clicking on Log tab \n")
         log = "logs"
         log = self.locator_finder_by_id(log)
         log.click()
 
-        self.print("Try to tap on Log Level drop down button \n")
+        self.tprint("Try to tap on Log Level drop down button \n")
         log_level = "logLevelSelection"
         log_level = self.locator_finder_by_id(log_level)
         log_level.click()
 
         time.sleep(3)
 
-        self.print("Close the Log Level button \n")
+        self.tprint("Close the Log Level button \n")
         log_level01 = "closeFilter"
         log_level01 = self.locator_finder_by_id(log_level01)
         log_level01.click()
 
-        self.print("Quickly tap on to Collection Tab")
+        self.tprint("Quickly tap on to Collection Tab")
         collection = "collections"
         collection = self.locator_finder_by_id(collection)
         collection.click()
 
-        self.print("Waiting for few seconds \n")
+        self.tprint("Waiting for few seconds \n")
         time.sleep(3)
 
-        self.print("Return back to Log tab again \n")
+        self.tprint("Return back to Log tab again \n")
         log01 = "logs"
         log01 = self.locator_finder_by_id(log01)
         log01.click()
 
-        self.print("Trying to tap on Log Level once again \n")
+        self.tprint("Trying to tap on Log Level once again \n")
         try:
             log_level = "logLevelSelection"
             log_level = self.locator_finder_by_id(log_level)
             log_level.click()
             assert "Level" in log_level.text, "********UI become unresponsive******"
             if log_level.text == "Level":
-                self.print("Ui is responsive and working as usual\n")
+                self.tprint("Ui is responsive and working as usual\n")
         except TimeoutException:
-            self.print("********Dashboard responsiveness check failed********")
+            self.tprint("********Dashboard responsiveness check failed********")
 
         time.sleep(2)
-        self.print("UI responsiveness test completed \n")
-        self.print("Back to Dashboard again \n")
+        self.tprint("UI responsiveness test completed \n")
+        self.tprint("Back to Dashboard again \n")
         self.webdriver.refresh()
         dash = "dashboard"
         dash = self.locator_finder_by_id(dash)
@@ -185,7 +185,7 @@ class BasePage:
         """This method will select the query execution area take a
         string and adjacent locator argument of ace-editor and execute the query
         locator set to none for < v3.12x"""
-        self.print("Selecting query execution area \n")
+        self.tprint("Selecting query execution area \n")
         if self.current_package_version() > semver.VersionInfo.parse("3.11.100"):
             self.webdriver.refresh()
             # to unify ace_locator class attribute has been used
@@ -210,7 +210,7 @@ class BasePage:
                 query.click()
                 time.sleep(2)
             except TimeoutException:
-                self.print("Can't find the query execution area \n")
+                self.tprint("Can't find the query execution area \n")
 
     def select_bindvalue_json_area(self):
         """This method will select the query execution area"""
@@ -219,7 +219,7 @@ class BasePage:
             query_sitem.click()
             time.sleep(2)
         except TimeoutException:
-            self.print("Can't find the query execution area \n")
+            self.tprint("Can't find the query execution area \n")
 
     def query_execution_btn(self):
         """Clicking execute query button"""
@@ -253,12 +253,12 @@ class BasePage:
 
     def switch_tab(self, locator):
         """This method will change tab and close it and finally return to origin tab"""
-        self.print("switching tab method \n")
+        self.tprint("switching tab method \n")
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL, Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
-        self.print("Current page title: ", title, "\n")
+        self.tprint("Current page title: ", title, "\n")
         time.sleep(15)
         self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
@@ -267,7 +267,7 @@ class BasePage:
     def check_version_is_newer(self, compare_version):
         """ check whether the version in the ui is the expected """
         ui_version_str = self.locator_finder_by_id("currentVersion").text
-        self.print("Package Version: ", ui_version_str)
+        self.tprint("Package Version: ", ui_version_str)
         ui_version = semver.VersionInfo.parse(ui_version_str)
         compare_version = semver.VersionInfo.parse(compare_version)
         return ui_version >= compare_version
@@ -276,7 +276,7 @@ class BasePage:
         """ checking current package version from the dashboard"""
         package_version = "currentVersion"
         package_version = self.locator_finder_by_id(package_version).text
-        self.print("Package Version: ", package_version)
+        self.tprint("Package Version: ", package_version)
         return semver.VersionInfo.parse(package_version)
     
     def version_is_newer_than(self, version_str):
@@ -309,7 +309,7 @@ class BasePage:
         # https://sqa.stackexchange.com/questions/35589/how-to-wait-for-javascript-scroll-action-to-finish-in-selenium
         if down == 1:
             self.webdriver.find_element(BY.TAG_NAME, "html").send_keys(Keys.END)
-            self.print("")
+            self.tprint("")
             time.sleep(3)
         else:
             time.sleep(5)
@@ -318,7 +318,7 @@ class BasePage:
 
     def locator_finder_by_idx(self, locator_name, timeout=10):
         """This method will used for finding all the locators by their id"""
-        self.print(locator_name)
+        self.tprint(locator_name)
         self.locator = WebDriverWait(self.webdriver, timeout).until(
             EC.presence_of_element_located((BY.ID, locator_name)),
             message="UI-Test: " + locator_name + " locator was not found.",
@@ -378,7 +378,7 @@ class BasePage:
             EC.element_to_be_clickable((BY.LINK_TEXT, locator_name))
         )
         if self.locator is None:
-            self.print("UI-Test: ", locator_name, " locator has not found.")
+            self.tprint("UI-Test: ", locator_name, " locator has not found.")
             return None
         else:
             return self.locator
@@ -403,7 +403,7 @@ class BasePage:
         self.select = Select(self.webdriver.find_element(BY.XPATH, locator_name))
         self.select.select_by_index(value)
         if self.select is None:
-            self.print("UI-Test: ", locator_name, " locator has not found.")
+            self.tprint("UI-Test: ", locator_name, " locator has not found.")
         return self.select
 
     def locator_finder_by_class(self, locator_name):
@@ -412,7 +412,7 @@ class BasePage:
             EC.element_to_be_clickable((BY.CLASS_NAME, locator_name))
         )
         if self.locator is None:
-            self.print(locator_name, " locator has not found.")
+            self.tprint(locator_name, " locator has not found.")
         return self.locator
 
     def locator_finder_by_hover_item_id(self, locator):
@@ -425,7 +425,7 @@ class BasePage:
 
     def zoom(self):
         """This method will used for zoom in/out on any perspective window"""
-        self.print("zooming in now\n")
+        self.tprint("zooming in now\n")
         self.webdriver.execute_script("document.body.style.zoom='80%'")
 
     def locator_finder_by_hover_item(self, locator):
@@ -454,9 +454,9 @@ class BasePage:
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
         # looping through all the error scenario for test
-        # self.print('len: ', len(name_error))
+        # self.tprint('len: ', len(name_error))
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
-            self.print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             # if div_id is not None:
             locator_sitem = self.locator_finder_by_xpath(locators)
@@ -479,7 +479,7 @@ class BasePage:
             try:
                 # placeholder's error message id
                 error_sitem = BasePage.locator_finder_by_xpath(error_message_id).text
-                self.print("Expected error found: ", error_sitem, "\n")
+                self.tprint("Expected error found: ", error_sitem, "\n")
                 time.sleep(2)
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 # error_message list will hold expected error messages
@@ -487,9 +487,9 @@ class BasePage:
                     error_sitem == error_message[i]
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                self.print("x" * (len(error_sitem) + 29))
-                self.print("OK: Expected error found: ", error_sitem)
-                self.print("x" * (len(error_sitem) + 29), "\n")
+                self.tprint("x" * (len(error_sitem) + 29))
+                self.tprint("OK: Expected error found: ", error_sitem)
+                self.tprint("x" * (len(error_sitem) + 29), "\n")
                 time.sleep(2)
 
             except TimeoutException as ex:
@@ -506,7 +506,7 @@ class BasePage:
         i = 0
         # looping through all the error scenario for test
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
-            self.print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             locator_sitem = self.locator_finder_by_id(locators)
             locator_sitem.click()
@@ -534,9 +534,9 @@ class BasePage:
                     error_sitem == error_message[i]
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                self.print("x" * (len(error_sitem) + 29))
-                self.print("OK: Expected error found: ", error_sitem)
-                self.print("x" * (len(error_sitem) + 29), "\n")
+                self.tprint("x" * (len(error_sitem) + 29))
+                self.tprint("OK: Expected error found: ", error_sitem)
+                self.tprint("x" * (len(error_sitem) + 29), "\n")
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
@@ -560,7 +560,7 @@ class BasePage:
         # looping through all the error scenario for test
         i = 0
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
-            self.print(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             # locator id of the input placeholder where testing will take place
             locator_sitem = self.locator_finder_by_xpath(locators_id)
             locator_sitem.click()
@@ -579,9 +579,9 @@ class BasePage:
                 assert error_sitem == error_message[i], \
                     f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                self.print('x' * (len(error_sitem) + 29))
-                self.print('OK: Expected error found: ', error_sitem)
-                self.print('x' * (len(error_sitem) + 29), '\n')
+                self.tprint('x' * (len(error_sitem) + 29))
+                self.tprint('OK: Expected error found: ', error_sitem)
+                self.tprint('x' * (len(error_sitem) + 29), '\n')
                 time.sleep(2)
 
             except TimeoutException as ex:
@@ -596,13 +596,13 @@ class BasePage:
             package = self.locator_finder_by_id("communityLabel").text
             return package
         except TimeoutException:
-            self.print("This is not a Community server package.\n")
+            self.tprint("This is not a Community server package.\n")
 
         try:
             package = self.locator_finder_by_id("enterpriseLabel").text
             return package
         except TimeoutException:
-            self.print("This is not a Enterprise server package.\n")
+            self.tprint("This is not a Enterprise server package.\n")
         return "package not found"
 
     def choose_item_from_a_dropdown_menu(self, element: WebElement, item_text: str):
@@ -620,7 +620,7 @@ class BasePage:
 
     def progress(self, arg):
         """state print""" # todo
-        self.print(arg)
+        self.tprint(arg)
 
     def xpath(self, path):
         """shortcut xpath"""
@@ -636,10 +636,10 @@ class BasePage:
             notification = 'noty_body'
             notification = self.locator_finder_by_class(notification)
             time.sleep(2)
-            self.print("*" * 100)
-            self.print(notification.text)
-            self.print("*" * 100)
+            self.tprint("*" * 100)
+            self.tprint(notification.text)
+            self.tprint("*" * 100)
             return notification.text
         except TimeoutException:
-            self.print('No error/warning found!')
+            self.tprint('No error/warning found!')
             return None

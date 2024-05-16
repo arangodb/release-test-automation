@@ -13,7 +13,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
     def test_service(self):
         """service page test"""
         # pylint: disable=too-many-statements
-        self.print("---------Service Page Test Begin--------- \n")
+        self.tprint("---------Service Page Test Begin--------- \n")
         service = ServicePage(self.webdriver, self.cfg)
         self.exception = False
         self.error = None
@@ -45,7 +45,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             # service.replace_service()
 
         except BaseException:
-            self.print("x" * 45, "\nINFO: Error Occurred! Force Deletion Started\n", "x" * 45)
+            self.tprint("x" * 45, "\nINFO: Error Occurred! Force Deletion Started\n", "x" * 45)
             self.exception = True  # mark the exception as true
             self.error = traceback.format_exc()
 
@@ -53,6 +53,6 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             service.delete_service("/geo")
             service.delete_service("/graphql")
             del service
-            self.print("---------Service Page Test Completed--------- \n")
+            self.tprint("---------Service Page Test Completed--------- \n")
             if self.exception:
                 raise Exception(self.error)

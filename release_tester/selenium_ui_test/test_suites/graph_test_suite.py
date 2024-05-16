@@ -11,14 +11,14 @@ class GraphTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_graph(self):
         """testing graph page"""
-        self.print("---------Checking Graphs started--------- \n")
+        self.tprint("---------Checking Graphs started--------- \n")
         this_graph = GraphPage(self.webdriver, self.cfg)
         assert this_graph.current_user() == "ROOT", "current user is root?"
         assert this_graph.current_database() == "_SYSTEM", "current database is _system?"
         
         graph = GraphPage(self.webdriver, self.cfg)  # creating obj for Graph
         
-        self.print("Example Graphs creation started\n")
+        self.tprint("Example Graphs creation started\n")
         if graph.current_package_version() > semver.VersionInfo.parse("3.11.100"):
             graph.create_example_graph_for_312("Knows Graph")
             graph.create_example_graph_for_312("Traversal Graph")
@@ -46,7 +46,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             # graph.create_example_graph("City Graph")
             # graph.create_example_graph("Connected Components Graph") # overlapped with a kshortest path collection
 
-            self.print("Deleting all example graphs started")
+            self.tprint("Deleting all example graphs started")
             graph.deleting_example_graphs("Knows Graph")
             graph.deleting_example_graphs("Traversal Graph")
             graph.deleting_example_graphs("k Shortest Paths Graph")
@@ -55,16 +55,16 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.deleting_example_graphs("Social Graph")
             # graph.deleting_example_graphs("City Graph")
         
-        # self.print("Manual Graph creation started \n")
+        # self.tprint("Manual Graph creation started \n")
         # this_graph.select_graph_page()
 
         # for graph_id in GraphExample:
         #     # these graphs have overlapping collections, so we create / delete them one by one.
-        #     self.print(graph_id)
+        #     self.tprint(graph_id)
         #     graph = get_graph(graph_id)
         #     if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
         #         graph_id >= GraphExample.CONNECTED):
-        #         self.print("Creating '%s' Graph" % graph.get_name())
+        #         self.tprint("Creating '%s' Graph" % graph.get_name())
         #         this_graph.navbar_goto("graphs")
         #         self.webdriver.refresh()
         #         this_graph.create_graph(graph_id, self.importer, self.ui_data_dir)
@@ -74,46 +74,46 @@ class GraphTestSuite(BaseSeleniumTestSuite):
         #         this_graph.navbar_goto("graphs")
         #         this_graph.delete_graph(graph_id)
         #     else:
-        #         self.print("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
+        #         self.tprint("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
 
         # # if we create more graphs at once, the collection list will not show all collections anymore:
-        # self.print("Example Graphs creation started\n")
+        # self.tprint("Example Graphs creation started\n")
         # for graph_id in GraphExample:
-        #     self.print(graph_id)
+        #     self.tprint(graph_id)
         #     graph = get_graph(graph_id)
         #     if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
         #         graph_id < GraphExample.CONNECTED):
         #         self.webdriver.refresh()
         #         this_graph.navbar_goto("graphs")
         #         self.webdriver.refresh()
-        #         self.print("Creating '%s' Graph" % graph.get_name())
+        #         self.tprint("Creating '%s' Graph" % graph.get_name())
         #         this_graph.create_graph(graph_id, self.importer, self.ui_data_dir)
         #         this_graph.check_required_collections(graph_id)
 
         #         this_graph.select_graph_page()
         #     else:
-        #         self.print("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
+        #         self.tprint("Skipping '%s' Graph not supported by the current setup" % graph.get_name())
 
 
-        # self.print("Example Graphs creation Completed\n")
+        # self.tprint("Example Graphs creation Completed\n")
 
-        # self.print("Sorting all graphs as descending\n")
+        # self.tprint("Sorting all graphs as descending\n")
         # this_graph.select_sort_descend()
 
-        # self.print("Selecting Knows Graph for inspection\n")
+        # self.tprint("Selecting Knows Graph for inspection\n")
         # this_graph.inspect_knows_graph()
-        # # self.print("Selecting Graphs settings menu\n")
+        # # self.tprint("Selecting Graphs settings menu\n")
         # # this_graph.graph_setting()
-        # self.print("Deleting created Graphs started\n")
+        # self.tprint("Deleting created Graphs started\n")
         # for graph_id in GraphExample:
         #     graph = get_graph(graph_id)
         #     if (graph.is_graph_supported(self.cfg.enterprise, self.cfg.semver, self.is_cluster) and
         #         graph_id < GraphExample.CONNECTED):
         #         this_graph.navbar_goto("graphs")
         #         this_graph.delete_graph(graph_id)
-        # self.print("Deleting created Graphs Completed\n")
+        # self.tprint("Deleting created Graphs Completed\n")
 
 
         # login.logout_button()
         # del login
-        self.print("---------Checking Graphs completed--------- \n")
+        self.tprint("---------Checking Graphs completed--------- \n")
