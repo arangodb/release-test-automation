@@ -17,9 +17,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class CollectionPage(NavigationBarPage):
     """Collection page class"""
 
-    def __init__(self, webdriver, cfg):
+    def __init__(self, webdriver, cfg, video_start_time):
         """class initialization"""
-        super().__init__(webdriver, cfg)
+        super().__init__(webdriver, cfg, video_start_time)
         self.select_collection_page_id = "collections"
         self.select_create_collection_id = "createCollection"
         self.select_new_collection_name_id = "new-collection-name"

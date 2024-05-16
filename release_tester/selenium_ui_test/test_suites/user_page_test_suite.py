@@ -19,10 +19,10 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
     def test_user(self):
         """testing user page"""
         self.tprint("---------User Test Begin--------- \n")
-        login = LoginPage(self.webdriver, self.cfg)
+        login = LoginPage(self.webdriver, self.cfg, self.video_start_time)
         self.webdriver.refresh()
-        user = UserPage(self.webdriver, self.cfg)
-        collection_page = CollectionPage(self.webdriver, self.cfg)
+        user = UserPage(self.webdriver, self.cfg, self.video_start_time)
+        collection_page = CollectionPage(self.webdriver, self.cfg, self.video_start_time)
         version_312 = user.version_is_newer_than("3.11.99")
 
         try:

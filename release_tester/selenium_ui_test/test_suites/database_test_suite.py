@@ -14,11 +14,11 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
     def test_database(self):
         """testing database page"""
         self.tprint("---------DataBase Page Test Begin--------- \n")
-        # login = LoginPage(self.webdriver, self.cfg)
+        # login = LoginPage(self.webdriver, self.cfg, self.video_start_time)
         # login.login('root', '')
 
-        user = UserPage(self.webdriver, self.cfg)
-        db = DatabasePage(self.webdriver, self.cfg)
+        user = UserPage(self.webdriver, self.cfg, self.video_start_time)
+        db = DatabasePage(self.webdriver, self.cfg, self.video_start_time)
         self.exception = False
         self.error = None
         assert user.current_user() == "ROOT", "current user is root?"

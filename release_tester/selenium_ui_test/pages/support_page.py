@@ -12,9 +12,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class SupportPage(NavigationBarPage):
     """Class for Support page"""
 
-    def __init__(self, driver, cfg):
+    def __init__(self, driver, cfg, video_start_time):
         """Support page initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.select_support_page_id = "support"
         self.select_documentation_support_id = "documentation-support"
         self.select_community_support_id = "community-support"

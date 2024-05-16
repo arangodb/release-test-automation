@@ -37,15 +37,26 @@ class BasePage:
 
     driver: WebDriver
 
-    def __init__(self, webdriver, cfg):
+    def __init__(self, webdriver, cfg, video_start_time):
         """base initialization"""
         self.webdriver = webdriver
+        self.video_start_time = video_start_time
         self.cfg = cfg
         self.query_execution_area = '//*[@id="aqlEditor"]'
         self.bindvalues_area = '//*[@id="bindParamAceEditor"]'
         self.locator = None
         self.select = None
         self.current = None
+
+    def tprint(self, string):
+        """ print including timestamp relative to video start """
+        print('xxx')
+        try:
+            print(string)
+            print(f" {str(datetime.now() - self.video_start_time)} - {string}")
+        except Exception as ex:
+            print('yyyy?')
+            print(ex)
 
     @classmethod
     def set_up_class(cls):

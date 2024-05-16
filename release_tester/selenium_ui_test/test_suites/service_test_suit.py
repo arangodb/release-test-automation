@@ -14,7 +14,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
         """service page test"""
         # pylint: disable=too-many-statements
         self.tprint("---------Service Page Test Begin--------- \n")
-        service = ServicePage(self.webdriver, self.cfg)
+        service = ServicePage(self.webdriver, self.cfg, self.video_start_time)
         self.exception = False
         self.error = None
         assert service.current_user() == "ROOT", "current user is root?"

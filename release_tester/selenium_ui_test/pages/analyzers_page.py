@@ -12,8 +12,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 class AnalyzerPage(NavigationBarPage):
     """ analyzer page object """
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, webdriver, cfg):
-        super().__init__(webdriver, cfg)
+    def __init__(self, webdriver, cfg, video_start_time):
+        super().__init__(webdriver, cfg, video_start_time)
         self.analyzers_page = "analyzers"
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'

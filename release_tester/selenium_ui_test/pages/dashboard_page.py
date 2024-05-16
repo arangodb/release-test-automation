@@ -11,9 +11,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class DashboardPage(NavigationBarPage):
     """Class for Dashboard page"""
 
-    def __init__(self, driver, cfg, enterprise):
+    def __init__(self, driver, cfg, video_start_time, enterprise):
         """dashboardPage class initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.check_server_package_name_id = "enterpriseLabel" if enterprise else "communityLabel"
         self.check_current_package_version_id = "currentVersion"
         self.check_current_username_id = "//li[@id='userBar']//span[@class='toggle']"

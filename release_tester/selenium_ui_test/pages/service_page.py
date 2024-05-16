@@ -10,8 +10,8 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class ServicePage(NavigationBarPage):
     """service page object"""
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, driver, cfg):
-        super().__init__(driver, cfg)
+    def __init__(self, driver, cfg, video_start_time):
+        super().__init__(driver, cfg, video_start_time)
 
     def select_service_page(self):
         """Selecting service page"""

@@ -15,7 +15,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         """ analyzer page test """
         # pylint: disable=too-many-statements
         self.tprint("---------Analyzers Page Test Begin--------- \n")
-        analyzers = AnalyzerPage(self.webdriver, self.cfg)
+        analyzers = AnalyzerPage(self.webdriver, self.cfg, self.video_start_time)
 
         assert analyzers.current_user() == "ROOT", "current user is root?"
         assert analyzers.current_database() == "_SYSTEM", "current database is _system?"

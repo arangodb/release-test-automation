@@ -12,11 +12,11 @@ class GraphTestSuite(BaseSeleniumTestSuite):
     def test_graph(self):
         """testing graph page"""
         self.tprint("---------Checking Graphs started--------- \n")
-        this_graph = GraphPage(self.webdriver, self.cfg)
+        this_graph = GraphPage(self.webdriver, self.cfg, self.video_start_time)
         assert this_graph.current_user() == "ROOT", "current user is root?"
         assert this_graph.current_database() == "_SYSTEM", "current database is _system?"
         
-        graph = GraphPage(self.webdriver, self.cfg)  # creating obj for Graph
+        graph = GraphPage(self.webdriver, self.cfg, self.video_start_time)  # creating obj for Graph
         
         self.tprint("Example Graphs creation started\n")
         if graph.current_package_version() > semver.VersionInfo.parse("3.11.100"):

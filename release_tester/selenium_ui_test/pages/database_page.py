@@ -11,8 +11,8 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 # pylint: disable=too-many-statements
 class DatabasePage(NavigationBarPage):
     """ database page object """
-    def __init__(self, webdriver, cfg):
-        super().__init__(webdriver, cfg)
+    def __init__(self, webdriver, cfg, video_start_time):
+        super().__init__(webdriver, cfg, video_start_time)
         self.database_page = "databases"
         self.create_new_db_btn = "createDatabase"
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'

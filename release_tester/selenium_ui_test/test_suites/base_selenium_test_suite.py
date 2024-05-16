@@ -57,7 +57,6 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         except Exception as ex:
             print('yyyy?')
             print(ex)
-          
 
     def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(
