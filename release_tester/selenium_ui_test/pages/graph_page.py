@@ -76,7 +76,7 @@ class GraphCreateSet:
         return version > self.min_version
 
     def get_name(self):
-        """resolves the enum to a self.printeable string"""
+        """resolves the enum to a printeable string"""
         return self.clear_name
 
 GRAPH_SETS = []

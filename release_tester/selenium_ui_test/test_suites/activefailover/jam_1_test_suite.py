@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """active failover base testsuite"""
-import pself.print
+import pprint
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.replication_page import ReplicationPage
@@ -21,7 +21,7 @@ class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
         # head and one follower should be there:
         self.ui_assert(
             len(replication_table["follower_table"]) == 2,
-            "UI-Test:\nexpect 2 followers in:\n %s" % pself.print.pformat(replication_table),
+            "UI-Test:\nexpect 2 followers in:\n %s" % pprint.pformat(replication_table),
         )
 
     @testcase

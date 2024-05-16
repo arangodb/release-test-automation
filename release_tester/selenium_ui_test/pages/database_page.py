@@ -190,7 +190,7 @@ class DatabasePage(NavigationBarPage):
         
         if version >= ver_db_names:
             db_name_error_input = ["1", ".", "/"]  # name must be 64 bit thus 65 character won't work too.
-            db_name_self.print_statement = [
+            db_name_print_statement = [
                 'Checking numeric value for DB name " 1 "',
                 'Checking with dot value "."',
                 'Checking with slash "/"',
@@ -211,7 +211,7 @@ class DatabasePage(NavigationBarPage):
             db_name_error = "/html/body/div[10]/div/div[1]"
         else:
             db_name_error_input = ["", "@", "1", "שלום"]  # name must be 64 bit thus 65 character won't work too.
-            db_name_self.print_statement = [
+            db_name_print_statement = [
                 'Checking blank DB name with " "',
                 'Checking Db name with symbol " @ "',
                 'Checking numeric value for DB name " 1 "',
@@ -226,9 +226,9 @@ class DatabasePage(NavigationBarPage):
             db_name = "newDatabaseName"
             db_name_error = '//*[@id="row_newDatabaseName"]/th[2]/p'
 
-        # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
         self.check_expected_error_messages_for_database(
-            db_name_error_input, db_name_self.print_statement, db_name_error_message, db_name, db_name_error
+            db_name_error_input, db_name_print_statement, db_name_error_message, db_name, db_name_error
         )
         self.print("Expected error scenario for the Database name Completed \n")
 
@@ -241,7 +241,7 @@ class DatabasePage(NavigationBarPage):
             # ----------------------------database Replication Factor convention test-----------------------------
             self.print("Expected error scenario for the Database Replication Factor Started \n")
             rf_error_input = ["@", "a", "11", "שלום"]
-            rf_self.print_statement = [
+            rf_print_statement = [
                 'Checking RF with "@"',
                 'Checking RF with "a"',
                 'Checking RF with "11"',
@@ -256,16 +256,16 @@ class DatabasePage(NavigationBarPage):
             rf_name = "new-replication-factor"
             db_name_error_id = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
-            # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages_for_database(
-                rf_error_input, rf_self.print_statement, rf_error_message, rf_name, db_name_error_id, True
+                rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error_id, True
             )  # True defines cluster deployment
             self.print("Expected error scenario for the Database Replication Factor Completed \n")
 
             # -------------------------------database Write Concern convention test----------------------------------
             self.print("Expected error scenario for the Database Write Concern Started \n")
             wc_error_input = ["@", "a", "11", "שלום"]
-            wc_self.print_statement = [
+            wc_print_statement = [
                 'Checking Write Concern with "@"',
                 'Checking Write Concern with "a"',
                 'Checking Write Concern with "11"',
@@ -280,9 +280,9 @@ class DatabasePage(NavigationBarPage):
             wc_name = "new-write-concern"
             wc_name_error_id = '//*[@id="row_new-write-concern"]/th[2]/p'
 
-            # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages_for_database(
-                wc_error_input, wc_self.print_statement, wc_error_message, wc_name, wc_name_error_id, True
+                wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error_id, True
             )
             self.print("Expected error scenario for the Database Write Concern Completed \n")
 
@@ -290,7 +290,7 @@ class DatabasePage(NavigationBarPage):
             # -------------------------------database Replication Factor convention test------------------------------
             self.print("Expected error scenario for the Database Replication Factor Started \n")
             rf_error_input = ["@", "a", "11", "שלום"]
-            rf_self.print_statement = [
+            rf_print_statement = [
                 'Checking RF with "@"',
                 'Checking RF with "a"',
                 'Checking RF with "11"',
@@ -305,16 +305,16 @@ class DatabasePage(NavigationBarPage):
             rf_name = "new-replication-factor"
             db_name_error = '//*[@id="row_new-replication-factor"]/th[2]/p'
 
-            # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages_for_database(
-                rf_error_input, rf_self.print_statement, rf_error_message, rf_name, db_name_error
+                rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error
             )
             self.print("Expected error scenario for the Database Replication Factor Completed \n")
 
             # -------------------------------database Write Concern convention test----------------------------------
             self.print("Expected error scenario for the Database Write Concern Started \n")
             wc_error_input = ["@", "a", "11", "שלום"]
-            wc_self.print_statement = [
+            wc_print_statement = [
                 'Checking Write Concern with "@"',
                 'Checking Write Concern with "a"',
                 'Checking Write Concern with "11"',
@@ -329,9 +329,9 @@ class DatabasePage(NavigationBarPage):
             wc_name = "new-write-concern"
             wc_name_error = '//*[@id="row_new-write-concern"]/th[2]/p'
 
-            # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages_for_database(
-                wc_error_input, wc_self.print_statement, wc_error_message, wc_name, wc_name_error
+                wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error
             )
             self.print("Expected error scenario for the Database Write Concern Completed \n")
 

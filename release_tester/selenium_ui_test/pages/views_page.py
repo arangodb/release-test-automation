@@ -961,7 +961,7 @@ class ViewsPage(NavigationBarPage):
 
         self.print('Expected error scenario for the Views name started \n')
         error_input = ['@', '/', 'שלום']
-        self.print_statement = ['Checking views name with "@"',
+        print_statement = ['Checking views name with "@"',
                            'Checking views name with "/"',
                            'Checking views name with "שלום"']
         error = 'Only symbols, "_" and "-" are allowed.'
@@ -970,9 +970,9 @@ class ViewsPage(NavigationBarPage):
         locator_id = '//*[@id="newName"]'
         error_locator_id = "//p[@class='errorMessage']"
 
-        # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+        # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
         self.check_expected_error_messages_for_views(error_input,
-                                                     self.print_statement,
+                                                     print_statement,
                                                      error_message,
                                                      locator_id,
                                                      error_locator_id)
@@ -980,7 +980,7 @@ class ViewsPage(NavigationBarPage):
 
         self.print('Expected error scenario for the Views write buffer idle started \n')
         error_input = ['@', '/', 'שלום', '9999999999999999']
-        self.print_statement = ['Checking views name with "@"',
+        print_statement = ['Checking views name with "@"',
                            'Checking views name with "/"',
                            'Checking views name with "שלום"',
                            'Checking views name with "9999999999999999"']
@@ -999,9 +999,9 @@ class ViewsPage(NavigationBarPage):
             buffer_locator_id = "//input[@value='64']"
             error_locator_id = '//*[@id="row_newWriteBufferIdle"]/th[2]/p'
 
-            # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+            # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
             self.check_expected_error_messages_for_views(error_input,
-                                                         self.print_statement,
+                                                         print_statement,
                                                          error_message,
                                                          buffer_locator_id,
                                                          error_locator_id)
@@ -1044,7 +1044,7 @@ class ViewsPage(NavigationBarPage):
             self.print('TimeoutException occurred! \n')
             self.print('Info: Views has already been deleted or never created. \n')
         except Exception:
-            traceback.self.print_exc()
+            traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
 
     def delete_created_collection(self, col_name):
@@ -1080,7 +1080,7 @@ class ViewsPage(NavigationBarPage):
             self.print('TimeoutException occurred! \n')
             self.print(f'Info: {col_name} has already been deleted or never created. \n')
         except Exception:
-            traceback.self.print_exc()
+            traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
 
     def delete_views_310(self, name):
@@ -1130,7 +1130,7 @@ class ViewsPage(NavigationBarPage):
         except NoSuchElementException:
             self.print('Element not found, which might be happen due to force cleanup.')
         except Exception:
-            traceback.self.print_exc()
+            traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
     
     def delete_views_312(self, name):
@@ -1172,6 +1172,6 @@ class ViewsPage(NavigationBarPage):
             self.print("TimeoutException occurred! \n")
             self.print(f"Info: {name} has already been deleted or never created. \n")
         except Exception:
-            traceback.self.print_exc()
+            traceback.print_exc()
             raise Exception("Critical Error occurred and need manual inspection!! \n")
 

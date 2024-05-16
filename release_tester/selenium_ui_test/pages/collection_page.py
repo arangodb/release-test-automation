@@ -1389,7 +1389,7 @@ class CollectionPage(NavigationBarPage):
                 # If successful, break out of the loop
                 break
             except Exception as e:
-                # If an error occurs, self.print the error message
+                # If an error occurs, print the error message
                 self.print(f"Error occurred while selecting computed value column: {e}")
                 
                 # Increment retry count
@@ -1595,7 +1595,7 @@ class CollectionPage(NavigationBarPage):
         except NoSuchElementException:
             self.print('Element not found, which might be happen due to force cleanup.')
         except Exception as ex:
-            traceback.self.print_exc()
+            traceback.print_exc()
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
         self.webdriver.refresh()
         self.wait_for_ajax()

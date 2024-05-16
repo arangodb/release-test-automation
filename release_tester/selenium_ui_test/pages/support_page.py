@@ -41,7 +41,7 @@ class SupportPage(NavigationBarPage):
         title = self.switch_tab(click_on_link_id_sitem)  # this method will call switch tab and close tab
         return title
 
-    def loop_through_link_traversal(self, self.print_statement, link_list, assertion_list):
+    def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
         """this method will be loop through all the list links"""
         import time
 
@@ -62,7 +62,7 @@ class SupportPage(NavigationBarPage):
                     assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
                     break  # If successful, break out of the retry loop
                 except Exception as e:
-                    # If an error occurs, self.print the error message
+                    # If an error occurs, print the error message
                     self.print(f"Error occurred: {e}")
                     
                     # Increment retry count
@@ -86,7 +86,7 @@ class SupportPage(NavigationBarPage):
         click_on_btn = self.locator_finder_by_xpath(click_on_btn)
         click_on_btn.click()
 
-    def loop_through_btn_traversal(self, self.print_statement, btn_list):
+    def loop_through_btn_traversal(self, print_statement, btn_list):
         """this method will be loop through all the list buttons"""
         i = 0
         while i < len(btn_list):
@@ -109,7 +109,7 @@ class SupportPage(NavigationBarPage):
         graphs = '//*[@id="documentation"]/div/div[2]/ul/li[5]/a'
         go_to_manual_start_page = '//*[@id="documentation"]/div/div[2]/ul/li[6]/a'
 
-        manual_link_list_self.print_statement = [
+        manual_link_list_print_statement = [
             "Checking Getting started link \n",
             "Checking Data models & modeling link \n",
             "Checking Administration link \n",
@@ -143,7 +143,7 @@ class SupportPage(NavigationBarPage):
                                            'Introduction to ArangoDB Documentation | ArangoDB Documentation']
 
         self.loop_through_link_traversal(
-            manual_link_list_self.print_statement, manual_link_list, manual_link_assertion_check
+            manual_link_list_print_statement, manual_link_list, manual_link_assertion_check
         )
 
         self.print("Checking all arangodb manual link completed \n")
@@ -159,7 +159,7 @@ class SupportPage(NavigationBarPage):
         usual_query_patterns = '//*[@id="documentation"]/div/div[3]/ul/li[4]/a'
         go_to_aql_query_page = '//*[@id="documentation"]/div/div[3]/ul/li[5]/a'
 
-        aql_link_list_self.print_statement = [
+        aql_link_list_print_statement = [
             "Checking Fundamentals link \n",
             "Checking Data Queries link \n",
             "Checking Functions link \n",
@@ -181,7 +181,7 @@ class SupportPage(NavigationBarPage):
                                                 'AQL Query Patterns & Examples | ArangoDB Documentation',
                                                 'ArangoDB Query Language (AQL) Introduction | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(aql_link_list_self.print_statement, aql_link_list, fundamental_link_assertion_check)
+        self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list, fundamental_link_assertion_check)
 
         self.print("Checking all arangodb AQL Query Language link completed\n")
 
@@ -196,7 +196,7 @@ class SupportPage(NavigationBarPage):
         deployment = '//*[@id="documentation"]/div/div[4]/ul/li[4]/a'
         go_to_fox_start = '//*[@id="documentation"]/div/div[4]/ul/li[5]/a'
 
-        fox_framework_self.print_statement = [
+        fox_framework_print_statement = [
             "Checking Micro Service link \n",
             "Checking Guides link \n",
             "Checking Reference link \n",
@@ -219,7 +219,7 @@ class SupportPage(NavigationBarPage):
                                              'Deployment | Foxx Microservices | Manual | ArangoDB Documentation',
                                              'Foxx Microservices | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(fox_framework_self.print_statement, fox_framework_list, fox_framework_assertion_Check)
+        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
 
         self.print("Checking all arangodb Fox Framework link completed\n")
 
@@ -236,7 +236,7 @@ class SupportPage(NavigationBarPage):
             arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
             drivers_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
 
-            Official_self.print_statement = ['Checking ArangoDB Java Driver link \n',
+            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
                                         'Checking ArangoDB Go driver link \n',
                                         'Checking Go to ArangoDB Spring Data page link \n',
@@ -262,7 +262,7 @@ class SupportPage(NavigationBarPage):
             arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
             driver_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[7]/a'
 
-            Official_self.print_statement = ['Checking ArangoDB Java Driver link \n',
+            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
                                         'Checking ArangoDB-PHP link \n',
                                         'Checking ArangoDB Go Driver link \n',
@@ -282,7 +282,7 @@ class SupportPage(NavigationBarPage):
                                                   'Install Official Drivers, Integrations and Community Drivers | '
                                                   'ArangoDB Documentation']
 
-        self.loop_through_link_traversal(Official_self.print_statement, drivers_and_integration,
+        self.loop_through_link_traversal(Official_print_statement, drivers_and_integration,
                                          driver_integration_assertion_check)
 
         self.print('Checking all arangodb Drivers and Integration link completed\n')
@@ -310,7 +310,7 @@ class SupportPage(NavigationBarPage):
         google_groups = '//*[@id="community"]/div/div[7]/a'
         arangodb_contact_us = '//*[@id="community"]/div/div[8]/a'
 
-        support_tab_self.print_statement = [
+        support_tab_print_statement = [
             "Checking paying customer support link \n",
             "Checking Github issue report link \n",
             "Checking StackOverflow link \n",
@@ -350,7 +350,7 @@ class SupportPage(NavigationBarPage):
                                             "Redirecting to Google Groups",
                                             "Contact - ArangoDB"]
 
-        self.loop_through_link_traversal(support_tab_self.print_statement, support_list, support_link_assertion_check)
+        self.loop_through_link_traversal(support_tab_print_statement, support_list, support_link_assertion_check)
 
         self.print("Checking all Support tab link completed \n")
 
@@ -404,7 +404,7 @@ class SupportPage(NavigationBarPage):
             upload_remote_repository,
         ]
 
-        backup_restore_self.print_statement = [
+        backup_restore_print_statement = [
             "Checking create backup \n",
             "Checking create backup completed\n",
             "Checking delete backup button \n",
@@ -419,7 +419,7 @@ class SupportPage(NavigationBarPage):
             "Checking upload backup to remote repository button completed\n",
         ]
 
-        self.loop_through_btn_traversal(backup_restore_self.print_statement, backup_restore_list)
+        self.loop_through_btn_traversal(backup_restore_print_statement, backup_restore_list)
         # self.print('Checking Backup Restore option started\n')
 
         # switching back to default view

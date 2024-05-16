@@ -2210,7 +2210,7 @@ class AnalyzerPage(NavigationBarPage):
             if index == 0:
                 self.print(f"Expected error scenario for the {name} Started \n")
                 analyzer_name_error_input = ["", "@", "1", "שלום"]
-                analyzer_name_self.print_statement = [
+                analyzer_name_print_statement = [
                     f'Checking blank {name} with " "',
                     f'Checking {name} with symbol " @ "',
                     f'Checking numeric value for {name} " 1 "',
@@ -2223,10 +2223,10 @@ class AnalyzerPage(NavigationBarPage):
                     "Failure: Got unexpected server response: invalid characters in analyzer name 'שלום'",
                 ]
 
-                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_self.print_statement,
+                    analyzer_name_print_statement,
                     analyzer_name_error_message,
                     analyzer_name,
                     analyzer_name_error_id,
@@ -2242,7 +2242,7 @@ class AnalyzerPage(NavigationBarPage):
                 stem_sitem.send_keys(name)
 
                 analyzer_name_error_input = ["aaaaaaaaaa12"]
-                analyzer_name_self.print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
+                analyzer_name_print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
                     "arangosearch analyzer instance for name '_system::Stem_Analyzer' type "
@@ -2252,10 +2252,10 @@ class AnalyzerPage(NavigationBarPage):
 
                 # for stem analyzer locale placeholder
                 local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
-                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id, div_id)
+                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_self.print_statement,
+                    analyzer_name_print_statement,
                     analyzer_name_error_message,
                     local_placeholder,
                     analyzer_name_error_id,
@@ -2278,7 +2278,7 @@ class AnalyzerPage(NavigationBarPage):
                 max_ngram_length_sitem.send_keys("4")
 
                 analyzer_name_error_input = ["-1", "100000000000000000000000"]
-                analyzer_name_self.print_statement = [
+                analyzer_name_print_statement = [
                     f'Checking {name} with input "-1"',
                     f'Checking {name} with input "100000000000000000000000"',
                 ]
@@ -2299,10 +2299,10 @@ class AnalyzerPage(NavigationBarPage):
                 # min _ngram_length for initiate the test
                 min_ngram_length_id = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
 
-                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id, div_id)
+                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_self.print_statement,
+                    analyzer_name_print_statement,
                     analyzer_name_error_message,
                     min_ngram_length_id,
                     analyzer_name_error_id,
@@ -2334,7 +2334,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.print(f"Selecting greater number for batch size {name} \n")
 
                 analyzer_name_error_input = ["1001", "-1"]
-                analyzer_name_self.print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
+                analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
                     "arangosearch analyzer instance for name '_system::AQL_Analyzer' type "
@@ -2351,10 +2351,10 @@ class AnalyzerPage(NavigationBarPage):
                 # for AQL analyzer batch size placeholder
                 batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
 
-                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
+                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_self.print_statement,
+                    analyzer_name_print_statement,
                     analyzer_name_error_message,
                     batch_size,
                     analyzer_name_error_id,
@@ -2455,7 +2455,7 @@ class AnalyzerPage(NavigationBarPage):
             self.print('TimeoutException occurred! \n')
             self.print('Info: Analyzer has already been deleted or never created. \n')
         except Exception:
-            traceback.self.print_exc()
+            traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
     
 

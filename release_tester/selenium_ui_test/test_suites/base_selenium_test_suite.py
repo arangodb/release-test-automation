@@ -149,7 +149,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.truncate_browser_log()
 
     def progress(self, arg):
-        """state self.print todo"""
+        """state print todo"""
         self.print(arg)
 
     @collect_crash_data

@@ -449,7 +449,7 @@ class BasePage:
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(
-            self, error_input, self.print_statement, error_message, locators_id, error_message_id
+            self, error_input, print_statement, error_message, locators_id, error_message_id
         ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
@@ -499,7 +499,7 @@ class BasePage:
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_database(
-            self, error_input, self.print_statement, error_message, locators_id, error_message_id, value=False
+            self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
     ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         # value represent true because cluster rf and write concern has different wat to catch the error
@@ -552,7 +552,7 @@ class BasePage:
     
     def check_expected_error_messages_for_views(self,
                                                 error_input,
-                                                self.print_statement,
+                                                print_statement,
                                                 error_message,
                                                 locators_id,
                                                 error_message_id):
@@ -619,7 +619,7 @@ class BasePage:
         self.locator_finder_by_xpath(locator).click()
 
     def progress(self, arg):
-        """state self.print""" # todo
+        """state print""" # todo
         self.print(arg)
 
     def xpath(self, path):
