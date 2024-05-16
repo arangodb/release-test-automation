@@ -34,7 +34,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
 
             if col.version_is_newer_than("3.9.99"):
                 col.test_computed_values()
-            
+
             self.tprint("checking Search options\n")
             if col.version_is_newer_than("3.11.99"):
                 col.checking_search_options()
@@ -93,7 +93,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     self.webdriver.refresh()
                     self.tprint("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
                     self.tprint("Selecting size of the displayed\n")
-                    
+
                     col.select_collection_page()
 
                     col.select_collection("TestDoc")
@@ -139,7 +139,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
 
                 self.tprint("Create new index\n")
                 version = col.current_package_version()
-                
+
                 if col.version_is_newer_than("3.11.0"):
                     col.create_index('Persistent')
                     col.create_index('Geo')
@@ -149,12 +149,12 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     if version >= semver.VersionInfo.parse("3.11.99"):
                         col.create_index('MDI')
                 else:
-                    self.tprint("Cluster status: ", self.is_cluster)
+                    self.tprint(f"Cluster status: {self.is_cluster}")
                     col.create_new_index("Persistent", 1, self.is_cluster)
                     col.create_new_index("Geo", 2, self.is_cluster)
                     col.create_new_index("Fulltext", 3, self.is_cluster)
                     col.create_new_index("TTL", 4, self.is_cluster)
-                    
+
                 if col.version_is_older_than("3.10.99"):
                     if col.version_is_newer_than("3.9.99"):
                         col.create_new_index('ZKD', 5, self.is_cluster, True)
@@ -190,12 +190,12 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     col.select_truncate_btn()
                     self.webdriver.refresh()
             self.tprint("---------Checking Collection Completed--------- \n")
-            
+
         except BaseException:
-            self.tprint('x' * 45, "\nINFO: Error Occurred! Force cleanup started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force cleanup started\n{ 'x' * 45}")
             self.exception = True   # mark the exception as true
             self.error = traceback.format_exc()
-        
+
         finally:
             # these will clearup the resources even in failed test case scenario
             self.tprint("Collection deletion started \n")

@@ -57,7 +57,7 @@ class BasePage:
         """This method will be used for the basic driver setup"""
 
         # browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
-        # self.tprint(*browser_list, sep="\n")
+        # self.tprint(f"{str(*browser_list)} sep=\n")
         # cls.browser_name = None
 
         # while cls.browser_name not in {1, 2, 3, 4}:
@@ -263,7 +263,7 @@ class BasePage:
         self.locator.send_keys(Keys.CONTROL, Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
         title = self.webdriver.title
-        self.tprint("Current page title: ", title, "\n")
+        self.tprint(f"Current page title: {title}\n")
         time.sleep(15)
         self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
@@ -272,7 +272,7 @@ class BasePage:
     def check_version_is_newer(self, compare_version):
         """ check whether the version in the ui is the expected """
         ui_version_str = self.locator_finder_by_id("currentVersion").text
-        self.tprint("Package Version: ", ui_version_str)
+        self.tprint(f"Package Version: {str(ui_version_str)}")
         ui_version = semver.VersionInfo.parse(ui_version_str)
         compare_version = semver.VersionInfo.parse(compare_version)
         return ui_version >= compare_version
@@ -281,7 +281,7 @@ class BasePage:
         """ checking current package version from the dashboard"""
         package_version = "currentVersion"
         package_version = self.locator_finder_by_id(package_version).text
-        self.tprint("Package Version: ", package_version)
+        self.tprint(f"Package Version: {str(package_version)}")
         return semver.VersionInfo.parse(package_version)
     
     def version_is_newer_than(self, version_str):
@@ -383,7 +383,7 @@ class BasePage:
             EC.element_to_be_clickable((BY.LINK_TEXT, locator_name))
         )
         if self.locator is None:
-            self.tprint("UI-Test: ", locator_name, " locator has not found.")
+            self.tprint(f"UI-Test:  {locator_name} locator has not found.")
             return None
         else:
             return self.locator
@@ -408,7 +408,7 @@ class BasePage:
         self.select = Select(self.webdriver.find_element(BY.XPATH, locator_name))
         self.select.select_by_index(value)
         if self.select is None:
-            self.tprint("UI-Test: ", locator_name, " locator has not found.")
+            self.tprint(f"UI-Test: {locator_name} locator has not found.")
         return self.select
 
     def locator_finder_by_class(self, locator_name):
@@ -417,7 +417,7 @@ class BasePage:
             EC.element_to_be_clickable((BY.CLASS_NAME, locator_name))
         )
         if self.locator is None:
-            self.tprint(locator_name, " locator has not found.")
+            self.tprint(f"{locator_name} - locator has not found.")
         return self.locator
 
     def locator_finder_by_hover_item_id(self, locator):
@@ -459,7 +459,7 @@ class BasePage:
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
         # looping through all the error scenario for test
-        # self.tprint('len: ', len(name_error))
+        # self.tprint(f'len: {str(len(name_error))}')
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
             self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
@@ -484,7 +484,7 @@ class BasePage:
             try:
                 # placeholder's error message id
                 error_sitem = BasePage.locator_finder_by_xpath(error_message_id).text
-                self.tprint("Expected error found: ", error_sitem, "\n")
+                self.tprint(f"Expected error found: {error_sitem}\n")
                 time.sleep(2)
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 # error_message list will hold expected error messages
@@ -493,8 +493,8 @@ class BasePage:
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 self.tprint("x" * (len(error_sitem) + 29))
-                self.tprint("OK: Expected error found: ", error_sitem)
-                self.tprint("x" * (len(error_sitem) + 29), "\n")
+                self.tprint(f"OK: Expected error found: {error_sitem}")
+                self.tprint("x" * (len(error_sitem) + 29) + "\n")
                 time.sleep(2)
 
             except TimeoutException as ex:
@@ -540,8 +540,8 @@ class BasePage:
                 ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 self.tprint("x" * (len(error_sitem) + 29))
-                self.tprint("OK: Expected error found: ", error_sitem)
-                self.tprint("x" * (len(error_sitem) + 29), "\n")
+                self.tprint(f"OK: Expected error found: {error_sitem}")
+                self.tprint("x" * (len(error_sitem) + 29) + "\n")
                 time.sleep(2)
 
                 # getting out from the db creation for the next check
@@ -585,8 +585,8 @@ class BasePage:
                     f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
                 self.tprint('x' * (len(error_sitem) + 29))
-                self.tprint('OK: Expected error found: ', error_sitem)
-                self.tprint('x' * (len(error_sitem) + 29), '\n')
+                self.tprint(f'OK: Expected error found: {error_sitem}')
+                self.tprint('x' * (len(error_sitem) + 29) +'\n')
                 time.sleep(2)
 
             except TimeoutException as ex:

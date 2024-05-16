@@ -19,7 +19,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
 
         assert analyzers.current_user() == "ROOT", "current user is root?"
         assert analyzers.current_database() == "_SYSTEM", "current database is _system?"
-        
+
         self.exception = False
         self.error = None
         self.package_version = analyzers.current_package_version()
@@ -33,7 +33,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
 
                 if self.package_version < semver.VersionInfo.parse("3.11.0"):
                     self.tprint('Checking all built-in analyzers\n')
-                    analyzers.checking_all_built_in_analyzer() 
+                    analyzers.checking_all_built_in_analyzer()
 
                 self.tprint('Creating all supported analyzers\n')
                 analyzers.creating_all_supported_analyzer(self.is_enterprise, self.ui_data_dir)
@@ -47,7 +47,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 self.tprint("Analyzer test is not available version below 3.9.0 \n")
 
         except BaseException:
-            self.tprint('x' * 45, "\nINFO: Error Occurred! Force Deletion Started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")
             self.exception = True  # mark the exception status as true
             self.error = traceback.format_exc()
 

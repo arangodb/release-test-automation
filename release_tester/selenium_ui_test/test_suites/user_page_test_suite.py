@@ -65,7 +65,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                 # else:
                 login.login_webif("tester", "tester")
                 self.tprint(
-                    "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+                    f"Re-Login begins with new user completed: {login.current_user()} {login.current_database()}")
                 )
 
                 self.tprint("trying to create collection")
@@ -79,7 +79,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                 user.log_out()
                 # login back with root user
                 login.login_webif("root", self.root_passvoid)
-                self.tprint("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
+                self.tprint(f"Re-Login root user completed: {login.current_user()} / { login.current_database()}")
 
                 user.user_tab()
                 user.selecting_user_tester()
@@ -94,7 +94,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                 # else:
                 login.login_webif("tester", "tester")
                 self.tprint(
-                    "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+                    f"Re-Login begins with new user completed: {login.current_user()} = {login.current_database()}")
                 )
                 self.tprint("trying to create collection")
                 collection_page.navbar_goto("collections")
@@ -103,9 +103,9 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                 # collection_page.create_sample_collection("read/write")
                 # collection_page.select_delete_collection()
                 self.tprint("Allow user Read/Write access to the _system DB test Completed \n")
-            
+
         except BaseException:
-            self.tprint('x' * 45, "\nINFO: Error Occurred! Force cleanup started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force cleanup started\n{ 'x' * 45}")
             self.exception = True   # mark the exception as true
             self.error = traceback.format_exc()
         finally:
@@ -113,7 +113,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             self.webdriver.refresh()
             user.log_out()
             login.login_webif("root", self.root_passvoid)
-            self.tprint("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
+            self.tprint(f"Re-Login root user completed:  {login.current_user()} = {login.current_database()}")
 
             self.webdriver.refresh()
             user.user_tab()
@@ -122,14 +122,12 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             user.delete_user_btn()
             user.confirm_delete_btn()
             collection_page.delete_collection("TestDoc", user.test_doc_collection_id, self.is_cluster)
-            
+
             self.tprint("Deleting created user completed \n")
             self.tprint("---------User Test Completed---------\n")
-        
+
         if version_312:
             self.tprint("skipped")
         else:
             assert login.current_user() == "ROOT", "current user is root?"
             assert login.current_database() == "_SYSTEM", "current database is _system?"
-            
-            

@@ -131,7 +131,7 @@ class DatabasePage(NavigationBarPage):
             time.sleep(5)
 
             db_opt = self.select_db_opt_id_sitem
-            self.tprint("Database checked and found: ", db_name, "\n")
+            self.tprint("Database checked and found: {db_name}\n")
             time.sleep(4)
 
             if db_name == "Sharded":

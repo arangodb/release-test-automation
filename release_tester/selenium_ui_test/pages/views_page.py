@@ -559,7 +559,7 @@ class ViewsPage(NavigationBarPage):
             self.tprint(f'Checking successful creation of the {name} \n')
             success_message = 'noty_body'
             success_message_sitem = self.locator_finder_by_class(success_message).text
-            self.tprint('Notification: ', success_message_sitem, '\n')
+            self.tprint(f'Notification: {success_message_sitem}\n')
             if ex_msg is None:
                 expected_msg = f"Success: Updated View: {name}"
             else:

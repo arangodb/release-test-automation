@@ -291,7 +291,7 @@ class AnalyzerPage(NavigationBarPage):
             analyzer_type_sitem.click()
             time.sleep(2)
             # this will simulate down arrow key according to its index position
-            self.tprint("Analyzer's position on the list: ", index)
+            self.tprint(f"Analyzer's position on the list: {index}")
             for _ in range(index):
                 self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ENTER)
@@ -1114,12 +1114,12 @@ class AnalyzerPage(NavigationBarPage):
             if self.version_is_newer_than('3.11.99'):
                 success_message = "/html/body/div[10]/ul[5]/li/div/div/div/div"
                 success_message_sitem = self.locator_finder_by_xpath(success_message).text
-                self.tprint("Notification: ", success_message_sitem, "\n")
+                self.tprint(f"Notification: {success_message_sitem}\n")
                 expected_msg = f"The analyzer: {name} was successfully created"
             else:
                 success_message = "noty_body"
                 success_message_sitem = self.locator_finder_by_class(success_message).text
-                self.tprint("Notification: ", success_message_sitem, "\n")
+                self.tprint(f"Notification: {success_message_sitem}\n")
                 expected_msg = f"Success: Created Analyzer: _system::{name}"
 
             assert expected_msg == success_message_sitem, f"Expected {expected_msg} but got {success_message_sitem}"
@@ -1184,8 +1184,8 @@ class AnalyzerPage(NavigationBarPage):
 
         #         # Assert that the copied text matches the expected text
         #         if actual_properties != expected_properties:
-        #             self.tprint("Actual properties: ", actual_properties)
-        #             self.tprint("Expected properties: ", expected_properties)
+        #             self.tprint(f"Actual properties: {actual_properties}")
+        #             self.tprint(f"Expected properties:{expected_properties}")
         #             raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
         #         else:
         #             self.tprint(f"Properties are equal for the '{name}' analyzer.\n")
@@ -1260,8 +1260,8 @@ class AnalyzerPage(NavigationBarPage):
         #             else:
         #                 # Assert that the copied text matches the expected text
         #                 if query_actual_output != ''.join(str(query_expected_output).split()):
-        #                     self.tprint("query_actual_output: ", query_actual_output)
-        #                     self.tprint("query_expected_output: ", query_expected_output)
+        #                     self.tprint(f"query_actual_output: {query_actual_output}")
+        #                     self.tprint(f"query_expected_output: {query_expected_output}")
         #                     raise Exception(f"Actual query output didn't matches the expected query output for {name}\n")
         #                 else:
         #                     self.tprint(f"Actual query output matches the expected query output for {name}\n")

@@ -53,7 +53,7 @@ class CollectionPage(NavigationBarPage):
             self.select_doc_collection_id = "(//a[normalize-space()='TestDoc'])[1]"
         else:
             self.select_doc_collection_id = '//*[@id="collection_TestDoc"]/div/h5'
-        
+
         self.select_upload_btn_id = "/html//a[@id='importCollection']"
 
         self.select_choose_file_btn_id = "/html//input[@id='importDocuments']"
@@ -106,7 +106,7 @@ class CollectionPage(NavigationBarPage):
 
         self.select_schema_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[5]/a"
 
-        
+
         self.select_settings_name_textbox_id = '//*[@id="change-collection-name"]'
         self.select_settings_wait_type_id = "change-collection-sync"
         self.select_newer_settings_save_btn_id = "modalButton4"
@@ -201,7 +201,7 @@ class CollectionPage(NavigationBarPage):
         create_new_collection_btn_sitem = self.locator_finder_by_id(self.create_new_collection_btn_id)
         create_new_collection_btn_sitem.click()
         time.sleep(3)
-    
+
     def create_new_collections(self, name, doc_type, is_cluster):
         """This method will create new collection based on their name and type"""
         self.tprint('selecting collection tab \n')
@@ -215,7 +215,7 @@ class CollectionPage(NavigationBarPage):
         else:
             select_create_collection_id = "createCollection"
             select_create_collection_sitem = self.locator_finder_by_id(select_create_collection_id)
-        
+
         select_create_collection_sitem.click()
         time.sleep(1)
 
@@ -224,7 +224,7 @@ class CollectionPage(NavigationBarPage):
             select_new_collection_name_sitem = self.locator_finder_by_id("name")
         else:
             select_new_collection_name_sitem = self.locator_finder_by_id("new-collection-name")
-        
+
         select_new_collection_name_sitem.click()
         select_new_collection_name_sitem.send_keys(name)
         time.sleep(1)
@@ -482,7 +482,7 @@ class CollectionPage(NavigationBarPage):
 
     def sort_by_name(self):
         """Sorting collection by name"""
-   
+
         if self.current_package_version() == semver.VersionInfo.parse("3.8.0"):
             name = '//*[@id="collectionsDropdown"]/ul[3]/li[2]/a/label'
             sort_by_name_sitem = self.locator_finder_by_xpath(name)
@@ -668,13 +668,13 @@ class CollectionPage(NavigationBarPage):
         actions.move_to_element(element)
         # Perform a click action
         actions.click().perform()
-    
+
     # def select_testdoc_collection(self):
     #     self.tprint('Selecting TestDoc Collection \n')
     #     select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
     #     select_doc_collection_sitem.click()
     #     time.sleep(1)
-    
+
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         self.webdriver.maximize_window()
@@ -1016,7 +1016,7 @@ class CollectionPage(NavigationBarPage):
                 self.create_index('ZKD')
             finally:
                 pass
-    
+
         # create the index
         create_btn = "//*[text()='Create']"
         create_btn_sitem = self.locator_finder_by_xpath(create_btn)
@@ -1194,32 +1194,32 @@ class CollectionPage(NavigationBarPage):
             select_index_confirm_delete_sitem.click()
             self.webdriver.refresh()
         except TimeoutException as e:
-            self.tprint('Something went wrong', e, '\n')
+            self.tprint(f'Something went wrong {e}\n')
         self.webdriver.set_window_size(1600, 900)
-    
+
     def delete_index_312(self, index):
         """this method will delete all the indexes one by one for >= 3.12.0"""
         self.webdriver.maximize_window()
         try:
             self.webdriver.refresh()
             self.wait_for_ajax()
-            
+
             if self.current_package_version() > semver.VersionInfo.parse("3.11.99"):
                 delete = "//button[@aria-label='Delete Index'][1]"
             else:
                 delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
-            
+
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
             time.sleep(1)
             self.wait_for_ajax()
-            
+
             delete_confirmation = "(//button[normalize-space()='Delete'])[1]"
             delete_confirmation_sitem = self.locator_finder_by_xpath(delete_confirmation)
             delete_confirmation_sitem.click()
             time.sleep(1)
             self.wait_for_ajax()
-            
+
             delete_final_confirmation = "(//button[@class='chakra-button css-flye6g'])[1]"
             delete_final_confirmation_sitem = self.locator_finder_by_xpath(delete_final_confirmation)
             delete_final_confirmation_sitem.click()
@@ -1241,7 +1241,7 @@ class CollectionPage(NavigationBarPage):
                 delete_confirmation_sitem.click()
 
             except BaseException as e:
-                self.tprint('Something went wrong', e, '\n')
+                self.tprint(f'Something went wrong {e}\n')
                 self.navbar_goto
         self.webdriver.set_window_size(1600, 900)
 
@@ -1292,7 +1292,7 @@ class CollectionPage(NavigationBarPage):
             select_load_index_into_memory_sitem.click()
             time.sleep(2)
         self.wait_for_ajax()
-    
+
     def ace_set_value(self, locator, query, check=False):
         """take a string and adjacent locator argument of ace-editor and execute the query"""
         # to unify ace_locator class attribute has been used
@@ -1328,7 +1328,7 @@ class CollectionPage(NavigationBarPage):
         col = "//*[text()='ComputedValueCol']"
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
-    
+
     def navigate_to_col_content_tab(self):
         """ this method will take to collection content tab"""
         content = "//div[@id='subNavigationBar']/ul[2]//a[.='Content']"
@@ -1382,23 +1382,23 @@ class CollectionPage(NavigationBarPage):
                 # Navigate to collections page
                 self.navbar_goto("collections")
                 self.wait_for_ajax()
-                
+
                 # Attempt to select computed value column
                 self.select_computedValueCol()
-                
+
                 # If successful, break out of the loop
                 break
             except Exception as e:
                 # If an error occurs, print the error message
                 self.tprint(f"Error occurred while selecting computed value column: {e}")
-                
+
                 # Increment retry count
                 retry_count += 1
-                
+
                 # If maximum retries reached, raise an error
                 if retry_count == max_retries:
                     raise RuntimeError("Failed to select computed value column after multiple retries")
-                
+
                 # Wait for a few seconds before retrying
                 time.sleep(3)
 
@@ -1523,7 +1523,7 @@ class CollectionPage(NavigationBarPage):
             select_test_doc_collection_sitem.click()
             time.sleep(1)
         except BaseException as e:
-            self.tprint('trying again in case of found statle element', e, '\n')
+            self.tprint(f'trying again in case of found statle element {e}\n')
             self.webdriver.refresh()
             self.select_doc_collection()
 
@@ -1580,7 +1580,7 @@ class CollectionPage(NavigationBarPage):
                 collection_locator = "(//a[normalize-space()='TestDocRenamed'])[1]"
             elif collection_name == "ComputedValueCol":
                 collection_locator = "(//a[normalize-space()='ComputedValueCol'])[1]"
-        
+
         try:
             self.locator_finder_by_xpath(collection_locator).click()
             # we don't care about the cluster specific things:

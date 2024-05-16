@@ -30,7 +30,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
 
             # creating v3.9.x and v3.10.x for improved views
             if views.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
-                
+
                 # creating v3.11.3 and v3.12.x improved view for the new UI
                 if views.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                     views.create_improved_views_311(
@@ -43,7 +43,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                     #         "search_alias", "search-alias", 0
                     #     )
                     self.tprint("Creating improved views completed \n")
-                
+
                 # Creating improved views for v3.9.x and v3.10.x
                 if (
                     semver.VersionInfo.parse("3.9.100")
@@ -52,7 +52,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 ):
                     views.create_improved_views("improved_arangosearch_view_01", 0)
                     views.create_improved_views("improved_arangosearch_view_02", 1)
-                
+
                 # Checking improved views for v3.10.x
                 if semver.VersionInfo.parse("3.9.100") < views.current_package_version() < semver.VersionInfo.parse("3.10.100"):
                     views.checking_improved_views_for_v310(
@@ -60,7 +60,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                         views.select_improved_arangosearch_view_01,
                         self.is_cluster
                     )
-                
+
                 # Checking improved views for v3.9.x
                 if (
                     semver.VersionInfo.parse("3.8.100")
@@ -132,7 +132,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                     views.checking_views_negative_scenario_for_views()
 
         except BaseException:
-            self.tprint('x' * 45, "\nINFO: Error Occurred! Force Deletion Started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")
             self.exception = True  # mark the exception as true
             self.error = traceback.format_exc()
 

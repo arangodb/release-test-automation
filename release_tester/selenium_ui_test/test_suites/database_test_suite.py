@@ -51,7 +51,7 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
                 assert user.current_database() == "_SYSTEM", "current database is _system?"
 
         except BaseException:
-            self.tprint('x' * 45, "\nINFO: Error Occurred! Force Deletion Started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")
             self.exception = True  # mark the exception as true
             self.error = traceback.format_exc()
 

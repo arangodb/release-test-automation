@@ -90,7 +90,7 @@ class LoginPage(BasePage):
     
     def login_webif(self, user, passvoid, database="_system", recurse=0):
         """log into an arangodb webinterface"""
-        self.tprint("Logging %s into %s with passvoid %s" % (user, database, passvoid))
+        self.tprint(f"Logging {user} into {database} with passvoid {passvoid}")
         if recurse > 10:
             raise Exception("UI-Test: 10 successless login attempts")
         self._login_wait_for_screen()

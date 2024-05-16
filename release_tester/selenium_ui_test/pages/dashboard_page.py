@@ -31,7 +31,7 @@ class DashboardPage(NavigationBarPage):
     def check_server_package_name(self):
         """checking server package version name"""
         check_server_package_name_sitem = self.locator_finder_by_id(self.check_server_package_name_id)
-        self.tprint("Server Package: ", check_server_package_name_sitem.text)
+        self.tprint(f"Server Package: {check_server_package_name_sitem.text}")
         time.sleep(1)
 
     def check_current_package_version(self):
@@ -41,24 +41,24 @@ class DashboardPage(NavigationBarPage):
     def check_current_username(self):
         """checking current username from the dashboard"""
         check_current_username_sitem = self.locator_finder_by_xpath(self.check_current_username_id)
-        self.tprint("Current User: ", check_current_username_sitem.text)
+        self.tprint(f"Current User: {check_current_username_sitem.text}")
         time.sleep(1)
 
     def check_current_db(self):
         """checking current database name from the dashboard"""
         check_current_db_sitem = self.locator_finder_by_xpath(self.check_current_db_id)
-        self.tprint("Current DB: ", check_current_db_sitem.text)
+        self.tprint(f"Current DB: {check_current_db_sitem.text}")
         time.sleep(1)
 
     def check_db_status(self, cluster):
         """checking current database status from the dashboard"""
         if cluster:
             status = self.locator_finder_by_xpath(self.check_cluster_status_id)
-            self.tprint("Cluster Health: ", status.text)
+            self.tprint(f"Cluster Health: {status.text}")
             
         else:
             status = self.locator_finder_by_xpath(self.check_db_status_id)
-            self.tprint("Current Status: ", status.text)
+            self.tprint(f"Current Status: {status.text}")
         
         if cluster:
             assert (
@@ -76,13 +76,13 @@ class DashboardPage(NavigationBarPage):
     def check_db_engine(self):
         """checking current database status from the dashboard"""
         check_db_engine_sitem = self.locator_finder_by_id(self.check_db_engine_id)
-        self.tprint("Current Engine: ", check_db_engine_sitem.text)
+        self.tprint(f"Current Engine: {check_db_engine_sitem.text}")
         time.sleep(1)
 
     def check_db_uptime(self):
         """checking current database uptime status from the dashboard"""
         check_db_uptime_sitem = self.locator_finder_by_xpath(self.check_db_uptime_id)
-        self.tprint("DB Uptime: ", check_db_uptime_sitem.text)
+        self.tprint(f"DB Uptime: {check_db_uptime_sitem.text}")
         time.sleep(1)
 
     def check_responsiveness_for_dashboard(self):

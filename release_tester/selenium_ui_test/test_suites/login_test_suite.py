@@ -11,7 +11,7 @@ class LogInTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_login(self):
         """testing login page"""
-        self.tprint("Starting ", self.webdriver.title, "\n")
+        self.tprint("Starting {self.webdriver.title}\n")
         login_page = LoginPage(self.webdriver, self.cfg, self.video_start_time)
         assert login_page.current_user() == "ROOT", "current user is root?"
         assert login_page.current_database() == "_SYSTEM", "current database is _system?"
