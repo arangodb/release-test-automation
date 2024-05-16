@@ -50,13 +50,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def tprint(self, string):
         """ print including timestamp relative to video start """
-        print('xxx')
-        try:
-            print(string)
-            print(f" {str(datetime.now() - self.video_start_time)} - {string}")
-        except Exception as ex:
-            print('yyyy?')
-            print(ex)
+        print(f" {str(datetime.now() - self.video_start_time)} - {string}")
 
     def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(
