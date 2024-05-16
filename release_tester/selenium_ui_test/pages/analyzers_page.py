@@ -26,7 +26,7 @@ class AnalyzerPage(NavigationBarPage):
     def select_analyzers_page(self):
         """Selecting analyzers page"""
         self.webdriver.refresh()
-        print("Selecting Analyzers page \n")
+        self.print("Selecting Analyzers page \n")
         analyzer = self.analyzers_page
         analyzer_sitem = self.locator_finder_by_id(analyzer)
         analyzer_sitem.click()
@@ -35,10 +35,10 @@ class AnalyzerPage(NavigationBarPage):
     def select_help_filter_btn(self):
         """Selecting help button"""
         if self.version_is_newer_than('3.11.99'):
-            print("select_help_filter_btn test skipped \n")
+            self.print("select_help_filter_btn test skipped \n")
         else:
             self.webdriver.refresh()
-            print("Selecting Analyzers help filter button \n")
+            self.print("Selecting Analyzers help filter button \n")
             help_filter = "//a[@href='#analyzers']//i[@class='fa fa-question-circle']"
             help_sitem = self.locator_finder_by_xpath(help_filter)
             help_sitem.click()
@@ -72,9 +72,9 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_analyzer_to_check(self, analyzer_name, locators):
         """Checking in-built analyzers one by one"""
-        print(f"Checking {analyzer_name} analyzer\n")
+        self.print(f"Checking {analyzer_name} analyzer\n")
 
-        print('Selecting analyzer from the in-built analyzers list \n')
+        self.print('Selecting analyzer from the in-built analyzers list \n')
         self.locator_finder_by_xpath(locators).click()
         time.sleep(2)
 
@@ -95,7 +95,7 @@ class AnalyzerPage(NavigationBarPage):
                                switch_view_template_str('text_zh')]
 
         # assigning all the switch view locators for finding the element
-        print('Switch to Code view \n')
+        self.print('Switch to Code view \n')
         if analyzer_name == "identity":
             switch_view = switch_view_id_list[0]
         elif analyzer_name == "text_de":
@@ -126,7 +126,7 @@ class AnalyzerPage(NavigationBarPage):
         self.locator_finder_by_xpath(switch_view).click()
         time.sleep(2)
 
-        print('Closing the analyzer \n')
+        self.print('Closing the analyzer \n')
         close_sitem = self.locator_finder_by_xpath(self.close_analyzer_btn)
         close_sitem.click()
         time.sleep(2)
@@ -145,7 +145,7 @@ class AnalyzerPage(NavigationBarPage):
         """
 
         if self.version_is_newer_than('3.11.99'):
-            print("checking_analyzer_page_transition test skipped \n")
+            self.print("checking_analyzer_page_transition test skipped \n")
         else:
             self.navbar_goto("analyzers")
             self.navbar_goto("collections")
@@ -166,7 +166,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(1)
 
             # trying to add new analyzer to confirm that we are still in analyzer page and not in collection page
-            print("Selecting add new analyzer button \n")
+            self.print("Selecting add new analyzer button \n")
             add_analyzer = self.add_new_analyzer_btn
             add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
             add_analyzer_sitem.click()
@@ -200,17 +200,17 @@ class AnalyzerPage(NavigationBarPage):
         ]
         
         if self.version_is_newer_than('3.11.99'):
-            print("select_help_filter_btn test skipped \n")
+            self.print("select_help_filter_btn test skipped \n")
         else:
-            print('Showing in-built Analyzers list \n')
+            self.print('Showing in-built Analyzers list \n')
             self.select_built_in_analyzers_open()
             
             for analyzer in built_in_analyzers:
-                print(f'Checking in-built {analyzer} analyzer \n')
+                self.print(f'Checking in-built {analyzer} analyzer \n')
                 xpath = f'//tr/td[text()="{analyzer}"]/following-sibling::td[2]/button'
                 self.select_analyzer_to_check(analyzer, xpath)
             
-            print('Hiding in-built Analyzers list \n')
+            self.print('Hiding in-built Analyzers list \n')
             self.select_built_in_analyzers_close()
 
     def get_analyzer_index(self, name):
@@ -243,7 +243,7 @@ class AnalyzerPage(NavigationBarPage):
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
         index = self.get_analyzer_index(name)
         if index == -1:
-            print(f"Analyzer '{name}' not found in the lookup table.")
+            self.print(f"Analyzer '{name}' not found in the lookup table.")
             return
         
         self.select_analyzers_page()
@@ -258,7 +258,7 @@ class AnalyzerPage(NavigationBarPage):
         add_analyzer_sitem.click()
         time.sleep(2)
 
-        print(f'Creating {name} started \n')
+        self.print(f'Creating {name} started \n')
         # common attributes for all the analyzer
         if self.version_is_newer_than('3.11.99'):
             analyzer_name = "(//input[@id='name'])[1]"
@@ -285,13 +285,13 @@ class AnalyzerPage(NavigationBarPage):
         analyzer_name_sitem.send_keys(name)
         time.sleep(2)
 
-        print('Selecting analyzer type \n')
+        self.print('Selecting analyzer type \n')
         if self.version_is_newer_than('3.11.99'):
             analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
             analyzer_type_sitem.click()
             time.sleep(2)
             # this will simulate down arrow key according to its index position
-            print("Analyzer's position on the list: ", index)
+            self.print("Analyzer's position on the list: ", index)
             for _ in range(index):
                 self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ENTER)
@@ -300,23 +300,23 @@ class AnalyzerPage(NavigationBarPage):
             self.locator_finder_by_select_using_xpath(analyzer_type, index)
             time.sleep(2)
 
-        print(f"selecting frequency for {name} \n")
+        self.print(f"selecting frequency for {name} \n")
         frequency_sitem = self.locator_finder_by_xpath(frequency)
         frequency_sitem.click()
         time.sleep(2)
 
-        print(f"selecting norm for {name}\n")
+        self.print(f"selecting norm for {name}\n")
         norm_sitem = self.locator_finder_by_xpath(norm)
         norm_sitem.click()
         time.sleep(2)
 
-        print(f"selecting position for {name} \n")
+        self.print(f"selecting position for {name} \n")
         position_sitem = self.locator_finder_by_xpath(position)
         position_sitem.click()
         time.sleep(2)
 
         # ------------------ here all the different configuration would be given----------------------
-        print(f"selecting value for the placeholder for {name} \n")
+        self.print(f"selecting value for the placeholder for {name} \n")
         # for delimiter
         if name == "My_Delimiter_Analyzer":
             delimiter = '//div[label[text()="Delimiter (characters to split on)"]]//input[not(@disabled)]'
@@ -340,7 +340,7 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.clear()
             locale_sitem.send_keys(value)
 
-            print('Selecting case for norm analyzer using index value \n')
+            self.print('Selecting case for norm analyzer using index value \n')
             if self.version_is_newer_than('3.11.99'):
                 case_sitem = self.locator_finder_by_xpath(case_placeholder)
                 case_sitem.click()
@@ -351,9 +351,9 @@ class AnalyzerPage(NavigationBarPage):
             else:
                 self.locator_finder_by_select_using_xpath(case_placeholder, 0)
 
-            print('Selecting accent for norm analyzer \n')
+            self.print('Selecting accent for norm analyzer \n')
             if self.version_is_newer_than('3.11.99'):
-                print("Accent properties skipped \n")
+                self.print("Accent properties skipped \n")
                 # accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
             else:
                 accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
@@ -363,7 +363,7 @@ class AnalyzerPage(NavigationBarPage):
 
         # for N-Gram
         elif name == "My_N-Gram_Analyzer":
-            print(f'Adding minimum n-gram length for {name} \n')
+            self.print(f'Adding minimum n-gram length for {name} \n')
             min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
             min_length_sitem = self.locator_finder_by_xpath(min_length)
             min_length_sitem.click()
@@ -374,7 +374,7 @@ class AnalyzerPage(NavigationBarPage):
             min_length_sitem.send_keys('3')
             time.sleep(2)
 
-            print(f'Adding maximum n-gram length for {name} \n')
+            self.print(f'Adding maximum n-gram length for {name} \n')
             max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
             max_length_sitem = self.locator_finder_by_xpath(max_length)
             max_length_sitem.click()
@@ -385,7 +385,7 @@ class AnalyzerPage(NavigationBarPage):
             max_length_sitem.send_keys('3')
             time.sleep(2)
 
-            print(f'Preserve original value for {name}\n')
+            self.print(f'Preserve original value for {name}\n')
             if self.version_is_newer_than('3.11.99'):
                 preserve = "(//span[@class='chakra-switch__thumb css-7roig'])[5]"
             else:
@@ -395,7 +395,7 @@ class AnalyzerPage(NavigationBarPage):
             preserve_sitem.click()
             time.sleep(2)
 
-            print(f'Start marker value {name}\n')
+            self.print(f'Start marker value {name}\n')
             start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
             start_marker_sitem = self.locator_finder_by_xpath(start_marker)
             start_marker_sitem.click()
@@ -403,7 +403,7 @@ class AnalyzerPage(NavigationBarPage):
             start_marker_sitem.send_keys('^')
             time.sleep(2)
 
-            print(f'End marker value for {name} \n')
+            self.print(f'End marker value for {name} \n')
             end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
             end_marker_sitem = self.locator_finder_by_xpath(end_marker)
             end_marker_sitem.click()
@@ -411,7 +411,7 @@ class AnalyzerPage(NavigationBarPage):
             end_marker_sitem.send_keys('$')
             time.sleep(2)
 
-            print(f'Stream type selection using index value for {name}\n')
+            self.print(f'Stream type selection using index value for {name}\n')
             if self.version_is_newer_than('3.11.99'):
                 stream_type = "(//label[normalize-space()='Stream Type'])[1]"
                 stream_type_sitem = self.locator_finder_by_xpath(stream_type)
@@ -433,16 +433,16 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             # need to properly define the path of the stopwords
-            # print('Selecting path for stopwords \n')
+            # self.print('Selecting path for stopwords \n')
             # stopwords_path = '//div[label[text()="Stopwords Path"]]//input[not(@disabled)]'
             # stopwords_path_sitem = BaseSelenium.locator_finder_by_xpath(stopwords_path)
             # stopwords_path_sitem.click()
             # stopwords_path_sitem.clear()
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
-            print(f'Selecting stopwords for the {name} \n')
+            self.print(f'Selecting stopwords for the {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                print("skipped! \n")
+                self.print("skipped! \n")
             else:
                 stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
                 stopwords_sitem = self.locator_finder_by_xpath(stopwords)
@@ -457,7 +457,7 @@ class AnalyzerPage(NavigationBarPage):
                 stopwords_sitem.send_keys(Keys.ENTER)
                 stopwords_sitem.send_keys('the')
 
-            print(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
+            self.print(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 case = "(//label[normalize-space()='Case'])[1]"
                 case_sitem = self.locator_finder_by_xpath(case)
@@ -467,7 +467,7 @@ class AnalyzerPage(NavigationBarPage):
             else:
                 self.locator_finder_by_select_using_xpath(case_placeholder, 1)
 
-            print('Selecting stem for the analyzer \n')
+            self.print('Selecting stem for the analyzer \n')
             if self.version_is_newer_than('3.11.99'):
                 stem = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[5]/div/div/label[2]/span/span'
             else:
@@ -476,7 +476,7 @@ class AnalyzerPage(NavigationBarPage):
             stem_sitem.click()
             time.sleep(2)
 
-            print('Selecting accent for the analyzer \n')
+            self.print('Selecting accent for the analyzer \n')
             if self.version_is_newer_than('3.11.99'):
                 accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[6]/div/div/label[2]/span/span'
             else:
@@ -485,21 +485,21 @@ class AnalyzerPage(NavigationBarPage):
             accent_sitem.click()
             time.sleep(2)
 
-            print(f'Selecting minimum N-Gram length for {name} \n')
+            self.print(f'Selecting minimum N-Gram length for {name} \n')
             ngram_length_min = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
             ngram_length_min_sitem = self.locator_finder_by_xpath(ngram_length_min)
             ngram_length_min_sitem.click()
             ngram_length_min_sitem.send_keys('3')
             time.sleep(2)
 
-            print(f'Selecting maximum N-Gram length for {name} \n')
+            self.print(f'Selecting maximum N-Gram length for {name} \n')
             ngram_length_max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
             ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
             ngram_length_max_length_sitem.click()
             ngram_length_max_length_sitem.send_keys('8')
             time.sleep(2)
 
-            print(f'Selecting preserve original for {name} \n')
+            self.print(f'Selecting preserve original for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 preserve = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[9]/div/div/label[2]/span/span'
             else:
@@ -507,19 +507,19 @@ class AnalyzerPage(NavigationBarPage):
             preserve_sitem = self.locator_finder_by_xpath(preserve)
             preserve_sitem.click()
             if self.version_is_newer_than('3.11.99'):
-                print("skipped")
+                self.print("skipped")
             else:
                 preserve_sitem.send_keys('3')
             time.sleep(2)
         # for AQL analyzer
         elif name == "My_AQL_Analyzer":
-            print(f'Selecting query string for {name} \n')
+            self.print(f'Selecting query string for {name} \n')
             query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
             query_string_sitem = self.locator_finder_by_xpath(query_string)
             query_string_sitem.send_keys('RETURN SOUNDEX(@param)')
             time.sleep(2)
 
-            print(f'Selecting batch size for {name} \n')
+            self.print(f'Selecting batch size for {name} \n')
             batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
             batch_size_sitem = self.locator_finder_by_xpath(batch_size)
             batch_size_sitem.click()
@@ -531,7 +531,7 @@ class AnalyzerPage(NavigationBarPage):
             batch_size_sitem.send_keys('10')
             time.sleep(2)
 
-            print(f'Selecting memory limit for {name} \n')
+            self.print(f'Selecting memory limit for {name} \n')
             memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
             memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
             memory_limit_sitem.click()
@@ -543,7 +543,7 @@ class AnalyzerPage(NavigationBarPage):
             memory_limit_sitem.send_keys('1048576')
             time.sleep(2)
 
-            print(f'Selecting collapse position for {name} \n')
+            self.print(f'Selecting collapse position for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 collapse = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[4]/div/div/label[2]/span/span'
             else:
@@ -552,16 +552,16 @@ class AnalyzerPage(NavigationBarPage):
             collapse_sitem.click()
             time.sleep(2)
 
-            print(f'Selecting keep null for {name} \n')
+            self.print(f'Selecting keep null for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                print('Skipped \n')
+                self.print('Skipped \n')
             else:
                 keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
                 keep_null_sitem = self.locator_finder_by_xpath(keep_null)
                 keep_null_sitem.click()
             time.sleep(2)
 
-            print(f'Selecting Return type for {name} \n')
+            self.print(f'Selecting Return type for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 return_type = "(//label[normalize-space()='Return Type'])[1]"
                 return_type_sitem = self.locator_finder_by_xpath(return_type)
@@ -575,7 +575,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         # for stopwords
         elif name == "My_Stopwords_Analyzer":
-            print(f'Selecting stopwords for {name} \n')
+            self.print(f'Selecting stopwords for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 stopwords = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div/div[1]/div[1]/div[2]'
                 stopwords_sitem = self.locator_finder_by_xpath(stopwords)
@@ -597,7 +597,7 @@ class AnalyzerPage(NavigationBarPage):
                 stopwords_sitem.send_keys(Keys.ENTER)
                 time.sleep(1)
 
-            print(f'Selecting hex value for {name} \n')
+            self.print(f'Selecting hex value for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 hex_value = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[2]/div/div/label[2]/span/span'
             else:
@@ -608,7 +608,7 @@ class AnalyzerPage(NavigationBarPage):
 
         # Collation
         elif name == "My_Collation_Analyzer":
-            print(f'Selecting locale for {name} \n')
+            self.print(f'Selecting locale for {name} \n')
             value = 'en_US.utf-8'
             locale_sitem = self.locator_finder_by_xpath(local_placeholder)
             locale_sitem.click()
@@ -616,7 +616,7 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.send_keys(value)
         # Segmentation alpha 
         elif name == "My_Segmentation_Alpha_Analyzer":
-            print(f'Selecting segmentation break as alpha for {name} \n')
+            self.print(f'Selecting segmentation break as alpha for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 alpha_break = "(//label[normalize-space()='Break'])[1]"
                 alpha_break_sitem = self.locator_finder_by_xpath(alpha_break)
@@ -628,7 +628,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.locator_finder_by_select_using_xpath(alpha_break, 1)
             time.sleep(2)
 
-            print(f'Selecting segmentation case as lower for {name} \n')
+            self.print(f'Selecting segmentation case as lower for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 case_lower = "(//label[normalize-space()='Case'])[1]"
                 case_lower_sitem = self.locator_finder_by_xpath(case_lower)
@@ -643,13 +643,13 @@ class AnalyzerPage(NavigationBarPage):
         # for nearest neighbor analyzer introduced on 3.10.x
         elif name == "My_Nearest_Neighbor_Analyzer":
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-            print(f'Selecting model location for {name} \n')
+            self.print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
             model_location_sitem = self.locator_finder_by_xpath(model_location)
             model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
-            print(f'Selecting Top K value for {name}\n')
+            self.print(f'Selecting Top K value for {name}\n')
             top_k = '//div[label[text()="Top K"]]//input[not(@disabled)]'
             top_k_sitem = self.locator_finder_by_xpath(top_k)
             top_k_sitem.send_keys('2')
@@ -658,19 +658,19 @@ class AnalyzerPage(NavigationBarPage):
         # for classification analyzer introduced on 3.10.x
         elif name == "My_Classification_Analyzer":
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-            print(f'Selecting model location for {name} \n')
+            self.print(f'Selecting model location for {name} \n')
             model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
             model_location_sitem = self.locator_finder_by_xpath(model_location)
             model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
-            print(f'Selecting Top K value for {name}\n')
+            self.print(f'Selecting Top K value for {name}\n')
             top_k = '//div[label[text()="Top K"]]//input[not(@disabled)]'
             top_k_sitem = self.locator_finder_by_xpath(top_k)
             top_k_sitem.send_keys('2')
             time.sleep(2)
 
-            print(f'Selecting threshold for {name} \n')
+            self.print(f'Selecting threshold for {name} \n')
             threshold = '//div[label[text()="Threshold"]]//input[not(@disabled)]'
             threshold_sitem = self.locator_finder_by_xpath(threshold)
             threshold_sitem.send_keys('.80')
@@ -678,7 +678,7 @@ class AnalyzerPage(NavigationBarPage):
         # Pipeline
         elif name == "My_Pipeline_Analyzer":
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
-            print(f'Selecting add analyzer button for {name} \n')
+            self.print(f'Selecting add analyzer button for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 add_analyzer01 = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/button'
             else:
@@ -687,7 +687,7 @@ class AnalyzerPage(NavigationBarPage):
             add_analyzer01_sitem.click()
             time.sleep(1)
 
-            print(f'Selecting first pipeline analyzer as Norm for {name} \n')
+            self.print(f'Selecting first pipeline analyzer as Norm for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 norm = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div/div/div/div[1]/div[2]'
                 norm_sitem = self.locator_finder_by_xpath(norm)
@@ -723,29 +723,29 @@ class AnalyzerPage(NavigationBarPage):
                 norm = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[2]'
                 self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop-down list
                 time.sleep(2)
-                print(f'Selecting locale value for Norm analyzer of {name} \n')
+                self.print(f'Selecting locale value for Norm analyzer of {name} \n')
                 value = 'en_US.utf-8'
                 locale_sitem = self.locator_finder_by_xpath(local_placeholder)
                 locale_sitem.click()
                 locale_sitem.send_keys(value)
                 time.sleep(2)
 
-                print(f'Selecting case value to upper for Norm analyzer of {name} \n')
+                self.print(f'Selecting case value to upper for Norm analyzer of {name} \n')
                 self.locator_finder_by_select_using_xpath(case_placeholder,1)  # 1 represents upper from the dropdown
                 time.sleep(2)
                 # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
-                print(f'Selecting add analyzer button for {name} \n')
+                self.print(f'Selecting add analyzer button for {name} \n')
                 new_analyzer = '(//button[@class="button-warning"][not(@disabled)])[3]'
                 new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
                 new_analyzer_sitem.click()
                 time.sleep(2)
 
-                print(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
+                self.print(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
                 ngram = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[3]'
                 self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
                 time.sleep(2)
 
-                print(f'Selecting N-Gram minimum length for {name} \n')
+                self.print(f'Selecting N-Gram minimum length for {name} \n')
                 min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
                 min_length_sitem = self.locator_finder_by_xpath(min_length)
                 min_length_sitem.click()
@@ -753,20 +753,20 @@ class AnalyzerPage(NavigationBarPage):
                 min_length_sitem.send_keys(3)
                 time.sleep(2)
 
-                print(f'Selecting N-Gram maximum length for {name} \n')
+                self.print(f'Selecting N-Gram maximum length for {name} \n')
                 max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
                 max_length_sitem = self.locator_finder_by_xpath(max_length)
                 max_length_sitem.click()
                 max_length_sitem.clear()
                 max_length_sitem.send_keys(3)
 
-                print(f'Selecting Preserve original value for {name}\n')
+                self.print(f'Selecting Preserve original value for {name}\n')
                 preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
                 preserve_sitem = self.locator_finder_by_xpath(preserve)
                 preserve_sitem.click()
                 time.sleep(2)
 
-                print(f'Start marker value {name}\n')
+                self.print(f'Start marker value {name}\n')
                 start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
                 start_marker_sitem = self.locator_finder_by_xpath(start_marker)
                 start_marker_sitem.click()
@@ -774,7 +774,7 @@ class AnalyzerPage(NavigationBarPage):
                 start_marker_sitem.send_keys('^')
                 time.sleep(2)
 
-                print(f'End marker value for {name} \n')
+                self.print(f'End marker value for {name} \n')
                 end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
                 end_marker_sitem = self.locator_finder_by_xpath(end_marker)
                 end_marker_sitem.click()
@@ -782,7 +782,7 @@ class AnalyzerPage(NavigationBarPage):
                 end_marker_sitem.send_keys('$')
                 time.sleep(2)
 
-                print(f'Stream type selection using name value for {name}\n')
+                self.print(f'Stream type selection using name value for {name}\n')
                 stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
                 self.locator_finder_by_select_using_xpath(stream_type, 1)
                 time.sleep(2)
@@ -803,7 +803,7 @@ class AnalyzerPage(NavigationBarPage):
                 types_sitem.click()
             time.sleep(2)
 
-            print(f'Selecting max S2 cells value for {name} \n')
+            self.print(f'Selecting max S2 cells value for {name} \n')
             if self.version_is_newer_than('3.11.99'):
                 max_s2_cells = '//*[@id="properties.options.maxCells"]'
             else:
@@ -821,7 +821,7 @@ class AnalyzerPage(NavigationBarPage):
             max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
-            print(f'Selecting least precise S2 levels for {name} \n')
+            self.print(f'Selecting least precise S2 levels for {name} \n')
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
@@ -834,7 +834,7 @@ class AnalyzerPage(NavigationBarPage):
             least_precise_sitem.send_keys('10')
             time.sleep(2)
 
-            print(f'Selecting most precise S2 levels for {name} \n')
+            self.print(f'Selecting most precise S2 levels for {name} \n')
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
@@ -846,7 +846,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         # GeoPoint
         elif name == "My_GeoPoint_Analyzer":
-            print(f'Selecting Latitude Path for {name} \n')
+            self.print(f'Selecting Latitude Path for {name} \n')
             latitude_paths = '//div[label[text()="Latitude Path"]]//input[not(@disabled)]'
             latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
             latitude_paths_sitem.click()
@@ -855,7 +855,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
-            print(f'Selecting Longitude Path for {name} \n')
+            self.print(f'Selecting Longitude Path for {name} \n')
             longitude_paths = '//div[label[text()="Longitude Path"]]//input[not(@disabled)]'
             longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
             longitude_paths_sitem.click()
@@ -864,7 +864,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
-            print(f'Selecting max S2 cells value for {name} \n')
+            self.print(f'Selecting max S2 cells value for {name} \n')
             max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
             max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
             max_s2_cells_sitem.click()
@@ -874,7 +874,7 @@ class AnalyzerPage(NavigationBarPage):
             max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
-            print(f'Selecting least precise S2 levels for {name} \n')
+            self.print(f'Selecting least precise S2 levels for {name} \n')
             least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
             least_precise_sitem = self.locator_finder_by_xpath(least_precise)
             least_precise_sitem.click()
@@ -883,7 +883,7 @@ class AnalyzerPage(NavigationBarPage):
             least_precise_sitem.send_keys('4')
             time.sleep(2)
 
-            print(f'Selecting most precise S2 levels for {name} \n')
+            self.print(f'Selecting most precise S2 levels for {name} \n')
             most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             most_precise_sitem = self.locator_finder_by_xpath(most_precise)
             most_precise_sitem.click()
@@ -894,14 +894,14 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         # GeoS2
         elif name == 'My_GeoS2_Analyzer':
-            print("Selecting type of geos2 analyzer")
+            self.print("Selecting type of geos2 analyzer")
             if self.version_is_newer_than('3.11.99'):
                 types = "(//label[@id='field-11-label'])[1]"
             else:
                 types = "(//label[normalize-space()='Type'])[1]"
 
             if self.version_is_older_than('3.10.99'):
-                print("Type and Formate selection skipped for this version below 3.10 \n")
+                self.print("Type and Formate selection skipped for this version below 3.10 \n")
             else:
                 type_sitem = self.locator_finder_by_xpath(types)
                 type_sitem.click()
@@ -911,7 +911,7 @@ class AnalyzerPage(NavigationBarPage):
                 if self.version_is_newer_than('3.11.99'):
                     self.send_key_action(Keys.ENTER)
 
-                print("Selecting format of geos2 analyzer")
+                self.print("Selecting format of geos2 analyzer")
                 if self.version_is_newer_than('3.11.99'):
                     formats = "(//label[normalize-space()='format'])[1]"
                 else:
@@ -924,7 +924,7 @@ class AnalyzerPage(NavigationBarPage):
                 if self.version_is_newer_than('3.11.99'):
                     self.send_key_action(Keys.ENTER)
 
-            print(f"Selecting max s2 for {name} \n")
+            self.print(f"Selecting max s2 for {name} \n")
             if self.version_is_older_than('3.10.99'):
                 max_s2_cell = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
             else:
@@ -938,7 +938,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action("20")
             time.sleep(2)
 
-            print(f'Selecting least precise for {name} \n')
+            self.print(f'Selecting least precise for {name} \n')
             if self.version_is_older_than('3.10.99'):
                 least_precise_s2_level = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
             else:
@@ -950,7 +950,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action("4")
             time.sleep(2)
 
-            print(f'Selecting most precise S2 level for {name} \n')
+            self.print(f'Selecting most precise S2 level for {name} \n')
             if self.version_is_older_than('3.10.99'):
                 most_precise_s2_level = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
             else:
@@ -964,7 +964,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         # Minhash
         elif name == 'My_Minhash_Analyzer':
-            print("Selecting type of minhash analyzer")
+            self.print("Selecting type of minhash analyzer")
             analyzer_type = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div[1]/div[1]/div/div/div[1]/div[2]'
             analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
             analyzer_type_sitem.click()
@@ -973,7 +973,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
-            print("adding minhash for delimiter analyzer")
+            self.print("adding minhash for delimiter analyzer")
             delimiter_value = '//*[@id="properties.analyzer.properties.delimiter"]'
             delimiter_value_sitem = self.locator_finder_by_xpath(delimiter_value)
             delimiter_value_sitem.click()
@@ -987,7 +987,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(1)
         # MultiDelimiter
         elif name == "My_MultiDelimiter_Analyzer":
-            print("Selecting type of MultiDelimiter analyzer")
+            self.print("Selecting type of MultiDelimiter analyzer")
             delimiters = "(//label[normalize-space()='Delimiters'])[1]"
             delimiters_sitem = self.locator_finder_by_xpath(delimiters)
             delimiters_sitem.click()
@@ -1019,7 +1019,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
         # WildCard
         elif name == "My_WildCard_Analyzer":
-            print("Selecting type of WildCard analyzer\n")
+            self.print("Selecting type of WildCard analyzer\n")
             ngram = "//input[@id='properties.ngramSize']"
             ngram_sitem = self.locator_finder_by_xpath(ngram)
             ngram_sitem.click()
@@ -1027,7 +1027,7 @@ class AnalyzerPage(NavigationBarPage):
             ngram_sitem.send_keys('4')
             time.sleep(2)
 
-            print("Selecting delimiter analyzer\n")
+            self.print("Selecting delimiter analyzer\n")
             delimiter = '//*[@id="chakra-modal--body-7"]/div/div[3]/div[2]/div[1]/div[1]/div/div/div[1]/div[2]'
             delimiter_sitem = self.locator_finder_by_xpath(delimiter)
             delimiter_sitem.click()
@@ -1042,7 +1042,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ENTER)
 
-            print("Selecting Multi Delimiters \n")
+            self.print("Selecting Multi Delimiters \n")
             delimiter_properties = '//*[@id="chakra-modal--body-7"]/div/div[3]/div[2]/div[2]/div/div/div/div/div[1]/div[1]/div[2]'
             delimiter_properties_sitem = self.locator_finder_by_xpath(delimiter_properties)
             delimiter_properties_sitem.click()
@@ -1080,22 +1080,22 @@ class AnalyzerPage(NavigationBarPage):
         
         #todo need to fix this one for 3.11.x
         if self.version_is_newer_than('3.11.0'):
-            print("skiped switching view for code view\n")
+            self.print("skiped switching view for code view\n")
         else:
-            print(f'Switching current view to form view for {name}\n')
+            self.print(f'Switching current view to form view for {name}\n')
             switch_view_btn = '//*[@id="modal-content-add-analyzer"]/div[1]/div/div[2]/div/div[2]/button'
             code_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
             code_view_sitem.click()
             time.sleep(3)
 
-            print(f'Switching current view to code view for {name}\n')
+            self.print(f'Switching current view to code view for {name}\n')
             form_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
             form_view_sitem.click()
             time.sleep(3)
             
 
-        print(f"Selecting the create button for the {name} \n")
-        print(f'Selecting the create button for the {name} \n')
+        self.print(f"Selecting the create button for the {name} \n")
+        self.print(f'Selecting the create button for the {name} \n')
         if self.version_is_newer_than('3.11.0'):
             if self.version_is_newer_than('3.11.99'):
                 create = '//*[@id="chakra-modal-7"]/form/footer/div/button[2]'
@@ -1110,26 +1110,26 @@ class AnalyzerPage(NavigationBarPage):
 
         # checking the creation of the analyzer using the green notification bar appears at the bottom
         try:
-            print(f"Checking successful creation of the {name} \n")
+            self.print(f"Checking successful creation of the {name} \n")
             if self.version_is_newer_than('3.11.99'):
                 success_message = "/html/body/div[10]/ul[5]/li/div/div/div/div"
                 success_message_sitem = self.locator_finder_by_xpath(success_message).text
-                print("Notification: ", success_message_sitem, "\n")
+                self.print("Notification: ", success_message_sitem, "\n")
                 expected_msg = f"The analyzer: {name} was successfully created"
             else:
                 success_message = "noty_body"
                 success_message_sitem = self.locator_finder_by_class(success_message).text
-                print("Notification: ", success_message_sitem, "\n")
+                self.print("Notification: ", success_message_sitem, "\n")
                 expected_msg = f"Success: Created Analyzer: _system::{name}"
 
             assert expected_msg == success_message_sitem, f"Expected {expected_msg} but got {success_message_sitem}"
         except TimeoutException:
-            print("Error occurred!! required manual inspection.\n")
-        print(f"Creating {name} completed successfully \n")
+            self.print("Error occurred!! required manual inspection.\n")
+        self.print(f"Creating {name} completed successfully \n")
 
         # # --------------------here we are checking the properties of the created analyzer----------------------
         # try:
-        #     print(f"Checking analyzer properties for {name} \n")
+        #     self.print(f"Checking analyzer properties for {name} \n")
         #     if self.version_is_newer_than('3.10.99'):
         #         self.wait_for_ajax()
         #         time.sleep(3)
@@ -1143,7 +1143,7 @@ class AnalyzerPage(NavigationBarPage):
 
         #         # Check if the analyzer exists
         #         if analyzer_sitem is None:
-        #             print(f'The analyzer "{name}" has never been created.\n')
+        #             self.print(f'The analyzer "{name}" has never been created.\n')
         #         else:
         #             # Click on the analyzer element
         #             analyzer_sitem.click()
@@ -1154,7 +1154,7 @@ class AnalyzerPage(NavigationBarPage):
         #             # finding the ace editor using neighbor locators
         #             nearest_button = "//button[@class='jsoneditor-compact']"
         #         else:
-        #             print(f"Switching to code view for {name} \n")
+        #             self.print(f"Switching to code view for {name} \n")
         #             switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
         #             switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
         #             switch_to_code_sitem.click()
@@ -1184,11 +1184,11 @@ class AnalyzerPage(NavigationBarPage):
 
         #         # Assert that the copied text matches the expected text
         #         if actual_properties != expected_properties:
-        #             print("Actual properties: ", actual_properties)
-        #             print("Expected properties: ", expected_properties)
+        #             self.print("Actual properties: ", actual_properties)
+        #             self.print("Expected properties: ", expected_properties)
         #             raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
         #         else:
-        #             print(f"Properties are equal for the '{name}' analyzer.\n")
+        #             self.print(f"Properties are equal for the '{name}' analyzer.\n")
 
         # except TimeoutException as ex:
         #     raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
@@ -1196,9 +1196,9 @@ class AnalyzerPage(NavigationBarPage):
         # # -------------------- Running a query for each analyzer's after creation----------------------
         # if self.version_is_newer_than('3.10.99'):
         #     try:
-        #         print(f'Running query for {name} started \n')
+        #         self.print(f'Running query for {name} started \n')
         #         # Goto query tab
-        #         print("Selecting query tab \n")
+        #         self.print("Selecting query tab \n")
         #         if self.version_is_newer_than('3.11.99'):
         #             self.navbar_goto("queries")
         #         else:
@@ -1206,10 +1206,10 @@ class AnalyzerPage(NavigationBarPage):
         #             self.navbar_goto("queries")
         #         self.wait_for_ajax()
 
-        #         print('Selecting query execution area \n')
+        #         self.print('Selecting query execution area \n')
         #         self.select_query_execution_area()
 
-        #         print(f'Running query for {name} analyzer started\n')
+        #         self.print(f'Running query for {name} analyzer started\n')
         #         # Get query and expected output based on analyzer name
         #         if self.version_is_newer_than('3.11.99'):
         #             analyzer_query = self.get_analyzer_query_312(name)
@@ -1217,7 +1217,7 @@ class AnalyzerPage(NavigationBarPage):
         #             analyzer_query = self.get_analyzer_query_311(name)
                 
         #         if analyzer_query is None:
-        #             print(f"Analyzer '{name}' not found. Skipping test.")
+        #             self.print(f"Analyzer '{name}' not found. Skipping test.")
         #             pass  # Skip this test and move to the next one
         #         else:
         #             if self.version_is_newer_than('3.11.99'):
@@ -1228,7 +1228,7 @@ class AnalyzerPage(NavigationBarPage):
         #             self.query_execution_btn()
         #             self.scroll(1)
 
-        #             print("Storing the query output \n")
+        #             self.print("Storing the query output \n")
         #             # Finding the ace editor using neighbor locators
         #             if self.version_is_newer_than('3.11.99'):
         #                 query_output = "(//div[@class='css-1new77s'])[1]"
@@ -1255,16 +1255,16 @@ class AnalyzerPage(NavigationBarPage):
         #                 query_expected_output = self.get_analyzer_expected_output_311(name)
                     
         #             if query_expected_output is None:
-        #                 print(f"Analyzer '{name}' not found. Skipping test.")
+        #                 self.print(f"Analyzer '{name}' not found. Skipping test.")
         #                 pass  # Skip this test and move to the next one
         #             else:
         #                 # Assert that the copied text matches the expected text
         #                 if query_actual_output != ''.join(str(query_expected_output).split()):
-        #                     print("query_actual_output: ", query_actual_output)
-        #                     print("query_expected_output: ", query_expected_output)
+        #                     self.print("query_actual_output: ", query_actual_output)
+        #                     self.print("query_expected_output: ", query_expected_output)
         #                     raise Exception(f"Actual query output didn't matches the expected query output for {name}\n")
         #                 else:
-        #                     print(f"Actual query output matches the expected query output for {name}\n")
+        #                     self.print(f"Actual query output matches the expected query output for {name}\n")
         #     except TimeoutException as ex:
         #         raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
 
@@ -2117,11 +2117,11 @@ class AnalyzerPage(NavigationBarPage):
             num_params, version_requirement, skip_condition = config
             # Check if the analyzer should be skipped
             if skip_condition:
-                print(f'Skipping {analyzer_name} creation\n')
+                self.print(f'Skipping {analyzer_name} creation\n')
                 continue
             # Check if the current package version meets the version requirement
             if version_requirement is None or self.version_is_newer_than(str(version_requirement)):
-                print(f'Adding {analyzer_name} analyzer\n')
+                self.print(f'Adding {analyzer_name} analyzer\n')
                 # Create the analyzer based on the number of parameters required
                 if num_params == 0:
                     self.add_new_analyzer(analyzer_name)
@@ -2155,18 +2155,18 @@ class AnalyzerPage(NavigationBarPage):
                 de_id = "//*[@class='arango-table-td table-cell1' and text()='text_de']"
                 de_sitem = self.locator_finder_by_xpath(de_id).text
                 expected_msg = "text_de"
-                print(f"Searching for {expected_msg} \n")
+                self.print(f"Searching for {expected_msg} \n")
                 assert expected_msg == de_sitem, f"Expected {expected_msg} but got {de_sitem}"
-                print(f"Found {expected_msg} \n")
+                self.print(f"Found {expected_msg} \n")
             elif value == "geo":
                 geo = "//td[@class='arango-table-td table-cell2' and text()='GeoJSON']"
                 geo_sitem = self.locator_finder_by_xpath(geo).text
                 expected_msg = "GeoJSON"
-                print(f"Searching for {expected_msg} \n")
+                self.print(f"Searching for {expected_msg} \n")
                 assert expected_msg == geo_sitem, f"Expected {expected_msg} but got {geo_sitem}"
-                print(f"Found {expected_msg} \n")
+                self.print(f"Found {expected_msg} \n")
             else:
-                print("You did not put any search keyword. Please check manually! \n")
+                self.print("You did not put any search keyword. Please check manually! \n")
 
             time.sleep(2)
         except Exception as ex:
@@ -2185,32 +2185,32 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "AQL_Analyzer":
             index = 6
         else:
-            print("Something went wrong\n")
+            self.print("Something went wrong\n")
 
         self.select_analyzers_page()
         self.webdriver.refresh()
 
         try:
-            print("Selecting add new analyzer button \n")
+            self.print("Selecting add new analyzer button \n")
             add_analyzer = self.add_new_analyzer_btn
             add_analyzer_sitem = self.locator_finder_by_xpath(add_analyzer)
             add_analyzer_sitem.click()
             time.sleep(2)
 
-            print(f'checking {name} started \n')
+            self.print(f'checking {name} started \n')
             # common attributes for all the analyzers
             analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
             analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
             analyzer_name_error_id = "//div[@class='noty_body']"
 
-            print("Selecting analyzer type \n")
+            self.print("Selecting analyzer type \n")
             self.locator_finder_by_select_using_xpath(analyzer_type, index)
             time.sleep(2)
 
             if index == 0:
-                print(f"Expected error scenario for the {name} Started \n")
+                self.print(f"Expected error scenario for the {name} Started \n")
                 analyzer_name_error_input = ["", "@", "1", "שלום"]
-                analyzer_name_print_statement = [
+                analyzer_name_self.print_statement = [
                     f'Checking blank {name} with " "',
                     f'Checking {name} with symbol " @ "',
                     f'Checking numeric value for {name} " 1 "',
@@ -2223,10 +2223,10 @@ class AnalyzerPage(NavigationBarPage):
                     "Failure: Got unexpected server response: invalid characters in analyzer name 'שלום'",
                 ]
 
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_print_statement,
+                    analyzer_name_self.print_statement,
                     analyzer_name_error_message,
                     analyzer_name,
                     analyzer_name_error_id,
@@ -2234,7 +2234,7 @@ class AnalyzerPage(NavigationBarPage):
 
             # ------------------------------------Stem analyzer's Locale value test------------------------------------
             if index == 2:
-                print(f"Expected error scenario for the {name} Started \n")
+                self.print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
                 stem_sitem = self.locator_finder_by_xpath(analyzer_name)
                 stem_sitem.click()
@@ -2242,7 +2242,7 @@ class AnalyzerPage(NavigationBarPage):
                 stem_sitem.send_keys(name)
 
                 analyzer_name_error_input = ["aaaaaaaaaa12"]
-                analyzer_name_print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
+                analyzer_name_self.print_statement = [f'Checking {name} with input "aaaaaaaaaa12"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
                     "arangosearch analyzer instance for name '_system::Stem_Analyzer' type "
@@ -2252,10 +2252,10 @@ class AnalyzerPage(NavigationBarPage):
 
                 # for stem analyzer locale placeholder
                 local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
+                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id, div_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_print_statement,
+                    analyzer_name_self.print_statement,
                     analyzer_name_error_message,
                     local_placeholder,
                     analyzer_name_error_id,
@@ -2263,7 +2263,7 @@ class AnalyzerPage(NavigationBarPage):
 
             # ------------------------------------Stem analyzer's Locale value test------------------------------------
             if index == 4:
-                print(f"Expected error scenario for the {name} Started \n")
+                self.print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
                 ngram_analyzer_sitem = self.locator_finder_by_xpath(analyzer_name)
                 ngram_analyzer_sitem.click()
@@ -2278,7 +2278,7 @@ class AnalyzerPage(NavigationBarPage):
                 max_ngram_length_sitem.send_keys("4")
 
                 analyzer_name_error_input = ["-1", "100000000000000000000000"]
-                analyzer_name_print_statement = [
+                analyzer_name_self.print_statement = [
                     f'Checking {name} with input "-1"',
                     f'Checking {name} with input "100000000000000000000000"',
                 ]
@@ -2299,10 +2299,10 @@ class AnalyzerPage(NavigationBarPage):
                 # min _ngram_length for initiate the test
                 min_ngram_length_id = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
 
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id, div_id)
+                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id, div_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_print_statement,
+                    analyzer_name_self.print_statement,
                     analyzer_name_error_message,
                     min_ngram_length_id,
                     analyzer_name_error_id,
@@ -2310,20 +2310,20 @@ class AnalyzerPage(NavigationBarPage):
 
             # ---------------------------------------------AQL analyzer's---------------------------------------------
             if index == 6:
-                print(f"Expected error scenario for the {name} Started \n")
+                self.print(f"Expected error scenario for the {name} Started \n")
                 # filling out the name placeholder first
                 aql_analyzer_sitem = self.locator_finder_by_xpath(analyzer_name)
                 aql_analyzer_sitem.click()
                 aql_analyzer_sitem.clear()
                 aql_analyzer_sitem.send_keys(name)
 
-                print(f"Selecting query string for {name} \n")
+                self.print(f"Selecting query string for {name} \n")
                 query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
                 query_string_sitem = self.locator_finder_by_xpath(query_string)
                 query_string_sitem.send_keys("FOR year IN 2010..2015 RETURN year")
                 time.sleep(2)
 
-                print(f"Selecting memory limit for {name} \n")
+                self.print(f"Selecting memory limit for {name} \n")
                 memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
                 memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
                 memory_limit_sitem.click()
@@ -2331,10 +2331,10 @@ class AnalyzerPage(NavigationBarPage):
                 memory_limit_sitem.send_keys("200")
                 time.sleep(2)
 
-                print(f"Selecting greater number for batch size {name} \n")
+                self.print(f"Selecting greater number for batch size {name} \n")
 
                 analyzer_name_error_input = ["1001", "-1"]
-                analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
+                analyzer_name_self.print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
                     "arangosearch analyzer instance for name '_system::AQL_Analyzer' type "
@@ -2351,16 +2351,16 @@ class AnalyzerPage(NavigationBarPage):
                 # for AQL analyzer batch size placeholder
                 batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
 
-                # method template (self, error_input, print_statement, error_message, locators_id, error_message_id)
+                # method template (self, error_input, self.print_statement, error_message, locators_id, error_message_id)
                 self.check_expected_error_messages_for_analyzer(
                     analyzer_name_error_input,
-                    analyzer_name_print_statement,
+                    analyzer_name_self.print_statement,
                     analyzer_name_error_message,
                     batch_size,
                     analyzer_name_error_id,
                 )
 
-            print(f"Closing the {name} check \n")
+            self.print(f"Closing the {name} check \n")
             if self.version_is_newer_than('3.11.0'):
                 close_btn = '//*[@id="chakra-modal-2"]/footer/button[1]'
             else:
@@ -2369,34 +2369,34 @@ class AnalyzerPage(NavigationBarPage):
             close_btn_sitem.click()
             time.sleep(2)
 
-            print(f"Expected error scenario for the {name} Completed \n")
+            self.print(f"Expected error scenario for the {name} Completed \n")
         except Exception:
-            print('Info: Error occured during checking expected error!')
+            self.print('Info: Error occured during checking expected error!')
     
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
         if self.version_is_newer_than('3.11.99'):
-            print('Skipped \n')
+            self.print('Skipped \n')
         else:
-            print('Checking negative scenario for the identity analyzers name \n')
+            self.print('Checking negative scenario for the identity analyzers name \n')
             self.test_analyzer_expected_error('Identity_Analyzer')
-            print('Checking negative scenario for the stem analyzers locale value \n')
+            self.print('Checking negative scenario for the stem analyzers locale value \n')
             self.test_analyzer_expected_error('Stem_Analyzer')
-            print('Checking negative scenario for the stem analyzers locale value \n')
+            self.print('Checking negative scenario for the stem analyzers locale value \n')
             self.test_analyzer_expected_error('N_Gram_Analyzer')
-            print('Checking negative scenario for the AQL analyzers \n')
+            self.print('Checking negative scenario for the AQL analyzers \n')
             self.test_analyzer_expected_error('AQL_Analyzer')
 
 
     def checking_search_filter(self):
         """This method will check analyzer's search filter option"""
         if self.version_is_newer_than('3.11.99'):
-            print("Skipped \n")
+            self.print("Skipped \n")
         else:
-            print('Checking analyzer search filter options started \n')
+            self.print('Checking analyzer search filter options started \n')
             self.checking_search_filter_option('de')
             self.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
-            print('Checking analyzer search filter options completed \n')
+            self.print('Checking analyzer search filter options completed \n')
 
     
     def delete_analyzer(self, analyzer_name):
@@ -2405,12 +2405,12 @@ class AnalyzerPage(NavigationBarPage):
         self.webdriver.refresh()
 
         try:
-            print(f'Deletion of {analyzer_name} started \n')
+            self.print(f'Deletion of {analyzer_name} started \n')
             if self.version_is_newer_than('3.11.99'):
                 analyzer = f"//*[text()='_system::{analyzer_name}']"
                 analyzer_sitem = self.locator_finder_by_xpath(analyzer)
                 if analyzer_sitem is None:
-                    print(f'This {analyzer_name} has never been created \n')
+                    self.print(f'This {analyzer_name} has never been created \n')
                 else:
                     analyzer_sitem.click()
                     time.sleep(1)
@@ -2446,16 +2446,16 @@ class AnalyzerPage(NavigationBarPage):
                 delete_btn = "(//button[normalize-space()='Delete'])[1]"
                 delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
                 if delete_btn_sitem is None:
-                    print("This analyzer has never been created or already been deleted! \n")
+                    self.print("This analyzer has never been created or already been deleted! \n")
                 else:
                     delete_btn_sitem.click()
                     time.sleep(8)
-                print(f'Deletion of {analyzer_name} completed \n')
+                self.print(f'Deletion of {analyzer_name} completed \n')
         except TimeoutException:
-            print('TimeoutException occurred! \n')
-            print('Info: Analyzer has already been deleted or never created. \n')
+            self.print('TimeoutException occurred! \n')
+            self.print('Info: Analyzer has already been deleted or never created. \n')
         except Exception:
-            traceback.print_exc()
+            traceback.self.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n')
     
 
@@ -2481,4 +2481,4 @@ class AnalyzerPage(NavigationBarPage):
             self.delete_analyzer('My_Minhash_Analyzer')
             self.delete_analyzer('My_MultiDelimiter_Analyzer')
             self.delete_analyzer('My_WildCard_Analyzer')
-        print('All the created analyzers have been deleted \n')
+        self.print('All the created analyzers have been deleted \n')

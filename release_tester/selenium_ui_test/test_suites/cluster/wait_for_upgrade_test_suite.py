@@ -21,8 +21,8 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         old_ver = str(old_cfg.semver)
         new_ver = str(new_cfg.semver)
         NavigationBarPage(self.webdriver, self.cfg).navbar_goto("nodes")
-        print(old_ver)
-        print(new_ver)
+        self.print(old_ver)
+        self.print(new_ver)
         upgrade_done = False
         while not upgrade_done:
             table = []
@@ -35,7 +35,7 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
             old_count = 0
             new_count = 0
             for row in table:
-                print(row["version"])
+                self.print(row["version"])
                 if row["version"].lower().startswith(old_ver):
                     old_count += 1
                 elif row["version"].lower().startswith(new_ver):

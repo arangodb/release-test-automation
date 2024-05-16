@@ -69,7 +69,7 @@ class LoginPage(BasePage):
         while True:
             passvoid_elm = self.locator_finder_by_id("loginPassword")
             txt = passvoid_elm.text
-            print("UI-Test: xxxx [" + txt + "]")
+            self.print("UI-Test: xxxx [" + txt + "]")
             if len(txt) > 0:
                 self.progress("something was in the passvoid field. retrying. " + txt)
                 time.sleep(2)
@@ -90,7 +90,7 @@ class LoginPage(BasePage):
     
     def login_webif(self, user, passvoid, database="_system", recurse=0):
         """log into an arangodb webinterface"""
-        print("Logging %s into %s with passvoid %s" % (user, database, passvoid))
+        self.print("Logging %s into %s with passvoid %s" % (user, database, passvoid))
         if recurse > 10:
             raise Exception("UI-Test: 10 successless login attempts")
         self._login_wait_for_screen()
@@ -111,5 +111,5 @@ class LoginPage(BasePage):
         """click log out icon on the user bar and wait for"""
         logout_button_sitem = self.locator_finder_by_id(self.logout_button_id)
         logout_button_sitem.click()
-        print("Logout from the current user\n")
+        self.print("Logout from the current user\n")
         self.wait_for_ajax()

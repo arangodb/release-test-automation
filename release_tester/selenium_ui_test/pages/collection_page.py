@@ -204,7 +204,7 @@ class CollectionPage(NavigationBarPage):
     
     def create_new_collections(self, name, doc_type, is_cluster):
         """This method will create new collection based on their name and type"""
-        print('selecting collection tab \n')
+        self.print('selecting collection tab \n')
         self.navbar_goto("collections")
         time.sleep(1)
 
@@ -219,7 +219,7 @@ class CollectionPage(NavigationBarPage):
         select_create_collection_sitem.click()
         time.sleep(1)
 
-        print("Selecting new collection name \n")
+        self.print("Selecting new collection name \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             select_new_collection_name_sitem = self.locator_finder_by_id("name")
         else:
@@ -229,7 +229,7 @@ class CollectionPage(NavigationBarPage):
         select_new_collection_name_sitem.send_keys(name)
         time.sleep(1)
 
-        print(f'Selecting collection type for {name} \n')
+        self.print(f'Selecting collection type for {name} \n')
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             if doc_type == 1:
                 # type dropdown menu
@@ -255,7 +255,7 @@ class CollectionPage(NavigationBarPage):
                 time.sleep(1)
 
                 try:
-                    print(f"selecting number of Shards for the {name} \n")
+                    self.print(f"selecting number of Shards for the {name} \n")
                     shards = "numberOfShards"
                     shards_sitem = self.locator_finder_by_id(shards)
                     shards_sitem.click()
@@ -263,7 +263,7 @@ class CollectionPage(NavigationBarPage):
                     shards_sitem.send_keys(Keys.BACKSPACE, "9")
                     time.sleep(2)
 
-                    print(f"selecting number of replication factor for {name} \n")
+                    self.print(f"selecting number of replication factor for {name} \n")
                     rf = "replicationFactor"
                     rf_sitem = self.locator_finder_by_id(rf)
                     rf_sitem.click()
@@ -271,10 +271,10 @@ class CollectionPage(NavigationBarPage):
                     rf_sitem.send_keys(Keys.BACKSPACE, "3")
                     time.sleep(2)
                 except Exception as e:
-                    print("Might be failed due to forced-one-shard option is enabled, need a fix \n")
-                    print(str(e))
+                    self.print("Might be failed due to forced-one-shard option is enabled, need a fix \n")
+                    self.print(str(e))
             else:
-                print(f"selecting number of Shards for the {name} \n")
+                self.print(f"selecting number of Shards for the {name} \n")
                 shards = "new-collection-shards"
                 shards_sitem = self.locator_finder_by_id(shards)
                 shards_sitem.click()
@@ -282,7 +282,7 @@ class CollectionPage(NavigationBarPage):
                 shards_sitem.send_keys(9)
                 time.sleep(2)
 
-                print(f"selecting number of replication factor for {name} \n")
+                self.print(f"selecting number of replication factor for {name} \n")
                 rf = "new-replication-factor"
                 rf_sitem = self.locator_finder_by_id(rf)
                 rf_sitem.click()
@@ -301,14 +301,14 @@ class CollectionPage(NavigationBarPage):
             self.locator_finder_by_xpath(sync_toggle).click()
 
         else:
-            print(f"Selecting collection advance options for {name} \n")
+            self.print(f"Selecting collection advance options for {name} \n")
             select_advance_option_sitem = self.locator_finder_by_xpath(self.select_advance_option_id)
             select_advance_option_sitem.click()
             time.sleep(1)
             self.locator_finder_by_select(self.wait_for_sync_id, 0)
         time.sleep(1)
 
-        print(f"Selecting create button for {name} \n")
+        self.print(f"Selecting create button for {name} \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             create_button = "(//button[normalize-space()='Create'])[1]"
             create_button_sitem = self.locator_finder_by_xpath(create_button)
@@ -336,7 +336,7 @@ class CollectionPage(NavigationBarPage):
         actions.perform()
         time.sleep(1)
 
-        print("Saving current computed value")
+        self.print("Saving current computed value")
         save_computed_value = 'saveComputedValuesButton'
         save_computed_value_sitem = self.locator_finder_by_id(save_computed_value)
         save_computed_value_sitem.click()
@@ -346,7 +346,7 @@ class CollectionPage(NavigationBarPage):
 
     def checking_search_options(self, search=""):
         """Checking search functionality for v312 and else part is for v311 & v310"""
-        print("selecting collection tab \n")
+        self.print("selecting collection tab \n")
         self.navbar_goto("collections")
         time.sleep(1)
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
@@ -362,28 +362,28 @@ class CollectionPage(NavigationBarPage):
             clear_all_filter_sitem.click()
             time.sleep(3)
 
-            print('the current UI for cleaning anything else \n')
+            self.print('the current UI for cleaning anything else \n')
             self.webdriver.refresh()
 
-            print("filter btn again for searching \n")
+            self.print("filter btn again for searching \n")
             add_filter_btn = "//button[contains(text(),'Filters')]"
             add_filter_btn_stiem = self.locator_finder_by_xpath(add_filter_btn)
             add_filter_btn_stiem.click()
             time.sleep(3)
 
-            print("selecting collection filter \n")
+            self.print("selecting collection filter \n")
             id_filter_name = "//*[@aria-label='Add filter']"
             id_filter_name_stiem = self.locator_finder_by_xpath(id_filter_name)
             id_filter_name_stiem.click()
             time.sleep(3)
 
-            print('selecting name filter from the list \n')
+            self.print('selecting name filter from the list \n')
             search_filter = "//button[contains(text(),'Name')]"
             search_filter_sitem = self.locator_finder_by_xpath(search_filter)
             search_filter_sitem.click()
             time.sleep(3)
 
-            print("selecting search placeholder and send search input TestDoc \n")
+            self.print("selecting search placeholder and send search input TestDoc \n")
             search_collection_testDoc = "//*[@placeholder='Search']"
             search_collection_testDoc_sitem = self.locator_finder_by_xpath(search_collection_testDoc)
             search_collection_testDoc_sitem.click()
@@ -391,10 +391,10 @@ class CollectionPage(NavigationBarPage):
             search_collection_testDoc_sitem.send_keys("TestDoc")
             time.sleep(3)
 
-            print("invoke refresh to go out from the search option and test search works \n")
+            self.print("invoke refresh to go out from the search option and test search works \n")
             self.webdriver.refresh()
 
-            print("trying to find the expected collection from the search")
+            self.print("trying to find the expected collection from the search")
             search_testDoc_col = "//a[contains(text(), 'TestDoc')]"
             search_testDoc_col_sitem = self.locator_finder_by_xpath(search_testDoc_col)
             time.sleep(3)
@@ -404,7 +404,7 @@ class CollectionPage(NavigationBarPage):
                 expected_msg == search_testDoc_col_sitem.text
             ), f"Expected {expected_msg} but got {search_testDoc_col_sitem.text}"
 
-            print("after getting TestDoc now clear the name filter")
+            self.print("after getting TestDoc now clear the name filter")
             # selecting filter btn again
             add_filter_btn_again = "//button[contains(text(),'Filters')]"
             add_filter_btn_again_stiem = self.locator_finder_by_xpath(add_filter_btn_again)
@@ -526,14 +526,14 @@ class CollectionPage(NavigationBarPage):
             getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
             return getting_total_row_count_sitem.text
         else:
-            print("your browser window is to narrow! " + str(size))
+            self.print("your browser window is to narrow! " + str(size))
             return "-1"
 
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
         if self.webdriver.name == "chrome":  # this will check browser name
-            print("Download has been disabled for the Chrome browser \n")
+            self.print("Download has been disabled for the Chrome browser \n")
         else:
             select_export_doc_as_jason_sitem = self.locator_finder_by_xpath(self.select_export_doc_as_jason_id)
             select_export_doc_as_jason_sitem.click()
@@ -554,7 +554,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
         document_sitem = self.locator_finder_by_id(self.document_id)
         string = document_sitem.text
-        # print(string[8:])
+        # self.print(string[8:])
         self.webdriver.back()
         time.sleep(1)
 
@@ -670,7 +670,7 @@ class CollectionPage(NavigationBarPage):
         actions.click().perform()
     
     # def select_testdoc_collection(self):
-    #     print('Selecting TestDoc Collection \n')
+    #     self.print('Selecting TestDoc Collection \n')
     #     select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
     #     select_doc_collection_sitem.click()
     #     time.sleep(1)
@@ -678,13 +678,13 @@ class CollectionPage(NavigationBarPage):
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         self.webdriver.maximize_window()
-        print(f"Creating {index_name} index started \n")
+        self.print(f"Creating {index_name} index started \n")
         add_index = '//*[@id="content-react"]/div/div/button'
         create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
         create_new_index_btn_sitem.click()
         time.sleep(2)
 
-        print(f"selecting {index_name} from the list\n")
+        self.print(f"selecting {index_name} from the list\n")
 
         self.webdriver.maximize_window()
         if index_name == 'Persistent':
@@ -954,7 +954,7 @@ class CollectionPage(NavigationBarPage):
                 self.navbar_goto("collections")
                 self.webdriver.refresh()
                 self.wait_for_ajax()
-                print("Selecting computed values collections. \n")
+                self.print("Selecting computed values collections. \n")
                 col = "(//a[normalize-space()='ComputedValueCol'])[1]"
                 self.locator_finder_by_xpath(col).click()
                 time.sleep(1)
@@ -978,7 +978,7 @@ class CollectionPage(NavigationBarPage):
                 mdi_name_sitem.click()
                 mdi_name_sitem.send_keys(index_name)
             except Exception as e:
-                print(e)
+                self.print(e)
                 # retry
                 self.webdriver.refresh()
                 self.create_index('MDI')
@@ -987,7 +987,7 @@ class CollectionPage(NavigationBarPage):
         else:
             try:
                 self.navbar_goto("collections")
-                print("Selecting computed values collections. \n")
+                self.print("Selecting computed values collections. \n")
                 col = '//*[@id="collection_ComputedValueCol"]/div/h5'
                 self.locator_finder_by_xpath(col).click()
                 time.sleep(1)
@@ -998,7 +998,7 @@ class CollectionPage(NavigationBarPage):
                 create_new_index_btn_sitem.click()
                 time.sleep(2)
 
-                print('ZKD Index (EXPERIMENTAL)')
+                self.print('ZKD Index (EXPERIMENTAL)')
                 zkd_field = "/html//input[@id='fields']"
                 zkd_field = self.locator_finder_by_xpath(zkd_field)
                 zkd_field.click()
@@ -1010,7 +1010,7 @@ class CollectionPage(NavigationBarPage):
                 zkd_name_sitem.click()
                 zkd_name_sitem.send_keys(index_name)
             except Exception as e:
-                print(e)
+                self.print(e)
                 # retry
                 self.webdriver.refresh()
                 self.create_index('ZKD')
@@ -1027,12 +1027,12 @@ class CollectionPage(NavigationBarPage):
 
     def create_new_index(self, index_name, value, is_cluster, check=False):
         """ create a new Index """
-        print(f"Creating {index_name} index started \n")
+        self.print(f"Creating {index_name} index started \n")
         add_index = "/html//i[@id='addIndex']"
         self.locator_finder_by_xpath(add_index).click()
         time.sleep(2)
 
-        print(f"selecting {index_name} from the list\n")
+        self.print(f"selecting {index_name} from the list\n")
         self.locator_finder_by_select(self.select_index_type_id, value)
 
         if index_name == "Persistent":
@@ -1099,16 +1099,16 @@ class CollectionPage(NavigationBarPage):
         elif index_name == 'ZKD':
             if check:
                 self.navbar_goto("collections")
-                print("Selecting computed values collections. \n")
+                self.print("Selecting computed values collections. \n")
                 col = '//*[@id="collection_ComputedValueCol"]/div/h5'
                 self.locator_finder_by_xpath(col).click()
                 self.select_index_menu()
 
-                print(f"Creating {index_name} index started \n")
+                self.print(f"Creating {index_name} index started \n")
                 self.locator_finder_by_xpath(add_index).click()
                 time.sleep(2)
 
-                print(f"selecting {index_name} from the list\n")
+                self.print(f"selecting {index_name} from the list\n")
                 self.locator_finder_by_select(self.select_index_type_id, 5)
 
                 time.sleep(1)
@@ -1133,16 +1133,16 @@ class CollectionPage(NavigationBarPage):
         elif index_name == 'MDI':
             if check:
                 self.navbar_goto("collections")
-                print("Selecting computed values collections. \n")
+                self.print("Selecting computed values collections. \n")
                 col = '//*[@id="collection_ComputedValueCol"]/div/h5'
                 self.locator_finder_by_xpath(col).click()
                 self.select_index_menu()
 
-                print(f"Creating {index_name} index started \n")
+                self.print(f"Creating {index_name} index started \n")
                 self.locator_finder_by_xpath(add_index).click()
                 time.sleep(2)
 
-                print(f"selecting {index_name} from the list\n")
+                self.print(f"selecting {index_name} from the list\n")
                 self.locator_finder_by_select(self.select_index_type_id, 5)
 
                 time.sleep(1)
@@ -1175,7 +1175,7 @@ class CollectionPage(NavigationBarPage):
             self.select_collection("TestDoc")
             self.select_index_menu()
 
-        print(f"Creating {index_name} index completed \n")
+        self.print(f"Creating {index_name} index completed \n")
 
     def delete_index_311(self, check=False):
         """this method will delete all the indexes one by one for =<3.11.99"""
@@ -1194,7 +1194,7 @@ class CollectionPage(NavigationBarPage):
             select_index_confirm_delete_sitem.click()
             self.webdriver.refresh()
         except TimeoutException as e:
-            print('Something went wrong', e, '\n')
+            self.print('Something went wrong', e, '\n')
         self.webdriver.set_window_size(1600, 900)
     
     def delete_index_312(self, index):
@@ -1228,7 +1228,7 @@ class CollectionPage(NavigationBarPage):
 
         except TimeoutException as e:
             try:
-                print("Trying again to delete the inverted index")
+                self.print("Trying again to delete the inverted index")
                 self.webdriver.refresh()
                 self.wait_for_ajax()
 
@@ -1241,7 +1241,7 @@ class CollectionPage(NavigationBarPage):
                 delete_confirmation_sitem.click()
 
             except BaseException as e:
-                print('Something went wrong', e, '\n')
+                self.print('Something went wrong', e, '\n')
                 self.navbar_goto
         self.webdriver.set_window_size(1600, 900)
 
@@ -1262,7 +1262,7 @@ class CollectionPage(NavigationBarPage):
             select_schema_tab_sitem.click()
             time.sleep(2)
         else:
-            print('Schema check not supported for the current package version \n')
+            self.print('Schema check not supported for the current package version \n')
         self.wait_for_ajax()
 
     def select_settings_tab(self, is_cluster, check=False):
@@ -1287,7 +1287,7 @@ class CollectionPage(NavigationBarPage):
 
             select_new_settings_save_btn_sitem.click()
             time.sleep(2)
-            print("Loading Index into memory\n")
+            self.print("Loading Index into memory\n")
             select_load_index_into_memory_sitem = self.locator_finder_by_xpath(self.select_load_index_into_memory_id)
             select_load_index_into_memory_sitem.click()
             time.sleep(2)
@@ -1310,7 +1310,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(1)
 
         if check:
-            print("Saving current computed value")
+            self.print("Saving current computed value")
             save_computed_value = 'saveComputedValuesButton'
             save_computed_value_sitem = self.locator_finder_by_id(save_computed_value)
             save_computed_value_sitem.click()
@@ -1343,12 +1343,12 @@ class CollectionPage(NavigationBarPage):
         self.webdriver.refresh()
         self.wait_for_ajax()
         time.sleep(2)
-        print("Selecting computed values collections. \n")
+        self.print("Selecting computed values collections. \n")
         col = "//*[text()='ComputedValueCol']"
         self.locator_finder_by_xpath(col).click()
         time.sleep(1)
 
-        print("Selecting computed value tab \n")
+        self.print("Selecting computed value tab \n")
         computed = "//*[contains(text(),'Computed Values')]"
         self.locator_finder_by_xpath(computed).click()
         time.sleep(1)
@@ -1370,7 +1370,7 @@ class CollectionPage(NavigationBarPage):
         warning = 'button-warning'
         self.ace_set_value(warning, compute_query, True)
 
-        print('go back to collection tab')
+        self.print('go back to collection tab')
         # Define the maximum number of retries
         max_retries = 3
         retry_count = 0
@@ -1389,8 +1389,8 @@ class CollectionPage(NavigationBarPage):
                 # If successful, break out of the loop
                 break
             except Exception as e:
-                # If an error occurs, print the error message
-                print(f"Error occurred while selecting computed value column: {e}")
+                # If an error occurs, self.print the error message
+                self.print(f"Error occurred while selecting computed value column: {e}")
                 
                 # Increment retry count
                 retry_count += 1
@@ -1404,12 +1404,12 @@ class CollectionPage(NavigationBarPage):
 
         self.navigate_to_col_content_tab()
 
-        # print('Select add new document to collection button')
+        # self.print('Select add new document to collection button')
         add = '//*[@id="addDocumentButton"]/span/i'
         add_sitem = self.locator_finder_by_xpath(add)
         add_sitem.click()
 
-        # print('inserting data\n')
+        # self.print('inserting data\n')
         insert_data = "jsoneditor-format"
         col_query = {"name": {"first": "Sam",
                               "last": "Smith"},
@@ -1421,15 +1421,15 @@ class CollectionPage(NavigationBarPage):
         self.navbar_goto('queries')
         time.sleep(1)
 
-        print('select query execution area\n')
+        self.print('select query execution area\n')
         self.select_query_execution_area()
-        print('sending query to the area\n')
+        self.print('sending query to the area\n')
         self.send_key_action('FOR user IN ComputedValueCol RETURN user')
-        print('execute the query\n')
+        self.print('execute the query\n')
         self.query_execution_btn()
         self.scroll()
 
-        print('Checking that dateCreatedHumanReadable computed value as been created\n')
+        self.print('Checking that dateCreatedHumanReadable computed value as been created\n')
         computed_value = "//*[text()='dateCreatedHumanReadable']"
         computed_value_sitem = self.locator_finder_by_xpath(computed_value).text
         time.sleep(1)
@@ -1438,9 +1438,9 @@ class CollectionPage(NavigationBarPage):
             assert computed_value == computed_value_sitem, \
                 f"Expected page title {computed_value} but got {computed_value_sitem}"
         except AssertionError:
-            print(f'Assertion Error occurred! for {computed_value}\n')
+            self.print(f'Assertion Error occurred! for {computed_value}\n')
 
-        print('Checking that FullName computed value as been created\n')
+        self.print('Checking that FullName computed value as been created\n')
         computed_full_name = "//*[text()='FullName']"
         computed_full_name_sitem = self.locator_finder_by_xpath(computed_full_name).text
         time.sleep(1)
@@ -1449,9 +1449,9 @@ class CollectionPage(NavigationBarPage):
             assert full_name_value == computed_full_name_sitem, \
                 f"Expected page title {computed_value} but got {computed_full_name_sitem}"
         except AssertionError:
-            print(f'Assertion Error occurred! for {computed_value}\n')
+            self.print(f'Assertion Error occurred! for {computed_value}\n')
 
-        print('Checking that dateCreatedForIndexing computed value as been created\n')
+        self.print('Checking that dateCreatedForIndexing computed value as been created\n')
         computed_index_value = "//*[text()='dateCreatedForIndexing']"
         computed_index_value_sitem = self.locator_finder_by_xpath(computed_index_value).text
         index_value = 'dateCreatedForIndexing'
@@ -1460,7 +1460,7 @@ class CollectionPage(NavigationBarPage):
             assert index_value == computed_index_value_sitem, \
                 f"Expected page title {index_value} but got {computed_index_value_sitem}"
         except AssertionError:
-            print(f'Assertion Error occurred! for {index_value}\n')
+            self.print(f'Assertion Error occurred! for {index_value}\n')
 
         # go back to collection page
         self.navbar_goto("collections")
@@ -1512,7 +1512,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_doc_collection(self):
         """selecting testDoc collection"""
-        print("Selecting TestDoc Collection \n")
+        self.print("Selecting TestDoc Collection \n")
         try:
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
                 test_doc_col = "(//a[normalize-space()='TestDoc'])[1]"
@@ -1523,7 +1523,7 @@ class CollectionPage(NavigationBarPage):
             select_test_doc_collection_sitem.click()
             time.sleep(1)
         except BaseException as e:
-            print('trying again in case of found statle element', e, '\n')
+            self.print('trying again in case of found statle element', e, '\n')
             self.webdriver.refresh()
             self.select_doc_collection()
 
@@ -1552,17 +1552,17 @@ class CollectionPage(NavigationBarPage):
                     notification_sitem.text == expected_text
                 ), f"Expected text{expected_text} but got {notification_sitem.text}"
             except TimeoutException:
-                print("FAIL: Unexpected error occurred!")
+                self.print("FAIL: Unexpected error occurred!")
 
         except TimeoutException as ex:
             if test_name == "access":
-                print("Collection creation failed, which is expected")
+                self.print("Collection creation failed, which is expected")
             if test_name == "read/write":
                 raise Exception("FAIL: Unexpected error occurred!") from ex
 
     def delete_collection(self, collection_name, collection_locator, is_cluster):
         """This method will delete all the collection"""
-        print(f"Deleting {collection_name} collection started \n")
+        self.print(f"Deleting {collection_name} collection started \n")
         self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.wait_for_ajax()
@@ -1587,15 +1587,15 @@ class CollectionPage(NavigationBarPage):
             self.select_settings_tab(is_cluster)
             self.select_delete_collection()
 
-            print(f"Deleting {collection_name} collection Completed \n")
+            self.print(f"Deleting {collection_name} collection Completed \n")
             self.webdriver.refresh()
         except (TimeoutException, AttributeError):
-            print("TimeoutException occurred! \n")
-            print("Info: Collection has already been deleted or never created. \n")
+            self.print("TimeoutException occurred! \n")
+            self.print("Info: Collection has already been deleted or never created. \n")
         except NoSuchElementException:
-            print('Element not found, which might be happen due to force cleanup.')
+            self.print('Element not found, which might be happen due to force cleanup.')
         except Exception as ex:
-            traceback.print_exc()
+            traceback.self.print_exc()
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
         self.webdriver.refresh()
         self.wait_for_ajax()

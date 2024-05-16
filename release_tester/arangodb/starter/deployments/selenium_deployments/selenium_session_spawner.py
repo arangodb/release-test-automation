@@ -2,6 +2,7 @@
 """ baseclass to manage selenium UI tests """
 
 import time
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.common.exceptions import SessionNotCreatedException
@@ -69,13 +70,16 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
     cleanup_temp_files(is_headless)
     driver = None
     count = 0
+    video_start_time = datetime.now()
     while driver is None and count < 10:
         count += 1
         try:
             driver = driver_func(**kwargs)
+            video_start_time = datetime.now()
         except TypeError:
             try:
                 driver = driver_func.webdriver.WebDriver(**kwargs)
+                video_start_time = datetime.now()
             except SessionNotCreatedException as ex:
                 if count == 10:
                     raise ex
@@ -92,4 +96,4 @@ def spawn_selenium_session(selenium_worker: str,  selenium_driver_args: list):
         required_width = driver.execute_script("return document.body.parentNode.scrollWidth")
         required_height = driver.execute_script("return document.body.parentNode.scrollHeight")
         driver.set_window_size(required_width, required_height)
-    return (is_headless, driver)
+    return (is_headless, driver,  video_start_time)

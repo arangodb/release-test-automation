@@ -11,7 +11,7 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_dashboard(self):
         """testing dashboard page"""
-        print("---------Checking Dashboard started--------- \n")
+        self.print("---------Checking Dashboard started--------- \n")
         # login = LoginPage(self.webdriver, self.cfg)
         # login.login('root', self.root_passvoid)
         # creating object for dashboard
@@ -29,25 +29,25 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
             dash.check_db_uptime()
             # TODO: version dependend? cluster?
             dash.check_responsiveness_for_dashboard()
-            print("\nSwitch to System Resource tab\n")
+            self.print("\nSwitch to System Resource tab\n")
             dash.check_system_resource()
-            print("Switch to Metrics tab\n")
+            self.print("Switch to Metrics tab\n")
             dash.check_system_metrics()
 
         if self.is_cluster and version >= semver.VersionInfo.parse("3.8.0"):
-            print("Checking distribution tab \n")
+            self.print("Checking distribution tab \n")
             dash.check_distribution_tab()
-            print("Checking maintenance tab \n")
+            self.print("Checking maintenance tab \n")
             dash.check_maintenance_tab()
 
         dash.navbar_goto("support")
-        print("Opening Twitter link \n")
+        self.print("Opening Twitter link \n")
         dash.click_twitter_link()
-        print("Opening Slack link \n")
+        self.print("Opening Slack link \n")
         dash.click_slack_link()
-        print("Opening Stackoverflow link \n")
+        self.print("Opening Stackoverflow link \n")
         dash.click_stackoverflow_link()
-        print("Opening Google group link \n")
+        self.print("Opening Google group link \n")
         dash.click_google_group_link()
         # login.logout_button()
-        print("---------Checking Dashboard Completed--------- \n")
+        self.print("---------Checking Dashboard Completed--------- \n")

@@ -31,6 +31,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     def __init__(self, selenium_runner):
         self.selenium_runner = selenium_runner
         super().__init__()
+        self.video_start_time = selenium_runner.video_start_time
         self.webdriver = selenium_runner.webdriver
         self.frontend = selenium_runner.ui_entrypoint_instance
         self.root_passvoid = self.frontend.get_passvoid()
@@ -46,6 +47,10 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.sub_suite_name = self.__doc__ or self.__class__.__name__
         if len(self.include_test_suites) > 0 and self.__class__.__name__ not in self.include_test_suites:
             self.run_own_test_cases = False
+
+    def print(self, string):
+        """ print including timestamp relative to video start """
+        print(f"d{str(datetime.now() - self.video_start_time)} {string}")
 
     def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(
@@ -67,7 +72,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     #    def connect_server_new_tab(self, cfg):
     #        """login..."""
     #        self.progress("Opening page")
-    #        print(frontend_instance[0].get_public_plain_url())
+    #        self.print(frontend_instance[0].get_public_plain_url())
     #        self.original_window_handle = self.webdriver.current_window_handle
     #
     #        # Open a new window
@@ -86,7 +91,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     #        """close a tab, and return to main window"""
     #        self.webdriver.close()  # Switch back to the first tab with URL A
     #        # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
-    #        # print("Current Page Title is : %s" %self.webdriver.title)
+    #        # self.print("Current Page Title is : %s" %self.webdriver.title)
     #        # self.webdriver.close()
     #        self.webdriver.switch_to.window(self.original_window_handle)
     #        self.original_window_handle = None
@@ -94,7 +99,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     #    def connect_server(self, frontend_instance, database, cfg):
     #        """login..."""
     #        self.progress("Opening page")
-    #        print(frontend_instance[0].get_public_plain_url())
+    #        self.print(frontend_instance[0].get_public_plain_url())
     #        self.webdriver.get(
     #            self.get_protocol()
     #            + "://"
@@ -144,8 +149,8 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.truncate_browser_log()
 
     def progress(self, arg):
-        """state print todo"""
-        print(arg)
+        """state self.print todo"""
+        self.print(arg)
 
     @collect_crash_data
     def save_browser_data(self):

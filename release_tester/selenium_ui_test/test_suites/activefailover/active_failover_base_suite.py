@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """active failover base testsuite"""
-import pprint
+import pself.print
 import time
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -17,7 +17,7 @@ class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
             NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
             replication_page = ReplicationPage(self.webdriver, self.cfg)
             replication_table = replication_page.get_replication_screen(True)
-            print(replication_table)
+            self.print(replication_table)
             if len(replication_table["follower_table"]) != expect_follower_count + 1:
                 time.sleep(5)
                 retry_count -= 1
@@ -30,7 +30,7 @@ class ActiveFailoverBaseTestSuite(BaseSeleniumTestSuite):
         )
         self.ui_assert(
             len(replication_table["follower_table"]) == expect_follower_count + 1,
-            "UI-Test:\nexpect 1 follower in:\n%s" % pprint.pformat(replication_table),
+            "UI-Test:\nexpect 1 follower in:\n%s" % pself.print.pformat(replication_table),
         )
     
     def check_replication_tab(self):

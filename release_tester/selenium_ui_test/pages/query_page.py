@@ -48,19 +48,19 @@ class QueryPage(NavigationBarPage):
 
     def import_collections(self, restore, testdata_path, is_cluster):
         """importing collections for query"""
-        print("Navigating to Collection page \n")
+        self.print("Navigating to Collection page \n")
         # Selecting collections page
         self.navbar_goto("collections")
         self.webdriver.refresh()
         data_path = testdata_path / "ui_data" / "query_page" / "IMDB_DUMP"
-        print(data_path)
+        self.print(data_path)
         ret = restore.run_restore_monitored(
             str(data_path.absolute()), ["--number-of-shards", "9", "--replication-factor", "2"], 40
         )
         if not ret[0]:
             raise Exception("restoring failed: " + str(ret[1]))
 
-        print("Creating a blank collection\n")
+        self.print("Creating a blank collection\n")
         create_collection = "createCollection"
         create_collection_sitem = self.locator_finder_by_id(create_collection)
         create_collection_sitem.click()
@@ -164,7 +164,7 @@ RETURN c
     def debug_package_download(self):
         """Downloading debug package"""
         if self.webdriver.name == "chrome":  # this will check browser name
-            print("Download has been disabled for the Chrome browser \n")
+            self.print("Download has been disabled for the Chrome browser \n")
         else:
             debug = self.create_debug_package_id
             debug = self.locator_finder_by_id(debug)
@@ -213,7 +213,7 @@ RETURN c
 
     def update_documents(self):
         """update some documents"""
-        print("Navigating to Collection page \n")
+        self.print("Navigating to Collection page \n")
         # Selecting collections page
         collections = "collections"
         collections = self.locator_finder_by_id(collections)
@@ -258,7 +258,7 @@ IN Characters""".format(key=key)
 
         self.clear_query_area()
 
-        print("Checking update query execution \n")
+        self.print("Checking update query execution \n")
         self.enter_query(
             """
 for doc in Characters
@@ -267,15 +267,15 @@ RETURN doc"""
         )
         time.sleep(1)
 
-        print("Executing Update query \n")
+        self.print("Executing Update query \n")
         self.query_execution_btn()
 
         self.scroll()
 
         if self.webdriver.name == "chrome":  # this will check browser name
-            print("Download has been disabled for the Chrome browser \n")
+            self.print("Download has been disabled for the Chrome browser \n")
         else:
-            print("Downloading query results \n")
+            self.print("Downloading query results \n")
             # downloading query results
             download_query_results = "downloadQueryResult"
             download_query_results = self.locator_finder_by_id(download_query_results)
@@ -284,7 +284,7 @@ RETURN doc"""
 
             # self.clear_download_bar()
 
-            print("Downloading query results as CSV format \n")
+            self.print("Downloading query results as CSV format \n")
             # downloading CSV query results
             csv = "downloadCsvResult"
             csv = self.locator_finder_by_id(csv)
@@ -335,28 +335,28 @@ FOR doc IN Characters
         self.scroll()
 
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
-            print("Json/table toggle check is skipped for 3.11.0+")
+            self.print("Json/table toggle check is skipped for 3.11.0+")
         else:
             json = "//*[text()='JSON']"
             table = "//*[text()='Table']"
 
-            print("Changing execution format JSON format to Table format\n")
+            self.print("Changing execution format JSON format to Table format\n")
             json = self.locator_finder_by_xpath(json)
             json.click()
             time.sleep(3)
 
-            print("Changing execution format Table format to JSON format\n")
+            self.print("Changing execution format Table format to JSON format\n")
             table = self.locator_finder_by_xpath(table)
             table.click()
             time.sleep(3)
 
-            print("Switch output to JSON format \n")
+            self.print("Switch output to JSON format \n")
             output_switch_json = "json-switch"
             output_switch_json = self.locator_finder_by_id(output_switch_json)
             output_switch_json.click()
             time.sleep(3)
 
-            print("Switch output to Table format \n")
+            self.print("Switch output to Table format \n")
             output_switch_table = "table-switch"
             output_switch_table = self.locator_finder_by_id(output_switch_table)
             output_switch_table.click()
@@ -372,7 +372,7 @@ FOR doc IN Characters
         toggle_query.click()
         time.sleep(1)
 
-        print("Importing query started \n")
+        self.print("Importing query started \n")
         # import query
         imp_query = "importQuery"
         imp_query = self.locator_finder_by_id(imp_query)
@@ -390,18 +390,18 @@ FOR doc IN Characters
         confirm_query = self.locator_finder_by_id(confirm_query)
         confirm_query.click()
         time.sleep(1)
-        print("Importing query completed \n")
+        self.print("Importing query completed \n")
 
-        print("Checking imported query \n")
+        self.print("Checking imported query \n")
         run_query = "runQuery"
         run_query = self.locator_finder_by_id(run_query)
         run_query.click()
         time.sleep(3)
 
         if self.webdriver.name == "chrome":  # this will check browser name
-            print("Download has been disabled for the Chrome browser \n")
+            self.print("Download has been disabled for the Chrome browser \n")
         else:
-            print("Exporting newly imported query\n")
+            self.print("Exporting newly imported query\n")
             select_imp_query = '//*[@id="arangoMyQueriesTable"]/tbody/tr[1]/td[1]'
             select_imp_query = self.locator_finder_by_xpath(select_imp_query)
             select_imp_query.click()
@@ -413,7 +413,7 @@ FOR doc IN Characters
             # self.clear_download_bar()
         time.sleep(5)
 
-        print("Deleting imported query \n")
+        self.print("Deleting imported query \n")
         query = '//*[@id="arangoMyQueriesTable"]/tbody/tr[1]/td[1]'
         query = self.locator_finder_by_xpath(query)
         query.click()
@@ -434,13 +434,13 @@ FOR doc IN Characters
         del_confirm_btn.click()
         time.sleep(1)
 
-        print("Return back to query execution area \n")
+        self.print("Return back to query execution area \n")
         self.click_submenu_entry("Editor")
         time.sleep(1)
 
     def custom_query(self):
         """saving custom query and check slow query"""
-        print("Executing Custom query\n")
+        self.print("Executing Custom query\n")
         self.enter_query("return sleep(10)")
 
         save_query_sitem = self.locator_finder_by_id(self.save_current_query_id)
@@ -460,37 +460,37 @@ FOR doc IN Characters
         saved_query_sitem = self.locator_finder_by_id("toggleQueries1")
         saved_query_sitem.click()
 
-        print("Checking custom query in action \n")
+        self.print("Checking custom query in action \n")
         explain_query_sitem = self.locator_finder_by_id("explQuery")
         explain_query_sitem.click()
         time.sleep(2)
 
-        print("Clearing query results\n")
+        self.print("Clearing query results\n")
         remove_sitem = self.locator_finder_by_id(self.remove_all_results_id)
         remove_sitem.click()
         time.sleep(2)
 
-        print("Running query from saved query\n")
+        self.print("Running query from saved query\n")
         run_query_sitem = self.locator_finder_by_id("runQuery")
         run_query_sitem.click()
         time.sleep(2)
 
-        print("Copying query from saved query\n")
+        self.print("Copying query from saved query\n")
         copy_query_sitem = self.locator_finder_by_id("copyQuery")
         copy_query_sitem.click()
         time.sleep(2)
 
         self.clear_query_area()
 
-        print("Checking running query tab\n")
+        self.print("Checking running query tab\n")
         self.click_submenu_entry("Running Queries")
         time.sleep(2)
 
-        print("Checking slow query history \n")
+        self.print("Checking slow query history \n")
         self.click_submenu_entry("Slow Query History")
         time.sleep(5)
 
-        print("Deleting slow query history \n")
+        self.print("Deleting slow query history \n")
         del_slow_query_history_sitem = self.locator_finder_by_id("deleteSlowQueryHistory")
         del_slow_query_history_sitem.click()
         time.sleep(1)
@@ -510,7 +510,7 @@ FOR doc IN Characters
         saved_query_01_sitem.click()
         time.sleep(2)
 
-        print("Deleting Saved query\n")
+        self.print("Deleting Saved query\n")
         delete_query_sitem = self.locator_finder_by_id("deleteQuery")
         delete_query_sitem.click()
         time.sleep(1)
@@ -525,7 +525,7 @@ FOR doc IN Characters
         toggle_queries_sitem = self.locator_finder_by_id("toggleQueries2")
         toggle_queries_sitem.click()
         time.sleep(1)
-        print("Deleting Saved query completed\n")
+        self.print("Deleting Saved query completed\n")
         self.clear_query_area()
 
     def world_country_graph_query(self):
@@ -534,7 +534,7 @@ FOR doc IN Characters
         self.selecting_query_page()
         self.clear_all_text(self.query_execution_area)
 
-        print("Executing sample graph query for worldCountry Graph \n")
+        self.print("Executing sample graph query for worldCountry Graph \n")
         self.enter_query(
             """
         FOR v, e, p IN 1..1
@@ -559,7 +559,7 @@ FOR doc IN Characters
 
         self.clear_all_text(self.query_execution_area)
 
-        print("Executing sample graph query for KShortestPaths Graph")
+        self.print("Executing sample graph query for KShortestPaths Graph")
         self.enter_query(
             """
             FOR path IN OUTBOUND K_SHORTEST_PATHS
@@ -577,7 +577,7 @@ FOR doc IN Characters
         self.scroll(1)
         time.sleep(8)
 
-        print("Switch output to JSON format")
+        self.print("Switch output to JSON format")
         output_switch_json = "json-switch"
         output_switch_json = self.locator_finder_by_id(output_switch_json)
         output_switch_json.click()
@@ -587,7 +587,7 @@ FOR doc IN Characters
         self.scroll(1)
         time.sleep(3)
 
-        print("Switch output to Graph")
+        self.print("Switch output to Graph")
         output_switch_graph = "graph-switch"
         output_switch_graph = self.locator_finder_by_id(output_switch_graph)
         output_switch_graph.click()
@@ -600,19 +600,19 @@ FOR doc IN Characters
         self.scroll(1)
         time.sleep(3)
 
-        print("Observe current query on Graph viewer \n")
+        self.print("Observe current query on Graph viewer \n")
         graph_page_btn = "copy2gV"
         graph_page_btn = self.locator_finder_by_id(graph_page_btn)
         graph_page_btn.click()
         time.sleep(5)
 
-        print("Navigate back to query page\n")
+        self.print("Navigate back to query page\n")
         self.selecting_query_page()
 
-        print("Clear query execution area \n")
+        self.print("Clear query execution area \n")
         self.clear_all_text(self.query_execution_area)
 
-        print("Executing one more KShortestPaths graph query \n")
+        self.print("Executing one more KShortestPaths graph query \n")
         self.enter_query(
             """
             FOR v, e IN OUTBOUND SHORTEST_PATH "places/Aberdeen" TO "places/London"
@@ -639,7 +639,7 @@ FOR doc IN Characters
 
         time.sleep(1)
 
-        print("Switch output to JSON format")
+        self.print("Switch output to JSON format")
         output_switch_json = "json-switch"
         output_switch_json = self.locator_finder_by_id(output_switch_json)
         output_switch_json.click()
@@ -647,7 +647,7 @@ FOR doc IN Characters
         self.select_query_execution_area()
         self.scroll(1)
 
-        print("Switch output to Table format")
+        self.print("Switch output to Table format")
         output_switch_table = "table-switch"
         output_switch_table = self.locator_finder_by_id(output_switch_table)
         output_switch_table.click()
@@ -660,14 +660,14 @@ FOR doc IN Characters
         """changing the number of output"""
         self.select_query_execution_area()
 
-        print("Changing query results size 1000 to 100 \n")
+        self.print("Changing query results size 1000 to 100 \n")
         query_size = self.select_query_size_id
         self.locator_finder_by_select(query_size, 0)
         time.sleep(1)
 
         self.select_query_execution_area()
 
-        print("Execute sample query\n")
+        self.print("Execute sample query\n")
         self.enter_query(
             """
             FOR c IN imdb_vertices
@@ -705,21 +705,21 @@ FOR doc IN Characters
         collection_page.click()
         time.sleep(2)
 
-        print("deleting Characters collections \n")
+        self.print("deleting Characters collections \n")
         characters = '//*[@id="collection_Characters"]/div/h5'
         self.delete_collection(characters)
 
-        print("deleting imdb_edges collections \n")
+        self.print("deleting imdb_edges collections \n")
         imdb_edges = '//*[@id="collection_imdb_edges"]/div/h5'
         self.delete_collection(imdb_edges)
 
-        print("deleting imdb_vertices collections \n")
+        self.print("deleting imdb_vertices collections \n")
         imdb_edges = '//*[@id="collection_imdb_vertices"]/div/h5'
         self.delete_collection(imdb_edges)
 
     def delete_all_graph(self, graph_id):
         """deleting any graphs with given graph id"""
-        print("Navigating back to graph page \n")
+        self.print("Navigating back to graph page \n")
         graph = self.graph_page
         graph = self.locator_finder_by_id(graph)
         graph.click()
@@ -835,7 +835,7 @@ FOR doc IN Characters
 
     def search_inside_saved_query(self, query_name):
         """This method will search saved query by given string"""
-        print("Searching through saved query\n")
+        self.print("Searching through saved query\n")
         search = "querySearchInput"
         saved_query_btn_sitem = self.locator_finder_by_id(search)
         saved_query_btn_sitem.click()
@@ -843,7 +843,7 @@ FOR doc IN Characters
         saved_query_btn_sitem.send_keys(query_name)
         time.sleep(1)
 
-        print("Checking that found the exact query\n")
+        self.print("Checking that found the exact query\n")
         find = f"//*[text()='{query_name}']"
         find_sitem = self.locator_finder_by_xpath(find).text
         assert query_name == find_sitem, f"Expected page title {query_name} but got {find_sitem}"
@@ -851,12 +851,12 @@ FOR doc IN Characters
 
     def saved_query_check(self):
         """This method will check saved query"""
-        print("Saved query check started\n")
+        self.print("Saved query check started\n")
         self.selecting_query_page()
 
         self.select_query_execution_area()
 
-        print("start 1st query for saving \n")
+        self.print("start 1st query for saving \n")
         self.send_key_action("FOR i IN 1..1000")
         self.send_key_action(Keys.ENTER)
         self.send_key_action(Keys.TAB)
@@ -865,7 +865,7 @@ FOR doc IN Characters
         self.send_key_action("status: 1 + (i % 5)} IN myCollection")
         self.save_query("insertQuery")
 
-        print("start 2nd query for saving \n")
+        self.print("start 2nd query for saving \n")
         self.select_query_execution_area()
         if self.current_package_version() < semver.VersionInfo.parse("3.11.100"):
             self.clear_query_area()
@@ -876,7 +876,7 @@ FOR doc IN Characters
         self.send_key_action('INSERT { name: CONCAT("test", i) } IN myCollection')
         self.save_query("concatQuery")
 
-        print("start 3rd query for saving \n")
+        self.print("start 3rd query for saving \n")
         self.select_query_execution_area()
         if self.current_package_version() < semver.VersionInfo.parse("3.11.100"):
             # clear the execution area
@@ -900,9 +900,9 @@ FOR doc IN Characters
 
             self.saved_query_settings()
 
-            print("Deleting all the saved query\n")
+            self.print("Deleting all the saved query\n")
             for _ in range(3):
                 self.delete_saved_query()
 
-        print("Return back to query page \n")
+        self.print("Return back to query page \n")
         self.selecting_query_page()

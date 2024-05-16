@@ -12,7 +12,7 @@ class UserBarPage(BasePage):
         """click log out icon on the user bar and wait for"""
         logout_button_sitem = self.locator_finder_by_id(self.logout_button_id)
         logout_button_sitem.click()
-        print("Logout from the current user\n")
+        self.print("Logout from the current user\n")
         self.wait_for_ajax()
 
     def get_health_state(self):

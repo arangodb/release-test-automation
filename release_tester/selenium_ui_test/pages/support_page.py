@@ -41,7 +41,7 @@ class SupportPage(NavigationBarPage):
         title = self.switch_tab(click_on_link_id_sitem)  # this method will call switch tab and close tab
         return title
 
-    def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
+    def loop_through_link_traversal(self, self.print_statement, link_list, assertion_list):
         """this method will be loop through all the list links"""
         import time
 
@@ -50,7 +50,7 @@ class SupportPage(NavigationBarPage):
 
         i = 0
         while i < len(link_list):
-            print(print_statement[i])
+            self.print(print_statement[i])
             title = None
             try_count = 0
             
@@ -62,15 +62,15 @@ class SupportPage(NavigationBarPage):
                     assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
                     break  # If successful, break out of the retry loop
                 except Exception as e:
-                    # If an error occurs, print the error message
-                    print(f"Error occurred: {e}")
+                    # If an error occurs, self.print the error message
+                    self.print(f"Error occurred: {e}")
                     
                     # Increment retry count
                     try_count += 1
                     
                     # If maximum retries reached, raise an error
                     if try_count == max_retries:
-                        print(f"Failed after {max_retries} attempts for link: {link_list[i]}")
+                        self.print(f"Failed after {max_retries} attempts for link: {link_list[i]}")
                         break  # Break out of the retry loop
                     
                     # Wait for a few seconds before retrying
@@ -86,20 +86,20 @@ class SupportPage(NavigationBarPage):
         click_on_btn = self.locator_finder_by_xpath(click_on_btn)
         click_on_btn.click()
 
-    def loop_through_btn_traversal(self, print_statement, btn_list):
+    def loop_through_btn_traversal(self, self.print_statement, btn_list):
         """this method will be loop through all the list buttons"""
         i = 0
         while i < len(btn_list):
-            print(print_statement[i])
+            self.print(print_statement[i])
             self.click_on_btn(btn_list[i])
             i = i + 1
             if i == len(btn_list):
-                print("Checking Backup Restore option completed \n")
+                self.print("Checking Backup Restore option completed \n")
             time.sleep(2)
 
     def manual_link(self):
         """Clicking all the links on manual link tab"""
-        print("Checking all arangodb manual link started\n")
+        self.print("Checking all arangodb manual link started\n")
 
         # link name for all the manual link
         getting_started = '//*[@id="documentation"]/div/div[2]/ul/li[1]/a'
@@ -109,7 +109,7 @@ class SupportPage(NavigationBarPage):
         graphs = '//*[@id="documentation"]/div/div[2]/ul/li[5]/a'
         go_to_manual_start_page = '//*[@id="documentation"]/div/div[2]/ul/li[6]/a'
 
-        manual_link_list_print_statement = [
+        manual_link_list_self.print_statement = [
             "Checking Getting started link \n",
             "Checking Data models & modeling link \n",
             "Checking Administration link \n",
@@ -143,14 +143,14 @@ class SupportPage(NavigationBarPage):
                                            'Introduction to ArangoDB Documentation | ArangoDB Documentation']
 
         self.loop_through_link_traversal(
-            manual_link_list_print_statement, manual_link_list, manual_link_assertion_check
+            manual_link_list_self.print_statement, manual_link_list, manual_link_assertion_check
         )
 
-        print("Checking all arangodb manual link completed \n")
+        self.print("Checking all arangodb manual link completed \n")
 
     def aql_query_language_link(self):
         """Clicking all the links on AQL Query Language link tab"""
-        print("Checking all arangodb AQL Query Language link started\n")
+        self.print("Checking all arangodb AQL Query Language link started\n")
 
         # link name for all the AQL Query link
         fundamentals = '//*[@id="documentation"]/div/div[3]/ul/li[1]/a'
@@ -159,7 +159,7 @@ class SupportPage(NavigationBarPage):
         usual_query_patterns = '//*[@id="documentation"]/div/div[3]/ul/li[4]/a'
         go_to_aql_query_page = '//*[@id="documentation"]/div/div[3]/ul/li[5]/a'
 
-        aql_link_list_print_statement = [
+        aql_link_list_self.print_statement = [
             "Checking Fundamentals link \n",
             "Checking Data Queries link \n",
             "Checking Functions link \n",
@@ -181,13 +181,13 @@ class SupportPage(NavigationBarPage):
                                                 'AQL Query Patterns & Examples | ArangoDB Documentation',
                                                 'ArangoDB Query Language (AQL) Introduction | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list, fundamental_link_assertion_check)
+        self.loop_through_link_traversal(aql_link_list_self.print_statement, aql_link_list, fundamental_link_assertion_check)
 
-        print("Checking all arangodb AQL Query Language link completed\n")
+        self.print("Checking all arangodb AQL Query Language link completed\n")
 
     def fox_framework_link(self):
         """Clicking all the links on fox framework link tab"""
-        print("Checking all arangodb Fox Framework link started\n")
+        self.print("Checking all arangodb Fox Framework link started\n")
 
         # link name for all the fox framework link
         micro_service = '//*[@id="documentation"]/div/div[4]/ul/li[1]/a'
@@ -196,7 +196,7 @@ class SupportPage(NavigationBarPage):
         deployment = '//*[@id="documentation"]/div/div[4]/ul/li[4]/a'
         go_to_fox_start = '//*[@id="documentation"]/div/div[4]/ul/li[5]/a'
 
-        fox_framework_print_statement = [
+        fox_framework_self.print_statement = [
             "Checking Micro Service link \n",
             "Checking Guides link \n",
             "Checking Reference link \n",
@@ -219,13 +219,13 @@ class SupportPage(NavigationBarPage):
                                              'Deployment | Foxx Microservices | Manual | ArangoDB Documentation',
                                              'Foxx Microservices | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
+        self.loop_through_link_traversal(fox_framework_self.print_statement, fox_framework_list, fox_framework_assertion_Check)
 
-        print("Checking all arangodb Fox Framework link completed\n")
+        self.print("Checking all arangodb Fox Framework link completed\n")
 
     def driver_and_integration_link(self):
         """Clicking all the links official drivers and integration link tab"""
-        print("Checking all Drivers and Integration link started\n")
+        self.print("Checking all Drivers and Integration link started\n")
 
         if self.version_is_newer_than("3.11.99"):
             # link name for all the Drivers and Integration link
@@ -236,7 +236,7 @@ class SupportPage(NavigationBarPage):
             arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
             drivers_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
 
-            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+            Official_self.print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
                                         'Checking ArangoDB Go driver link \n',
                                         'Checking Go to ArangoDB Spring Data page link \n',
@@ -262,7 +262,7 @@ class SupportPage(NavigationBarPage):
             arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
             driver_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[7]/a'
 
-            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+            Official_self.print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
                                         'Checking ArangoDB-PHP link \n',
                                         'Checking ArangoDB Go Driver link \n',
@@ -282,14 +282,14 @@ class SupportPage(NavigationBarPage):
                                                   'Install Official Drivers, Integrations and Community Drivers | '
                                                   'ArangoDB Documentation']
 
-        self.loop_through_link_traversal(Official_print_statement, drivers_and_integration,
+        self.loop_through_link_traversal(Official_self.print_statement, drivers_and_integration,
                                          driver_integration_assertion_check)
 
-        print('Checking all arangodb Drivers and Integration link completed\n')
+        self.print('Checking all arangodb Drivers and Integration link completed\n')
 
     def community_support_link(self):
         """Checking community support link"""
-        print("Checking all Support tab link started\n")
+        self.print("Checking all Support tab link started\n")
 
         support = self.select_support_page_id
         support = self.locator_finder_by_id(support)
@@ -310,7 +310,7 @@ class SupportPage(NavigationBarPage):
         google_groups = '//*[@id="community"]/div/div[7]/a'
         arangodb_contact_us = '//*[@id="community"]/div/div[8]/a'
 
-        support_tab_print_statement = [
+        support_tab_self.print_statement = [
             "Checking paying customer support link \n",
             "Checking Github issue report link \n",
             "Checking StackOverflow link \n",
@@ -350,13 +350,13 @@ class SupportPage(NavigationBarPage):
                                             "Redirecting to Google Groups",
                                             "Contact - ArangoDB"]
 
-        self.loop_through_link_traversal(support_tab_print_statement, support_list, support_link_assertion_check)
+        self.loop_through_link_traversal(support_tab_self.print_statement, support_list, support_link_assertion_check)
 
-        print("Checking all Support tab link completed \n")
+        self.print("Checking all Support tab link completed \n")
 
     def rest_api(self):
         """Checking all rest api swagger link"""
-        print("Checking all Rest api tab link started\n")
+        self.print("Checking all Rest api tab link started\n")
 
         support = self.select_support_page_id
         support = self.locator_finder_by_id(support)
@@ -374,7 +374,7 @@ class SupportPage(NavigationBarPage):
             iframe = self.switch_to_iframe_id
             self.switch_to_iframe(iframe)
 
-            print("Checking Backup Restore option started\n")
+            self.print("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
             backup_restore = self.locator_finder_by_xpath(backup_restore)
             backup_restore.click()
@@ -404,7 +404,7 @@ class SupportPage(NavigationBarPage):
             upload_remote_repository,
         ]
 
-        backup_restore_print_statement = [
+        backup_restore_self.print_statement = [
             "Checking create backup \n",
             "Checking create backup completed\n",
             "Checking delete backup button \n",
@@ -419,8 +419,8 @@ class SupportPage(NavigationBarPage):
             "Checking upload backup to remote repository button completed\n",
         ]
 
-        self.loop_through_btn_traversal(backup_restore_print_statement, backup_restore_list)
-        # print('Checking Backup Restore option started\n')
+        self.loop_through_btn_traversal(backup_restore_self.print_statement, backup_restore_list)
+        # self.print('Checking Backup Restore option started\n')
 
         # switching back to default view
         self.switch_back_to_origin_window()
