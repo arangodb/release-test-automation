@@ -44,12 +44,10 @@ class SeleniumRunner(ABC):
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
         self.selenium_include_suites = selenium_include_suites
+        self.video_name = f"{properties.short_name}_{testrun_name}.mp4".replace( '\n', '_').replace('@', '_')
         mylist = list(
             selenium_args['selenium_driver_args'])
-        mylist.append(
-            f"selenoid:options=videoName={properties.short_name}_{testrun_name}.mp4".replace(
-                '\n', '_').replace('@', '_')
-        )
+        mylist.append(f"selenoid:options=videoName={self.video_name}")
         selenium_args['selenium_driver_args'] = mylist
         (self.is_headless, self.webdriver, self.video_start_time) = spawn_selenium_session(**selenium_args)
         self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
@@ -57,6 +55,7 @@ class SeleniumRunner(ABC):
         time.sleep(3)
         self.webdriver.set_window_size(1600, 900)
         time.sleep(3)
+        print(f"Video filename will be: {self.video_name}")
 
     def _cleanup_temp_files(self):
         cleanup_temp_files(self.is_headless)
@@ -80,6 +79,7 @@ class SeleniumRunner(ABC):
                 print(f"Selenium connection seems to be already gone:  {str(ex)}")
             self.webdriver = None
             self._cleanup_temp_files()
+            print(f"Video filename {self.video_name} written")
 
     def progress(self, msg):
         """add something to the state..."""
