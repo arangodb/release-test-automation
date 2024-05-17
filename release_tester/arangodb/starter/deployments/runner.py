@@ -917,9 +917,9 @@ class Runner(ABC):
                 assert starter.arangosh, "check: this starter doesn't have an arangosh!"
                 frontend_found = True
                 arangosh = starter.arangosh
-                for db_name, one_shard, count_offset in self.makedata_databases():
+                for db_name, one_shard, count_offset in self.makedata_databases()[::-1]:
+                    print(db_name, one_shard, count_offset)
                     try:
-                        print(count_offset)
                         starter.arangosh.clear_test_data(
                             self.name,
                             starter.supports_foxx_tests,
@@ -927,8 +927,9 @@ class Runner(ABC):
                             database_name=db_name,
                             one_shard=one_shard,
                         )
-                        break
                     except CliExecutionException as exc:
+                        print("cleardata failed!")
+                        print(exc)
                         if not self.cfg.verbose:
                             print(exc.execution_result[1])
                             self.ask_continue_or_exit(
@@ -937,7 +938,8 @@ class Runner(ABC):
                                 False,
                                 exc,
                             )
-            return
+                print("Done cleanup")
+                return
         if not frontend_found:
             raise Exception("no frontend found.")
 
