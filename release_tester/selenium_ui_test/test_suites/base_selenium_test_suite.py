@@ -2,6 +2,7 @@
 """ base class for all selenium testsuites """
 import logging
 from datetime import datetime
+import traceback
 
 from beautifultable import BeautifulTable
 
@@ -64,7 +65,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """python assert sucks. fuckit."""
         if not conditionstate:
             # pylint: disable=no-member
-            logging.error(message)
+            self.tprint(message)
             self.save_page_source()
             self.take_screenshot()
             assert False, message
@@ -111,7 +112,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def go_to_index_page(self):
         """Open index.html"""
-        self.progress("Open index.html")
+        self.tprint("Open index.html")
         path = "/_db/_system/_admin/aardvark/index.html"
         self.goto_url_and_wait_until_loaded(path)
         if "#login" in self.webdriver.current_url:

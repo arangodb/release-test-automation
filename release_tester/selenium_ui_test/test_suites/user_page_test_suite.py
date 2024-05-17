@@ -94,7 +94,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                 # else:
                 login.login_webif("tester", "tester")
                 self.tprint(
-                    f"Re-Login begins with new user completed: {login.current_user()} = {login.current_database()}")
+                    f"Re-Login begins with new user completed: {login.current_user()} = {login.current_database()}"
                 )
                 self.tprint("trying to create collection")
                 collection_page.navbar_goto("collections")

@@ -55,11 +55,9 @@ class DashboardPage(NavigationBarPage):
         if cluster:
             status = self.locator_finder_by_xpath(self.check_cluster_status_id)
             self.tprint(f"Cluster Health: {status.text}")
-            
         else:
             status = self.locator_finder_by_xpath(self.check_db_status_id)
             self.tprint(f"Current Status: {status.text}")
-        
         if cluster:
             assert (
                 status.text in "NODES OK"
@@ -69,9 +67,7 @@ class DashboardPage(NavigationBarPage):
             assert (
                 status.text in "GOOD"
             ), f"Expected page title GOOD but got {status.text}"
-        
         time.sleep(1)
-        
 
     def check_db_engine(self):
         """checking current database status from the dashboard"""

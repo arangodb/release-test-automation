@@ -2,6 +2,7 @@
 """ base page object """
 import time
 import traceback
+from datetime import datetime
 
 import tools.interact as ti
 # from selenium import webdriver
@@ -242,7 +243,7 @@ class BasePage:
         actions = ActionChains(self.webdriver)
         actions.send_keys(key)
         actions.perform()
-    
+
     def clear_textfield(self):
         """This method will clear the textfield as necessary"""
         actions = ActionChains(self.webdriver)
@@ -283,7 +284,7 @@ class BasePage:
         package_version = self.locator_finder_by_id(package_version).text
         self.tprint(f"Package Version: {str(package_version)}")
         return semver.VersionInfo.parse(package_version)
-    
+
     def version_is_newer_than(self, version_str):
         """Check if the current package version is newer than the specified version."""
         current_version = self.current_package_version()
@@ -332,7 +333,6 @@ class BasePage:
             raise Exception(locator_name, " locator was not found.")
         return self.locator
 
-    
     def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
         """This method finds locators by their ID using Fluent Wait with retry."""
         for attempt in range(max_retries + 1):
@@ -376,7 +376,7 @@ class BasePage:
                 )
 
         raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
-    
+
     def locator_finder_by_link_text(self, locator_name):
         """This method will be used for finding all the locators by their xpath"""
         self.locator = WebDriverWait(self.webdriver, 10).until(
@@ -471,8 +471,7 @@ class BasePage:
             time.sleep(2)
             locator_sitem.send_keys(Keys.TAB)
             time.sleep(2)
-            
-            
+
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                 create_btn = "//*[text()='Create']"
             else:
@@ -554,7 +553,7 @@ class BasePage:
                 raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
-    
+
     def check_expected_error_messages_for_views(self,
                                                 error_input,
                                                 print_statement,

@@ -109,10 +109,17 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 try:
                     self.setup_test_suite()
                 except TestMustBeSkipped as ex:
+                    print(ex)
                     self._disable(ex.message)
                     self._report_disabled()
                 # pylint: disable=broad-except disable=bare-except
-                except:
+                except Exception as ex:
+                    print('mimimi')
+                    print(ex)
+                    self._disable(ex.message +
+                                  f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
+                                  )
+                    self._report_disabled()
                     setup_failed = True
                     try:
                         self.add_crash_data_to_report()
@@ -457,6 +464,7 @@ def testcase(title=None):
                             message = "\n".join(wrapper.disable_reasons)
                             my_testcase.context.statusDetails = StatusDetails(message=message)
                     elif kwargs["suite_is_broken"]:
+                        print(kwargs)
                         test_result = RtaTestResult(False, parametrized_testcase_name, "test suite is broken", None)
                         my_testcase.context.status = Status.BROKEN
                     else:

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -u
 """ fetch nightly packages, process upgrade """
 import sys
 

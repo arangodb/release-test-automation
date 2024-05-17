@@ -45,7 +45,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             # service.replace_service()
 
         except BaseException:
-            self.tprint(f"{"x" * 45}\nINFO: Error Occurred! Force Deletion Started\n{"x" * 45}")
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")
             self.exception = True  # mark the exception as true
             self.error = traceback.format_exc()
 
