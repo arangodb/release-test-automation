@@ -109,10 +109,17 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 try:
                     self.setup_test_suite()
                 except TestMustBeSkipped as ex:
+                    print(ex)
                     self._disable(ex.message)
                     self._report_disabled()
                 # pylint: disable=broad-except disable=bare-except
-                except:
+                except Exception as ex:
+                    print('mimimi')
+                    print(ex)
+                    self._disable(ex.message +
+                                  f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
+                                  )
+                    self._report_disabled()
                     setup_failed = True
                     try:
                         self.add_crash_data_to_report()

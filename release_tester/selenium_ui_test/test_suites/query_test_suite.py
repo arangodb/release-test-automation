@@ -14,72 +14,72 @@ class QueryTestSuite(BaseSeleniumTestSuite):
     def test_query(self):
         """testing query page"""
         # pylint: disable=too-many-statements
-        query_page = QueryPage(self.webdriver, self.cfg)
-        graph_page = GraphPage(self.webdriver, self.cfg)
+        query_page = QueryPage(self.webdriver, self.cfg, self.video_start_time)
+        graph_page = GraphPage(self.webdriver, self.cfg, self.video_start_time)
 
         assert query_page.current_user() == "ROOT", "current user is root?"
         assert query_page.current_database() == "_SYSTEM", "current database is _system?"
         
-        print("Checking saved query feature \n")
+        self.tprint("Checking saved query feature \n")
         if query_page.current_package_version() > semver.VersionInfo.parse("3.10.99"):
             query_page.saved_query_check()
         
         if query_page.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
             if query_page.current_package_version() > semver.VersionInfo.parse("3.11.99"):
                 # TODO for 3.12.x
-                print("skipped")
+                self.tprint("skipped")
         else:
-            print("Importing IMDB collections \n")
+            self.tprint("Importing IMDB collections \n")
             query_page.import_collections(self.restore, self.ui_data_dir, self.is_cluster)
 
-            print("Selecting Query page for basic CRUD operation \n")
+            self.tprint("Selecting Query page for basic CRUD operation \n")
             query_page.selecting_query_page()
 
-            print("Executing insert query \n")
+            self.tprint("Executing insert query \n")
             query_page.execute_insert_query()
 
-            print("Profiling current query \n")
+            self.tprint("Profiling current query \n")
             query_page.profile_query()
-            print("Explaining current query \n")
+            self.tprint("Explaining current query \n")
             query_page.explain_query()
-            print("Debug packaged downloading for the current query \n")
+            self.tprint("Debug packaged downloading for the current query \n")
             query_page.debug_package_download()
-            print("Removing all query results \n")
+            self.tprint("Removing all query results \n")
             query_page.remove_query_result()
-            print("Importing IMDB collections \n")
+            self.tprint("Importing IMDB collections \n")
             query_page.import_collections(self.restore, self.ui_data_dir, self.is_cluster)
 
-            print("Selecting Query page for basic CRUD operation \n")
+            self.tprint("Selecting Query page for basic CRUD operation \n")
             query_page.selecting_query_page()
 
-            print("Executing insert query \n")
+            self.tprint("Executing insert query \n")
             query_page.execute_insert_query()
 
-            print("Profiling current query \n")
+            self.tprint("Profiling current query \n")
             query_page.profile_query()
-            print("Explaining current query \n")
+            self.tprint("Explaining current query \n")
             query_page.explain_query()
-            print("Debug packaged downloading for the current query \n")
+            self.tprint("Debug packaged downloading for the current query \n")
             query_page.debug_package_download()
-            print("Removing all query results \n")
+            self.tprint("Removing all query results \n")
             query_page.remove_query_result()
 
-            # TODO: print("Executing spot light functionality \n")
+            # TODO: self.tprint("Executing spot light functionality \n")
             # query_page.spot_light_function('COUNT')  # can be used for search different keyword
 
-            print("Executing read query\n")
+            self.tprint("Executing read query\n")
             query_page.execute_read_query()
 
-            print("Updating documents\n")
+            self.tprint("Updating documents\n")
             query_page.update_documents()
-            print("Executing query with bind parameters \n")
+            self.tprint("Executing query with bind parameters \n")
             query_page.bind_parameters_query()
 
-            print("Executing example graph query \n")
+            self.tprint("Executing example graph query \n")
             graph = GraphExample.WORLD
             query_page.navbar_goto("graphs")
             self.webdriver.refresh()
-            print("Creating '%s' Graph" % get_graph(graph).get_name())
+            self.tprint("Creating '%s' Graph" % get_graph(graph).get_name())
             graph_page.create_graph(graph, self.importer, self.ui_data_dir)
             graph_page.check_required_collections(graph)
             query_page.world_country_graph_query()
@@ -91,7 +91,7 @@ class QueryTestSuite(BaseSeleniumTestSuite):
             graph = GraphExample.K_SHORTEST_PATH
             query_page.navbar_goto("graphs")
             self.webdriver.refresh()
-            print("Creating '%s' Graph" % get_graph(graph).get_name())
+            self.tprint("Creating '%s' Graph" % get_graph(graph).get_name())
             graph_page.create_graph(graph, self.importer, self.ui_data_dir)
             graph_page.check_required_collections(graph)
             query_page.k_shortest_paths_graph_query()
@@ -103,10 +103,10 @@ class QueryTestSuite(BaseSeleniumTestSuite):
             graph = GraphExample.CITY
             graph_page.navbar_goto("graphs")
             self.webdriver.refresh()
-            print("Creating '%s' Graph" % get_graph(graph).get_name())
+            self.tprint("Creating '%s' Graph" % get_graph(graph).get_name())
             graph_page.create_graph(graph, self.importer, self.ui_data_dir)
             graph_page.check_required_collections(graph)
-            print("Executing City Graph query \n")
+            self.tprint("Executing City Graph query \n")
             query_page.city_graph()
             query_page.navbar_goto("graphs")
             self.webdriver.refresh()
@@ -115,16 +115,16 @@ class QueryTestSuite(BaseSeleniumTestSuite):
             graph_page.navbar_goto("queries")
             self.webdriver.refresh()
 
-            # print("Importing new queries \n") # untill the fix arrive
+            # self.tprint("Importing new queries \n") # untill the fix arrive
             # query_page.import_queries(str(self.ui_data_dir / "ui_data" / "query_page" / "imported_query.json"))
-            print("Saving Current query as custom query\n")
+            self.tprint("Saving Current query as custom query\n")
             query_page.custom_query()
-            print("Changing the number of results from 1000 to 100\n")
+            self.tprint("Changing the number of results from 1000 to 100\n")
             query_page.number_of_results()
 
-            print("Deleting collections begins \n")
+            self.tprint("Deleting collections begins \n")
             query_page.delete_all_collections()
-            print("Deleting collections completed \n")
+            self.tprint("Deleting collections completed \n")
 
         del query_page
-        print("---------Checking Query completed--------- \n")
+        self.tprint("---------Checking Query completed--------- \n")

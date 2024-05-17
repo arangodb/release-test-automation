@@ -11,8 +11,8 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 # pylint: disable=too-many-statements
 class DatabasePage(NavigationBarPage):
     """ database page object """
-    def __init__(self, webdriver, cfg):
-        super().__init__(webdriver, cfg)
+    def __init__(self, webdriver, cfg, video_start_time):
+        super().__init__(webdriver, cfg, video_start_time)
         self.database_page = "databases"
         self.create_new_db_btn = "createDatabase"
         self.sort_db = '//*[@id="databaseDropdown"]/ul/li[2]/a/label/i'
@@ -23,7 +23,7 @@ class DatabasePage(NavigationBarPage):
         # pylint: disable=too-many-locals
         self.navbar_goto("databases")
         self.wait_for_ajax()
-        print(f'Creating {db_name} database started \n')
+        self.tprint(f'Creating {db_name} database started \n')
         if self.version_is_newer_than("3.11.99"):
             create_new_db_btn = "(//button[normalize-space()='Add database'])[1]"
             create_new_db_btn_sitem = self.locator_finder_by_xpath(create_new_db_btn)
@@ -34,7 +34,7 @@ class DatabasePage(NavigationBarPage):
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
-        print("fill up all the database details \n")
+        self.tprint("fill up all the database details \n")
         if self.version_is_newer_than("3.11.99"):
             new_db_name = "(//input[@id='name'])[1]"
             new_db_name_sitem = self.locator_finder_by_xpath(new_db_name)
@@ -47,7 +47,7 @@ class DatabasePage(NavigationBarPage):
         time.sleep(1)
 
         if cluster:
-            print(f"Cluster deployment selected for {db_name} \n")
+            self.tprint(f"Cluster deployment selected for {db_name} \n")
             if self.version_is_newer_than("3.11.99"):
                 replication_factor = 'replicationFactor'
             else:
@@ -81,7 +81,7 @@ class DatabasePage(NavigationBarPage):
 
             if enterprise:
                 if self.version_is_newer_than("3.11.99"):
-                    print(f"selecting one shard database for {db_name}\n")
+                    self.tprint(f"selecting one shard database for {db_name}\n")
                     if db_name == "OneShard":
                         one_shard = '//*[@id="chakra-modal--body-4"]/div/div/div[2]/div[5]/div/div/label/span/span'
                         one_shard_sitem = self.locator_finder_by_xpath(one_shard)
@@ -89,14 +89,14 @@ class DatabasePage(NavigationBarPage):
                     else:
                         pass
                 else:
-                    print(f"selecting sharded option from drop down using index for {db_name}\n")
+                    self.tprint(f"selecting sharded option from drop down using index for {db_name}\n")
                     select_sharded_db = "newSharding"
                     self.locator_finder_by_select(select_sharded_db, index)
                     time.sleep(1)
             else:
-                print(f"Skipped for Community or < v3.11.99 for {db_name}\n")
+                self.tprint(f"Skipped for Community or < v3.11.99 for {db_name}\n")
 
-        print(f"selecting user option from drop down using index for choosing root user for {db_name} \n")
+        self.tprint(f"selecting user option from drop down using index for choosing root user for {db_name} \n")
         if self.version_is_newer_than("3.11.99"):
             select_user = "(//input[@id='users'])[1]"
             select_user_sitem = self.locator_finder_by_xpath(select_user)  # 0 for root user
@@ -121,17 +121,17 @@ class DatabasePage(NavigationBarPage):
         
         create_db_sitem.click()
         time.sleep(4)
-        print(f"Creating {db_name} database completed \n")
+        self.tprint(f"Creating {db_name} database completed \n")
         
         if self.current_package_version() < semver.VersionInfo.parse("3.11.0"):
-            print(f"Logging into newly created {db_name} database \n")
+            self.tprint(f"Logging into newly created {db_name} database \n")
             change_db = '//*[@id="dbStatus"]/a[3]/i'
             change_db_sitem = self.locator_finder_by_xpath(change_db)
             change_db_sitem.click()
             time.sleep(5)
 
             db_opt = self.select_db_opt_id_sitem
-            print("Database checked and found: ", db_name, "\n")
+            self.tprint("Database checked and found: {db_name}\n")
             time.sleep(4)
 
             if db_name == "Sharded":
@@ -154,13 +154,13 @@ class DatabasePage(NavigationBarPage):
             if index == 1:
                 assert db_name_sitem == "ONESHARD", f"Expected ONESHARD but got {db_name_sitem}"
 
-            print(f"Logging out from {db_name_sitem} database \n")
+            self.tprint(f"Logging out from {db_name_sitem} database \n")
             db_id = '//*[@id="dbStatus"]/a[3]/i'
             change_db_sitem = self.locator_finder_by_xpath(db_id)
             change_db_sitem.click()
             time.sleep(4)
 
-            print("Re-Login to _system database \n")
+            self.tprint("Re-Login to _system database \n")
             db_option = self.select_db_opt_id_sitem
             self.locator_finder_by_select(db_option, 0)
             select_db_btn_id = "goToDatabase"
@@ -175,14 +175,14 @@ class DatabasePage(NavigationBarPage):
         # pylint: disable=too-many-statements disable=too-many-statements  disable=too-many-locals
         self.navbar_goto("databases")
         self.wait_for_ajax()
-        print("Expected error scenario for the Database name Started. \n")
+        self.tprint("Expected error scenario for the Database name Started. \n")
         create_new_db_btn = self.create_new_db_btn
         create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
         create_new_db_btn_sitem.click()
         time.sleep(2)
 
         # ---------------------------------------database name convention test---------------------------------------
-        print("Expected error scenario for the Database name Started \n")
+        self.tprint("Expected error scenario for the Database name Started \n")
 
         ver_db_names = semver.VersionInfo.parse("3.9.0")
         ver_db_replf = semver.VersionInfo.parse("3.8.0")
@@ -230,7 +230,7 @@ class DatabasePage(NavigationBarPage):
         self.check_expected_error_messages_for_database(
             db_name_error_input, db_name_print_statement, db_name_error_message, db_name, db_name_error
         )
-        print("Expected error scenario for the Database name Completed \n")
+        self.tprint("Expected error scenario for the Database name Completed \n")
 
         if cluster and version >= ver_db_names:
             db_sitem = self.locator_finder_by_id("newDatabaseName")
@@ -239,7 +239,7 @@ class DatabasePage(NavigationBarPage):
             db_sitem.send_keys("db")
             time.sleep(2)
             # ----------------------------database Replication Factor convention test-----------------------------
-            print("Expected error scenario for the Database Replication Factor Started \n")
+            self.tprint("Expected error scenario for the Database Replication Factor Started \n")
             rf_error_input = ["@", "a", "11", "שלום"]
             rf_print_statement = [
                 'Checking RF with "@"',
@@ -260,10 +260,10 @@ class DatabasePage(NavigationBarPage):
             self.check_expected_error_messages_for_database(
                 rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error_id, True
             )  # True defines cluster deployment
-            print("Expected error scenario for the Database Replication Factor Completed \n")
+            self.tprint("Expected error scenario for the Database Replication Factor Completed \n")
 
             # -------------------------------database Write Concern convention test----------------------------------
-            print("Expected error scenario for the Database Write Concern Started \n")
+            self.tprint("Expected error scenario for the Database Write Concern Started \n")
             wc_error_input = ["@", "a", "11", "שלום"]
             wc_print_statement = [
                 'Checking Write Concern with "@"',
@@ -284,11 +284,11 @@ class DatabasePage(NavigationBarPage):
             self.check_expected_error_messages_for_database(
                 wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error_id, True
             )
-            print("Expected error scenario for the Database Write Concern Completed \n")
+            self.tprint("Expected error scenario for the Database Write Concern Completed \n")
 
         if cluster and version == ver_db_replf:
             # -------------------------------database Replication Factor convention test------------------------------
-            print("Expected error scenario for the Database Replication Factor Started \n")
+            self.tprint("Expected error scenario for the Database Replication Factor Started \n")
             rf_error_input = ["@", "a", "11", "שלום"]
             rf_print_statement = [
                 'Checking RF with "@"',
@@ -309,10 +309,10 @@ class DatabasePage(NavigationBarPage):
             self.check_expected_error_messages_for_database(
                 rf_error_input, rf_print_statement, rf_error_message, rf_name, db_name_error
             )
-            print("Expected error scenario for the Database Replication Factor Completed \n")
+            self.tprint("Expected error scenario for the Database Replication Factor Completed \n")
 
             # -------------------------------database Write Concern convention test----------------------------------
-            print("Expected error scenario for the Database Write Concern Started \n")
+            self.tprint("Expected error scenario for the Database Write Concern Started \n")
             wc_error_input = ["@", "a", "11", "שלום"]
             wc_print_statement = [
                 'Checking Write Concern with "@"',
@@ -333,9 +333,9 @@ class DatabasePage(NavigationBarPage):
             self.check_expected_error_messages_for_database(
                 wc_error_input, wc_print_statement, wc_error_message, wc_name, wc_name_error
             )
-            print("Expected error scenario for the Database Write Concern Completed \n")
+            self.tprint("Expected error scenario for the Database Write Concern Completed \n")
 
-        print("Closing the database creation \n")
+        self.tprint("Closing the database creation \n")
         close_btn = "modalButton0"
         close_btn_sitem = self.locator_finder_by_id(close_btn)
         close_btn_sitem.click()
@@ -379,9 +379,9 @@ class DatabasePage(NavigationBarPage):
                 assert collection_name_sitem == "OneShard", f"Expected {db_name} but got {collection_name_sitem}"
 
         except TimeoutException():
-            print("Error Occurred! \n")
+            self.tprint("Error Occurred! \n")
 
-        print("Clearing the search text area \n")
+        self.tprint("Clearing the search text area \n")
         clear_search = "databaseSearchInput"
         clear_search_sitem = self.locator_finder_by_id(clear_search)
         clear_search_sitem.click()
@@ -396,7 +396,7 @@ class DatabasePage(NavigationBarPage):
             self.navbar_goto("databases")
             self.wait_for_ajax()
 
-            print(f'{db_name} deleting started \n')
+            self.tprint(f'{db_name} deleting started \n')
             if db_name == 'OneShard':
                 if self.version_is_newer_than("3.11.99"):
                     db_select = "(//a[normalize-space()='OneShard'])[1]"
@@ -442,10 +442,10 @@ class DatabasePage(NavigationBarPage):
 
             self.webdriver.refresh()
 
-            print(f'{db_name} deleting completed \n')
+            self.tprint(f'{db_name} deleting completed \n')
         except TimeoutException:
-            print('TimeoutException occurred! \n')
-            print('Info: Database has already been deleted or never created. \n')
+            self.tprint('TimeoutException occurred! \n')
+            self.tprint('Info: Database has already been deleted or never created. \n')
         except Exception:
             raise Exception('Critical Error occurred and need manual inspection!! \n')
 
@@ -455,7 +455,7 @@ class DatabasePage(NavigationBarPage):
         self.wait_for_ajax()
         try:
             self.webdriver.refresh()
-            print('Selecting user for deletion \n')
+            self.tprint('Selecting user for deletion \n')
             if self.version_is_newer_than("3.11.99"):
                 tester = "(//a[normalize-space()='tester'])[1]"
                 tester01 = "(//a[normalize-space()='tester01'])[1]"
@@ -480,17 +480,17 @@ class DatabasePage(NavigationBarPage):
                 select_confirm_delete_btn_sitem = self.locator_finder_by_xpath(select_confirm_delete_btn)
                 select_confirm_delete_btn_sitem.click()
             else:
-                print(f'Deleting {username} begins \n')
+                self.tprint(f'Deleting {username} begins \n')
                 del_button = 'modalButton0'
                 self.locator_finder_by_id(del_button).click()
 
                 # confirming delete user
                 confirm_btn = 'modal-confirm-delete'
                 self.locator_finder_by_id(confirm_btn).click()
-                print(f'Deleting {username} completed \n')
+                self.tprint(f'Deleting {username} completed \n')
                 time.sleep(2)
         except TimeoutException:
-            print('TimeoutException occurred! \n')
-            print('Info: User has already been deleted or never created. \n')
+            self.tprint('TimeoutException occurred! \n')
+            self.tprint('Info: User has already been deleted or never created. \n')
         except Exception:
             raise Exception('Critical Error occurred and need manual inspection!! \n')

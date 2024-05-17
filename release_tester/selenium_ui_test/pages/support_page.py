@@ -12,9 +12,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class SupportPage(NavigationBarPage):
     """Class for Support page"""
 
-    def __init__(self, driver, cfg):
+    def __init__(self, driver, cfg, video_start_time):
         """Support page initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.select_support_page_id = "support"
         self.select_documentation_support_id = "documentation-support"
         self.select_community_support_id = "community-support"
@@ -50,7 +50,7 @@ class SupportPage(NavigationBarPage):
 
         i = 0
         while i < len(link_list):
-            print(print_statement[i])
+            self.tprint(print_statement[i])
             title = None
             try_count = 0
             
@@ -63,14 +63,14 @@ class SupportPage(NavigationBarPage):
                     break  # If successful, break out of the retry loop
                 except Exception as e:
                     # If an error occurs, print the error message
-                    print(f"Error occurred: {e}")
+                    self.tprint(f"Error occurred: {e}")
                     
                     # Increment retry count
                     try_count += 1
                     
                     # If maximum retries reached, raise an error
                     if try_count == max_retries:
-                        print(f"Failed after {max_retries} attempts for link: {link_list[i]}")
+                        self.tprint(f"Failed after {max_retries} attempts for link: {link_list[i]}")
                         break  # Break out of the retry loop
                     
                     # Wait for a few seconds before retrying
@@ -90,16 +90,16 @@ class SupportPage(NavigationBarPage):
         """this method will be loop through all the list buttons"""
         i = 0
         while i < len(btn_list):
-            print(print_statement[i])
+            self.tprint(print_statement[i])
             self.click_on_btn(btn_list[i])
             i = i + 1
             if i == len(btn_list):
-                print("Checking Backup Restore option completed \n")
+                self.tprint("Checking Backup Restore option completed \n")
             time.sleep(2)
 
     def manual_link(self):
         """Clicking all the links on manual link tab"""
-        print("Checking all arangodb manual link started\n")
+        self.tprint("Checking all arangodb manual link started\n")
 
         # link name for all the manual link
         getting_started = '//*[@id="documentation"]/div/div[2]/ul/li[1]/a'
@@ -146,11 +146,11 @@ class SupportPage(NavigationBarPage):
             manual_link_list_print_statement, manual_link_list, manual_link_assertion_check
         )
 
-        print("Checking all arangodb manual link completed \n")
+        self.tprint("Checking all arangodb manual link completed \n")
 
     def aql_query_language_link(self):
         """Clicking all the links on AQL Query Language link tab"""
-        print("Checking all arangodb AQL Query Language link started\n")
+        self.tprint("Checking all arangodb AQL Query Language link started\n")
 
         # link name for all the AQL Query link
         fundamentals = '//*[@id="documentation"]/div/div[3]/ul/li[1]/a'
@@ -183,11 +183,11 @@ class SupportPage(NavigationBarPage):
 
         self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list, fundamental_link_assertion_check)
 
-        print("Checking all arangodb AQL Query Language link completed\n")
+        self.tprint("Checking all arangodb AQL Query Language link completed\n")
 
     def fox_framework_link(self):
         """Clicking all the links on fox framework link tab"""
-        print("Checking all arangodb Fox Framework link started\n")
+        self.tprint("Checking all arangodb Fox Framework link started\n")
 
         # link name for all the fox framework link
         micro_service = '//*[@id="documentation"]/div/div[4]/ul/li[1]/a'
@@ -221,11 +221,11 @@ class SupportPage(NavigationBarPage):
 
         self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
 
-        print("Checking all arangodb Fox Framework link completed\n")
+        self.tprint("Checking all arangodb Fox Framework link completed\n")
 
     def driver_and_integration_link(self):
         """Clicking all the links official drivers and integration link tab"""
-        print("Checking all Drivers and Integration link started\n")
+        self.tprint("Checking all Drivers and Integration link started\n")
 
         if self.version_is_newer_than("3.11.99"):
             # link name for all the Drivers and Integration link
@@ -285,11 +285,11 @@ class SupportPage(NavigationBarPage):
         self.loop_through_link_traversal(Official_print_statement, drivers_and_integration,
                                          driver_integration_assertion_check)
 
-        print('Checking all arangodb Drivers and Integration link completed\n')
+        self.tprint('Checking all arangodb Drivers and Integration link completed\n')
 
     def community_support_link(self):
         """Checking community support link"""
-        print("Checking all Support tab link started\n")
+        self.tprint("Checking all Support tab link started\n")
 
         support = self.select_support_page_id
         support = self.locator_finder_by_id(support)
@@ -352,11 +352,11 @@ class SupportPage(NavigationBarPage):
 
         self.loop_through_link_traversal(support_tab_print_statement, support_list, support_link_assertion_check)
 
-        print("Checking all Support tab link completed \n")
+        self.tprint("Checking all Support tab link completed \n")
 
     def rest_api(self):
         """Checking all rest api swagger link"""
-        print("Checking all Rest api tab link started\n")
+        self.tprint("Checking all Rest api tab link started\n")
 
         support = self.select_support_page_id
         support = self.locator_finder_by_id(support)
@@ -374,7 +374,7 @@ class SupportPage(NavigationBarPage):
             iframe = self.switch_to_iframe_id
             self.switch_to_iframe(iframe)
 
-            print("Checking Backup Restore option started\n")
+            self.tprint("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
             backup_restore = self.locator_finder_by_xpath(backup_restore)
             backup_restore.click()
@@ -420,7 +420,7 @@ class SupportPage(NavigationBarPage):
         ]
 
         self.loop_through_btn_traversal(backup_restore_print_statement, backup_restore_list)
-        # print('Checking Backup Restore option started\n')
+        # self.tprint('Checking Backup Restore option started\n')
 
         # switching back to default view
         self.switch_back_to_origin_window()

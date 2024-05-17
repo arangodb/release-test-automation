@@ -11,9 +11,9 @@ from selenium_ui_test.pages.navbar import NavigationBarPage
 class DashboardPage(NavigationBarPage):
     """Class for Dashboard page"""
 
-    def __init__(self, driver, cfg, enterprise):
+    def __init__(self, driver, cfg, video_start_time, enterprise):
         """dashboardPage class initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.check_server_package_name_id = "enterpriseLabel" if enterprise else "communityLabel"
         self.check_current_package_version_id = "currentVersion"
         self.check_current_username_id = "//li[@id='userBar']//span[@class='toggle']"
@@ -31,7 +31,7 @@ class DashboardPage(NavigationBarPage):
     def check_server_package_name(self):
         """checking server package version name"""
         check_server_package_name_sitem = self.locator_finder_by_id(self.check_server_package_name_id)
-        print("Server Package: ", check_server_package_name_sitem.text)
+        self.tprint(f"Server Package: {check_server_package_name_sitem.text}")
         time.sleep(1)
 
     def check_current_package_version(self):
@@ -41,25 +41,23 @@ class DashboardPage(NavigationBarPage):
     def check_current_username(self):
         """checking current username from the dashboard"""
         check_current_username_sitem = self.locator_finder_by_xpath(self.check_current_username_id)
-        print("Current User: ", check_current_username_sitem.text)
+        self.tprint(f"Current User: {check_current_username_sitem.text}")
         time.sleep(1)
 
     def check_current_db(self):
         """checking current database name from the dashboard"""
         check_current_db_sitem = self.locator_finder_by_xpath(self.check_current_db_id)
-        print("Current DB: ", check_current_db_sitem.text)
+        self.tprint(f"Current DB: {check_current_db_sitem.text}")
         time.sleep(1)
 
     def check_db_status(self, cluster):
         """checking current database status from the dashboard"""
         if cluster:
             status = self.locator_finder_by_xpath(self.check_cluster_status_id)
-            print("Cluster Health: ", status.text)
-            
+            self.tprint(f"Cluster Health: {status.text}")
         else:
             status = self.locator_finder_by_xpath(self.check_db_status_id)
-            print("Current Status: ", status.text)
-        
+            self.tprint(f"Current Status: {status.text}")
         if cluster:
             assert (
                 status.text in "NODES OK"
@@ -69,20 +67,18 @@ class DashboardPage(NavigationBarPage):
             assert (
                 status.text in "GOOD"
             ), f"Expected page title GOOD but got {status.text}"
-        
         time.sleep(1)
-        
 
     def check_db_engine(self):
         """checking current database status from the dashboard"""
         check_db_engine_sitem = self.locator_finder_by_id(self.check_db_engine_id)
-        print("Current Engine: ", check_db_engine_sitem.text)
+        self.tprint(f"Current Engine: {check_db_engine_sitem.text}")
         time.sleep(1)
 
     def check_db_uptime(self):
         """checking current database uptime status from the dashboard"""
         check_db_uptime_sitem = self.locator_finder_by_xpath(self.check_db_uptime_id)
-        print("DB Uptime: ", check_db_uptime_sitem.text)
+        self.tprint(f"DB Uptime: {check_db_uptime_sitem.text}")
         time.sleep(1)
 
     def check_responsiveness_for_dashboard(self):
@@ -96,7 +92,7 @@ class DashboardPage(NavigationBarPage):
             check_system_resource_sitem.click()
             time.sleep(3)
         except TimeoutException as ex:
-            print("FAIL: cound not find the system-statistics locator! \n" + str(ex))
+            self.tprint("FAIL: cound not find the system-statistics locator! \n" + str(ex))
 
     def check_distribution_tab(self):
         """Checking distribution tab"""
@@ -119,16 +115,16 @@ class DashboardPage(NavigationBarPage):
             check_system_metrics_sitem.click()
             time.sleep(1)
 
-            print("scrolling the current page \n")
+            self.tprint("scrolling the current page \n")
             self.scroll()
 
             # toggle view text to table and vice-versa
-            print("Changing metrics tab to table view \n")
+            self.tprint("Changing metrics tab to table view \n")
             text_view = self.locator_finder_by_id(self.show_text)
             text_view.click()
             time.sleep(3)
 
-            print("Changing metrics tab to text view \n")
+            self.tprint("Changing metrics tab to text view \n")
             table_view = self.locator_finder_by_id(self.show_text)
             table_view.click()
             time.sleep(3)
@@ -139,11 +135,11 @@ class DashboardPage(NavigationBarPage):
 
             # Downloading metrics from the dashboard
             if self.webdriver.name == "chrome":  # this will check browser name
-                print("Downloading metrics has been disabled for the Chrome browser \n")
+                self.tprint("Downloading metrics has been disabled for the Chrome browser \n")
             else:
                 metrics_download_sitem = self.locator_finder_by_id(self.metrics_download_id)
                 metrics_download_sitem.click()
                 time.sleep(3)
                 # self.clear_download_bar()
         else:
-            print("Metrics Tab not supported for the current package \n")
+            self.tprint("Metrics Tab not supported for the current package \n")

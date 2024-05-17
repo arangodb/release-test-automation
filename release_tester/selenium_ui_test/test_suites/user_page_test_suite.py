@@ -18,17 +18,17 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_user(self):
         """testing user page"""
-        print("---------User Test Begin--------- \n")
-        login = LoginPage(self.webdriver, self.cfg)
+        self.tprint("---------User Test Begin--------- \n")
+        login = LoginPage(self.webdriver, self.cfg, self.video_start_time)
         self.webdriver.refresh()
-        user = UserPage(self.webdriver, self.cfg)
-        collection_page = CollectionPage(self.webdriver, self.cfg)
+        user = UserPage(self.webdriver, self.cfg, self.video_start_time)
+        collection_page = CollectionPage(self.webdriver, self.cfg, self.video_start_time)
         version_312 = user.version_is_newer_than("3.11.99")
 
         try:
             if user.version_is_newer_than("3.11.0"):
                 if version_312:
-                    print("skipped")
+                    self.tprint("skipped")
                 else:
                     collection_page.create_new_collections('a_first', 0, self.is_cluster)
                     collection_page.create_new_collections('m_middle', 1, self.is_cluster)
@@ -42,44 +42,44 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                     collection_page.delete_collection("m_middle", user.m_middle_id, self.is_cluster)
                     collection_page.delete_collection("z_last", user.z_last_id, self.is_cluster)
 
-            print("New user creation begins \n")
+            self.tprint("New user creation begins \n")
             user.user_tab()
             user.add_new_user("tester")
 
-            print("Allow user Read Only access only to the _system DB test started \n")
+            self.tprint("Allow user Read Only access only to the _system DB test started \n")
             user.selecting_user_tester()
             user.selecting_permission_tab()
-            print("Changing new user DB permission \n")
+            self.tprint("Changing new user DB permission \n")
             user.changing_db_permission_read_only()
             self.webdriver.back()
             # user.selecting_general_tab()
             # user.saving_user_cfg()
-            print("Changing new user DB permission completed. \n")
+            self.tprint("Changing new user DB permission completed. \n")
             if version_312:
-                print("skipped")
+                self.tprint("skipped")
             else:
                 user.log_out()
-                print("Re-Login begins with new user\n")
+                self.tprint("Re-Login begins with new user\n")
                 # if version_312:
                 #     login.login("tester", "tester")
                 # else:
                 login.login_webif("tester", "tester")
-                print(
-                    "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+                self.tprint(
+                    f"Re-Login begins with new user completed: {login.current_user()} / {login.current_database()}"
                 )
 
-                print("trying to create collection")
+                self.tprint("trying to create collection")
                 user.create_sample_collection('access')
-                print("Allow user Read Only access only to the current DB test completed \n")
+                self.tprint("Allow user Read Only access only to the current DB test completed \n")
 
-                print("Allow user Read/Write access to the _system DB test started \n")
-                print("Return back to user tab \n")
+                self.tprint("Allow user Read/Write access to the _system DB test started \n")
+                self.tprint("Return back to user tab \n")
 
                 # logout from the current user to get back to root
                 user.log_out()
                 # login back with root user
                 login.login_webif("root", self.root_passvoid)
-                print("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
+                self.tprint(f"Re-Login root user completed: {login.current_user()} / { login.current_database()}")
 
                 user.user_tab()
                 user.selecting_user_tester()
@@ -88,24 +88,24 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
                 self.webdriver.back()
                 # user.saving_user_cfg()
                 user.log_out()
-                print("Re-Login begins with new user\n")
+                self.tprint("Re-Login begins with new user\n")
                 # if version_312:
                 #     login.login("tester", "tester")
                 # else:
                 login.login_webif("tester", "tester")
-                print(
-                    "Re-Login begins with new user completed: %s / %s\n" % (login.current_user(), login.current_database())
+                self.tprint(
+                    f"Re-Login begins with new user completed: {login.current_user()} = {login.current_database()}"
                 )
-                print("trying to create collection")
+                self.tprint("trying to create collection")
                 collection_page.navbar_goto("collections")
                 user.create_sample_collection('read/write')
                 # TODO: we fail to remove this collection again.
                 # collection_page.create_sample_collection("read/write")
                 # collection_page.select_delete_collection()
-                print("Allow user Read/Write access to the _system DB test Completed \n")
-            
+                self.tprint("Allow user Read/Write access to the _system DB test Completed \n")
+
         except BaseException:
-            print('x' * 45, "\nINFO: Error Occurred! Force cleanup started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force cleanup started\n{ 'x' * 45}")
             self.exception = True   # mark the exception as true
             self.error = traceback.format_exc()
         finally:
@@ -113,23 +113,21 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             self.webdriver.refresh()
             user.log_out()
             login.login_webif("root", self.root_passvoid)
-            print("Re-Login root user completed: %s / %s\n" % (login.current_user(), login.current_database()))
+            self.tprint(f"Re-Login root user completed:  {login.current_user()} = {login.current_database()}")
 
             self.webdriver.refresh()
             user.user_tab()
             user.selecting_new_user()
-            print("Deleting created user begins\n")
+            self.tprint("Deleting created user begins\n")
             user.delete_user_btn()
             user.confirm_delete_btn()
             collection_page.delete_collection("TestDoc", user.test_doc_collection_id, self.is_cluster)
-            
-            print("Deleting created user completed \n")
-            print("---------User Test Completed---------\n")
-        
+
+            self.tprint("Deleting created user completed \n")
+            self.tprint("---------User Test Completed---------\n")
+
         if version_312:
-            print("skipped")
+            self.tprint("skipped")
         else:
             assert login.current_user() == "ROOT", "current user is root?"
             assert login.current_database() == "_SYSTEM", "current database is _system?"
-            
-            
