@@ -120,8 +120,8 @@ db.testCollection.save({test: "document"})
             common_opts += [
                 "--coordinators.cluster.force-one-shard=true",
                 "--dbservers.cluster.force-one-shard=true",
-                "--args.coordinators.log-level=requests=trace",
-                "--args.coordinators.argument=--log-file=@ARANGODB_SERVER_DIR@/request.log",
+                "--coordinators.log.level=requests=trace",
+                "--coordinators.log.file=@ARANGODB_SERVER_DIR@/request.log",
             ]
         else:
             common_opts += ["--args.all.cluster.default-replication-factor=2"]
