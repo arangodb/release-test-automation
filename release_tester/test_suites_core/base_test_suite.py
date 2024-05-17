@@ -464,7 +464,6 @@ def testcase(title=None):
                             message = "\n".join(wrapper.disable_reasons)
                             my_testcase.context.statusDetails = StatusDetails(message=message)
                     elif kwargs["suite_is_broken"]:
-                        print(kwargs)
                         test_result = RtaTestResult(False, parametrized_testcase_name, "test suite is broken", None)
                         my_testcase.context.status = Status.BROKEN
                     else:
