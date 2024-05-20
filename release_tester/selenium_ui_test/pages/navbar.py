@@ -37,7 +37,7 @@ class NavigationBarPage(UserBarPage):
         title = self.switch_tab(
             click_twitter_link_id_sitem
         )  # this method will call switch tab and close tab
-        expected_title = "arangodb (@arangodb) / Twitter"
+        expected_title = "Log in to X / X"
         assert (
             title in expected_title
         ), f"Expected page title {expected_title} but got {title}"
