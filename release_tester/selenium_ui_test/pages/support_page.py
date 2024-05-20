@@ -243,8 +243,8 @@ class SupportPage(NavigationBarPage):
                                         'Checking Go to ArangoDB Spark Connections page link \n',
                                         'Checking Go to Drivers and Integration start page link\n']
 
-            drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_php, arangodb_go_driver,
-                                       arangodb_spring_data, drivers_and_integration]
+            drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_go_driver,
+                                       arangodb_spring_data, arangodb_spark_connector, drivers_and_integration]
 
             driver_integration_assertion_check = ['ArangoDB Java driver | ArangoDB Documentation',
                                                   'ArangoDB Node.js driver | ArangoDB Documentation',

@@ -263,9 +263,10 @@ class BasePage:
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL, Keys.RETURN)  # this will open new tab on top of current
         self.webdriver.switch_to.window(self.webdriver.window_handles[1])  # switch to new tab according to index value
+        time.sleep(8)
         title = self.webdriver.title
         self.tprint(f"Current page title: {title}\n")
-        time.sleep(15)
+        time.sleep(10)
         self.webdriver.close()  # closes the browser active window
         self.webdriver.switch_to.window(self.webdriver.window_handles[0])
         return title
