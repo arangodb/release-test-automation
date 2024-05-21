@@ -408,10 +408,16 @@ class Runner(ABC):
                     self.tcp_ping_all_nodes()
                     self.create_non_backup_data()
                     taken_backups = self.list_backup()
-                    backup_no = len(taken_backups) - 1
-                    self.upload_backup(taken_backups[backup_no])
+                    work_backup = ""
+                    for one_backup in taken_backups:
+                        print(one_backup)
+                        if one_backup.startswith(self.backup_name):
+                            work_backup = one_backup
+                    if work_backup == "":
+                        raise Exception("backup {self.backup_name} not found in {taken_backups}")
+                    self.upload_backup(work_backup)
                     self.tcp_ping_all_nodes()
-                    self.delete_backup(taken_backups[backup_no])
+                    self.delete_backup(work_backup)
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
                     if len(backups) != len(taken_backups) - 1:
