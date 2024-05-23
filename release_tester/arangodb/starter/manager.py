@@ -75,9 +75,9 @@ class StarterManager:
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
-        if not IS_WINDOWS:
-            self.moreopts += ["--args.all.log.level=maintenance=trace"]
-            self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
+        #if not IS_WINDOWS:
+        #   self.moreopts += ["--args.all.log.level=maintenance=trace"]
+        #  self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
         # self.moreopts += ["--args.all.log.level=startup=trace"]
         # self.moreopts += ["--args.all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
