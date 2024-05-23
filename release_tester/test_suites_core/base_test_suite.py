@@ -114,11 +114,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     self._report_disabled()
                 # pylint: disable=broad-except disable=bare-except
                 except Exception as ex:
-                    print('mimimi')
-                    print(ex)
-                    self._disable(ex.message +
-                                  f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
-                                  )
+                    self._disable(f"Test setup threw:\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}")
                     self._report_disabled()
                     setup_failed = True
                     try:
