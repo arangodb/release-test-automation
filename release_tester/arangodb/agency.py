@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ Abstract communication with the agency """
-import datetime
+from datetime import datetime
 import platform
 import time
 
@@ -54,7 +54,7 @@ class Agency():
         for starter_mgr in self.starter_instances:
             agency += starter_mgr.get_agents()
         leader = None
-        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        leading_date = datetime(1970, 1, 1, 0, 0, 0)
         for agent in agency:
             agent_leading_date = agent.search_for_agent_serving()
             if agent_leading_date > leading_date:
@@ -66,7 +66,7 @@ class Agency():
     def get_leader_starter_instance(self):
         """get the starter instance that manages the current agency leader"""
         leader = None
-        leading_date = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        leading_date = datetime(1970, 1, 1, 0, 0, 0)
         for starter_mgr in self.starter_instances:
             agents = starter_mgr.get_agents()
             for agent in agents:
@@ -79,7 +79,7 @@ class Agency():
     @step
     def acquire_dump(self):
         """turns on logging on the agency"""
-        print("Dumping agency")
+        print(f"{datetime.now()} Dumping agency")
         commands = [
             {
                 "URL": "/_api/agency/config",
