@@ -5,6 +5,7 @@ import traceback
 from datetime import datetime
 
 import tools.interact as ti
+
 # from selenium import webdriver
 
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -22,7 +23,7 @@ from selenium.common.exceptions import (
     # NoSuchElementException,
 )
 import semver
-
+from reporting.reporting_utils import step
 
 # from webdriver_manager.chrome import ChromeDriverManager
 # from webdriver_manager.firefox import GeckoDriverManager
@@ -50,8 +51,11 @@ class BasePage:
         self.current = None
 
     def tprint(self, string):
-        """ print including timestamp relative to video start """
-        print(f" {str(datetime.now() - self.video_start_time)} - {string}")
+        """print including timestamp relative to video start"""
+        msg = f" {str(datetime.now() - self.video_start_time)} - {string}"
+        print(msg)
+        with step(msg):
+            pass
 
     @classmethod
     def set_up_class(cls):
@@ -114,7 +118,9 @@ class BasePage:
         """wait for jquery to finish..."""
         wait = WebDriverWait(self.webdriver, 15)
         try:
-            wait.until(lambda driver: driver.execute_script("return (typeof jQuery !== 'undefined') && jQuery.active") == 0)
+            wait.until(
+                lambda driver: driver.execute_script("return (typeof jQuery !== 'undefined') && jQuery.active") == 0
+            )
             wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
         except TimeoutException:
             pass
@@ -201,13 +207,9 @@ class BasePage:
             xOffset = 100
             yOffset = 100
             # Performs mouse move action onto the element
-            actions = ActionChains(self.webdriver).move_to_element_with_offset(
-                ace_locator, xOffset, yOffset
-            )
+            actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
             actions.click()
-            actions.key_down(Keys.CONTROL).send_keys("a").send_keys(
-                Keys.BACKSPACE
-            ).key_up(Keys.CONTROL).perform()
+            actions.key_down(Keys.CONTROL).send_keys("a").send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL).perform()
             time.sleep(1)
         else:
             try:
@@ -233,7 +235,7 @@ class BasePage:
             execute = "//*[text()='Execute']"
             execute = self.locator_finder_by_xpath(execute)
         else:
-            execute = 'executeQuery'
+            execute = "executeQuery"
             execute = self.locator_finder_by_id(execute)
         execute.click()
         time.sleep(2)
@@ -247,7 +249,7 @@ class BasePage:
     def clear_textfield(self):
         """This method will clear the textfield as necessary"""
         actions = ActionChains(self.webdriver)
-        actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.DELETE).perform()
+        actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).send_keys(Keys.DELETE).perform()
 
     def clear_text_field(self, locator):
         """This method will be used for clear all the text in single text field if .clear() does not work"""
@@ -272,7 +274,7 @@ class BasePage:
         return title
 
     def check_version_is_newer(self, compare_version):
-        """ check whether the version in the ui is the expected """
+        """check whether the version in the ui is the expected"""
         ui_version_str = self.locator_finder_by_id("currentVersion").text
         self.tprint(f"Package Version: {str(ui_version_str)}")
         ui_version = semver.VersionInfo.parse(ui_version_str)
@@ -280,7 +282,7 @@ class BasePage:
         return ui_version >= compare_version
 
     def current_package_version(self):
-        """ checking current package version from the dashboard"""
+        """checking current package version from the dashboard"""
         package_version = "currentVersion"
         package_version = self.locator_finder_by_id(package_version).text
         self.tprint(f"Package Version: {str(package_version)}")
@@ -340,7 +342,7 @@ class BasePage:
             try:
                 self.locator = WebDriverWait(self.webdriver, timeout, poll_frequency=poll_frequency).until(
                     EC.element_to_be_clickable((BY.ID, locator_name)),
-                    message=f"UI-Test: {locator_name} locator was not found."
+                    message=f"UI-Test: {locator_name} locator was not found.",
                 )
                 return self.locator
             except TimeoutException as ex:
@@ -348,14 +350,12 @@ class BasePage:
                     raise ex
                 ti.prompt_user(
                     self.cfg,
-                    "ERROR " * 10 +
-                    f"\nError while waiting for web element (Attempt {attempt + 1} of {max_retries + 1}):"
-                    f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
+                    "ERROR " * 10
+                    + f"\nError while waiting for web element (Attempt {attempt + 1} of {max_retries + 1}):"
+                    f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}",
                 )
 
         raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
-
-
 
     def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
         """This method finds locators by their xpath using Fluent Wait with retry."""
@@ -363,7 +363,7 @@ class BasePage:
             try:
                 self.locator = WebDriverWait(self.webdriver, timeout, poll_frequency=poll_frequency).until(
                     EC.element_to_be_clickable((BY.XPATH, locator_name)),
-                    message=f"UI-Test: {locator_name} locator was not found."
+                    message=f"UI-Test: {locator_name} locator was not found.",
                 )
                 return self.locator
             except TimeoutException as ex:
@@ -371,18 +371,16 @@ class BasePage:
                     raise ex
                 ti.prompt_user(
                     self.cfg,
-                    "ERROR " * 10 +
-                    f"\nError while waiting for web element (Attempt {attempt + 1} of {max_retries + 1}):"
-                    f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}"
+                    "ERROR " * 10
+                    + f"\nError while waiting for web element (Attempt {attempt + 1} of {max_retries + 1}):"
+                    f"\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}",
                 )
 
         raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
 
     def locator_finder_by_link_text(self, locator_name):
         """This method will be used for finding all the locators by their xpath"""
-        self.locator = WebDriverWait(self.webdriver, 10).until(
-            EC.element_to_be_clickable((BY.LINK_TEXT, locator_name))
-        )
+        self.locator = WebDriverWait(self.webdriver, 10).until(EC.element_to_be_clickable((BY.LINK_TEXT, locator_name)))
         if self.locator is None:
             self.tprint(f"UI-Test:  {locator_name} locator has not found.")
             return None
@@ -455,14 +453,16 @@ class BasePage:
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(
-            self, error_input, print_statement, error_message, locators_id, error_message_id
-        ):
+        self, error_input, print_statement, error_message, locators_id, error_message_id
+    ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         i = 0
         # looping through all the error scenario for test
         # self.tprint(f'len: {str(len(name_error))}')
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
-            self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            self.tprint(
+                print_statement[i]
+            )  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             # if div_id is not None:
             locator_sitem = self.locator_finder_by_xpath(locators)
@@ -504,14 +504,16 @@ class BasePage:
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_database(
-            self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
+        self, error_input, print_statement, error_message, locators_id, error_message_id, value=False
     ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         # value represent true because cluster rf and write concern has different wat to catch the error
         i = 0
         # looping through all the error scenario for test
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
-            self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            self.tprint(
+                print_statement[i]
+            )  # print_statement will hold a list of all general print statements for the test
             locators = locators_id  # locator id of the input placeholder where testing will take place
             locator_sitem = self.locator_finder_by_id(locators)
             locator_sitem.click()
@@ -519,7 +521,11 @@ class BasePage:
             locator_sitem.send_keys(error_input[i])
             time.sleep(2)
 
-            if semver.VersionInfo.parse("3.8.0") <= self.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
+            if (
+                semver.VersionInfo.parse("3.8.0")
+                <= self.current_package_version()
+                <= semver.VersionInfo.parse("3.8.100")
+            ):
                 locator_sitem.send_keys(Keys.TAB)
                 time.sleep(2)
             try:
@@ -555,17 +561,16 @@ class BasePage:
 
             i = i + 1
 
-    def check_expected_error_messages_for_views(self,
-                                                error_input,
-                                                print_statement,
-                                                error_message,
-                                                locators_id,
-                                                error_message_id):
+    def check_expected_error_messages_for_views(
+        self, error_input, print_statement, error_message, locators_id, error_message_id
+    ):
         """This method will take three lists and check for expected error condition against user's inputs"""
         # looping through all the error scenario for test
         i = 0
         while i < len(error_input):  # error_input list will hold a list of error inputs from the users
-            self.tprint(print_statement[i])  # print_statement will hold a list of all general print statements for the test
+            self.tprint(
+                print_statement[i]
+            )  # print_statement will hold a list of all general print statements for the test
             # locator id of the input placeholder where testing will take place
             locator_sitem = self.locator_finder_by_xpath(locators_id)
             locator_sitem.click()
@@ -581,19 +586,19 @@ class BasePage:
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text
 
                 # error_message list will hold expected error messages
-                assert error_sitem == error_message[i], \
-                    f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
+                assert (
+                    error_sitem == error_message[i]
+                ), f"FAIL: Expected error message {error_message[i]} but got {error_sitem}"
 
-                self.tprint('x' * (len(error_sitem) + 29))
-                self.tprint(f'OK: Expected error found: {error_sitem}')
-                self.tprint('x' * (len(error_sitem) + 29) +'\n')
+                self.tprint("x" * (len(error_sitem) + 29))
+                self.tprint(f"OK: Expected error found: {error_sitem}")
+                self.tprint("x" * (len(error_sitem) + 29) + "\n")
                 time.sleep(2)
 
             except TimeoutException as ex:
                 raise Exception("*****-->Error occurred. Manual inspection required<--***** \n") from ex
 
             i = i + 1
-
 
     def check_server_package(self):
         """This will determine the current server package type"""
@@ -624,11 +629,11 @@ class BasePage:
         self.locator_finder_by_xpath(locator).click()
 
     def progress(self, arg):
-        """state print""" # todo
+        """state print"""  # todo
         try:
             self.tprint(arg)
         except Exception as ex:
-            print('eeeeeee')
+            print("eeeeeee")
             print(ex)
 
     def xpath(self, path):
@@ -642,7 +647,7 @@ class BasePage:
     def handle_red_bar(self):
         """It will check for any red bar error notification"""
         try:
-            notification = 'noty_body'
+            notification = "noty_body"
             notification = self.locator_finder_by_class(notification)
             time.sleep(2)
             self.tprint("*" * 100)
@@ -650,5 +655,5 @@ class BasePage:
             self.tprint("*" * 100)
             return notification.text
         except TimeoutException:
-            self.tprint('No error/warning found!')
+            self.tprint("No error/warning found!")
             return None
