@@ -83,9 +83,10 @@ class DatabasePage(NavigationBarPage):
                 if self.version_is_newer_than("3.11.99"):
                     self.tprint(f"selecting one shard database for {db_name}\n")
                     if db_name == "OneShard":
-                        one_shard = '//*[@id="chakra-modal--body-4"]/div/div/div[2]/div[5]/div/div/label/span/span'
-                        one_shard_sitem = self.locator_finder_by_xpath(one_shard)
-                        one_shard_sitem.click()
+                        self.tprint(f"Skipped for Forced oneshard for now, need to figure out a way.\n")
+                        # one_shard = '//*[@id="chakra-modal--body-4"]/div/div/div[2]/div[5]/div/div/label/span/span'
+                        # one_shard_sitem = self.locator_finder_by_xpath(one_shard)
+                        # one_shard_sitem.click()
                     else:
                         pass
                 else:
