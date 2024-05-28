@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """ base class for all selenium testsuites """
-import logging
 from datetime import datetime
-import traceback
-
-from beautifultable import BeautifulTable
 
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
+from beautifultable import BeautifulTable
 from selenium.common.exceptions import InvalidSessionIdException
+from selenium.webdriver.common.by import By
 from semver import VersionInfo
 
-from selenium.webdriver.common.by import By
+from reporting.reporting_utils import attach_table, AllureTestSuiteContext, step
 from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
@@ -22,7 +20,6 @@ from test_suites_core.base_test_suite import (
     run_after_each_testcase,
     collect_crash_data,
 )
-from reporting.reporting_utils import attach_table, AllureTestSuiteContext
 
 
 class BaseSeleniumTestSuite(BaseTestSuite):
@@ -50,8 +47,11 @@ class BaseSeleniumTestSuite(BaseTestSuite):
             self.run_own_test_cases = False
 
     def tprint(self, string):
-        """ print including timestamp relative to video start """
-        print(f" {str(datetime.now() - self.video_start_time)} - {string}")
+        """print including timestamp relative to video start"""
+        msg = f" {str(datetime.now() - self.video_start_time)} - {string}"
+        print(msg)
+        with step(msg):
+            pass
 
     def _init_allure(self):
         self.test_suite_context = AllureTestSuiteContext(
