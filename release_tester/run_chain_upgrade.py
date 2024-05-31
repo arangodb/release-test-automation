@@ -76,13 +76,13 @@ def main(**kwargs):
     oldest_branch = nightly_branches[0]
     devel_branch = nightly_branches[-1]
     upgrade_list = []
-    upgrade_list.append(release_tracker_client.get_latest_release_if_any("3.8", OS.LINUX, Arch.ARM))
     upgrade_list.append(release_tracker_client.get_latest_release_if_any(oldest_branch, os, cpu_arch))
+    upgrade_list.append(release_tracker_client.get_latest_nightly_if_any(oldest_branch, os, cpu_arch))
     for branch in nightly_branches[1:-1]:
         upgrade_list.append(release_tracker_client.get_latest_release_if_any(branch, os, cpu_arch))
         upgrade_list.append(release_tracker_client.get_latest_nightly_if_any(branch, os, cpu_arch))
-    new_version = release_tracker_client.get_latest_nightly_if_any(devel_branch, os, cpu_arch)
-    upgrade_list.append(new_version)
+    upgrade_list.append(release_tracker_client.get_latest_release_if_any(devel_branch, os, cpu_arch))
+    upgrade_list.append(release_tracker_client.get_latest_nightly_if_any(devel_branch, os, cpu_arch))
     while None in upgrade_list:
         upgrade_list.remove(None)
     upgrade_matrix = ":".join(upgrade_list)
