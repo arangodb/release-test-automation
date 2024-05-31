@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 import platform
+import re
 import sys
 
 # pylint: disable=duplicate-code
@@ -47,7 +48,7 @@ from tools.release_tracker_client.client import ReleaseTrackerApiClient, OS, Arc
 @download_options(default_source="nightlypublic", other_source=True)
 @ui_test_suite_filtering_options()
 # fmt: off
-# pylint: disable=too-many-arguments, disable=unused-argument, disable=invalid-name
+# pylint: disable=too-many-arguments, disable=too-many-branches, disable=too-many-locals, disable=unused-argument, disable=invalid-name
 def main(**kwargs):
     """ main """
     kwargs['interactive'] = False
@@ -95,6 +96,12 @@ def main(**kwargs):
         upgrade_list.append(release_tracker_client.get_latest_nightly_if_any(devel_branch, os, cpu_arch))
         while None in upgrade_list:
             upgrade_list.remove(None)
+
+        for i, version in enumerate(upgrade_list):
+            if re.match(r"\d+\.\d+\.\d+\.\d+", version):
+                version_as_list = version.rsplit(".")
+                upgrade_list[i] = ".".join(version_as_list[0:3]) + "-" + version_as_list[3]
+
         upgrade_matrix = ":".join(upgrade_list)
     else:
         upgrade_matrix = kwargs['upgrade_matrix']
