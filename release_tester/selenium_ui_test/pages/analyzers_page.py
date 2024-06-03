@@ -242,7 +242,6 @@ class AnalyzerPage(NavigationBarPage):
     def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
-        self.webdriver.maximize_window()
         index = self.get_analyzer_index(name)
         if index == -1:
             self.tprint(f"Analyzer '{name}' not found in the lookup table.")
@@ -1139,11 +1138,21 @@ class AnalyzerPage(NavigationBarPage):
                     # Finding the analyzer to check its properties
                     if self.version_is_newer_than('3.11.99'):
                         analyzer_xpath = f"//*[text()='_system::{name}']"
+                        analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
                     else:
                         time.sleep(3)
-                        analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
+                        # add search capability for the analyzer to narrow down the search
+                        search_analyzer = "(//input[@id='filterInput'])[1]"
+                        search_analyzer_sitem = self.locator_finder_by_xpath(search_analyzer)
+                        search_analyzer_sitem.click()
+                        search_analyzer_sitem.clear()
+                        search_analyzer_sitem.send_keys(name)
+                        time.sleep(2)
 
-                    analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
+                        # then click on the analyzer to view its properties
+                        analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
+                        analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
+                    
                     if analyzer_sitem is None:
                         self.tprint(f'This {analyzer_name} has never been created \n')
                     else:
@@ -1158,9 +1167,6 @@ class AnalyzerPage(NavigationBarPage):
 
                     # Find all elements matching the XPath from the ace editor
                     if self.version_is_newer_than('3.11.99'):
-                        # maximizing the window will help to locate all the ace_text-layer
-                        self.webdriver.maximize_window()
-
                         ace_text_area = "//div[contains(@class, 'ace_text-layer')]//div[contains(@class, 'ace_line_group')]"
                         ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
                         # Initialize an empty list to store text
@@ -1202,9 +1208,6 @@ class AnalyzerPage(NavigationBarPage):
                             f"Actual properties didn't matches the expected properties for {name}") from ex
                     else:
                         self.tprint(f"Actual properties matches the expected properties for {name}. \n")
-
-                    # After the tests, restore the window size to its original dimensions
-                    self.webdriver.set_window_size(1600, 900)
 
             except TimeoutException as ex:
                 self.tprint(f'Failed to parse properties from the {name} and the error is: {ex} \n')
@@ -1248,9 +1251,6 @@ class AnalyzerPage(NavigationBarPage):
                         # from here we need to locate the query output
                         # Find all elements matching the XPath from the ace editor
                         if self.version_is_older_than('3.11.99'):
-                            # maximizing the window will help to locate all the ace_text-layer
-                            self.webdriver.maximize_window()
-
                             ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
                             ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
                             # Initialize an empty list to store text

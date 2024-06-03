@@ -151,7 +151,6 @@ class GraphPage(NavigationBarPage):
         # todo add navigation instead
         self.navbar_goto("collections")
         self.wait_for_ajax()
-        self.webdriver.maximize_window()
         time.sleep(1)
 
         # reset = "//*[text()='Reset']"
@@ -197,9 +196,6 @@ class GraphPage(NavigationBarPage):
                 ), f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
             except AssertionError:
                 self.tprint(f"Assertion Error occurred! for {expected_title}\n")
-        
-        self.webdriver.set_window_size(1600, 900)
-    
     
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
@@ -473,7 +469,6 @@ class GraphPage(NavigationBarPage):
     
     def create_example_graph(self, graph_name):
         """This method will create all the example graphs"""
-        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.navbar_goto("graphs")
         self.wait_for_ajax()
@@ -544,8 +539,6 @@ class GraphPage(NavigationBarPage):
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
-
-        self.webdriver.set_window_size(1600, 900)
     
     # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
@@ -1104,7 +1097,6 @@ class GraphPage(NavigationBarPage):
 
         self.tprint("Selecting different representation of relation between nodes\n")
         self.tprint("Maximizing the window")
-        self.webdriver.maximize_window()
         time.sleep(2)
 
         tip1 = self.select_depth_id
@@ -1242,7 +1234,6 @@ class GraphPage(NavigationBarPage):
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
-        self.webdriver.maximize_window()
         retry = 0
         while True:
             try:
@@ -1307,10 +1298,8 @@ class GraphPage(NavigationBarPage):
                     delete_confirm_sitem = self.locator_finder_by_id(delete_confirm)
                     delete_confirm_sitem.click()
                     time.sleep(1)
-                    self.webdriver.set_window_size(1600, 900)
                     break
                 else:
-                    self.webdriver.maximize_window()
                     # Find the <a> element with the text "knows_graph"
                     a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
                     # Navigate to the parent <td> element
@@ -1342,7 +1331,6 @@ class GraphPage(NavigationBarPage):
                     delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
                     delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
                     delete_confirm_sitem.click()
-                    self.webdriver.set_window_size(1600, 900)
                     break
             except TimeoutException as exc:
                 retry += 1
