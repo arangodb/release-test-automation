@@ -4,6 +4,7 @@ import time
 import traceback
 import semver
 from selenium_ui_test.pages.base_page import Keys
+from selenium.webdriver.common.by import By
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -241,6 +242,7 @@ class AnalyzerPage(NavigationBarPage):
     def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
         # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
+        self.webdriver.maximize_window()
         index = self.get_analyzer_index(name)
         if index == -1:
             self.tprint(f"Analyzer '{name}' not found in the lookup table.")
@@ -1127,147 +1129,161 @@ class AnalyzerPage(NavigationBarPage):
             self.tprint("Error occurred!! required manual inspection.\n")
         self.tprint(f"Creating {name} completed successfully \n")
 
-        # # --------------------here we are checking the properties of the created analyzer----------------------
-        # try:
-        #     self.tprint(f"Checking analyzer properties for {name} \n")
-        #     if self.version_is_newer_than('3.10.99'):
-        #         self.wait_for_ajax()
-        #         time.sleep(3)
-        #         # Find the analyzer by XPath
-        #         if self.version_is_newer_than('3.11.99'):
-        #             analyzer_xpath = f"//*[text()='_system::{name}']"
-        #         else:
-        #             analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
-                    
-        #         analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
+        # --------------------here we are checking the properties of the created analyzer----------------------
+        if self.version_is_older_than('3.11.99'):
+            # primariliy enable the test for the version below 3.11.99
+            try:
+                self.wait_for_ajax()
+                self.tprint(f"Checking analyzer properties for {name} \n")
+                if self.version_is_newer_than('3.10.99'):
+                    # Finding the analyzer to check its properties
+                    if self.version_is_newer_than('3.11.99'):
+                        analyzer_xpath = f"//*[text()='_system::{name}']"
+                    else:
+                        time.sleep(3)
+                        analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
 
-        #         # Check if the analyzer exists
-        #         if analyzer_sitem is None:
-        #             self.tprint(f'The analyzer "{name}" has never been created.\n')
-        #         else:
-        #             # Click on the analyzer element
-        #             analyzer_sitem.click()
-        #             time.sleep(1)
+                    analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
+                    if analyzer_sitem is None:
+                        self.tprint(f'This {analyzer_name} has never been created \n')
+                    else:
+                        analyzer_sitem.click()
+                        time.sleep(1)
 
-        #             # Find the ACE editor button
-        #         if self.version_is_newer_than('3.11.99'):
-        #             # finding the ace editor using neighbor locators
-        #             nearest_button = "//button[@class='jsoneditor-compact']"
-        #         else:
-        #             self.tprint(f"Switching to code view for {name} \n")
-        #             switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
-        #             switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
-        #             switch_to_code_sitem.click()
-        #             nearest_button = "(//label[normalize-space()='JSON Dump'])[1]"
-                    
-        #         ace_button = self.locator_finder_by_xpath(nearest_button)
+                    if self.version_is_older_than('3.11.99'):
+                        self.tprint(f"Switching to code view for {name} \n")
+                        switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
+                        switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
+                        switch_to_code_sitem.click()
 
-        #         # Set x and y offset positions for the action
-        #         xOffset = 50
-        #         yOffset = 50
+                    # Find all elements matching the XPath from the ace editor
+                    if self.version_is_newer_than('3.11.99'):
+                        # maximizing the window will help to locate all the ace_text-layer
+                        self.webdriver.maximize_window()
 
-        #         # Perform actions on the ACE editor
-        #         actions = ActionChains(self.webdriver)
-        #         actions.move_to_element_with_offset(ace_button, xOffset, yOffset)
-        #         actions.click()
-        #         actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys("c").key_up(Keys.CONTROL)
-        #         actions.perform()  # Execute the actions
+                        ace_text_area = "//div[contains(@class, 'ace_text-layer')]//div[contains(@class, 'ace_line_group')]"
+                        ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
+                        # Initialize an empty list to store text
+                        text_list = []
+                        # Iterate over each element and extract its text
+                        for element in ace_line_groups:
+                            text_list.append(element.text.strip())  # Append text from each line group
+                            time.sleep(1)
 
-        #         # Retrieve text content from the clipboard using Pyperclip
-        #         actual_properties = ''.join(str(pyperclip.paste()).split())
+                        # Join the text from all elements into a single string
+                        final_text = ''.join(text_list)  # Join the text without splitting
+                        actual_properties = ''.join(str(final_text).split())
+                    else:
+                        # Find the textarea element using XPath based on its class
+                        # Define the class name of the textarea element
+                        class_name = "sc-EHOje"  # Replace with the actual class name
 
-        #         # Get expected properties based on the analyzer name and UI data directory
-        #         if self.version_is_newer_than("3.11.99"):
-        #             expected_properties = ''.join(str(self.generate_expected_properties_312(name, ui_data_dir)).split())
-        #         else:
-        #             expected_properties = ''.join(str(self.generate_expected_properties_311(name, ui_data_dir)).split())
+                        # Execute JavaScript code to retrieve the text content of the textarea
+                        analyzer_properties = self.webdriver.execute_script(f'''
+                            var className = "{class_name}";
+                            var textareaElement = document.querySelector("textarea." + className);
+                            return textareaElement.value;
+                        ''')
+                        actual_properties = ''.join(str(analyzer_properties).split())
 
-        #         # Assert that the copied text matches the expected text
-        #         if actual_properties != expected_properties:
-        #             self.tprint(f"Actual properties: {actual_properties}")
-        #             self.tprint(f"Expected properties:{expected_properties}")
-        #             raise Exception(f"Properties are not equal for the '{name}' analyzer.\n")
-        #         else:
-        #             self.tprint(f"Properties are equal for the '{name}' analyzer.\n")
+                    # Get expected properties based on analyzer name
+                    if self.version_is_newer_than("3.11.99"):
+                        expected_properties = ''.join(str(self.generate_expected_properties_312(name, ui_data_dir)).split())
+                    else:
+                        expected_properties = ''.join(str(self.generate_expected_properties_311(name, ui_data_dir)).split())
+                    # Assert that the copied text matches the expected text
+                    try:
+                        assert actual_properties == expected_properties, "Text does not match the expected text \n"
+                        # self.tprint(f"Actual porperties: {actual_properties} \nexpected properties: {expected_properties} \nfound for {name} \n")
+                    except AssertionError as ex:
+                        self.tprint("actual_properties: ", actual_properties)
+                        self.tprint("expected_properties: ", expected_properties)
+                        raise AssertionError(
+                            f"Actual properties didn't matches the expected properties for {name}") from ex
+                    else:
+                        self.tprint(f"Actual properties matches the expected properties for {name}. \n")
 
-        # except TimeoutException as ex:
-        #     raise Exception(f"A TimeoutException occurred during parsing the properties of the '{name}' analyzer.\nError: {ex}")
-            
-        # # -------------------- Running a query for each analyzer's after creation----------------------
-        # if self.version_is_newer_than('3.10.99'):
-        #     try:
-        #         self.tprint(f'Running query for {name} started \n')
-        #         # Goto query tab
-        #         self.tprint("Selecting query tab \n")
-        #         if self.version_is_newer_than('3.11.99'):
-        #             self.navbar_goto("queries")
-        #         else:
-        #             self.webdriver.refresh()
-        #             self.navbar_goto("queries")
-        #         self.wait_for_ajax()
+                    # After the tests, restore the window size to its original dimensions
+                    self.webdriver.set_window_size(1600, 900)
 
-        #         self.tprint('Selecting query execution area \n')
-        #         self.select_query_execution_area()
-
-        #         self.tprint(f'Running query for {name} analyzer started\n')
-        #         # Get query and expected output based on analyzer name
-        #         if self.version_is_newer_than('3.11.99'):
-        #             analyzer_query = self.get_analyzer_query_312(name)
-        #         else:
-        #             analyzer_query = self.get_analyzer_query_311(name)
+            except TimeoutException as ex:
+                self.tprint(f'Failed to parse properties from the {name} and the error is: {ex} \n')
                 
-        #         if analyzer_query is None:
-        #             self.tprint(f"Analyzer '{name}' not found. Skipping test.")
-        #             pass  # Skip this test and move to the next one
-        #         else:
-        #             if self.version_is_newer_than('3.11.99'):
-        #                 self.send_key_action(analyzer_query)
-        #             else:
-        #                 self.clear_textfield()
-        #                 self.send_key_action(analyzer_query)
-        #             self.query_execution_btn()
-        #             self.scroll(1)
+            # -------------------- Running a query for each analyzer's after creation----------------------
+            try:
+                self.tprint(f"Checking analyzer query for {name} \n")
+                if self.version_is_older_than('3.11.99'):
+                    self.tprint(f'Running query for {name} started \n')
+                    # Goto query tab
+                    self.tprint("Selecting query tab \n")
+                    if self.version_is_newer_than('3.11.99'):
+                        self.locator_finder_by_id('queries').click()
+                    else:
+                        self.webdriver.refresh()
+                        self.locator_finder_by_id('queries').click()
+                    time.sleep(1)
+                    self.tprint('Selecting query execution area \n')
+                    self.select_query_execution_area()
 
-        #             self.tprint("Storing the query output \n")
-        #             # Finding the ace editor using neighbor locators
-        #             if self.version_is_newer_than('3.11.99'):
-        #                 query_output = "(//div[@class='css-1new77s'])[1]"
-        #             else:
-        #                 query_output = "//span[@class='toolbarType']"
-                    
-        #             ace_locator = self.locator_finder_by_xpath(query_output)
-        #             # Set x and y offset positions of adjacent element
-        #             xOffset = 50
-        #             yOffset = 50
-        #             # Perform mouse move action onto the element
-        #             actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
-        #             actions.click()
-        #             actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).key_down(Keys.CONTROL).send_keys(
-        #                 "c").key_up(Keys.CONTROL)
-        #             actions.perform()  # Execute the sequence of actions
+                    self.tprint(f'Running query for {name} analyzer started\n')
+                    # Get query and expected output based on analyzer name
+                    if self.version_is_newer_than('3.11.99'):
+                        analyzer_query = self.get_analyzer_query_312(name)
+                    else:
+                        analyzer_query = self.get_analyzer_query_311(name)
 
-        #             # Retrieve text content from the clipboard using Pyperclip
-        #             query_actual_output = ''.join(str(pyperclip.paste()).split())
-        #             # Get expected query output based on analyzer name
-        #             if self.version_is_newer_than('3.11.99'):
-        #                 query_expected_output = self.get_analyzer_expected_output_312(name)
-        #             else:
-        #                 query_expected_output = self.get_analyzer_expected_output_311(name)
-                    
-        #             if query_expected_output is None:
-        #                 self.tprint(f"Analyzer '{name}' not found. Skipping test.")
-        #                 pass  # Skip this test and move to the next one
-        #             else:
-        #                 # Assert that the copied text matches the expected text
-        #                 if query_actual_output != ''.join(str(query_expected_output).split()):
-        #                     self.tprint(f"query_actual_output: {query_actual_output}")
-        #                     self.tprint(f"query_expected_output: {query_expected_output}")
-        #                     raise Exception(f"Actual query output didn't matches the expected query output for {name}\n")
-        #                 else:
-        #                     self.tprint(f"Actual query output matches the expected query output for {name}\n")
-        #     except TimeoutException as ex:
-        #         raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
+                    if analyzer_query is None:
+                        self.tprint(f"Analyzer '{name}' not found. Skipping test.")
+                        pass  # Skip this test and move to the next one
+                    else:
+                        if self.version_is_newer_than('3.11.99'):
+                            self.send_key_action(analyzer_query)
+                        else:
+                            self.clear_textfield()
+                            self.send_key_action(analyzer_query)
 
+                        self.query_execution_btn()
+                        self.scroll(1)
+
+                        # from here we need to locate the query output
+                        # Find all elements matching the XPath from the ace editor
+                        if self.version_is_older_than('3.11.99'):
+                            # maximizing the window will help to locate all the ace_text-layer
+                            self.webdriver.maximize_window()
+
+                            ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
+                            ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
+                            # Initialize an empty list to store text
+                            text_list = []
+                            # Iterate over each element and extract its text
+                            for element in ace_line_groups:
+                                text_list.append(element.text.strip())  # Append text from each line group
+                                time.sleep(1)
+
+                            # Join the text from all elements into a single string
+                            final_text = ''.join(text_list)  # Join the text without splitting
+                            query_actual_output = ''.join(str(final_text).split())
+                            self.tprint(f"query_actual_output: {query_actual_output} \n")
+
+                        if self.version_is_newer_than('3.11.99'):
+                            query_expected_output = self.get_analyzer_expected_output_312(name)
+                        else:
+                            query_expected_output = self.get_analyzer_expected_output_311(name)
+
+                        if query_expected_output is None:
+                            self.tprint(f"Analyzer '{name}' not found. Skipping test.")
+                            pass  # Skip this test and move to the next one
+                        else:
+                            # Assert that the copied text matches the expected text
+                            if query_actual_output != ''.join(str(query_expected_output).split()):
+                                self.tprint("query_actual_output: ", query_actual_output)
+                                self.tprint("query_expected_output: ", query_expected_output)
+                                raise Exception(
+                                    f"Actual query output didn't matches the expected query output for {name}\n")
+                            else:
+                                self.tprint(f"Actual query output matches the expected query output for {name}\n")
+            except TimeoutException as ex:
+                raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
 
     @staticmethod
     def generate_analyzer_queries_312(analyzer_name):
@@ -1692,10 +1708,7 @@ class AnalyzerPage(NavigationBarPage):
                           ";",
                           "!",
                           "?",
-                          "[",
-                          "]",
-                          "-",
-                          "_"
+                          "["
                         ]
                       }
                     }

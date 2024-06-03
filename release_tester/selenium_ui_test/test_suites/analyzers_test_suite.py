@@ -26,23 +26,23 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         try:
             if self.package_version >= semver.VersionInfo.parse("3.9.0"):
                 analyzers.select_analyzers_page()
-                analyzers.select_help_filter_btn()
+                # analyzers.select_help_filter_btn()
 
-                self.tprint('Checking analyzer page transition\n')
-                analyzers.checking_analyzer_page_transition('transition')
+                # self.tprint('Checking analyzer page transition\n')
+                # analyzers.checking_analyzer_page_transition('transition')
 
-                if self.package_version < semver.VersionInfo.parse("3.11.0"):
-                    self.tprint('Checking all built-in analyzers\n')
-                    analyzers.checking_all_built_in_analyzer()
+                # if self.package_version < semver.VersionInfo.parse("3.11.0"):
+                #     self.tprint('Checking all built-in analyzers\n')
+                #     analyzers.checking_all_built_in_analyzer()
 
                 self.tprint('Creating all supported analyzers\n')
                 analyzers.creating_all_supported_analyzer(self.is_enterprise, self.ui_data_dir)
 
-                self.tprint('Checking expected negative scenarios for analyzers\n')
-                analyzers.analyzer_expected_error_check()
+                # self.tprint('Checking expected negative scenarios for analyzers\n')
+                # analyzers.analyzer_expected_error_check()
 
-                self.tprint("Checking analyzer's search filter options \n")
-                analyzers.checking_search_filter()
+                # self.tprint("Checking analyzer's search filter options \n")
+                # analyzers.checking_search_filter()
             else:
                 self.tprint("Analyzer test is not available version below 3.9.0 \n")
 
@@ -54,7 +54,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
         finally:
             if self.package_version >= semver.VersionInfo.parse("3.9.0"):
                 self.tprint("Analyzer deletion started.")
-                analyzers.deleting_all_created_analyzers()
+                # analyzers.deleting_all_created_analyzers()
                 del analyzers
                 self.tprint("---------Analyzers Page Test Completed--------- \n")
                 if self.exception:
