@@ -249,6 +249,7 @@ class AnalyzerPage(NavigationBarPage):
         
         self.select_analyzers_page()
         self.webdriver.refresh()
+        self.wait_for_ajax()
 
         if self.version_is_newer_than('3.11.99'):
             add_new_analyzer_btn = '//*[@id="content-react"]/div/div[1]/span/button'
@@ -275,8 +276,6 @@ class AnalyzerPage(NavigationBarPage):
             frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
             norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
             position = '//div[label[text()="Position"]]/input[not(@disabled)]'
-            # switch_form_btn = "//*[text()='Switch to form view']"
-            # switch_view_btn = '//*[@id="chakra-modal--header-2"]/div/div[3]/button' #todo 3.11
             local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
             case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
 
@@ -1157,7 +1156,7 @@ class AnalyzerPage(NavigationBarPage):
                         self.tprint(f'This {analyzer_name} has never been created \n')
                     else:
                         analyzer_sitem.click()
-                        time.sleep(1)
+                        time.sleep(3)
 
                     if self.version_is_older_than('3.11.99'):
                         self.tprint(f"Switching to code view for {name} \n")
@@ -1174,7 +1173,7 @@ class AnalyzerPage(NavigationBarPage):
                         # Iterate over each element and extract its text
                         for element in ace_line_groups:
                             text_list.append(element.text.strip())  # Append text from each line group
-                            time.sleep(1)
+                            time.sleep(3)
 
                         # Join the text from all elements into a single string
                         final_text = ''.join(text_list)  # Join the text without splitting
@@ -1200,10 +1199,10 @@ class AnalyzerPage(NavigationBarPage):
                     # Assert that the copied text matches the expected text
                     try:
                         assert actual_properties == expected_properties, "Text does not match the expected text \n"
-                        # self.tprint(f"Actual porperties: {actual_properties} \nexpected properties: {expected_properties} \nfound for {name} \n")
+                        self.tprint(f"Actual porperties: {actual_properties} \nexpected properties: {expected_properties} \nfound for {name} \n")
                     except AssertionError as ex:
-                        self.tprint("actual_properties: ", actual_properties)
-                        self.tprint("expected_properties: ", expected_properties)
+                        self.tprint(f"actual_properties: {actual_properties} \n")
+                        self.tprint(f"expected_properties: {expected_properties} \n")
                         raise AssertionError(
                             f"Actual properties didn't matches the expected properties for {name}") from ex
                     else:
@@ -1224,7 +1223,7 @@ class AnalyzerPage(NavigationBarPage):
                     else:
                         self.webdriver.refresh()
                         self.locator_finder_by_id('queries').click()
-                    time.sleep(1)
+                    time.sleep(3)
                     self.tprint('Selecting query execution area \n')
                     self.select_query_execution_area()
 
@@ -1248,7 +1247,6 @@ class AnalyzerPage(NavigationBarPage):
                         self.query_execution_btn()
                         self.scroll(1)
 
-                        # from here we need to locate the query output
                         # Find all elements matching the XPath from the ace editor
                         if self.version_is_older_than('3.11.99'):
                             ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
@@ -1276,8 +1274,8 @@ class AnalyzerPage(NavigationBarPage):
                         else:
                             # Assert that the copied text matches the expected text
                             if query_actual_output != ''.join(str(query_expected_output).split()):
-                                self.tprint("query_actual_output: ", query_actual_output)
-                                self.tprint("query_expected_output: ", query_expected_output)
+                                self.tprint(f"query_actual_output: {query_actual_output} \n")
+                                self.tprint(f"query_expected_output: {query_expected_output} \n")
                                 raise Exception(
                                     f"Actual query output didn't matches the expected query output for {name}\n")
                             else:
