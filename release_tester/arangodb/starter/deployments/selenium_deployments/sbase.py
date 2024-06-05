@@ -53,7 +53,7 @@ class SeleniumRunner(ABC):
         self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
         self.original_window_handle = None
         time.sleep(3)
-        self.webdriver.set_window_size(1600, 900)
+        self.webdriver.maximize_window()
         time.sleep(3)
         print(f"Video filename will be: {self.video_name}")
 

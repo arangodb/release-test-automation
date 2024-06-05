@@ -208,7 +208,6 @@ class CollectionPage(NavigationBarPage):
         self.navbar_goto("collections")
         time.sleep(1)
 
-        self.webdriver.maximize_window()
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             select_create_collection_id = "//*[text()='Add collection']"
             select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id)
@@ -317,7 +316,6 @@ class CollectionPage(NavigationBarPage):
             create_new_collection_btn_sitem = self.locator_finder_by_id("modalButton1")
             create_new_collection_btn_sitem.click()
         time.sleep(3)
-        self.webdriver.set_window_size(1600, 900)
         self.webdriver.refresh()
 
     def ace_set_value(self, query):
@@ -677,7 +675,6 @@ class CollectionPage(NavigationBarPage):
 
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
-        self.webdriver.maximize_window()
         self.tprint(f"Creating {index_name} index started \n")
         add_index = '//*[@id="content-react"]/div/div/button'
         create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
@@ -686,7 +683,6 @@ class CollectionPage(NavigationBarPage):
 
         self.tprint(f"selecting {index_name} from the list\n")
 
-        self.webdriver.maximize_window()
         if index_name == 'Persistent':
             # selecting persistent index's filed
             persistent_field = "/html//input[@id='fields']"
@@ -1021,7 +1017,6 @@ class CollectionPage(NavigationBarPage):
         create_btn = "//*[text()='Create']"
         create_btn_sitem = self.locator_finder_by_xpath(create_btn)
         create_btn_sitem.click()
-        self.webdriver.set_window_size(1600, 900)
         time.sleep(2)
 
 
@@ -1179,7 +1174,6 @@ class CollectionPage(NavigationBarPage):
 
     def delete_index_311(self, check=False):
         """this method will delete all the indexes one by one for =<3.11.99"""
-        self.webdriver.maximize_window()
         try:
             delete = '//*[@id="collectionEditIndexTable"]/tbody/tr[2]/th[10]/span'
             if check:
@@ -1195,11 +1189,9 @@ class CollectionPage(NavigationBarPage):
             self.webdriver.refresh()
         except TimeoutException as e:
             self.tprint(f'Something went wrong {e}\n')
-        self.webdriver.set_window_size(1600, 900)
 
     def delete_index_312(self, index):
         """this method will delete all the indexes one by one for >= 3.12.0"""
-        self.webdriver.maximize_window()
         try:
             self.webdriver.refresh()
             self.wait_for_ajax()
@@ -1243,7 +1235,6 @@ class CollectionPage(NavigationBarPage):
             except BaseException as e:
                 self.tprint(f'Something went wrong {e}\n')
                 self.navbar_goto
-        self.webdriver.set_window_size(1600, 900)
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -1338,7 +1329,6 @@ class CollectionPage(NavigationBarPage):
 
     def test_computed_values(self):
         """ Testing computed value feature for v3.10.x"""
-        self.webdriver.maximize_window()
         self.navbar_goto("collections")
         self.webdriver.refresh()
         self.wait_for_ajax()
@@ -1464,7 +1454,6 @@ class CollectionPage(NavigationBarPage):
 
         # go back to collection page
         self.navbar_goto("collections")
-        self.webdriver.set_window_size(1600, 900)
 
     def select_settings_unload_btn(self):
         """Loading and Unloading collection"""
@@ -1563,7 +1552,6 @@ class CollectionPage(NavigationBarPage):
     def delete_collection(self, collection_name, collection_locator, is_cluster):
         """This method will delete all the collection"""
         self.tprint(f"Deleting {collection_name} collection started \n")
-        self.webdriver.maximize_window()
         self.webdriver.refresh()
         self.wait_for_ajax()
         self.navbar_goto("collections")
@@ -1599,4 +1587,3 @@ class CollectionPage(NavigationBarPage):
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
         self.webdriver.refresh()
         self.wait_for_ajax()
-        self.webdriver.set_window_size(1600, 900)
