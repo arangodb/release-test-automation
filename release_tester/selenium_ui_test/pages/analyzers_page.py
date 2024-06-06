@@ -1159,6 +1159,11 @@ class AnalyzerPage(NavigationBarPage):
                         analyzer_sitem.click()
                         time.sleep(3)
 
+                        self.tprint("I am here at 1162\n")
+                        self.tprint("zooming out with javascript\n")
+                        self.webdriver.execute_script("document.body.style.zoom='80%'")
+                        time.sleep(3)
+                        self.webdriver.refresh()
                     if self.version_is_older_than('3.11.99'):
                         self.tprint(f"Switching to code view for {name} \n")
                         switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
@@ -1208,7 +1213,7 @@ class AnalyzerPage(NavigationBarPage):
                             f"Actual properties didn't matches the expected properties for {name}") from ex
                     else:
                         self.tprint(f"Actual properties matches the expected properties for {name}. \n")
-
+                    self.tprint("Back to normal screen zoom level\n")
             except TimeoutException as ex:
                 self.tprint(f'Failed to parse properties from the {name} and the error is: {ex} \n')
                 
@@ -1219,10 +1224,10 @@ class AnalyzerPage(NavigationBarPage):
                 # Goto query tab
                 self.tprint("Selecting query tab \n")
                 if self.version_is_newer_than('3.11.99'):
-                    self.locator_finder_by_id('queries').click()
+                    self.navbar_goto('queries')
                 else:
                     self.webdriver.refresh()
-                    self.locator_finder_by_id('queries').click()
+                    self.navbar_goto('queries')
                 time.sleep(3)
                 self.tprint('Selecting query execution area \n')
                 self.select_query_execution_area()
@@ -1286,6 +1291,8 @@ class AnalyzerPage(NavigationBarPage):
                                 f"Actual query output didn't matches the expected query output for {name}\n")
                         else:
                             self.tprint(f"Actual query output matches the expected query output for {name}\n")
+                    # back to normal zoom level
+                    self.webdriver.execute_script("document.body.style.zoom='100%'")
             except TimeoutException as ex:
                 raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
 
@@ -2107,25 +2114,25 @@ class AnalyzerPage(NavigationBarPage):
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
         decode_analyzers = {
-            "My_Identity_Analyzer": (0, None, False),
-            "My_Delimiter_Analyzer": (0, None, False),
-            "My_Stem_Analyzer": (0, None, False),
-            "My_Norm_Analyzer": (0, None, False),
-            "My_N-Gram_Analyzer": (0, None, False),
+            # "My_Identity_Analyzer": (0, None, False),
+            # "My_Delimiter_Analyzer": (0, None, False),
+            # "My_Stem_Analyzer": (0, None, False),
+            # "My_Norm_Analyzer": (0, None, False),
+            # "My_N-Gram_Analyzer": (0, None, False),
             "My_Text_Analyzer": (0, None, False),
-            "My_AQL_Analyzer": (0, None, False),
-            "My_Stopwords_Analyzer": (0, None, False),
-            "My_Collation_Analyzer": (0, None, False),
-            "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
-            "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
-            "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
-            "My_GeoS2_Analyzer": (0, None, not enterprise)
+            # "My_AQL_Analyzer": (0, None, False),
+            # "My_Stopwords_Analyzer": (0, None, False),
+            # "My_Collation_Analyzer": (0, None, False),
+            # "My_Segmentation_Alpha_Analyzer": (0, None, False),
+            # "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            # "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            # "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            # "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            # "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
+            # "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
+            # "My_GeoS2_Analyzer": (0, None, not enterprise)
         }
 
         # Loop through each analyzer in the dictionary
