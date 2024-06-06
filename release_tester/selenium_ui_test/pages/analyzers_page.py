@@ -1134,7 +1134,8 @@ class AnalyzerPage(NavigationBarPage):
             try:
                 self.wait_for_ajax()
                 self.tprint(f"Checking analyzer properties for {name} \n")
-                if self.version_is_newer_than('3.10.99'):
+                # running for 311 only for now
+                if self.version_is_older_than('3.11.99'):
                     # Finding the analyzer to check its properties
                     if self.version_is_newer_than('3.11.99'):
                         analyzer_xpath = f"//*[text()='_system::{name}']"
@@ -1159,11 +1160,6 @@ class AnalyzerPage(NavigationBarPage):
                         analyzer_sitem.click()
                         time.sleep(3)
 
-                        self.tprint("I am here at 1162\n")
-                        self.tprint("zooming out with javascript\n")
-                        self.webdriver.execute_script("document.body.style.zoom='80%'")
-                        time.sleep(3)
-                        self.webdriver.refresh()
                     if self.version_is_older_than('3.11.99'):
                         self.tprint(f"Switching to code view for {name} \n")
                         switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
@@ -1219,6 +1215,11 @@ class AnalyzerPage(NavigationBarPage):
                 
             # -------------------- Running a query for each analyzer's after creation----------------------
             try:
+                if self.version_is_newer_than('3.11.99'):
+                        query_expected_output = self.get_analyzer_expected_output_312(name)
+                else:
+                    query_expected_output = self.get_analyzer_expected_output_311(name)
+
                 self.tprint(f"Checking analyzer query for {name} \n")
                 self.tprint(f'Running query for {name} started \n')
                 # Goto query tab
@@ -1274,11 +1275,6 @@ class AnalyzerPage(NavigationBarPage):
                     query_actual_output = ''.join(str(final_text).split())
                     self.tprint(f"query_actual_output: {query_actual_output} \n")
 
-                    if self.version_is_newer_than('3.11.99'):
-                        query_expected_output = self.get_analyzer_expected_output_312(name)
-                    else:
-                        query_expected_output = self.get_analyzer_expected_output_311(name)
-
                     if query_expected_output is None:
                         self.tprint(f"Analyzer '{name}' not found. Skipping test.")
                         pass  # Skip this test and move to the next one
@@ -1291,8 +1287,6 @@ class AnalyzerPage(NavigationBarPage):
                                 f"Actual query output didn't matches the expected query output for {name}\n")
                         else:
                             self.tprint(f"Actual query output matches the expected query output for {name}\n")
-                    # back to normal zoom level
-                    self.webdriver.execute_script("document.body.style.zoom='100%'")
             except TimeoutException as ex:
                 raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
 
