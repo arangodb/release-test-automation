@@ -7,8 +7,13 @@ from pathlib import Path
 import click
 
 from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
-from common_options import very_common_options, common_options, hotbackup_options, test_suite_filtering_options, \
-    ui_test_suite_filtering_options
+from common_options import (
+    very_common_options,
+    common_options,
+    hotbackup_options,
+    test_suite_filtering_options,
+    ui_test_suite_filtering_options,
+)
 from test_driver import TestDriver
 
 
@@ -44,7 +49,7 @@ def main(**kwargs):
         test_driver.destructor()
     for result in results:
         if not result["success"]:
-            raise Exception("There are failed tests")
+            raise Exception("There are failed or broken tests")
 
 
 if __name__ == "__main__":

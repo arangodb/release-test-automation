@@ -30,7 +30,7 @@ class MetaTestSuite(type):
     def __new__(cls, name, bases, dct):
         suite_class = super().__new__(cls, name, bases, dct)
         suite_class.is_disabled = False
-        suite_class.is_broken = False
+        suite_class._is_broken = False
         suite_class.disable_reasons = []
         if "child_test_suites" not in dct.keys():
             suite_class.child_test_suites = []
@@ -74,17 +74,12 @@ class BaseTestSuite(metaclass=MetaTestSuite):
     @classmethod
     def _mark_broken(cls, message: str = None):
         # pylint: disable=no-member
-        cls.is_broken = True
+        cls._is_broken = True
         if message:
             cls.disable_reasons.append(message)
         for suite_class in cls.child_test_suites:
             # pylint: disable=protected-access
-            suite_class._disable(message)
-
-    @classmethod
-    def _is_broken(cls):
-        # pylint: disable=no-member
-        return cls.is_broken
+            suite_class._mark_broken(message)
 
     @classmethod
     def _is_disabled(cls):
@@ -127,7 +122,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         self._init_allure()
         if self._is_disabled():
             self._report_disabled()
-        elif self._is_broken():
+        elif self.is_broken():
             self._report_broken()
         else:
             setup_failed = parent_suite_setup_failed
@@ -138,17 +133,22 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     print(ex)
                     self._disable(ex.message)
                     self._report_disabled()
-                # pylint: disable=bare-except
-                except:
+                # pylint: disable=broad-except
+                except Exception as ex:
                     self._mark_broken("Test setup failed.")
                     self._report_broken()
                     setup_failed = True
+                    print("Test suite setup failed!")
+                    message = str(ex)
+                    traceback_instance = "".join(traceback.TracebackException.from_exception(ex).format())
+                    print(message)
+                    print(traceback_instance)
                     try:
                         self.add_crash_data_to_report()
                     # pylint: disable=broad-except disable=bare-except
                     except:
                         pass
-            if not self._is_disabled() and not self._is_broken():
+            if not self._is_disabled() and not self.is_broken():
                 if self.has_own_testcases() and self.run_own_test_cases:
                     self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
                 for suite_class in self.child_classes:
@@ -276,12 +276,12 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 return True
         return False
 
-    def there_are_broken_tests(self):
+    def is_broken(self):
         """check whether there are broken tests"""
-        if self._is_broken():
+        if self._is_broken:
             return True
         for child in self.children:
-            if child.there_are_broken_tests():
+            if child.is_broken():
                 return True
         return False
 
