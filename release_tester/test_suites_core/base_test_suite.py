@@ -30,6 +30,7 @@ class MetaTestSuite(type):
     def __new__(cls, name, bases, dct):
         suite_class = super().__new__(cls, name, bases, dct)
         suite_class.is_disabled = False
+        suite_class.is_broken = False
         suite_class.disable_reasons = []
         if "child_test_suites" not in dct.keys():
             suite_class.child_test_suites = []
@@ -71,6 +72,21 @@ class BaseTestSuite(metaclass=MetaTestSuite):
             suite_class._disable(message)
 
     @classmethod
+    def _mark_broken(cls, message: str = None):
+        # pylint: disable=no-member
+        cls.is_broken = True
+        if message:
+            cls.disable_reasons.append(message)
+        for suite_class in cls.child_test_suites:
+            # pylint: disable=protected-access
+            suite_class._disable(message)
+
+    @classmethod
+    def _is_broken(cls):
+        # pylint: disable=no-member
+        return cls.is_broken
+
+    @classmethod
     def _is_disabled(cls):
         # pylint: disable=no-member
         return cls.is_disabled
@@ -98,11 +114,21 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                 message = "\n".join(self._get_disable_reasons())
                 my_testcase.context.statusDetails = StatusDetails(message=message)
 
+    def _report_broken(self):
+        """report that test suite is skipped into allure"""
+        with RtaTestcase("test suite is broken") as my_testcase:
+            my_testcase.context.status = Status.BROKEN
+            if len(self._get_disable_reasons()) > 0:
+                message = "\n".join(self._get_disable_reasons())
+                my_testcase.context.statusDetails = StatusDetails(message=message)
+
     def run(self, parent_suite_setup_failed=False):
         """execute the test"""
         self._init_allure()
         if self._is_disabled():
             self._report_disabled()
+        elif self._is_broken():
+            self._report_broken()
         else:
             setup_failed = parent_suite_setup_failed
             if not setup_failed:
@@ -112,17 +138,17 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     print(ex)
                     self._disable(ex.message)
                     self._report_disabled()
-                # pylint: disable=broad-except disable=bare-except
-                except Exception as ex:
-                    self._disable(f"Test setup threw:\n{str(ex)}\n{''.join(traceback.format_stack(ex.__traceback__.tb_frame))}")
-                    self._report_disabled()
+                # pylint: disable=bare-except
+                except:
+                    self._mark_broken("Test setup failed.")
+                    self._report_broken()
                     setup_failed = True
                     try:
                         self.add_crash_data_to_report()
                     # pylint: disable=broad-except disable=bare-except
                     except:
                         pass
-            if not self._is_disabled():
+            if not self._is_disabled() and not self._is_broken():
                 if self.has_own_testcases() and self.run_own_test_cases:
                     self.test_results += self.run_own_testscases(suite_is_broken=setup_failed)
                 for suite_class in self.child_classes:
@@ -193,12 +219,13 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     func()
                 except TestMustBeSkipped as ex:
                     raise ex
-                # pylint: disable=broad-except disable=bare-except
+                # pylint: disable=bare-except
                 except:
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
             if exc_val:
-                raise Exception("Fixture failed.") from exc_val
+                # raise Exception("Fixture failed.") from exc_val
+                raise exc_type(exc_val).with_traceback(exc_tb)
 
     def run_after_fixtures(self, funcs):
         """run a set of fixtures after the test suite or test case"""
@@ -246,6 +273,15 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         """check whether there are failed tests"""
         for result in self.test_results:
             if not result.success:
+                return True
+        return False
+
+    def there_are_broken_tests(self):
+        """check whether there are broken tests"""
+        if self._is_broken():
+            return True
+        for child in self.children:
+            if child.there_are_broken_tests():
                 return True
         return False
 
@@ -418,6 +454,7 @@ def parameters(params):
     return wrapper
 
 
+# pylint: disable=too-many-statements
 def testcase(title=None):
     """base testcase class decorator"""
 
@@ -484,6 +521,7 @@ def testcase(title=None):
                             print(traceback_instance)
                             try:
                                 self.add_crash_data_to_report()
+                            # pylint: disable=bare-except
                             except:
                                 pass
                             my_testcase.context.status = Status.FAILED
@@ -491,6 +529,7 @@ def testcase(title=None):
                         finally:
                             try:
                                 self.teardown_testcase()
+                            # pylint: disable=bare-except
                             except:
                                 pass
                         test_result = RtaTestResult(success, parametrized_testcase_name, message, traceback_instance)

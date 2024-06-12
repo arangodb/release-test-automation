@@ -654,7 +654,7 @@ class TestDriver:
                 "messages": [],
                 "progress": "",
             }
-            if suite.there_are_failed_tests():
+            if suite.there_are_failed_tests() or suite.there_are_broken_tests():
                 result["success"] = False
                 for one_result in suite.test_results:
                     result["messages"].append(one_result.message)
