@@ -1039,7 +1039,7 @@ class Runner(ABC):
 
     @step
     def zip_test_dir(self):
-        """💾 store the test directory for later analysis"""
+        """store the test directory for later analysis"""
         build_number = os.environ.get("BUILD_NUMBER")
         if build_number:
             build_number = "_" + build_number
@@ -1077,7 +1077,7 @@ class Runner(ABC):
             for installer_set in self.installers:
                 installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive",  "application/x-7z-compressed", "7z")
+            attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
@@ -1086,10 +1086,10 @@ class Runner(ABC):
         """remove all directories created by this test"""
         testdir = self.cfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
-        # pylint: disable=broad-exception-caught
         try:
             if testdir.exists():
                 shutil.rmtree(testdir)
+        # pylint: disable=broad-except
         except Exception as ex:
             print(f"Ignoring cleanup error: {ex}")
         finally:
