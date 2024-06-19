@@ -1039,7 +1039,7 @@ class Runner(ABC):
 
     @step
     def zip_test_dir(self):
-        """store the test directory for later analysis"""
+        """💾 store the test directory for later analysis"""
         build_number = os.environ.get("BUILD_NUMBER")
         if build_number:
             build_number = "_" + build_number
