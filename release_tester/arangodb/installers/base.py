@@ -90,12 +90,13 @@ class InstallerBase(ABC):
     @step
     def get_arangod_binary(self, target_dir):
         """adding arangod binary to report tarball"""
-        print(f"copying {self.backup_arangod_name} => {target_dir}")
-        if self.backup_arangod_name is not None:
-            if self.backup_arangod_name.exists():
-                shutil.copy(str(self.backup_arangod_name), target_dir)
-            else:
-                print(f"{str(self.backup_arangod_name)} is not there")
+        if self.backup_arangod_name is None:
+            self.copy_binaries()
+        if self.backup_arangod_name.exists():
+            print(f"copying {self.backup_arangod_name} => {target_dir}")
+            shutil.copy(str(self.backup_arangod_name), target_dir)
+        else:
+            print(f"{str(self.backup_arangod_name)} is not there")
 
     @step
     def un_install_server_package(self):
