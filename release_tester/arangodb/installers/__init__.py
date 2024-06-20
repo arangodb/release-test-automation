@@ -439,11 +439,13 @@ def make_installer(install_config: InstallerConfig):
         return InstallerTAR(install_config)
 
     if IS_MAC:
+        print('mac')
         from arangodb.installers.mac import InstallerMac
 
         return InstallerMac(install_config)
 
     if SYSTEM in ["linux", "Linux"]:
+        print('linux')
         dist = DISTRO
         import distro
 
