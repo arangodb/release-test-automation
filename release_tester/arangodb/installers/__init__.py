@@ -23,6 +23,7 @@ except:
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_MAC = platform.mac_ver()[0] != ""
+SYSTEM = platform.system()
 DISTRO = ""
 
 
@@ -441,7 +442,7 @@ def make_installer(install_config: InstallerConfig):
 
         return InstallerMac(install_config)
 
-    if platform.system() in ["linux", "Linux"]:
+    if SYSTEM in ["linux", "Linux"]:
         dist = DISTRO
         import distro
 

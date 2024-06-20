@@ -68,6 +68,7 @@ class Download:
                 installer.IS_MAC = True
                 installer.IS_WINDOWS = False
             else:
+                installer.SYSTEM = "linux"
                 installer.DISTRO = force_os
                 installer.IS_WINDOWS = False
                 installer.IS_MAC = False
