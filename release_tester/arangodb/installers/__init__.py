@@ -415,7 +415,7 @@ def make_installer(install_config: InstallerConfig):
     """detect the OS and its distro,
     choose the proper installer
     and return it"""
-
+    print(IS_MAC)
     if install_config.src_testing:
         from arangodb.installers.source import InstallerSource
 
