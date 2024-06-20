@@ -448,6 +448,7 @@ def make_installer(install_config: InstallerConfig):
 
         if DISTRO == "":
             dist = distro.linux_distribution(full_distribution_name=False)[0]
+        print(dist)
         if dist in ["debian", "ubuntu"]:
             from arangodb.installers.deb import InstallerDeb
 
