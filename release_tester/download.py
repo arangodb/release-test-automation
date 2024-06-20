@@ -13,7 +13,7 @@ import sys
 
 import click
 import semver
-from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup, tar
 import arangodb.installers as installer
 import tools.loghelper as lh
 
@@ -62,18 +62,18 @@ class Download:
         lh.section("configuration")
         if force_os != "":
             if force_os == "windows":
-                installer.tar.MACVER= [False]
-                installer.tar.WINVER= True
+                tar.MACVER= [False]
+                tar.WINVER= True
                 installer.IS_WINDOWS = True
                 installer.IS_MAC = False
             elif force_os == "mac":
-                installer.tar.MACVER=[True]
-                installer.tar.WINVER= False
+                tar.MACVER=[True]
+                tar.WINVER= False
                 installer.IS_MAC = True
                 installer.IS_WINDOWS = False
             else:
-                installer.tar.MACVER= [False]
-                installer.tar.WINVER=False
+                tar.MACVER= [False]
+                tar.WINVER=False
                 installer.SYSTEM = "linux"
                 installer.DISTRO = force_os
                 installer.IS_WINDOWS = False
