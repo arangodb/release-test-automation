@@ -419,11 +419,13 @@ def make_installer(install_config: InstallerConfig):
     print(IS_MAC)
     print(SYSTEM)
     if install_config.src_testing:
+        print('src')
         from arangodb.installers.source import InstallerSource
 
         return InstallerSource(install_config)
 
     if IS_WINDOWS:
+        print('wintendo')
         if install_config.zip_package:
             from arangodb.installers.zip import InstallerZip
 
@@ -434,6 +436,7 @@ def make_installer(install_config: InstallerConfig):
         return InstallerNsis(install_config)
 
     if install_config.zip_package:
+        print('zip')
         from arangodb.installers.tar import InstallerTAR
 
         return InstallerTAR(install_config)
@@ -444,6 +447,7 @@ def make_installer(install_config: InstallerConfig):
 
         return InstallerMac(install_config)
 
+    print('bla')
     if SYSTEM in ["linux", "Linux"]:
         print('linux')
         dist = DISTRO
