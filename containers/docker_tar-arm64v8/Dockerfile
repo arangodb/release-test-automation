@@ -56,3 +56,5 @@ RUN mkdir -p /home/release-test-automation \
  /home/package_cache \
  /home/versions \
  /home/entrypoint
+
+RUN sed -i /etc/nsswitch.conf -e "s;netgroup:.*nis;;"

@@ -54,5 +54,7 @@ RUN rm /usr/bin/python3 ; \
     ln -s /usr/local/pyenv/shims/python3 /usr/bin/python3
 
 RUN mkdir -p /home/entrypoint /home/release-test-automation /home/package_cache /home/versions /home/test_dir
+
+RUN sed -i /etc/nsswitch.conf -e "s;netgroup:.*nis;;"
 # ADD tarball_nightly_test.py /home/entrypoint/tarball_nightly_test.py
 # ENTRYPOINT ["/home/entrypoint/tarball_nightly_test.py"]
