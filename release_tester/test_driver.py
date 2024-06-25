@@ -96,7 +96,7 @@ class TestDriver:
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
         self.selenium_include_suites = (
-            [] if not "ui_include_test_suites" in kwargs else kwargs["ui_include_test_suites"]
+            [] if "ui_include_test_suites" not in kwargs else kwargs["ui_include_test_suites"]
         )
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
@@ -654,7 +654,7 @@ class TestDriver:
                 "messages": [],
                 "progress": "",
             }
-            if suite.there_are_failed_tests():
+            if suite.there_are_failed_tests() or suite.is_broken():
                 result["success"] = False
                 for one_result in suite.test_results:
                     result["messages"].append(one_result.message)

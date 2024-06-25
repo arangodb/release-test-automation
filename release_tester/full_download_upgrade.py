@@ -18,7 +18,7 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
-
+from arangodb.instance import dump_instance_registry
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -142,7 +142,9 @@ def upgrade_package_test(
     print("V" * 80)
     if not write_table(results):
         print("exiting with failure")
+        dump_instance_registry("instances.txt")
         return 1
+    dump_instance_registry("instances.txt")
 
     return 0
 
