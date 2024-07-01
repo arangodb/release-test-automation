@@ -86,7 +86,7 @@ def main(**kwargs):
                 print(packages)
                 try:
                     client.bulk_upload(packages)
-                except scp.SCPException:
+                except scp.SCPException as ex:
                     print(f"FAILED to upload to {kwargs['push_host']}: {ex}")
 
     # client.disconnect()
