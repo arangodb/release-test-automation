@@ -235,10 +235,16 @@ class Download:
         print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
         ftp.set_pasv(True)
-        with out.open(mode="wb") as filedes:
-            print(stage + ": downloading from " + directory + " to " + str(out))
-            print(stage + ": " + ftp.retrbinary("RETR " + package, filedes.write))
-
+        try:
+            with out.open(mode="wb") as filedes:
+                print(stage + ": downloading from " + directory + " to " + str(out))
+                print(stage + ": " + ftp.retrbinary("RETR " + package, filedes.write))
+        except Exception as ex:
+            print(f"caught {ex} while trying to download")
+            print(f"directory listing: {ftp.retrlines('LIST')}")
+            print(f"deleting {out}")
+            out.unlink()
+            raise(ex)
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
         """download one file via http"""
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
