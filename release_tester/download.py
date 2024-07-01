@@ -257,7 +257,7 @@ class Download:
         )
 
         out = local_dir / package
-        if out.exists() and not force:
+        if out.exists() and out.stat().st_size > 500 and not force:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print(stage + ": downloading " + str(url))
