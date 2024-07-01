@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 import sys
+import scp
 
 import click
 from common_options import very_common_options, download_options
@@ -83,7 +84,11 @@ def main(**kwargs):
                     force_os=kwargs['force_os'])
                 packages = downloader.get_packages(kwargs['force'])
                 print(packages)
-                client.bulk_upload(packages)
+                try:
+                    client.bulk_upload(packages)
+                except scp.SCPException:
+                    print(f"FAILED to upload to {kwargs['push_host']}: {ex}")
+
     # client.disconnect()
 
 
