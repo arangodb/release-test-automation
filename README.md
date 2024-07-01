@@ -259,7 +259,10 @@ example usage:
 `down_upload.py` uses `download.py` but will download enterprise and community, plus scp it to a remote host
 
 Supported Parameters (above download.py)
-- `--push-host` machine to SCP to.
+- `--push-hosts` a `:` separated tupple consisting of:
+    - `machine IP to SCP to`
+    - `target_arch[x86_64|aarch64]`
+    - `target_os[centos|debian]`.
 - `--push-user` user to connect to remote host. defaults to `tester`
 - `--ssh-key-file` ssh key to connect to machine
 
