@@ -90,10 +90,11 @@ def package_test(
             community_packages_are_present = True
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
-
+        results.append(('', '', str(dl_new.cfg.version)))
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     if run_test_suites:
+        results.append(('', '', "testsuites"))
         params = deepcopy(test_driver.cli_test_suite_params)
         params.new_version = dl_new.cfg.version
         if enterprise_packages_are_present:

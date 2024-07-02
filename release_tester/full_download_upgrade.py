@@ -12,13 +12,13 @@ import semver
 
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.instance import dump_instance_registry
 from common_options import very_common_options, common_options, download_options, full_common_options, \
     hotbackup_options, ui_test_suite_filtering_options
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
-from arangodb.instance import dump_instance_registry
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
