@@ -31,13 +31,17 @@ class ActiveFailover(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
+        cluster_nodes: int,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, one_shard, 3),
+            RunnerProperties(
+                "ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, force_one_shard, create_oneshard_db, 3
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -68,9 +72,9 @@ class ActiveFailover(Runner):
 
     def starter_prepare_env_impl(self):
         # fmt: off
-        node1_opts = ['--all.log.level=replication=debug']
-        node2_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
-        node3_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node1_opts = ['--args.all.log.level=replication=debug']
+        node2_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node3_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
         # fmt: on
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()

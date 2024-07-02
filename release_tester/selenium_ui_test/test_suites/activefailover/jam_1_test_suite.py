@@ -17,7 +17,7 @@ class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
         NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
         replication_page = ReplicationPage(self.webdriver, self.cfg)
         replication_table = replication_page.get_replication_screen(True)
-        print(replication_table)
+        self.tprint(replication_table)
         # head and one follower should be there:
         self.ui_assert(
             len(replication_table["follower_table"]) == 2,

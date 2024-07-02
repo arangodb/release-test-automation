@@ -24,6 +24,10 @@ from arangodb.starter.deployments.cluster import Cluster
 # from arangodb.starter.deployments.single import Single
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.stress import TestConfig
+from arangodb.stress.arangosh import arangosh_runner
+from arangodb.stress.dump import dump_runner
+from arangodb.stress.makedata import makedata_runner
+from arangodb.stress.restore import restore_runner
 from reporting.reporting_utils import step
 
 # from tools.prometheus import set_prometheus_jwt
@@ -81,6 +85,9 @@ class ClusterPerf(Cluster):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
+        cluster_nodes: int,
     ):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         cfg = installer_set[0][1].cfg
@@ -98,7 +105,7 @@ class ClusterPerf(Cluster):
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, False, 6
+                "CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, False, False, 6
             ),
             selenium,
             selenium_driver_args,
@@ -200,6 +207,7 @@ class ClusterPerf(Cluster):
                             self.jobs,
                             self.resultq,
                             arangosh,
+                            False,
                             self.scenario.progressive_timeout,
                         ),
                     )
@@ -298,6 +306,7 @@ class ClusterPerf(Cluster):
                 if name.startswith("arangosh"):
                     print(f"killing {process.name}  {process.pid}")
                     process.kill()
+            # pylint: disable=broad-except
             except Exception as ex:
                 logging.error(ex)
         for worker in self.arangobench_workers:

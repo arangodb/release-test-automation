@@ -14,12 +14,12 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
     def test_analyzers(self):
         """ analyzer page test """
         # pylint: disable=too-many-statements
-        print("---------Analyzers Page Test Begin--------- \n")
-        analyzers = AnalyzerPage(self.webdriver, self.cfg)
+        self.tprint("---------Analyzers Page Test Begin--------- \n")
+        analyzers = AnalyzerPage(self.webdriver, self.cfg, self.video_start_time)
 
         assert analyzers.current_user() == "ROOT", "current user is root?"
         assert analyzers.current_database() == "_SYSTEM", "current database is _system?"
-        
+
         self.exception = False
         self.error = None
         self.package_version = analyzers.current_package_version()
@@ -28,34 +28,34 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
                 analyzers.select_analyzers_page()
                 analyzers.select_help_filter_btn()
 
-                print('Checking analyzer page transition\n')
+                self.tprint('Checking analyzer page transition\n')
                 analyzers.checking_analyzer_page_transition('transition')
 
                 if self.package_version < semver.VersionInfo.parse("3.11.0"):
-                    print('Checking all built-in analyzers\n')
-                    analyzers.checking_all_built_in_analyzer() 
+                    self.tprint('Checking all built-in analyzers\n')
+                    analyzers.checking_all_built_in_analyzer()
 
-                print('Creating all supported analyzers\n')
+                self.tprint('Creating all supported analyzers\n')
                 analyzers.creating_all_supported_analyzer(self.is_enterprise, self.ui_data_dir)
 
-                print('Checking expected negative scenarios for analyzers\n')
+                self.tprint('Checking expected negative scenarios for analyzers\n')
                 analyzers.analyzer_expected_error_check()
 
-                print("Checking analyzer's search filter options \n")
+                self.tprint("Checking analyzer's search filter options \n")
                 analyzers.checking_search_filter()
             else:
-                print("Analyzer test is not available version below 3.9.0 \n")
+                self.tprint("Analyzer test is not available version below 3.9.0 \n")
 
         except BaseException:
-            print('x' * 45, "\nINFO: Error Occurred! Force Deletion Started\n", 'x' * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")
             self.exception = True  # mark the exception status as true
             self.error = traceback.format_exc()
 
         finally:
             if self.package_version >= semver.VersionInfo.parse("3.9.0"):
-                print("Analyzer deletion started.")
+                self.tprint("Analyzer deletion started.")
                 analyzers.deleting_all_created_analyzers()
                 del analyzers
-                print("---------Analyzers Page Test Completed--------- \n")
+                self.tprint("---------Analyzers Page Test Completed--------- \n")
                 if self.exception:
                     raise Exception(self.error)

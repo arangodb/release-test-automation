@@ -2,12 +2,12 @@
 """ base class for arangodb starter deployment selenium frontend tests """
 from abc import ABC
 import logging
-import os
-from pathlib import Path
 import re
-import shutil
 import time
 
+from arangodb.starter.deployments.runner import RunnerProperties
+from arangodb.starter.deployments.selenium_deployments.selenoid_swiper import cleanup_temp_files
+from arangodb.starter.deployments.selenium_deployments.selenium_session_spawner import spawn_selenium_session
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from reporting.reporting_utils import step
@@ -17,50 +17,21 @@ from selenium.common.exceptions import InvalidSessionIdException
 FNRX = re.compile("[\n@]*")
 
 
-def cleanup_temp_files(is_headless):
-    """attempt to cleanup the selenoid docker contaires leftovers"""
-    if is_headless and os.getuid() == 0:
-        tmpdir = "/tmp"  # tempfile.gettempdir()
-        trashme_rx = "(?:% s)" % f"|{tmpdir}/".join(
-            [
-                "pulse-*",
-                "xvfb-run.*",
-                ".X99-lock",
-                ".X11-unix",
-                ".org.chromium.Chromium.*",
-                ".com.google.Chrome.*",
-                ".org.chromium.Chromium.*",
-            ]
-        )
-        print(f"cleanup headless files: {str(trashme_rx)}")
-        for one_tmp_file in Path(tmpdir).iterdir():
-            print(f"checking {str(one_tmp_file)}")
-            try:
-                if re.match(trashme_rx, str(one_tmp_file)) and one_tmp_file.group() == "root":
-                    print(f"Purging: {str(one_tmp_file)}")
-                    if one_tmp_file.is_dir():
-                        shutil.rmtree(one_tmp_file)
-                    else:
-                        one_tmp_file.unlink()
-            except FileNotFoundError:
-                pass
 
 
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     # pylint: disable=line-too-long disable=too-many-public-methods disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
+    def __init__(self,
+                 selenium_args,
+                 properties: RunnerProperties,
+                 testrun_name: str,
+                 ssl: bool,
+                 selenium_include_suites: list[str]):
         """hi"""
         self.ssl = ssl
-        self.is_headless = is_headless
         self.testrun_name = testrun_name
-        self.webdriver = webdriver
-        self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
-        self.original_window_handle = None
         self.state = ""
-        time.sleep(3)
-        self.webdriver.set_window_size(1600, 900)
-        time.sleep(3)
         self.importer = None
         self.restorer = None
         self.ui_entrypoint_instance = None
@@ -73,6 +44,18 @@ class SeleniumRunner(ABC):
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
         self.selenium_include_suites = selenium_include_suites
+        self.video_name = f"{properties.short_name}_{testrun_name}.mp4".replace( '\n', '_').replace('@', '_')
+        mylist = list(
+            selenium_args['selenium_driver_args'])
+        mylist.append(f"selenoid:options=videoName={self.video_name}")
+        selenium_args['selenium_driver_args'] = mylist
+        (self.is_headless, self.webdriver, self.video_start_time) = spawn_selenium_session(**selenium_args)
+        self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
+        self.original_window_handle = None
+        time.sleep(3)
+        self.webdriver.maximize_window()
+        time.sleep(3)
+        print(f"Video filename will be: {self.video_name}")
 
     def _cleanup_temp_files(self):
         cleanup_temp_files(self.is_headless)
@@ -96,6 +79,7 @@ class SeleniumRunner(ABC):
                 print(f"Selenium connection seems to be already gone:  {str(ex)}")
             self.webdriver = None
             self._cleanup_temp_files()
+            print(f"Video filename {self.video_name} written")
 
     def progress(self, msg):
         """add something to the state..."""

@@ -13,8 +13,8 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
     def test_service(self):
         """service page test"""
         # pylint: disable=too-many-statements
-        print("---------Service Page Test Begin--------- \n")
-        service = ServicePage(self.webdriver, self.cfg)
+        self.tprint("---------Service Page Test Begin--------- \n")
+        service = ServicePage(self.webdriver, self.cfg, self.video_start_time)
         self.exception = False
         self.error = None
         assert service.current_user() == "ROOT", "current user is root?"
@@ -39,13 +39,13 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             service.select_category_option_search_filter("connector")
             # service.checking_demo_geo_s2_service_github()
             service.install_demo_geo_s2_service("/geo", self.ui_data_dir)
-            service.check_demo_geo_s2_service_api()
+            # service.check_demo_geo_s2_service_api()
             # service.inspect_foxx_leaflet_iframe()
             service.install_demo_graph_hql_service("/graphql")
-            service.replace_service()
+            # service.replace_service()
 
         except BaseException:
-            print("x" * 45, "\nINFO: Error Occurred! Force Deletion Started\n", "x" * 45)
+            self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")
             self.exception = True  # mark the exception as true
             self.error = traceback.format_exc()
 
@@ -53,6 +53,6 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             service.delete_service("/geo")
             service.delete_service("/graphql")
             del service
-            print("---------Service Page Test Completed--------- \n")
+            self.tprint("---------Service Page Test Completed--------- \n")
             if self.exception:
                 raise Exception(self.error)

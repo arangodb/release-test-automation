@@ -19,6 +19,10 @@ arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
 }
 
+more_nodes_supported_starter = [
+    [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
+    [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
+]
 
 class Cluster(Runner):
     """this launches a cluster setup"""
@@ -36,27 +40,67 @@ class Cluster(Runner):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
+        cluster_nodes: int,
     ):
-        name = "CLUSTER" if not one_shard else "SINGLE_SHARD_CLUSTER"
+        name = "CLUSTER" if not force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(name, 400, 600, True, ssl, replication2, use_auto_certs, one_shard, 6),
+            RunnerProperties(
+                name, 400, 600, True, ssl, replication2, use_auto_certs, force_one_shard, create_oneshard_db, 6
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
             testrun_name,
         )
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
+        self.cluster_nodes = cluster_nodes
+        if cluster_nodes > 3:
+            ver_found = 0
+            versions = self.get_versions_concerned()
+            for ver_pair in more_nodes_supported_starter:
+                for version in versions:
+                    if ver_pair[0] <= version < ver_pair[1]:
+                        ver_found += 1
+            if ver_found < len(versions):
+                print("One deployment doesn't support starters with more nodes!")
+                self.cluster_nodes = 3
 
     def starter_prepare_env_impl(self, sm=None):
+        # pylint: disable=invalid-name
+        def add_starter(name, port, opts, sm, hasAgency):
+            agencyInstance = []
+            if hasAgency:
+                agencyInstance = [InstanceType.AGENT]
+            if sm is None:
+                sm = StarterManager
+            self.starter_instances.append(
+                sm(
+                    self.cfg,
+                    self.basedir,
+                    name,
+                    mode="cluster",
+                    jwt_str=self.jwtdatastr,
+                    port=port,
+                    expect_instances=agencyInstance
+                    + [
+                        InstanceType.COORDINATOR,
+                        InstanceType.DBSERVER,
+                    ],
+                    moreopts=opts,
+                )
+            )
+
         self.create_test_collection = (
             "create test collection",
             """
@@ -69,54 +113,36 @@ db.testCollection.save({test: "document"})
             common_opts += [
                 "--dbservers.database.default-replication-version=2",
                 "--coordinators.database.default-replication-version=2",
-                "--all.log.level=replication2=debug",
-                "--all.log.level=rep-state=debug",
+                "--args.all.log.level=replication2=debug",
+                "--args.all.log.level=rep-state=debug",
             ]
-        if self.one_shard:
-            common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
+        if self.force_one_shard:
+            common_opts += [
+                "--coordinators.cluster.force-one-shard=true",
+                "--dbservers.cluster.force-one-shard=true",
+                #"--coordinators.log.level=requests=trace",
+                #"--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
+            ]
         else:
-            common_opts += ["--all.cluster.default-replication-factor=2"]
-        node1_opts = []
-        node2_opts = ["--starter.join", "127.0.0.1:9528"]
-        node3_opts = ["--starter.join", "127.0.0.1:9528"]
+            common_opts += ["--args.all.cluster.default-replication-factor=2"]
+        node_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
-            node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
-            node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
-            node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
-
-            for keyfile in [node1_tls_keyfile, node2_tls_keyfile, node3_tls_keyfile]:
-                self.generate_keyfile(keyfile)
-
-            node1_opts.append(f"--ssl.keyfile={node1_tls_keyfile}")
-            node2_opts.append(f"--ssl.keyfile={node2_tls_keyfile}")
-            node3_opts.append(f"--ssl.keyfile={node3_tls_keyfile}")
-
-        # pylint: disable=invalid-name
-        def add_starter(name, port, opts, sm):
-            if sm is None:
-                sm = StarterManager
-            self.starter_instances.append(
-                sm(
-                    self.cfg,
-                    self.basedir,
-                    name,
-                    mode="cluster",
-                    jwt_str=self.jwtdatastr,
-                    port=port,
-                    expect_instances=[
-                        InstanceType.AGENT,
-                        InstanceType.COORDINATOR,
-                        InstanceType.DBSERVER,
-                    ],
-                    moreopts=opts,
-                )
-            )
-
-        add_starter("node1", 9528, node1_opts + common_opts, sm)
-        add_starter("node2", 9628, node2_opts + common_opts, sm)
-        add_starter("node3", 9728, node3_opts + common_opts, sm)
-
+        port = 9528
+        count = 0
+        for this_node in list(range(1, self.cluster_nodes + 1)):
+            node = []
+            node_opts.append(node)
+            if this_node != 1:
+                node += ["--starter.join", "127.0.0.1:9528"]
+            if self.cfg.ssl and not self.cfg.use_auto_certs:
+                node_tls_keyfile = self.cert_dir / Path(f"node{this_node}") / "tls.keyfile"
+                self.generate_keyfile(node_tls_keyfile)
+                node.append(f"--ssl.keyfile={node_tls_keyfile}")
+            add_starter(f"node{this_node}", port, node + common_opts, sm, count < 3)
+            port += 100
+            count += 1
+        self.backup_instance_count = count
         for instance in self.starter_instances:
             instance.is_leader = True
 
@@ -373,17 +399,17 @@ db.testCollection.save({test: "document"})
         if self.selenium:
             self.selenium.jam_step_1()
 
-        ret = self.starter_instances[0].arangosh.check_test_data(
-            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
-
-        ret = self.starter_instances[survive_instance].arangosh.check_test_data(
-            "Cluster one node missing", True, ["--disabledDbserverUUID", uuid]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
+            for db_name, oneshard, count_offset in self.makedata_databases():
+                ret = starter_instance.arangosh.check_test_data(
+                    "Cluster one node missing",
+                    True,
+                    ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
+                    oneshard,
+                    db_name,
+                )
+                if not ret[0]:
+                    raise Exception("check data failed in database %s :\n" % db_name + ret[1])
 
         self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
 

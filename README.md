@@ -93,6 +93,8 @@ Supported Parameters:
  - `--new-version` which Arangodb Version you want to run the test on
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
+ - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
+ - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -144,6 +146,8 @@ Supported Parameters:
  - `--src` switches to [Source directory](#source-installer) logic
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
+ - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
+ - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
@@ -255,7 +259,10 @@ example usage:
 `down_upload.py` uses `download.py` but will download enterprise and community, plus scp it to a remote host
 
 Supported Parameters (above download.py)
-- `--push-host` machine to SCP to.
+- `--push-hosts` a `:` separated tupple consisting of:
+    - `machine IP to SCP to`
+    - `target_arch[x86_64|aarch64]`
+    - `target_os[centos|debian]`.
 - `--push-user` user to connect to remote host. defaults to `tester`
 - `--ssh-key-file` ssh key to connect to machine
 
@@ -283,6 +290,8 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--[no-]enterprise` whether its an enterprise or community package you want to install Specify for enterprise, ommit for community.
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
+ - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
+ - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`

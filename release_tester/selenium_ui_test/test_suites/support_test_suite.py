@@ -10,33 +10,32 @@ class SupportTestSuite(BaseSeleniumTestSuite):
     @testcase
     def test_support(self):
         """testing support page"""
-        print("---------Checking Support page started--------- \n")
-        # login = LoginPage(self.webdriver, self.cfg)
+        self.tprint("---------Checking Support page started--------- \n")
+        # login = LoginPage(self.webdriver, self.cfg, self.video_start_time)
         # login.login('root', self.root_passvoid)
 
         # creating multiple support page obj
-        support = SupportPage(self.webdriver, self.cfg)
+        support = SupportPage(self.webdriver, self.cfg, self.video_start_time)
 
-        print("Selecting Support Page \n")
+        self.tprint("Selecting Support Page \n")
         support.select_support_page()
 
-        print("Selecting documentation tab \n")
+        self.tprint("Selecting documentation tab \n")
         support.select_documentation_support()
-        print("Checking all arangodb manual link\n")
-        support.manual_link()
-        print("Checking all AQL Query Language link\n")
+        self.tprint("Checking all arangodb manual link\n")
+        if support.version_is_older_than("3.11.99"):
+            support.manual_link()
+        self.tprint("Checking all AQL Query Language link\n")
         support.aql_query_language_link()
-        print("Checking all Fox Framework link \n")
-        support.fox_framework_link()
-        print("Checking all Drivers and Integration links\n")
-        support.driver_and_integration_link()
-        print("Checking Community Support tab \n")
-        support.community_support_link()
-        # print("Checking Rest API tab \n")
+        if support.version_is_newer_than("3.11.99") and self.is_enterprise:
+            self.tprint("Checking all Fox Framework link \n")
+            support.fox_framework_link()
+            self.tprint("Checking all Drivers and Integration links\n")
+            support.driver_and_integration_link()
+            self.tprint("Checking Community Support tab \n")
+            support.community_support_link()
+        # self.tprint("Checking Rest API tab \n")
         # # support.rest_api()
 
-        # logging out from the current user
-        # login.logout_button()
-        # del login
         del support
-        print("---------Checking Support page completed--------- \n")
+        self.tprint("---------Checking Support page completed--------- \n")

@@ -21,7 +21,9 @@ class Dc2DcEndurance(Dc2Dc):
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
+        cluster_nodes: int,
     ):
         super().__init__(
             runner_type,
@@ -34,7 +36,9 @@ class Dc2DcEndurance(Dc2Dc):
             ssl,
             replication2,
             use_auto_certs,
-            one_shard,
+            force_one_shard,
+            create_oneshard_db,
+            cluster_nodes,
         )
         self.hot_backup = False
 

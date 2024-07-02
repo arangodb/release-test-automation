@@ -4,6 +4,7 @@ import time
 from enum import IntEnum
 import semver
 from selenium_ui_test.pages.base_page import Keys
+from selenium.webdriver.common.by import By
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 
@@ -91,9 +92,9 @@ def get_graph(graph: GraphExample):
 class GraphPage(NavigationBarPage):
     """class for Graph page"""
 
-    def __init__(self, driver, cfg):
+    def __init__(self, driver, cfg, video_start_time):
         """Graph page initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.select_graph_page_id = "graphs"
         self.select_create_graph_id = "createGraph"
         self.select_example_graph_btn_id = "tab-exampleGraphs"
@@ -145,64 +146,64 @@ class GraphPage(NavigationBarPage):
         self.select_new_graph_name_id = "createNewGraphName"
 
     
-    def checking_created_collections_for_312(self, collection_name):
+    def checking_created_collections_for_312(self, graph_name):
         """selecting collection tab"""
-        select_collection_page_sitem = self.locator_finder_by_id(
-            self.select_collection_page_id
-        )
-        select_collection_page_sitem.click()
+        # todo add navigation instead
+        self.navbar_goto("collections")
+        self.wait_for_ajax()
         time.sleep(1)
 
-        reset = "//*[text()='Reset']"
-        reset_stiem = self.locator_finder_by_xpath(reset)
-        reset_stiem.click()
-        time.sleep(1)
+        # reset = "//*[text()='Reset']"
+        # reset_sitem = self.locator_finder_by_xpath(reset)
+        # reset_sitem.click()
+        # time.sleep(1)
 
         filters = "//*[text()='Filters']"
-        filters_stiem = self.locator_finder_by_xpath(filters)
-        filters_stiem.click()
+        filters_sitem = self.locator_finder_by_xpath(filters)
+        filters_sitem.click()
         time.sleep(1)
 
         # selecting add_filter
-        add_filter = "(//button[@id='menu-button-8'])[1]"
-        add_filter_stiem = self.locator_finder_by_xpath(add_filter)
-        add_filter_stiem.click()
+        add_filter = "//button[contains(@class, 'chakra-button') and @aria-label='Add filter']"
+        add_filter_sitem = self.locator_finder_by_xpath(add_filter)
+        add_filter_sitem.click()
         time.sleep(1)
 
         # selecting name filter from the filter type
         name_filter = "(//button[normalize-space()='Name'])[1]"
-        name_filter_stiem = self.locator_finder_by_xpath(name_filter)
-        name_filter_stiem.click()
+        name_filter_sitem = self.locator_finder_by_xpath(name_filter)
+        name_filter_sitem.click()
         time.sleep(1)
 
         # selecting name filter search input field
         selecting_search_input = "(//input[@id='name'])[1]"
-        selecting_search_input_stiem = self.locator_finder_by_xpath(
+        selecting_search_input_sitem = self.locator_finder_by_xpath(
             selecting_search_input
         )
-        selecting_search_input_stiem.click()
+        selecting_search_input_sitem.click()
         time.sleep(1)
-        selecting_search_input_stiem.clear()
-        selecting_search_input_stiem.send_keys('knows')
+        selecting_search_input_sitem.clear()
+        selecting_search_input_sitem.send_keys("knows")
 
-        if collection_name == "knows_graph":
+        if graph_name == "knows_graph":
             knows_collection = "(//a[normalize-space()='knows'])[1]"
             knows_collection_sitem = self.locator_finder_by_xpath(knows_collection)
-            # knows_collection_sitem.click()
 
             expected_title = "knows"
             try:
-                assert expected_title == knows_collection_sitem.text, f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
-            except AssertionError as ex:
-                print(f'Assertion Error occurred! for {expected_title}\n')
-    
+                assert (
+                        expected_title == knows_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
+            except AssertionError:
+                self.tprint(f"Assertion Error occurred! for {expected_title}\n")
     
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
+        self.webdriver.refresh()
         self.navbar_goto("graphs")
         self.wait_for_ajax()
 
-        print(f"selecting {graph_name} \n")
+        self.tprint(f"selecting {graph_name} \n")
 
         select_graph = "//*[text()='Add graph']"
         select_graph = self.locator_finder_by_xpath(select_graph)
@@ -220,8 +221,9 @@ class GraphPage(NavigationBarPage):
             )
             self.select_knows_graph_id.click()
 
-            print(f"Checking required collections created for {graph_name}\n")
-            self.checking_created_collections_for_312("knows_graph")
+            # TODO
+            # self.tprint(f"Checking required collections created for {graph_name}\n")
+            # self.checking_created_collections_for_312("knows_graph")
 
         elif graph_name == "Traversal Graph":
             self.select_traversal_graph_id = self.locator_finder_by_xpath(
@@ -254,14 +256,15 @@ class GraphPage(NavigationBarPage):
             )
             self.select_city_graph_id.click()
         else:
-            print("Invalid Graph\n")
-        time.sleep(2)
+            self.tprint("Invalid Graph\n")
+        time.sleep(3)
+        self.wait_for_ajax()
     
     def checking_created_collections(self, graph_name):
         """This method will check all the example graphs created collections"""
         self.wait_for_ajax()
         # todo add navigation instead
-        print(f"Checking created collections for {graph_name}")
+        self.tprint(f"Checking created collections for {graph_name}")
         self.navbar_goto("collections")
         self.wait_for_ajax()
 
@@ -469,7 +472,7 @@ class GraphPage(NavigationBarPage):
         self.webdriver.refresh()
         self.navbar_goto("graphs")
         self.wait_for_ajax()
-        print(f"Creating {graph_name}\n")
+        self.tprint(f"Creating {graph_name}\n")
 
         self.locator_finder_by_id(self.select_create_graph_id).click()
         time.sleep(1)
@@ -554,7 +557,7 @@ class GraphPage(NavigationBarPage):
         col1_import = self.select_confirm_upload_btn_id
         path1 = test_data_dir / "ui_data" / "graph_page" / "knows" / "manual_edge.json"
 
-        print("Creating manual_edge collections for knows_graph_manual Graph\n")
+        self.tprint("Creating manual_edge collections for knows_graph_manual Graph\n")
         col1 = self.locator_finder_by_id(col1)
         col1.click()
 
@@ -580,11 +583,11 @@ class GraphPage(NavigationBarPage):
         time.sleep(2)
         col1_file.send_keys(str(path1.absolute()))
 
-        print("Importing manual_edge.json to the collection\n")
+        self.tprint("Importing manual_edge.json to the collection\n")
         col1_import = self.locator_finder_by_id(col1_import)
         col1_import.click()
         time.sleep(2)
-        print("Importing manual_edge.json to the collection completed\n")
+        self.tprint("Importing manual_edge.json to the collection completed\n")
 
         self.webdriver.back()
 
@@ -598,7 +601,7 @@ class GraphPage(NavigationBarPage):
         col2_import = self.select_confirm_upload_btn_id
         path2 = test_data_dir / "ui_data" / "graph_page" / "knows" / "manual_vertices.json"
 
-        print("Creating manual_vertices collections for knows_graph_manual Graph\n")
+        self.tprint("Creating manual_vertices collections for knows_graph_manual Graph\n")
         col2 = self.locator_finder_by_id(col2)
         col2.click()
 
@@ -622,11 +625,11 @@ class GraphPage(NavigationBarPage):
         time.sleep(2)
         col2_file.send_keys(str(path2.absolute()))
 
-        print("Importing manual_vertices.json to the collection\n")
+        self.tprint("Importing manual_vertices.json to the collection\n")
         col2_import = self.locator_finder_by_id(col2_import)
         col2_import.click()
         time.sleep(3)
-        print("Importing manual_vertices.json to the collection completed\n")
+        self.tprint("Importing manual_vertices.json to the collection completed\n")
         self.select_graph_page()
         self.create_knows_manual_graph()
 
@@ -734,10 +737,10 @@ class GraphPage(NavigationBarPage):
         time.sleep(2)
 
         # importing collections using arangoimport
-        print("Importing knows_edge collections \n")
+        self.tprint("Importing knows_edge collections \n")
         importer.import_smart_edge_collection("knows_edge", knows_path / "manual_edge.json", ["profiles_smart"])
 
-        print("Importing persons collections \n")
+        self.tprint("Importing persons collections \n")
         importer.import_collection("persons", knows_path / "manual_vertices.json")
 
         # Selecting satellite graph settings to view and delete
@@ -750,8 +753,8 @@ class GraphPage(NavigationBarPage):
         time.sleep(1)
 
 #    def delete_sattelite_graph(self):
-#        print("\n")
-#        print("Smart Graph deleting started \n")
+#        self.tprint("\n")
+#        self.tprint("Smart Graph deleting started \n")
 #        satellite_settings_id = "satellite_graph_settings"
 #        satellite_settings_sitem = self.locator_finder_by_id(satellite_settings_id)
 #        satellite_settings_sitem.click()
@@ -769,7 +772,7 @@ class GraphPage(NavigationBarPage):
 #        delete_confirm_btn_sitem.click()
 #
 #        time.sleep(2)
-#        print("Satellite Graph deleted successfully \n")
+#        self.tprint("Satellite Graph deleted successfully \n")
 #        self.webdriver.refresh()
 
     def create_smart_graph(self, importer, test_data_dir, disjointgraph=False):
@@ -822,7 +825,7 @@ class GraphPage(NavigationBarPage):
             disjoint_sitem = self.locator_finder_by_id(disjoint)
             disjoint_sitem.click()
         else:
-            print("Disjoint Graph not selected. \n")
+            self.tprint("Disjoint Graph not selected. \n")
 
         # specifying write concern of shards
         smart_attribute_sitem = self.locator_finder_by_id(smart_attribute)
@@ -860,10 +863,10 @@ class GraphPage(NavigationBarPage):
         create_btn_sitem.click()
         time.sleep(2)
 
-        print("Importing profile collections \n")
+        self.tprint("Importing profile collections \n")
         importer.import_collection("profiles", page_path / "profiles.jsonl")
 
-        print("Importing relations collections \n")
+        self.tprint("Importing relations collections \n")
         importer.import_smart_edge_collection("relations", page_path / "relations.jsonl", ["profiles_smart"])
 
         # opening smart graph
@@ -887,8 +890,8 @@ class GraphPage(NavigationBarPage):
 
 #        time.sleep(2)
 #
-#        print("\n")
-#        print("Smart Graph deleting started \n")
+#        self.tprint("\n")
+#        self.tprint("Smart Graph deleting started \n")
 #        smart_settings_id = "smart_graph_settings"
 #        smart_settings_sitem = self.locator_finder_by_id(smart_settings_id)
 #        smart_settings_sitem.click()
@@ -906,7 +909,7 @@ class GraphPage(NavigationBarPage):
 #        delete_confirm_btn_sitem.click()
 #
 #        time.sleep(2)
-#        print("Smart Graph deleted successfully \n")
+#        self.tprint("Smart Graph deleted successfully \n")
 #
 #        self.webdriver.refresh()
 
@@ -944,9 +947,9 @@ class GraphPage(NavigationBarPage):
             search_sitem.clear()
             search_sitem.send_keys(collection.name)
             if collection_sitem.text == collection.name:
-                print(collection.name + " collection has been validated")
+                self.tprint(collection.name + " collection has been validated")
             else:
-                print(collection.name + " collection wasn't found")
+                self.tprint(collection.name + " collection wasn't found")
             time.sleep(3)
             self.webdriver.refresh()
         self.webdriver.back()
@@ -971,37 +974,37 @@ class GraphPage(NavigationBarPage):
         descend = self.select_sort_descend_id
         ascend = self.select_sort_descend_id
 
-        print("Sorting Graphs to Descending\n")
+        self.tprint("Sorting Graphs to Descending\n")
         descend_sitem = self.locator_finder_by_xpath(descend)
         descend_sitem.click()
         time.sleep(2)
 
-        print("Sorting Graphs to Ascending\n")
+        self.tprint("Sorting Graphs to Ascending\n")
         ascend_sitem = self.locator_finder_by_xpath(ascend)
         ascend_sitem.click()
         time.sleep(2)
 
     def inspect_knows_graph(self):
         """Selecting Knows Graph for checking graph functionality"""
-        print("Selecting Knows Graph\n")
+        self.tprint("Selecting Knows Graph\n")
         graph_sitem = self.locator_finder_by_id(self.knows_graph_id)
         graph_sitem.click()
         time.sleep(4)
 
-        print("Selecting Knows Graph share option\n")
+        self.tprint("Selecting Knows Graph share option\n")
         share_sitem = self.locator_finder_by_xpath(self.select_share_id)
         share_sitem.click()
         time.sleep(2)
 
-        print("Selecting load full graph button\n")
+        self.tprint("Selecting load full graph button\n")
         full_graph_sitem = self.locator_finder_by_id(self.select_load_full_graph_id)
         full_graph_sitem.click()
         time.sleep(4)
 
         if self.webdriver.name == "chrome":  # this will check browser name
-            print("Download has been disabled for the Chrome browser \n")
+            self.tprint("Download has been disabled for the Chrome browser \n")
         else:
-            print("Selecting Graph download button\n")
+            self.tprint("Selecting Graph download button\n")
             camera = self.select_camera_download_icon
             camera_sitem = self.locator_finder_by_xpath(camera)
             camera_sitem.click()
@@ -1009,15 +1012,15 @@ class GraphPage(NavigationBarPage):
             # self.clear_download_bar()
 
         # TODO: fullscreen may only work interactive with pynput
-        # print("Selecting full screen mode\n")
+        # self.tprint("Selecting full screen mode\n")
         # full_screen_sitem = self.locator_finder_by_xpath(self.select_full_screen_btn_id)
         # full_screen_sitem.click()
         # time.sleep(3)
-        # print("Return to normal mode\n")
+        # self.tprint("Return to normal mode\n")
         # self.escape()
         # time.sleep(3)
 
-        # print("Selecting Resume layout button \n")
+        # self.tprint("Selecting Resume layout button \n")
         # resume = self.select_resume_layout_btn_id
         # pause = self.select_resume_layout_btn_id
         #
@@ -1034,23 +1037,23 @@ class GraphPage(NavigationBarPage):
         configure_graph_settings_sitem = self.locator_finder_by_id(self.configure_graph_settings_id)
         configure_graph_settings_sitem.click()
         time.sleep(2)
-        print("Selecting different layouts for the graph\n")
-        print("Selecting Fruchtermann layout\n")
+        self.tprint("Selecting different layouts for the graph\n")
+        self.tprint("Selecting Fruchtermann layout\n")
         layout2 = self.select_graph_layout_option_id
         self.locator_finder_by_select(layout2, 2)
         time.sleep(3)
 
-        print("Selecting Force layout\n")
+        self.tprint("Selecting Force layout\n")
         layout1 = self.select_graph_layout_option_id
         self.locator_finder_by_select(layout1, 1)
         time.sleep(3)
 
-        print("Selecting WebGL experimental renderer\n")
+        self.tprint("Selecting WebGL experimental renderer\n")
         renderer = self.select_renderer_id
         self.locator_finder_by_select(renderer, 1)
         time.sleep(3)
 
-        print("Changing Search Depth\n")
+        self.tprint("Changing Search Depth\n")
         depth1 = self.select_depth_id
         depth2 = self.select_depth_id
         depth1 = self.locator_finder_by_xpath(depth1)
@@ -1059,7 +1062,7 @@ class GraphPage(NavigationBarPage):
         depth2 = self.locator_finder_by_xpath(depth2)
         depth2.send_keys("4")
 
-        print("Changing Search Limit\n")
+        self.tprint("Changing Search Limit\n")
         limit = self.select_limit_id
         limit1 = self.select_limit_id
         limit2 = self.select_limit_id
@@ -1072,29 +1075,28 @@ class GraphPage(NavigationBarPage):
         limit2.send_keys("300")
         time.sleep(3)
 
-        print("Adding collection name with nodes to YES\n")
+        self.tprint("Adding collection name with nodes to YES\n")
         self.locator_finder_by_select(self.add_collection_name_id, 0)
         time.sleep(3)
 
-        print("Selecting color by collection to NO\n")
+        self.tprint("Selecting color by collection to NO\n")
         self.locator_finder_by_select(self.select_color_collection_id, 0)
         time.sleep(3)
 
-        print("Selecting size by edges to NO\n")
+        self.tprint("Selecting size by edges to NO\n")
         self.locator_finder_by_select(self.select_size_by_edges_id, 1)
         time.sleep(3)
 
-        print("Adding edge name to the node to YES\n")
+        self.tprint("Adding edge name to the node to YES\n")
         self.locator_finder_by_select(self.select_add_edge_col_name_id, 0)
         time.sleep(3)
 
-        print("Adding Color by edge collection ot YES\n")
+        self.tprint("Adding Color by edge collection ot YES\n")
         self.locator_finder_by_select(self.select_color_node_by_edge_id, 1)
         time.sleep(3)
 
-        print("Selecting different representation of relation between nodes\n")
-        print("Maximizing the window")
-        self.webdriver.maximize_window()
+        self.tprint("Selecting different representation of relation between nodes\n")
+        self.tprint("Maximizing the window")
         time.sleep(2)
 
         tip1 = self.select_depth_id
@@ -1122,7 +1124,7 @@ class GraphPage(NavigationBarPage):
         restore1.click()
         time.sleep(1)
 
-        print("Changing relation representation type to Line")
+        self.tprint("Changing relation representation type to Line")
         self.locator_finder_by_select(type1, 0)
         time.sleep(5)
 
@@ -1133,7 +1135,7 @@ class GraphPage(NavigationBarPage):
         restore2.click()
         time.sleep(1)
 
-        print("Changing relation representation type to Curve")
+        self.tprint("Changing relation representation type to Curve")
         self.locator_finder_by_select(type3, 2)
         time.sleep(5)
 
@@ -1144,7 +1146,7 @@ class GraphPage(NavigationBarPage):
         restore4.click()
         time.sleep(1)
 
-        print("Changing relation representation type to Dotted")
+        self.tprint("Changing relation representation type to Dotted")
         self.locator_finder_by_select(type4, 3)
         time.sleep(5)
 
@@ -1155,7 +1157,7 @@ class GraphPage(NavigationBarPage):
         restore5.click()
         time.sleep(1)
 
-        print("Changing relation representation type to Dashed")
+        self.tprint("Changing relation representation type to Dashed")
         self.locator_finder_by_select(type5, 4)
         time.sleep(5)
 
@@ -1166,18 +1168,18 @@ class GraphPage(NavigationBarPage):
         restore6.click()
         time.sleep(1)
 
-        print("Changing relation representation type to Tapered\n")
+        self.tprint("Changing relation representation type to Tapered\n")
         self.locator_finder_by_select(type6, 5)
         time.sleep(5)
 
-        print("Going Back to original window size \n")
+        self.tprint("Going Back to original window size \n")
         self.webdriver.set_window_size(1250, 1000)  # custom window size
         self.webdriver.back()
         self.wait_for_ajax()
 
     def delete_graph(self, graph: GraphExample):
         """Deleting created graphs"""
-        print("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
+        self.tprint("Deleting %s Graph" % GRAPH_SETS[graph].clear_name)
         retry = 0
         while True:
             try:
@@ -1194,11 +1196,11 @@ class GraphPage(NavigationBarPage):
                 # confirm_delete_graph_sitem.click()
                 if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                     delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                    delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
                 else:
                     delete_btn = "modalButton0"
-                    delete_btn_stiem = self.locator_finder_by_id(delete_btn)
-                delete_btn_stiem.click()
+                    delete_btn_sitem = self.locator_finder_by_id(delete_btn)
+                delete_btn_sitem.click()
                 self.wait_for_ajax()
 
                 time.sleep(0.1)
@@ -1223,22 +1225,21 @@ class GraphPage(NavigationBarPage):
                 retry += 1
                 if retry > 10:
                     raise exc
-                print("retrying delete " + str(retry))
+                self.tprint("retrying delete " + str(retry))
             except ElementClickInterceptedException as exc:
                 retry += 1
                 if retry > 10:
                     raise exc
-                print("retrying delete " + str(retry))
+                self.tprint("retrying delete " + str(retry))
     
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
         retry = 0
         while True:
             try:
-                print(f"Deleting {graph_name} Graph \n")
-                self.webdriver.refresh()
-                time.sleep(2)
+                self.tprint(f"Deleting {graph_name} Graph \n")
                 self.navbar_goto("graphs")
+                self.webdriver.refresh()
                 self.wait_for_ajax()
 
                 if self.current_package_version() <= semver.VersionInfo.parse("3.11.99"):
@@ -1262,32 +1263,32 @@ class GraphPage(NavigationBarPage):
                     graph_settings_id_sitem = self.locator_finder_by_xpath(graph_settings_id)
                     graph_settings_id_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     if self.current_package_version() >= semver.VersionInfo.parse("3.11.0"):
                         delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                        delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
+                        delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
                     else:
                         delete_btn = "modalButton0"
-                        delete_btn_stiem = self.locator_finder_by_id(delete_btn)
+                        delete_btn_sitem = self.locator_finder_by_id(delete_btn)
 
-                    delete_btn_stiem.click()
+                    delete_btn_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     try:
                         delete_with_collection = '//*[@id="dropGraphCollections"]'
                         delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
                     except Exception as e:
-                        print(f"An error occurred: {e} trying different xpath locator \n")
+                        self.tprint(f"An error occurred: {e} trying different xpath locator \n")
                         # Attempting to use an alternative method
                         try:
-                            time.sleep(0.1)
+                            time.sleep(2)
                             self.wait_for_ajax()
                             delete_with_collection = "//*[text()='also drop collections?']"
                             delete_with_collection_sitem = self.locator_finder_by_xpath(delete_with_collection)
                         except Exception as e_alternative:
-                            print(f"An error occurred: {e_alternative} using alternative xpath locator \n")
+                            self.tprint(f"An error occurred: {e_alternative} using alternative xpath locator \n")
                             # If both attempts fail, raise the original exception
                             raise e
 
@@ -1299,21 +1300,22 @@ class GraphPage(NavigationBarPage):
                     time.sleep(1)
                     break
                 else:
-                    self.webdriver.refresh()
+                    # Find the <a> element with the text "knows_graph"
+                    a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
+                    # Navigate to the parent <td> element
+                    td_element = a_element.find_element(By.XPATH, "./ancestor::td")
+                    # Find the <button> element within the same row
+                    button_element = td_element.find_element(By.XPATH, "./following-sibling::td//button[@type='button']")
+                    # Click the button
+                    button_element.click()
+
                     time.sleep(2)
                     self.wait_for_ajax()
-
-                    select_graph = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
-                    graph_settings_id_sitem = self.locator_finder_by_xpath(select_graph)
-                    graph_settings_id_sitem.click()
-
-                    time.sleep(0.1)
-                    self.wait_for_ajax()
                     delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                    delete_btn_stiem = self.locator_finder_by_xpath(delete_btn)
-                    delete_btn_stiem.click()
+                    delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+                    delete_btn_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_with_collection = (
                         "(//label[normalize-space()='Also drop collections'])[1]"
@@ -1324,7 +1326,7 @@ class GraphPage(NavigationBarPage):
                     )
                     delete_with_collection_sitem.click()
 
-                    time.sleep(0.1)
+                    time.sleep(2)
                     self.wait_for_ajax()
                     delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
                     delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
@@ -1334,12 +1336,12 @@ class GraphPage(NavigationBarPage):
                 retry += 1
                 if retry > 2:
                     raise exc
-                print("retrying delete " + str(retry))
+                self.tprint("retrying delete " + str(retry))
             except ElementClickInterceptedException as exc:
                 retry += 1
                 if retry > 2:
                     raise exc
-                print("retrying delete " + str(retry))
+                self.tprint("retrying delete " + str(retry))
 
 
 GRAPH_SETS = [

@@ -128,7 +128,8 @@ class RunnerProperties:
         ssl: bool,
         replication2: bool,
         use_auto_certs: bool,
-        one_shard: bool,
+        force_one_shard: bool,
+        create_oneshard_db: bool,
         no_arangods_non_agency: int,
     ):
         self.short_name = short_name
@@ -138,7 +139,8 @@ class RunnerProperties:
         self.ssl = ssl
         self.replication2 = replication2
         self.use_auto_certs = use_auto_certs
-        self.one_shard = one_shard
+        self.force_one_shard = force_one_shard
+        self.create_oneshard_db = create_oneshard_db
         self.no_arangods_non_agency = no_arangods_non_agency
 
 
@@ -157,6 +159,7 @@ class Runner(ABC):
         selenium_include_suites: list,
         testrun_name: str,
     ):
+        self.properties = properties
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         mem = psutil.virtual_memory()
@@ -240,6 +243,9 @@ class Runner(ABC):
         self.makedata_instances = []
         self.has_makedata_data = False
 
+        # list of databases to run makedata tests, besides "_system"
+        self.custom_databases = []
+
         # errors that occured during run
         self.errors = []
         self.starter_instances = []
@@ -256,6 +262,7 @@ class Runner(ABC):
 
             self.selenium = init_selenium(
                 runner_type,
+                self.properties,
                 selenium_worker,
                 selenium_driver_args,
                 selenium_include_suites,
@@ -284,7 +291,12 @@ class Runner(ABC):
                 )
                 and self.new_installer is None
             )
-            self.one_shard = False
+            self.force_one_shard = False
+            self.create_oneshard_db = False
+
+    def get_versions_concerned(self):
+        """get all versions that will be worked on"""
+        return [installer[1].semver for installer in self.installers]
 
     def progress(self, is_sub, msg, separator="x", supress_allure=False):
         """report user message, record for error handling."""
@@ -371,6 +383,8 @@ class Runner(ABC):
                     self.starter_prepare_env()
                     self.starter_run()
                     self.finish_setup()
+                if self.create_oneshard_db:
+                    self.custom_databases.append(["system_oneshard_makedata", True, 1])
                 self.make_data()
                 self.after_makedata_check()
                 self.check_data_impl()
@@ -649,6 +663,13 @@ class Runner(ABC):
         """just after makedata..."""
 
     @step
+    def create_database(self, database_name: str, oneshard: bool = False):
+        """create a new database"""
+        arangosh = self.makedata_instances[0].arangosh
+        cmd = 'db._createDatabase("%s", {%s})' % (database_name, '"sharding": "single"' if oneshard else "")
+        arangosh.run_command(['create database "%s"' % database_name, cmd])
+
+    @step
     def make_data(self):
         """check if setup is functional"""
         self.progress(True, "{0} - make data".format(str(self.name)))
@@ -806,22 +827,29 @@ class Runner(ABC):
         ]
         if self.min_replication_factor:
             args += ["--minReplicationFactor", str(self.min_replication_factor)]
-        if self.one_shard:
-            args += ["--singleShard", "true"]
         for starter in self.makedata_instances:
             assert starter.arangosh, "make: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
 
             # must be writabe that the setup may not have already data
             if not arangosh.read_only:  # and not self.has_makedata_data:
-                try:
-                    arangosh.create_test_data(self.name, args=args)
-                except CliExecutionException as exc:
-                    if self.cfg.verbose:
-                        print(exc.execution_result[1])
-                    self.ask_continue_or_exit(
-                        f"make_data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
-                    )
+                for db_name, one_shard, count_offset in self.makedata_databases():
+                    try:
+                        arangosh.create_test_data(
+                            self.name,
+                            args + ["--countOffset", str(count_offset)],
+                            one_shard=one_shard,
+                            database_name=db_name,
+                        )
+                    except CliExecutionException as exc:
+                        if self.cfg.verbose:
+                            print(exc.execution_result[1])
+                        self.ask_continue_or_exit(
+                            f"make_data failed for {self.name} in database {db_name} with {exc}",
+                            exc.execution_result[1],
+                            False,
+                            exc,
+                        )
                 self.has_makedata_data = True
         if not self.has_makedata_data:
             raise Exception("didn't find makedata instances, no data created!")
@@ -830,28 +858,38 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """check for data on the installation"""
         if self.has_makedata_data:
-            try:
-                args = []
-                if self.one_shard:
-                    args += ["--singleShard", "true"]
-                arangosh.check_test_data(self.name, supports_foxx_tests, args=args)
-            except CliExecutionException as exc:
-                if not self.cfg.verbose:
-                    print(exc.execution_result[1])
-                self.ask_continue_or_exit(
-                    f"check_data has data failed for {self.name} with {exc}", exc.execution_result[1], False, exc
-                )
+            for db_name, one_shard, count_offset in self.makedata_databases():
+                try:
+                    arangosh.check_test_data(
+                        self.name,
+                        supports_foxx_tests,
+                        args=["--countOffset", str(count_offset)],
+                        database_name=db_name,
+                        one_shard=one_shard,
+                    )
+                except CliExecutionException as exc:
+                    if not self.cfg.verbose:
+                        print(exc.execution_result[1])
+                    self.ask_continue_or_exit(
+                        f"check_data has failed for {self.name} in database {db_name} with {exc}",
+                        exc.execution_result[1],
+                        False,
+                        exc,
+                    )
 
     @step
     def check_data_impl(self):
         """check for data on the installation"""
+        frontend_found = False
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
+            frontend_found = True
             arangosh = starter.arangosh
-            return self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
-        raise Exception("no frontend found.")
+            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+        if not frontend_found:
+            raise Exception("no frontend found.")
 
     @step
     def create_non_backup_data(self):
@@ -1039,7 +1077,7 @@ class Runner(ABC):
             for installer_set in self.installers:
                 installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
+            attach.file(archive, "test dir archive",  "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
 
@@ -1048,9 +1086,12 @@ class Runner(ABC):
         """remove all directories created by this test"""
         testdir = self.cfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
+        # pylint: disable=broad-exception-caught
         try:
             if testdir.exists():
                 shutil.rmtree(testdir)
+        except Exception as ex:
+            print(f"Ignoring cleanup error: {ex}")
         finally:
             if "REQUESTS_CA_BUNDLE" in os.environ:
                 del os.environ["REQUESTS_CA_BUNDLE"]
@@ -1231,3 +1272,7 @@ class Runner(ABC):
             f"Status code: {str(reply[0].status_code)}\n"
             f"Body: {str(reply[0].content)}"
         )
+
+    def makedata_databases(self):
+        """return a list of databases that makedata tests must be ran in"""
+        return [["_system", self.force_one_shard, 0]] + self.custom_databases.copy()

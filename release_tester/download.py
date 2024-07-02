@@ -13,7 +13,7 @@ import sys
 
 import click
 import semver
-from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup
+from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup, tar
 import arangodb.installers as installer
 import tools.loghelper as lh
 
@@ -62,12 +62,19 @@ class Download:
         lh.section("configuration")
         if force_os != "":
             if force_os == "windows":
+                tar.MACVER= [False]
+                tar.WINVER= True
                 installer.IS_WINDOWS = True
                 installer.IS_MAC = False
             elif force_os == "mac":
+                tar.MACVER=[True]
+                tar.WINVER= False
                 installer.IS_MAC = True
                 installer.IS_WINDOWS = False
             else:
+                tar.MACVER= [False]
+                tar.WINVER=False
+                installer.SYSTEM = "linux"
                 installer.DISTRO = force_os
                 installer.IS_WINDOWS = False
                 installer.IS_MAC = False
@@ -117,7 +124,7 @@ class Download:
             interactive=False,
             stress_upgrade=False,
             ssl=False,
-            one_shard=False,
+            force_one_shard=False,
             use_auto_certs=False,
             test="",
             arangods=[],
@@ -228,10 +235,16 @@ class Download:
         print(stage + ": Downloading from " + directory)
         print(stage + ": " + ftp.cwd(directory))
         ftp.set_pasv(True)
-        with out.open(mode="wb") as filedes:
-            print(stage + ": downloading from " + directory + " to " + str(out))
-            print(stage + ": " + ftp.retrbinary("RETR " + package, filedes.write))
-
+        try:
+            with out.open(mode="wb") as filedes:
+                print(stage + ": downloading from " + directory + " to " + str(out))
+                print(stage + ": " + ftp.retrbinary("RETR " + package, filedes.write))
+        except Exception as ex:
+            print(f"caught {ex} while trying to download")
+            print(f"directory listing: {ftp.retrlines('LIST')}")
+            print(f"deleting {out}")
+            out.unlink()
+            raise(ex)
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
         """download one file via http"""
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
@@ -244,7 +257,7 @@ class Download:
         )
 
         out = local_dir / package
-        if out.exists() and not force:
+        if out.exists() and out.stat().st_size > 500 and not force:
             print(stage + ": not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
             return
         print(stage + ": downloading " + str(url))

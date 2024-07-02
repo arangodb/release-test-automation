@@ -40,6 +40,7 @@ from tools.timestamp import timestamp
 import tools.loghelper as lh
 from tools.killall import get_process_tree
 
+from tools.utils import ARANGOSEARCH_COLUMNS_CACHE_LIMIT
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
 IS_WINDOWS = sys.platform == "win32"
@@ -68,22 +69,22 @@ class StarterManager:
             self.moreopts = []
         else:
             self.moreopts = moreopts
-        if self.cfg.verbose:
-            self.moreopts += ["--log.verbose=true"]
-            # self.moreopts += ['--all.log', 'startup=debug']
+        # if self.cfg.verbose:
+        self.moreopts += ["--log.verbose=true"]
+        # self.moreopts += ['--all.log', 'startup=debug']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
-        # self.moreopts += ["--all.log.level=arangosearch=trace"]
-        if not IS_WINDOWS:
-            self.moreopts += ["--all.log.level=maintenance=trace"]
-            self.moreopts += ["--all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
-        # self.moreopts += ["--all.log.level=startup=trace"]
-        # self.moreopts += ["--all.log.level=engines=trace"]
+        # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
+        #if not IS_WINDOWS:
+        #   self.moreopts += ["--args.all.log.level=maintenance=trace"]
+        #  self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
+        # self.moreopts += ["--args.all.log.level=startup=trace"]
+        # self.moreopts += ["--args.all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
         # Split logmessages of facilities into several logfiles to reduce load on the main log:
-        # self.moreopts += ["--all.log.output=general=file://@ARANGODB_SERVER_DIR@/arangod.log"]
-        # self.moreopts += ["--all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
+        # self.moreopts += ["--args.all.log.output=general=file://@ARANGODB_SERVER_DIR@/arangod.log"]
+        # self.moreopts += ["--args.all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
 
@@ -109,9 +110,9 @@ class StarterManager:
 
         self.hotbackup_args = []
         if self.cfg.hot_backup_supported:
-            self.moreopts += ["--all.log.level=backup=trace"]
+            self.moreopts += ["--args.all.log.level=backup=trace"]
             self.hotbackup_args = [
-                "--all.rclone.executable",
+                "--args.all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
 
@@ -213,7 +214,7 @@ class StarterManager:
 
         # Telemetry was introduced in 3.11.0
         if (semversion.major == 3 and semversion.minor >= 11) or (semversion.major > 3):
-            result += ["--all.server.telemetrics-api=false"]
+            result += ["--args.all.server.telemetrics-api=false"]
 
         # Column cache
         if (
@@ -222,7 +223,7 @@ class StarterManager:
             and semver.compare(version, "3.10.0") != 0
             and semver.compare(version, "3.10.1") != 0
         ):
-            result += ["--args.all.arangosearch.columns-cache-limit=10000"]
+            result += [f"--args.all.arangosearch.columns-cache-limit={ARANGOSEARCH_COLUMNS_CACHE_LIMIT}"]
 
         return result
 
@@ -330,7 +331,11 @@ class StarterManager:
     def cleanup_hotbackup_in_instance(self):
         """remove hotbackup from the database directory"""
         for instance in self.all_instances:
-            instance.clean_hotbackup()
+            # pylint: disable=broad-exception-caught
+            try:
+                instance.clean_hotbackup()
+            except Exception as ex:
+                print(f"ignoring error during cleaning hot backup: {ex}")
 
     def get_instance_essentials(self):
         """get the essentials of all instances controlled by this starter"""
@@ -761,7 +766,7 @@ class StarterManager:
         self.cfg.set_directories(new_install_cfg)
         if self.cfg.hot_backup_supported:
             self.hotbackup_args = [
-                "--all.rclone.executable",
+                "--args.all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
 
@@ -1078,7 +1083,7 @@ class StarterManager:
         if self.arangosh is None:
             config.port = self.get_frontend_port()
             config.passvoid = self.passvoid
-            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version, one_shard=self.cfg.one_shard)
+            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())

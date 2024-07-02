@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 # pylint: disable=too-many-lines
+import copy
 import datetime
 import json
 import logging
@@ -74,6 +75,8 @@ INSTANCE_TYPE_STRING_MAP = {
     "syncworker": InstanceType.SYNCWORKER,
 }
 
+# keep a history of any instance ever created...
+INSTANCE_REGISTRY = []
 
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
@@ -167,6 +170,7 @@ class Instance(ABC):
             "exitStatus": 0,
             "serverCrashedLocal": False,
             "passvoid": self.passvoid,
+            "version": str(self.version),
         }
 
     @abstractmethod
@@ -191,6 +195,8 @@ class Instance(ABC):
         except AttributeError:
             # logging.error("was supposed to be dead, but I don't have an instance? "
             #              + repr(self))
+            return True
+        except psutil.AccessDenied:
             return True
         return True
 
@@ -503,6 +509,9 @@ class Instance(ABC):
         """ find and clear hotbackups """
         pass
 
+    def clone_to_registry(self):
+        INSTANCE_REGISTRY.append(self.get_essentials())
+
 class ArangodInstance(Instance):
     """represent one arangodb instance"""
 
@@ -540,6 +549,7 @@ class ArangodInstance(Instance):
             "log": self.logfile,
             "is_frontend": self.is_frontend(),
             "url": self.get_public_login_url() if self.is_frontend() else "",
+            "version": str(self.version),
         }
 
     # pylint: disable=no-else-return
@@ -830,6 +840,7 @@ class ArangodInstance(Instance):
             time.sleep(1)
             progress(":")
 
+        self.clone_to_registry()
         if self.pid == 0:
             print()
             logging.error("could not get pid for instance: " + repr(self))
@@ -905,6 +916,7 @@ class SyncInstance(Instance):
             "log": self.logfile,
             "is_frontend": False,
             "url": "",
+            "version": str(self.version),
         }
 
     def analyze_starter_file_line(self, line):
@@ -971,6 +983,7 @@ class SyncInstance(Instance):
                 progress("s")
                 time.sleep(1)
             count += 1
+        self.clone_to_registry()
 
         if len(possible_me_pid) != 1:
             raise Exception("wasn't able to identify my arangosync process! " + str(possible_me_pid))
@@ -1021,21 +1034,23 @@ class SyncInstance(Instance):
         return "{host}:{port}".format(host=self.publicip, port=self.port)
 
 
-def get_instances_table(instances):
+def get_instances_table(instances, version=False):
     """print all instances provided in tabular format"""
     table = BeautifulTable(maxwidth=160)
     for one_instance in instances:
-        table.rows.append(
-            [
+        print(one_instance)
+        row = [
                 one_instance["name"],
                 one_instance["pid"],
                 one_instance["type"],
                 one_instance["log"],
                 # one_instance["is_frontend"],
                 one_instance["url"],
-            ]
-        )
-    table.columns.header = [
+        ]
+        if version:
+            row.append(one_instance["version"])
+        table.rows.append(row)
+    header = [
         "Name",
         "PID",
         "type",
@@ -1043,11 +1058,20 @@ def get_instances_table(instances):
         # "Frontend",
         "URL",
     ]
+    if version:
+        header.append("Version")
+    table.columns.header = header
     return table
 
 
-def print_instances_table(instances):
+def print_instances_table(instances, print_table=True, version=False):
     """print all instances provided in tabular format"""
-    table = get_instances_table(instances)
-    print(str(table))
+    table = get_instances_table(instances, version)
+    if print_table:
+        print(str(table))
     attach_table(table, "Instances table")
+    return str(table)
+
+def dump_instance_registry(filename):
+    tablestr = print_instances_table(INSTANCE_REGISTRY, True, True)
+    Path(filename).write_text(tablestr + '\n', encoding="utf8")

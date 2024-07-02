@@ -339,8 +339,15 @@ def common_options(
             help="use self-signed SSL certs",
         )(function)
         function = click.option(
-            "--one-shard/--no-one-shard",
-            "one_shard",
+            "--cluster-nodes",
+            "cluster_nodes",
+            is_flag=False,
+            default=5,
+            help="Number of nodes to run clusters with",
+        )(function)
+        function = click.option(
+            "--force-oneshard/--do-not-force-oneshard",
+            "force_one_shard",
             is_flag=True,
             default=False,
             help="force the OneShard mode for all collections/databases",
@@ -363,6 +370,14 @@ def common_options(
             is_flag=True,
             default=test_suites_default_value,
             help="Run test suites for each version pair.",
+        )(function)
+        function = click.option(
+            "--create-oneshard-db/--do-not-create-oneshard-db",
+            "create_oneshard_db",
+            is_flag=True,
+            default=False,
+            help='Create an extra database with sharding attribute set to "single" and run makedata tests in it '
+            "in addition to the _system database.",
         )(function)
         return function
 

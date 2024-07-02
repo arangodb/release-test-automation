@@ -44,6 +44,7 @@ def main(**kwargs):
     kwargs["use_auto_certs"] = False
     kwargs["test"] = ""
     kwargs["monitoring"] = False
+    kwargs["cluster_nodes"] = 3
 
     # pylint: disable=broad-except disable=bare-except
     versions = ["3.3.3"]

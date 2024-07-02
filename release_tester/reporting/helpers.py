@@ -31,6 +31,8 @@ class StepData:
     def __init__(self):
         self.prev_stdout = sys.stdout
         self.prev_stderr = sys.stderr
+        StepData.system_stdout.reconfigure(encoding='utf-8')
+        StepData.system_stderr.reconfigure(encoding='utf-8')
         new_stdout = IoDuplicator(StepData.system_stdout)
         new_stderr = IoDuplicator(StepData.system_stderr)
         sys.stdout = new_stdout

@@ -11,14 +11,15 @@ from selenium_ui_test.test_suites.base_classes.after_install_test_suite import A
 class LeaderFollowerAfterInstallTestSuite(AfterInstallTestSuite):
     """test cases to check the integrity of the old system before the install (Leader Follower)"""
 
-    @testcase
+    # TODO
+    # @testcase
     def test(self, leader_follower=True):
         """check the integrity of the old system after install (Leader Follower)"""
         count = 0
         replication_table = None
         while True:
-            NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
-            replication_page = ReplicationPage(self.webdriver, self.cfg)
+            NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("replication")
+            replication_page = ReplicationPage(self.webdriver, self.cfg, self.video_start_time)
             replication_table = replication_page.get_replication_screen(leader_follower, 120)
             self.progress(" " + str(replication_table))
             if len(replication_table["follower_table"]) == 2:

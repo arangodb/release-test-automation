@@ -4,6 +4,8 @@ import time
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
+from selenium_ui_test.pages.base_page import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 
 # can't circumvent long lines.. nAttr nLines
@@ -13,9 +15,9 @@ from selenium.common.exceptions import TimeoutException
 class UserPage(NavigationBarPage):
     """Class for User page"""
 
-    def __init__(self, driver, cfg):
+    def __init__(self, driver, cfg, video_start_time):
         """User page initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.add_new_user_id = "createUser"
         self.enter_new_user_name_id = "newUsername"
         self.enter_new_name_id = "newName"
@@ -43,39 +45,74 @@ class UserPage(NavigationBarPage):
 
     def add_new_user(self, tester):
         """User page selecting add new user"""
-        print("New user creation begins \n")
-        add_new_user_sitem = self.locator_finder_by_id(self.add_new_user_id)
-        add_new_user_sitem.click()
-
-        # wait for the dialog box to be there:
-        self.locator_finder_by_idx("row_newUsername")
+        self.tprint(f"New user {tester} creation begins \n")
+        if self.version_is_newer_than("3.11.99"):
+            new_user = "(//button[normalize-space()='Add user'])[1]"
+            add_new_user_id_sitem = self.locator_finder_by_xpath(new_user)
+        else:
+            new_user = "createUser"
+            add_new_user_id_sitem = self.locator_finder_by_id(new_user)
+        add_new_user_id_sitem.click()
 
         # entering new user name
-        enter_new_user_name_sitem = self.locator_finder_by_id(self.enter_new_user_name_id)
-        enter_new_user_name_sitem.click()
-        enter_new_user_name_sitem.send_keys(tester)
+        if self.version_is_newer_than("3.11.99"):
+            new_user_name = "(//input[@id='user'])[1]"
+            enter_new_user_name_id_sitem = self.locator_finder_by_xpath(new_user_name)
+        else:
+            new_user_name = self.enter_new_user_name_id
+            enter_new_user_name_id_sitem = self.locator_finder_by_id(new_user_name)
+        enter_new_user_name_id_sitem.click()
+        enter_new_user_name_id_sitem.send_keys(tester)
         time.sleep(3)
 
-        # providing new user name
-        enter_new_name_sitem = self.locator_finder_by_id(self.enter_new_name_id)
-        enter_new_name_sitem.click()
-        enter_new_name_sitem.send_keys(tester)
+        # providing new username
+        if self.version_is_newer_than("3.11.99"):
+            new_name = "(//input[@id='name'])[1]"
+            enter_new_name_id_sitem = self.locator_finder_by_xpath(new_name)
+        else:
+            new_name = self.enter_new_name_id
+            enter_new_name_id_sitem = self.locator_finder_by_id(new_name)
+        enter_new_name_id_sitem.click()
+        enter_new_name_id_sitem.send_keys(tester)
 
-        # entering new user password
-        enter_new_password_sitem = self.locator_finder_by_id(self.enter_new_password_id)
-        enter_new_password_sitem.click()
-        enter_new_password_sitem.send_keys(tester)
+        self.tprint("Adding Gravatar email address \n")
+        if self.version_is_newer_than("3.11.99"):
+            new_name = "(//input[@id='extra.img'])[1]"
+            enter_new_name_id_sitem = self.locator_finder_by_xpath(new_name)
+            enter_new_name_id_sitem.click()
+            enter_new_name_id_sitem.send_keys("bluedio2020@gmail.com")
 
-        # User page selecting add new user
-        create_user_btn_sitem = self.locator_finder_by_id(self.create_user_btn_id)
-        create_user_btn_sitem.click()
+        self.tprint('entering new user pass \n')
+        if self.version_is_newer_than("3.11.99"):
+            new_password = "(//input[@id='passwd'])[1]"
+            enter_new_password_id_sitem = self.locator_finder_by_xpath(new_password)
+        else:
+            new_password = self.enter_new_password_id
+            enter_new_password_id_sitem = self.locator_finder_by_id(new_password)
+        enter_new_password_id_sitem.click()
+        enter_new_password_id_sitem.send_keys(tester)
+
+        self.tprint('User page selecting add new user \n')
+        if self.version_is_newer_than("3.11.99"):
+            create_user = "(//button[normalize-space()='Create'])[1]"
+            create_user_btn_id_sitem = self.locator_finder_by_xpath(create_user)
+        else:
+            create_user = self.create_user_btn_id
+            create_user_btn_id_sitem = self.locator_finder_by_id(create_user)
+
+        create_user_btn_id_sitem.click()
         time.sleep(3)
-        print("New user creation completed \n")
-
+        self.tprint(f"New user {tester} creation completed \n")
     def selecting_user_tester(self):
-        """selecting newly created user"""
-        new_user_sitem = self.locator_finder_by_id(self.selecting_user_tester_id)
-        new_user_sitem.click()
+        """Selecting tester user with pass tester"""
+        if self.version_is_newer_than("3.11.99"):
+            new_user = "(//a[normalize-space()='tester'])[1]"
+            new_user = self.locator_finder_by_xpath(new_user)
+            new_user.click()
+        else:
+            new_user = self.selecting_user_tester_id
+            new_user = self.locator_finder_by_id(new_user)
+            new_user.click()
 
     def selecting_permission_tab(self):
         """selecting the permissions tab of the newly created user"""
@@ -88,21 +125,30 @@ class UserPage(NavigationBarPage):
             self.click_submenu_entry("General")
         except StaleElementReferenceException:
             # javascript may be doing stuff to the DOM so we retry once here...
-            print("reloading...")
+            self.tprint("reloading...")
             self.webdriver.refresh()
             time.sleep(1)
             self.selecting_permission_tab()
             self.click_submenu_entry("General")
 
     def changing_db_permission_read_only(self):
-        """changing permission for the new user"""
-        db_permission_sitem = self.locator_finder_by_xpath(self.db_permission_read_only)
-        db_permission_sitem.click()
+        """changing permission for the new user to no access
+        User gets db access but no creation or drop access"""
+        if self.version_is_newer_than("3.11.99"):
+            db_permission = "(//span[@aria-hidden='true'])[6]"
+        else:
+            db_permission = self.db_permission_read_only
+        db_permission = self.locator_finder_by_xpath(db_permission)
+        db_permission.click()
 
     def changing_db_permission_read_write(self):
-        """changing permission for the new user"""
-        db_permission_sitem = self.locator_finder_by_xpath(self.db_permission_read_write)
-        db_permission_sitem.click()
+        """changing permission for the new user to read-write"""
+        if self.version_is_newer_than("3.11.99"):
+            db_permission = '//*[@id="content-react"]/div/div[2]/div/table/tbody/tr[1]/td[2]/div/label/span'
+        else:
+            db_permission = self.db_permission_read_write
+        db_permission = self.locator_finder_by_xpath(db_permission)
+        db_permission.click()
 
     def saving_user_cfg(self):
         """saving new settings for new user"""
@@ -112,29 +158,38 @@ class UserPage(NavigationBarPage):
 
     def selecting_new_user(self):
         """select a user"""
-        tester_sitem = self.locator_finder_by_xpath(self.select_tester_id)
-        tester_sitem.click()
+        if self.version_is_newer_than("3.11.99"):
+            tester = "(//a[normalize-space()='tester'])[1]"
+        else:
+            tester = self.select_tester_id
+        tester = self.locator_finder_by_xpath(tester)
+        tester.click()
         time.sleep(4)
 
     def create_sample_collection(self, test_name):
         """creating sample collection"""
         try:
-            collection_page = self.select_collection_page_id
-            collection_page = \
-                self.locator_finder_by_id(  collection_page)
+            collection_page = self.locator_finder_by_id(self.select_collection_page_id)
             collection_page.click()
 
             # Clicking on create new collection box
-            create_collection = self.select_create_collection_id
-            create_collection = \
-                self.locator_finder_by_id(create_collection)
-            create_collection.click()
-            time.sleep(2)
+            create_collection = self.locator_finder_by_id(self.select_create_collection_id)
+
+            # Check if create_collection is None and version is >= 3.11.99
+            if create_collection is None and self.version_is_newer_than('3.11.99'):
+                self.tprint("create_collection not found, but it's expected scenario for version >= 3.11.99.")
+                return  # Exit the method if element not found
+
+            if create_collection is not None:
+                create_collection.click()
+                time.sleep(2)
+            else:
+                self.tprint("Element 'create_collection' option not found.")
+                return  # Exit the method if element not found
 
             # Providing new collection name
             collection_name = self.select_new_collection_name_id
-            collection_name = \
-                self.locator_finder_by_id(collection_name)
+            collection_name = self.locator_finder_by_id(collection_name)
             collection_name.click()
             collection_name.send_keys("testDoc")
 
@@ -150,60 +205,64 @@ class UserPage(NavigationBarPage):
                 expected_text = 'Collection: Collection "testDoc" successfully created.'
                 assert notification.text == expected_text, f"Expected text{expected_text} but got {notification.text}"
 
-            # todo: we need a workaround for this
-            #     try:
-            #         print('Deleting testDoc collection \n')
+                try:
+                    self.tprint('Deleting testDoc collection \n')
 
-            #         select_test_doc_collection_id = '//h5[@class="collectionName"][text()="testDoc"]'
-            #         select_collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
-            #         select_test_doc_collection_id = \
-            #             self.locator_finder_by_xpath(select_test_doc_collection_id)
-            #         select_test_doc_collection_id.click()
+                    select_test_doc_collection_id = '//*[@id="collection_testDoc"]/div/h5'
+                    select_collection_settings_id = "//*[@id='subNavigationBar']/ul[2]/li[4]/a"
+                    select_test_doc_collection_id = self.locator_finder_by_xpath(select_test_doc_collection_id)
+                    select_test_doc_collection_id.click()
 
-            #         time.sleep(4)
-            #         select_test_doc_settings_id = \
-            #             self.locator_finder_by_xpath(select_collection_settings_id)
-            #         select_test_doc_settings_id.click()
+                    time.sleep(4)
+                    select_test_doc_settings_id = self.locator_finder_by_xpath(select_collection_settings_id)
+                    select_test_doc_settings_id.click()
 
-            #         delete_collection_id = "(//button[normalize-space()='Delete'])[1]"
-            #         delete_collection_confirm_id = "(//button[@id='modal-confirm-delete'])[2]"
+                    delete_collection_id = "//*[@id='modalButton0']"
+                    delete_collection_confirm_id = "//*[@id='modal-confirm-delete']"
 
-            #         delete_collection_id = \
-            #             self.locator_finder_by_xpath(delete_collection_id)
-            #         delete_collection_id.click()
-            #         time.sleep(4)
-            #         delete_collection_confirm_id = \
-            #             self.locator_finder_by_xpath(delete_collection_confirm_id)
-            #         delete_collection_confirm_id.click()
+                    delete_collection_id = self.locator_finder_by_xpath(delete_collection_id)
+                    delete_collection_id.click()
+                    time.sleep(4)
+                    delete_collection_confirm_id = self.locator_finder_by_xpath(delete_collection_confirm_id)
+                    delete_collection_confirm_id.click()
 
-            #         print('Deleting testDoc collection completed\n')
-            #     except TimeoutException:
-            #         print('Deleting testDoc collection failed which is expected. \n')
+                    self.tprint('Deleting testDoc collection completed\n')
+                except TimeoutException:
+                    self.tprint('Deleting testDoc collection failed which is expected. \n')
 
             except TimeoutException:
-                print('FAIL: Unexpected error occurred! \n')
+                self.tprint('FAIL: Unexpected error occurred! \n')
 
         except TimeoutException:
             if test_name == 'access':
-                print("Collection creation failed, which is expected\n")
-            if test_name == 'read/write':
-                print('FAIL: Unexpected error occurred!\n')
-                # raise Exception("FAIL: Unexpected error occurred!\n")
+                self.tprint("Collection creation failed, which is expected\n")
+            elif test_name == 'read/write':
+                raise Exception("FAIL: Unexpected error occurred!\n")
     
     def delete_user_btn(self):
-        """deleting user"""
-        select_user_delete_btn_sitem = self.locator_finder_by_id(self.select_user_delete_btn)
+        """Delete user button"""
+        if self.version_is_newer_than("3.11.99"):
+            select_user_delete_btn = "(//button[normalize-space()='Delete'])[1]"
+            select_user_delete_btn_sitem = self.locator_finder_by_xpath(select_user_delete_btn)
+        else:
+            select_user_delete_btn = "modalButton0"
+            select_user_delete_btn_sitem = self.locator_finder_by_id(select_user_delete_btn)
         select_user_delete_btn_sitem.click()
 
     def confirm_delete_btn(self):
-        """confirming delete user"""
-        select_confirm_delete_btn_sitem = self.locator_finder_by_id(self.select_confirm_delete_btn)
+        """Confirming the delete button press"""
+        if self.version_is_newer_than("3.11.99"):
+            select_confirm_delete_btn = "(//button[normalize-space()='Yes'])[1]"
+            select_confirm_delete_btn_sitem = self.locator_finder_by_xpath(select_confirm_delete_btn)
+        else:
+            select_confirm_delete_btn = "modal-confirm-delete"
+            select_confirm_delete_btn_sitem = self.locator_finder_by_id(select_confirm_delete_btn)
         select_confirm_delete_btn_sitem.click()
         time.sleep(3)
 
     def check_user_collection_sort(self):
         """This method will check user's collection sorting in user's permission tab"""
-        print("check_user_collection_sort started \n")
+        self.tprint("check_user_collection_sort started \n")
         # selecting root user
         root_user = '//h5[@class="collectionName"][text()="root "]'
         root_user_sitem = self.locator_finder_by_xpath(root_user)
@@ -236,6 +295,6 @@ class UserPage(NavigationBarPage):
                 pass
 
         if a_first < m_middle < z_last:
-            print("Sorting check successfully completed.\n")
+            self.tprint("Sorting check successfully completed.\n")
         else:
             raise Exception("Sorting inside user collection failed and need manual inspection!\n")

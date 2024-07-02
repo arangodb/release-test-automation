@@ -14,20 +14,20 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
     @testcase
     def jam_step_2(self):
         """ step 2 jamming: check the instances are gone from the table """
-        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("cluster")
-        cluster_page = ClusterPage(self.webdriver, self.cfg)
+        NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("cluster")
+        cluster_page = ClusterPage(self.webdriver, self.cfg, self.video_start_time)
         node_count = None
         done = False
         retry_count = 0
         while not done:
             node_count = cluster_page.cluster_dashboard_get_count()
-            done = (node_count["dbservers"] == "3") and (node_count["coordinators"] == "3")
+            done = (node_count["dbservers"] == "5") and (node_count["coordinators"] == "5")
             if not done:
                 time.sleep(3)
             retry_count += 1
             self.ui_assert(
                 retry_count < 10,
-                "UI-Test: expected 3 instances each, have: DB "
+                "UI-Test: expected 5 instances each, have: DB "
                 + node_count["dbservers"]
                 + " C "
                 + node_count["coordinators"],
@@ -44,8 +44,8 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
         )
         self.check_version(version, self.is_enterprise)
 
-        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("nodes")
-        nodes_page = NodesPage(self.webdriver, self.cfg)
+        NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("nodes")
+        nodes_page = NodesPage(self.webdriver, self.cfg, self.video_start_time)
         table = nodes_page.cluster_get_nodes_table()
         row_count = 0
         for row in table:
@@ -56,7 +56,7 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
         self.ui_assert(row_count == 6, "UI-Test: expected 6 instances")
 
         nodes_page.navbar_goto("cluster")
-        cluster_page = ClusterPage(self.webdriver, self.cfg)
+        cluster_page = ClusterPage(self.webdriver, self.cfg, self.video_start_time)
         node_count = cluster_page.cluster_dashboard_get_count()
         self.ui_assert(node_count["dbservers"] == "3", "UI-Test: expected 3 dbservers, got: " + node_count["dbservers"])
         self.ui_assert(

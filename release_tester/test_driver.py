@@ -84,6 +84,7 @@ class TestDriver:
         if not kwargs["package_dir"].exists():
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
         kwargs["base_config"].package_dir = kwargs["package_dir"]
+        self.cluster_nodes = kwargs["cluster_nodes"]
         self.base_config = kwargs["base_config"]
         self.arangods = []
         self.base_config.arangods = self.arangods
@@ -94,7 +95,9 @@ class TestDriver:
         self.use_auto_certs = kwargs["use_auto_certs"]
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
-        self.selenium_include_suites = [] if not "ui_include_test_suites" in kwargs else kwargs["ui_include_test_suites"]
+        self.selenium_include_suites = (
+            [] if "ui_include_test_suites" not in kwargs else kwargs["ui_include_test_suites"]
+        )
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
@@ -194,7 +197,7 @@ class TestDriver:
         ]
         for runner_type in starter_mode:
             assert runner_type
-            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties)
+            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties, self.cluster_nodes)
             runner.cleanup()
         if inst.calc_config_file_name().is_file():
             try:
@@ -267,6 +270,7 @@ class TestDriver:
                             installers,
                             run_props,
                             use_auto_certs=self.use_auto_certs,
+                            cluster_nodes=self.cluster_nodes,
                         )
                         if not runner or runner.runner_type == RunnerType.NONE:
                             testcase.context.status = Status.SKIPPED
@@ -275,7 +279,7 @@ class TestDriver:
                                 one_result["message"] += runner.msg
                             print(f"Skipping {runner_type}")
                             continue
-                        if run_props.one_shard and not runner.one_shard:
+                        if run_props.force_one_shard and not runner.force_one_shard:
                             testcase.context.status = Status.SKIPPED
                             testcase.context.statusDetails = StatusDetails(
                                 message=f"One shard is not supported for {runner.name}"
@@ -438,6 +442,7 @@ class TestDriver:
                         installers,
                         run_props,
                         use_auto_certs=self.use_auto_certs,
+                        cluster_nodes=self.cluster_nodes
                     )
                     if not runner or runner.runner_type == RunnerType.NONE:
                         testcase.context.status = Status.SKIPPED
@@ -446,7 +451,7 @@ class TestDriver:
                             one_result["message"] += runner.msg
                         print(f"Skipping {runner_type}")
                         continue
-                    if run_props.one_shard and not runner.one_shard:
+                    if run_props.force_one_shard and not runner.force_one_shard:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                         message=f"One shard is not supported for {runner.name}"
@@ -649,7 +654,7 @@ class TestDriver:
                 "messages": [],
                 "progress": "",
             }
-            if suite.there_are_failed_tests():
+            if suite.there_are_failed_tests() or suite.is_broken():
                 result["success"] = False
                 for one_result in suite.test_results:
                     result["messages"].append(one_result.message)
