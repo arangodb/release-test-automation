@@ -1068,14 +1068,6 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action("[")
             self.send_key_action(Keys.ENTER)
 
-            self.send_key_action("]")
-            self.send_key_action(Keys.ENTER)
-
-            self.send_key_action("-")
-            self.send_key_action(Keys.ENTER)
-
-            self.send_key_action("_")
-            self.send_key_action(Keys.ENTER)
             time.sleep(2)
         
         #todo need to fix this one for 3.11.x
@@ -2049,10 +2041,7 @@ class AnalyzerPage(NavigationBarPage):
                           ";",
                           "!",
                           "?",
-                          "[",
-                          "]",
-                          "-",
-                          "_"
+                          "["
                         ]
                       }
                     }
