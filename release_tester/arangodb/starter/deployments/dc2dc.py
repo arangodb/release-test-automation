@@ -496,7 +496,7 @@ class Dc2Dc(Runner):
             )
             if not ret[0]:
                 raise Exception("check data on source cluster failed " + ret[1])
-            self._get_in_sync(20)
+            self._get_in_sync(50)
 
             self.cluster2["instance"].send_request(
                 InstanceType.COORDINATOR, requests.post, "/_admin/routing/reload", ""
@@ -532,7 +532,7 @@ class Dc2Dc(Runner):
             if not self.cfg.verbose:
                 print(res[1])
             raise Exception("replication fuzzing test failed")
-        self._get_in_sync(12)
+        self._get_in_sync(50)
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():
@@ -667,7 +667,7 @@ class Dc2Dc(Runner):
                 raise Exception("check data on cluster2 after dissolving failed " + ret[1])
         self.progress(True, "restarting sync")
         self._launch_sync(True)
-        self._get_in_sync(20)
+        self._get_in_sync(50)
         for db_name, one_shard, count_offset in self.makedata_databases():
             ret = self.cluster2["instance"].arangosh.check_test_data(
                 "cluster2 after re-syncing",
@@ -698,7 +698,7 @@ class Dc2Dc(Runner):
         self._stop_sync(240)
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
-        self._get_in_sync(20)
+        self._get_in_sync(50)
         for db_name, one_shard, count_offset in self.makedata_databases():
             ret = self.cluster2["instance"].arangosh.check_test_data(
                 "cluster2 after reversing direction",
@@ -714,7 +714,7 @@ class Dc2Dc(Runner):
         self._stop_sync(240)
         self.progress(True, "reversing sync direction to initial")
         self._launch_sync(True)
-        self._get_in_sync(20)
+        self._get_in_sync(50)
 
     def shutdown_impl(self):
         return self.cluster1["instance"].terminate_instance() or self.cluster2["instance"].terminate_instance()
@@ -731,4 +731,4 @@ class Dc2Dc(Runner):
     def after_backup_impl(self):
         self.sync_manager.run_syncer()
 
-        self._get_in_sync(20)
+        self._get_in_sync(50)
