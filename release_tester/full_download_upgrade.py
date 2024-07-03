@@ -102,6 +102,7 @@ def upgrade_package_test(
             print("".join(traceback.TracebackException.from_exception(ex).format()))
             results.append({'message': f"Failed to download file: {ex} ",
                             'error':True,
+                            'testrun name': '',
                             'progress': '',
                             'testrun name': '',
                             'testscenario': ''});

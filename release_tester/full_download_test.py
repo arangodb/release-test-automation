@@ -91,6 +91,7 @@ def package_test(
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
         results.append({'messages': str(dl_new.cfg.version),
+                        'testrun name': '',
                         'progress': '',
                         'success': True,
                         'testrun name': '',
@@ -100,6 +101,7 @@ def package_test(
     if run_test_suites:
         results.append({'message': f"Testsuites:",
                         'error':False,
+                        'testrun name': '',
                         'progress': '',
                         'testrun name': '',
                         'testscenario': ''});
