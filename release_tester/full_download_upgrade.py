@@ -100,12 +100,12 @@ def upgrade_package_test(
             community_packages_are_present = False
             print(f"Failed to download file: {ex} ")
             print("".join(traceback.TracebackException.from_exception(ex).format()))
-            results.append({'message': f"Failed to download file: {ex} ",
-                            'error':True,
-                            'testrun name': '',
-                            'progress': '',
-                            'testrun name': '',
-                            'testscenario': ''});
+            results.append([{'message': f"Failed to download file: {ex} ",
+                             'error':True,
+                             'testrun name': '',
+                             'progress': '',
+                             'testrun name': '',
+                             'testscenario': ''}]);
 
     params = deepcopy(test_driver.cli_test_suite_params)
     params.new_version = dl_new.cfg.version

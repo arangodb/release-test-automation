@@ -118,12 +118,12 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
-            results.append({'messages': str(packages[primary_version][props.directory_suffix].cfg.version),
-                            'testrun name': '',
-                            'progress': '',
-                            'success': True,
-                            'testrun name': '',
-                            'testscenario': ''});
+            results.append([{'messages': str(packages[primary_version][props.directory_suffix].cfg.version),
+                             'testrun name': '',
+                             'progress': '',
+                             'success': True,
+                             'testrun name': '',
+                             'testscenario': ''}]);
             results.append(
                 test_driver.run_test(
                     "all",
@@ -152,12 +152,12 @@ def upgrade_package_test(
             test_driver.run_cleanup(props)
             test_driver.reset_test_data_dir(this_test_dir)
             print("Cleanup done")
-            results.append({'messages': f"{str(scenario[0])} => {scenario[1]}",
-                            'testrun name': '',
-                            'progress': '',
-                            'success': True,
-                            'testrun name': '',
-                            'testscenario': ''});
+            results.append([{'messages': f"{str(scenario[0])} => {scenario[1]}",
+                             'testrun name': '',
+                             'progress': '',
+                             'success': True,
+                             'testrun name': '',
+                             'testscenario': ''}]);
             results.append(test_driver.run_upgrade(scenario, props))
 
     upgrade_pairs = []
