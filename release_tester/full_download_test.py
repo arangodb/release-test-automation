@@ -90,7 +90,7 @@ def package_test(
             community_packages_are_present = True
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
-        results.append([{'messages': str(dl_new.cfg.version),
+        results.append([{'messages': [str(dl_new.cfg.version)],
                         'testrun name': '',
                         'progress': '',
                         'success': True,
@@ -99,8 +99,9 @@ def package_test(
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     if run_test_suites:
-        results.append([{'message': f"Testsuites:",
+        results.append([{'messages': [f"Testsuites:"],
                         'error':False,
+                        'success': True,
                         'testrun name': '',
                         'progress': '',
                         'testrun name': '',
