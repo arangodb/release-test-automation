@@ -186,7 +186,7 @@ def expect_failure(expect_to_fail, ret, params):
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         if expect_to_fail:
             return res
-        raise CliExecutionException("Execution failed by unexpected exit code.", res, False)
+        raise CliExecutionException(f"Execution failed by unexpected exit code.{ret['rc_exit']}", res, False)
 
     if not expect_to_fail:
         if len(params["output"]) == 0:
