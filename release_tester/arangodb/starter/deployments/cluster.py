@@ -407,6 +407,7 @@ db.testCollection.save({test: "document"})
                     ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                     oneshard,
                     db_name,
+                    log_debug=True
                 )
                 if not ret[0]:
                     raise Exception("check data failed in database %s :\n" % db_name + ret[1])

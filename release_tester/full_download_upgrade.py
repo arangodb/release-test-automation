@@ -43,9 +43,11 @@ def upgrade_package_test(
     versions = []
     enterprise_packages_are_present = False
     community_packages_are_present = False
+    count = 0
     for props in EXECUTION_PLAN:
         if props.directory_suffix not in editions:
             continue
+        count += 1
         # pylint: disable=unused-variable
         dl_opt = deepcopy(dl_opts)
         dl_opt.force = dl_opts.force and props.force_dl
@@ -107,14 +109,8 @@ def upgrade_package_test(
                              'progress': '',
                              'testrun name': '',
                              'testscenario': ''}]);
-
-    results.append([{'messages': [f"Failed to download file: bla "],
-                     'error':True,
-                     'success': False,
-                     'testrun name': '',
-                     'progress': '',
-                     'testrun name': '',
-                     'testscenario': ''}]);
+    if count == 0:
+        raise Exception("Unknown edition specified")
     params = deepcopy(test_driver.cli_test_suite_params)
     params.new_version = dl_new.cfg.version
     params.old_version = dl_old.cfg.version

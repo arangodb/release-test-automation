@@ -87,6 +87,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         process_control=False,
         verbose=True,
         expect_to_fail=False,
+        log_debug=False,
     ):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
@@ -101,11 +102,14 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # fmt: off
         run_cmd = self.cfg.default_arangosh_args + [
             "--log.level", "v8=debug",
-            # "--log.level", "startup=trace", # BTS-1743 - find out why arangosh exits
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
         ] + process_control + [
             "--javascript.execute", str(cmd[1])
         ]
+        if log_debug:
+            run_cmd += [
+                "--log.level", "startup=trace", # BTS-1743 - find out why arangosh exits
+            ]
         # fmt: on
 
         if len(args) > 0:
@@ -358,6 +362,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         one_shard: bool = False,
         database_name: str = "_system",
         result_line_handler=default_line_result,
+        log_debug=False
     ):
         """check back the testdata in the instance"""
         if args is None:
@@ -385,7 +390,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             # fmt: on
             progressive_timeout=25,
             result_line_handler=result_line_handler,
-            verbose=self.cfg.verbose,
+            verbose=self.cfg.verbose or log_debug,
+            log_debug=log_debug,
         )
         return ret
 
