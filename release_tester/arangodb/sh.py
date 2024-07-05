@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
+from datetime import datetime
 import logging
 import sys
 from pathlib import Path
 
 import tools.errorhelper as eh
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_line_result, make_default_params
+from arangodb.async_client import (
+    ArangoCLIprogressiveTimeoutExecutor,
+    default_line_result,
+    make_default_params,
+    CliExecutionException)
 from reporting.reporting_utils import step
 
 ON_POSIX = "posix" in sys.builtin_module_names
@@ -302,18 +307,22 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             (cwd / "tests").mkdir()
         except FileExistsError:
             pass
-        ret = self.run_script_monitored(
-            cmd=[
-                "setting up test data",
-                self.cfg.test_data_dir.resolve() / "run_in_arangosh.js",
-            ],
-            args=[testname] + args + ["--args"] + moreargs,
-            progressive_timeout=progressive_timeout,
-            result_line_handler=result_line_handler,
-            process_control=True,
-            verbose=self.cfg.verbose,
-            deadline=deadline,
-        )
+        try:
+            ret = self.run_script_monitored(
+                cmd=[
+                    "setting up test data",
+                    self.cfg.test_data_dir.resolve() / "run_in_arangosh.js",
+                ],
+                args=[testname] + args + ["--args"] + moreargs,
+                progressive_timeout=progressive_timeout,
+                result_line_handler=result_line_handler,
+                process_control=True,
+                verbose=self.cfg.verbose,
+                deadline=deadline,
+            )
+        except CliExecutionException as ex:
+            print(f"{datetime.now()}execution of {testname} failed. Its output was: \n{ex.message}")
+            raise ex
         return ret
 
     @step
