@@ -234,11 +234,12 @@ Supported Parameters:
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where we will download the nsis .exe / deb / rpm [/ dmg WIP] to
- - `--source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:[stage2|stage2-rta]]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+   - `stage2-rta` will download the packages from the pre-release site not intended for the average user.
  - `--httpuser` username for stage http access
  - `--httppassvoid` secret for stage http access
  - `--verbose` if specified more logging is done
@@ -294,12 +295,13 @@ Supported Parameters:
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:[stage2|stage2-rta]]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+   - `stage2-rta` will download the packages from the pre-release site not intended for the average user.
  - `--httpuser` username for stage http access
  - `--httppassvoid` secret for stage http access
  - `--force` overwrite readily existing downloaded packages
@@ -362,12 +364,13 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--[other-]source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--[other]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:[stage2|stage2-rta]]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+   - `stage2-rta` will download the packages from the pre-release site not intended for the average user.
  - `--httpuser` username for stage http access
  - `--httppassvoid` secret for stage http access
  - `--force` overwrite readily existing downloaded packages
@@ -431,12 +434,13 @@ Supported Parameters:
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
- - `--[other-]source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:stage2]`
+ - `--[other]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:[stage2|stage2-rta]]`
    - `nightlypublic` will download the packages from the nightly builds at downloads.arangodb.com
    - `local` no packages will be downloaded at all, but rather are expected to be found in `package-dir`.
    - `public` (default) will download the packages from downloads.arangodb.com
    - `stage1` will download the files from the staging fileserver - level 1 - ftp: internal http external requires credentials
    - `stage2` will download the files from the staging fileserver - level 2 - ftp: internal http external requires credentials
+   - `stage2-rta` will download the packages from the pre-release site not intended for the average user.
  - `--httpuser` username for stage http access
  - `--httppassvoid` secret for stage http access
  - `--force` overwrite readily existing downloaded packages

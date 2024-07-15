@@ -386,7 +386,7 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = ["ftp:stage1", "ftp:stage2", "nightlypublic", "public", "local"]
+    download_sources = ["ftp:stage1", "ftp:stage2", "http:stage2", "http:stage2-rta", "nightlypublic", "public", "local"]
 
     def inner_func(function):
         default_local_httpuser = get_default_value("RTA_LOCAL_HTTPUSER", "", "")

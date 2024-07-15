@@ -104,6 +104,8 @@ class Download:
             # dns split horizon...
             if source in ["ftp:stage1", "ftp:stage2"]:
                 self.remote_host = "nas01.arangodb.biz"
+            elif source in ["http:stage2-rta"]:
+                self.remote_host = "storage.googleapis.com"
             elif source in ["http:stage2"]:
                 self.remote_host = "download.arangodb.com"
             else:
@@ -191,6 +193,9 @@ class Download:
             "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
+            "http:stage2-rta": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
+                **self.params
+            ),
             "http:stage2": "stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
@@ -208,6 +213,7 @@ class Download:
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
+            "http:stage2-rta": self.acquire_live_rta,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
             "local": self.acquire_local,
@@ -244,7 +250,7 @@ class Download:
             print(f"directory listing: {ftp.retrlines('LIST')}")
             print(f"deleting {out}")
             out.unlink()
-            raise(ex)
+            raise ex
     def acquire_stage_http(self, directory, package, local_dir, force, stage):
         """download one file via http"""
         url = "https://{user}:{passvoid}@{remote_host}:8529/{dir}{pkg}".format(
@@ -298,10 +304,23 @@ class Download:
     def acquire_live(self, directory, package, local_dir, force):
         """download live files via http"""
         print("live")
-        url = "https://{remote_host}/{dir}{pkg}".format(
-            **{"remote_host": self.remote_host, "dir": directory, "pkg": package}
+        url = "https://{remote_host}{dir}{pkg}".format(
+            **{"remote_host": self.remote_host,
+               "dir": directory.replace('//','/').replace('//', '/'),
+               "pkg": package}
         )
+        self._acquire_live(url, package, local_dir, force)
 
+    def acquire_live_rta(self, directory, package, local_dir, force):
+        """download live files via http"""
+        url = "https://{remote_host}/gcr-for-rta{dir}{pkg}".format(
+            **{"remote_host": self.remote_host,
+               "dir": directory.replace('//','/').replace('//', '/'),
+               "pkg": package}
+        )
+        self._acquire_live(url, package, local_dir, force)
+
+    def _acquire_live(self, url, package, local_dir, force):
         out = local_dir / package
         exists = out.exists()
         if exists and not force:
