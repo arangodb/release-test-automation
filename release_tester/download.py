@@ -304,7 +304,7 @@ class Download:
     def acquire_live(self, directory, package, local_dir, force):
         """download live files via http"""
         print("live")
-        url = "https://{remote_host}{dir}{pkg}".format(
+        url = "https://{remote_host}/{dir}{pkg}".format(
             **{"remote_host": self.remote_host,
                "dir": directory.replace('//','/').replace('//', '/'),
                "pkg": package}
