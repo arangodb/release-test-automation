@@ -9,6 +9,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 from selenium_ui_test.pages.base_page import BasePage
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 
 # can't circumvent long lines..
 # pylint: disable=line-too-long
@@ -50,19 +51,31 @@ class LoginPage(BasePage):
                     break
         return True
 
-    def _login_fill_username(self, user):
-        """fill in the username column"""
-        logname = WebDriverWait(self.webdriver, 10).until(
-            EC.element_to_be_clickable((By.ID, "loginUsername")),
-            message="UI-Test: loginUsername didn't become clickeable on time. 10s",
-        )
-        logname.click()
-        logname.clear()
-        logname.send_keys(user)
-        if logname is None:
-            self.progress("locator loginUsername has not found.")
-            return False
-        return True
+    def _login_fill_username(self, user, max_retries=3):
+        """Fill in the username column with improved resilience."""
+        for attempt in range(max_retries):
+            try:
+                self.webdriver.refresh()
+                logname = self.locator_finder_by_id("loginUsername", 10, 2)
+
+                logname.click()
+                logname.clear()
+                logname.send_keys(user)
+                
+                # Verify if the input was successful
+                if logname.get_attribute("value") == user:
+                    return True
+                else:
+                    self.progress(f"Attempt {attempt + 1}: Username not set correctly, retrying...")
+            except (TimeoutException, NoSuchElementException, ElementNotInteractableException) as e:
+                self.progress(f"Attempt {attempt + 1}: Exception occurred - {e}, retrying...")
+            
+            # Wait a bit before retrying
+            time.sleep(2)
+        
+        # If all attempts fail
+        self.progress("Failed to fill in the username after multiple attempts.")
+        return False
 
     def _login_fill_passvoid(self, passvoid):
         """fill the passvoid and click login"""
