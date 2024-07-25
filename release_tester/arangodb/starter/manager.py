@@ -45,6 +45,7 @@ from reporting.reporting_utils import attach_table, step, attach_http_request_to
 
 IS_WINDOWS = sys.platform == "win32"
 
+
 # pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
     """manages one starter instance"""
@@ -75,7 +76,7 @@ class StarterManager:
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
-        #if not IS_WINDOWS:
+        # if not IS_WINDOWS:
         #   self.moreopts += ["--args.all.log.level=maintenance=trace"]
         #  self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
         # self.moreopts += ["--args.all.log.level=startup=trace"]
@@ -331,7 +332,7 @@ class StarterManager:
     def cleanup_hotbackup_in_instance(self):
         """remove hotbackup from the database directory"""
         for instance in self.all_instances:
-            # pylint: disable=broad-exception-caught
+            # pylint: disable=broad-except
             try:
                 instance.clean_hotbackup()
             except Exception as ex:
@@ -538,7 +539,7 @@ class StarterManager:
         print("dont know port")
 
     @step
-    def wait_for_upgrade_done_in_log(self, timeout=120):
+    def wait_for_upgrade_done_in_starter_log(self, timeout=120):
         """in single server mode the 'upgrade' commander exits before
         the actual upgrade is finished. Hence we need to look into
         the logfile of the managing starter if it thinks its finished.
@@ -862,7 +863,7 @@ class StarterManager:
             args.extend(moreargs)
 
         logging.info("StarterManager: respawning instance %s", str(args))
-        lh.log_cmd(str(args))
+        lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         self.pid = self.instance.pid
         self.ppid = self.instance.ppid()

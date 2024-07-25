@@ -303,9 +303,7 @@ process.exit(0);
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.command_upgrade()
             node.wait_for_upgrade()
-            node.wait_for_upgrade_done_in_log()
-
-        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.wait_for_upgrade_done_in_starter_log()
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:

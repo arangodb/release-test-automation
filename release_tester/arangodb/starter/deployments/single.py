@@ -122,7 +122,7 @@ class Single(Runner):
         self.starter_instance.replace_binary_for_upgrade(self.new_installer.cfg)
         self.starter_instance.command_upgrade()
         self.starter_instance.wait_for_upgrade()
-        self.starter_instance.wait_for_upgrade_done_in_log()
+        self.starter_instance.wait_for_upgrade_done_in_starter_log()
 
         self.starter_instance.detect_instances()
         self.starter_instance.wait_for_version_reply()
