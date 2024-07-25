@@ -17,12 +17,14 @@ from common_options import (
     download_options,
     full_common_options,
     hotbackup_options,
-    matrix_options, ui_test_suite_filtering_options,
+    matrix_options,
+    ui_test_suite_filtering_options,
 )
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -118,12 +120,17 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
-            results.append([{'messages': [str(packages[primary_version][props.directory_suffix].cfg.version)],
-                             'testrun name': '',
-                             'progress': '',
-                             'success': True,
-                             'testrun name': '',
-                             'testscenario': ''}]);
+            results.append(
+                [
+                    {
+                        "messages": [str(packages[primary_version][props.directory_suffix].cfg.version)],
+                        "testrun name": "",
+                        "progress": "",
+                        "success": True,
+                        "testscenario": "",
+                    }
+                ]
+            )
             results.append(
                 test_driver.run_test(
                     "all",
@@ -152,12 +159,17 @@ def upgrade_package_test(
             test_driver.run_cleanup(props)
             test_driver.reset_test_data_dir(this_test_dir)
             print("Cleanup done")
-            results.append([{'messages': [f"{str(scenario[0])} => {scenario[1]}"],
-                             'testrun name': '',
-                             'progress': '',
-                             'success': True,
-                             'testrun name': '',
-                             'testscenario': ''}]);
+            results.append(
+                [
+                    {
+                        "messages": [" => ".join([str(ver) for ver in scenario])],
+                        "testrun name": "",
+                        "progress": "",
+                        "success": True,
+                        "testscenario": "",
+                    }
+                ]
+            )
             results.append(test_driver.run_upgrade(scenario, props))
 
     upgrade_pairs = []

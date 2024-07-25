@@ -293,6 +293,7 @@ class Runner(ABC):
             )
             self.force_one_shard = False
             self.create_oneshard_db = False
+            self.upgrade_counter = 0
 
     def get_versions_concerned(self):
         """get all versions that will be worked on"""
@@ -431,9 +432,11 @@ class Runner(ABC):
                     self.create_non_backup_data()
                 self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
+                self.upgrade_counter += 1
                 self.progress(
                     False,
-                    "UPGRADE OF DEPLOYMENT {0}".format(str(self.name)),
+                    f"UPGRADE OF DEPLOYMENT {str(self.name)} #{str(self.upgrade_counter)}: "
+                    f"from {str(self.old_installer.cfg.version)} to {str(self.new_installer.cfg.version)}.",
                 )
                 self.new_installer.calculate_package_names()
                 try:
