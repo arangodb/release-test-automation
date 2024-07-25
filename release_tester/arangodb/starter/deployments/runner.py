@@ -1055,6 +1055,14 @@ class Runner(ABC):
             ver,
             build_number,
         )
+        # keep binaries in a separate directory
+        arangod_dir = self.cfg.base_test_dir / 'arangods'
+        for installer_set in self.installers:
+            installer_set[1].get_arangod_binary(arangod_dir)
+        arangod_archive = shutil.make_archive(f"{filename}_arangod", "7zip", self.cfg.base_test_dir, self.basedir)
+        attach.file(arangod_archive, "binary dir archive", "application/x-7z-compressed", "7z")
+        shutil.rmtree(arangod_dir)
+
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
             if self.hot_backup:
@@ -1074,8 +1082,6 @@ class Runner(ABC):
                     print(f"copying {str(logfile)}* => {str(targetfile)} so it can be in the report")
                     for path in self.cfg.log_dir.glob("arangod.log*"):
                         shutil.copyfile(path, self.cfg.base_test_dir / self.basedir / path.name)
-            for installer_set in self.installers:
-                installer_set[1].get_arangod_binary(self.cfg.base_test_dir / self.basedir)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
