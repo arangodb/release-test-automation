@@ -11,6 +11,7 @@ from allure_commons.types import AttachmentType
 
 class StdOutHandler(StreamHandler):
     """stdout handler adapter"""
+
     # pylint: disable=super-init-not-called disable=non-parent-init-called
     def __init__(self):
         Handler.__init__(self)
@@ -73,7 +74,7 @@ def configure_logging(verbose):
     for handler in logger.handlers:
         logger.removeHandler(handler)
     handler = StdOutHandler()
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s')
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -90,8 +91,12 @@ def line(sym="-", length=get_term_width()):
 
 def log_cmd(cmd, print_cmd=True):
     """log string"""
-    if not isinstance(cmd, str):
+    if isinstance(cmd, str):
+        pass
+    elif isinstance(cmd, list):
         cmd = str(" ".join([str(x) for x in cmd]))
+    else:
+        cmd = str(cmd)
     attach(cmd, "Command", attachment_type=AttachmentType.TEXT)
     if print_cmd:
         line("<")
