@@ -312,21 +312,19 @@ process.exit(0);
     @step
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
-        self.progress(True, "step 1 - shut down instances")
+        self.progress(True, "shut down instances")
         instances = [self.leader_starter_instance, self.follower_starter_instance]
         for node in instances:
             node.replace_binary_setup_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
-        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in instances:
-            print("launch")
+            self.progress(True, f"launch instances with the upgrade options set ({node.name})")
             node.manually_launch_instances(
                 [InstanceType.SINGLE],
                 ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
             )
-        self.progress(True, "step 3 - launch instances again")
-        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
-        for node in instances:
+            self.progress(True, f"launch instances again ({node.name})")
             node.respawn_instance(version)
             node.detect_instances()
             node.detect_instance_pids()
