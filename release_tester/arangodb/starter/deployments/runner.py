@@ -1060,6 +1060,7 @@ class Runner(ABC):
         )
         # keep binaries in a separate directory
         arangod_dir = self.cfg.base_test_dir / 'arangods'
+        arangod_dir.mkdir(parents=True)
         for installer_set in self.installers:
             installer_set[1].get_arangod_binary(arangod_dir)
         arangod_archive = shutil.make_archive(f"{filename}_arangod", "7zip", self.cfg.base_test_dir, self.basedir)
