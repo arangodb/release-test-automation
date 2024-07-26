@@ -527,7 +527,7 @@ class StarterManager:
         """wait for our instance to bind its TCP-ports"""
         if self.starter_port is not None:
             count = 0
-            while count < 10:
+            while count < 20:
                 for socket in self.instance.connections():
                     if socket.status == "LISTEN" and socket.laddr.port == self.starter_port:
                         print("socket found!")
