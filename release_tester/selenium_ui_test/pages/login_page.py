@@ -101,65 +101,66 @@ class LoginPage(BasePage):
         select.select_by_visible_text(database_name)
         return True
     
-    def login_webif(self, user, passvoid, database="_system", recurse=0):
+    def login_webif(self, user, passvoid, database="_system"):
         """Log into an ArangoDB web interface."""
         self.tprint(f"Logging {user} into {database} with passvoid {passvoid}")
-        
-        max_retries = 10
-        if recurse > max_retries:
-            raise Exception("UI-Test: 10 unsuccessful login attempts")
-        
-        try:
-            self._login_wait_for_screen()
-        except Exception as e:
-            self.tprint(f"Error waiting for login screen: {e}")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        try:
-            if not self._login_fill_username(user):
-                self.tprint(f"Failed to fill username: {user}")
-                return self.login_webif(user, passvoid, database, recurse + 1)
-        except Exception as e:
-            self.tprint(f"Error filling username: {e}")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        try:
-            if not self._login_fill_passvoid(passvoid):
-                self.tprint(f"Failed to fill password for user: {user}")
-                return self.login_webif(user, passvoid, database, recurse + 1)
-        except Exception as e:
-            self.tprint(f"Error filling password: {e}")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        try:
-            if not self._login_choose_database(database):
-                self.tprint(f"Failed to choose database: {database}")
-                return self.login_webif(user, passvoid, database, recurse + 1)
-        except Exception as e:
-            self.tprint(f"Error choosing database: {e}")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        try:
-            self.locator_finder_by_id(self.select_db_btn_id).click()
-        except Exception as e:
-            self.tprint(f"Error clicking select database button: {e}")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        self.progress("We're in!")
-        
-        try:
-            self.wait_for_ajax()
-        except Exception as e:
-            self.tprint(f"Error waiting for AJAX: {e}")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        if "No results found." in self.webdriver.page_source:
-            self.tprint("Login failed: No results found.")
-            return self.login_webif(user, passvoid, database, recurse + 1)
-        
-        self.tprint("Login successful!")
-        return True
 
+        max_retries = 10
+        for attempt in range(1, max_retries + 1):
+            self.tprint(f"Attempt {attempt} of {max_retries}")
+
+            try:
+                self._login_wait_for_screen()
+            except Exception as e:
+                self.tprint(f"Error waiting for login screen: {e}")
+                continue
+            
+            try:
+                if not self._login_fill_username(user):
+                    self.tprint(f"Failed to fill username: {user}")
+                    continue
+            except Exception as e:
+                self.tprint(f"Error filling username: {e}")
+                continue
+            
+            try:
+                if not self._login_fill_passvoid(passvoid):
+                    self.tprint(f"Failed to fill password for user: {user}")
+                    continue
+            except Exception as e:
+                self.tprint(f"Error filling password: {e}")
+                continue
+            
+            try:
+                if not self._login_choose_database(database):
+                    self.tprint(f"Failed to choose database: {database}")
+                    continue
+            except Exception as e:
+                self.tprint(f"Error choosing database: {e}")
+                continue
+            
+            try:
+                self.locator_finder_by_id(self.select_db_btn_id).click()
+            except Exception as e:
+                self.tprint(f"Error clicking select database button: {e}")
+                continue
+            
+            self.progress("We're in!")
+            
+            try:
+                self.wait_for_ajax()
+            except Exception as e:
+                self.tprint(f"Error waiting for AJAX: {e}")
+                continue
+            
+            if "No results found." in self.webdriver.page_source:
+                self.tprint("Login failed: No results found.")
+                continue
+            
+            self.tprint("Login successful!")
+            return True
+
+        raise Exception("UI-Test: 10 unsuccessful login attempts")
 
     def log_out(self):
         """click log out icon on the user bar and wait for"""
