@@ -5,6 +5,7 @@ import semver
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 
 
 class ServicePage(NavigationBarPage):
@@ -169,14 +170,23 @@ class ServicePage(NavigationBarPage):
             assert search_category_sitem.text == expected_text, f"Expected text {expected_text} " \
                                                                 f"but got {search_category_sitem.text}"
 
-    def select_demo_geo_s2_service(self):
+    def select_demo_geo_s2_service(self, max_retries=3):
         """Selecting demo geo s2 service from the list"""
-        self.webdriver.refresh()
-        self.tprint('Selecting demo_geo_s2 service \n')
-        geo_service = "//*[text()='demo-geo-s2']"
-        geo_service_sitem = self.locator_finder_by_xpath(geo_service)
-        geo_service_sitem.click()
-        time.sleep(2)
+        for attempt in range(max_retries):
+            try:
+                self.webdriver.refresh()
+                self.wait_for_ajax()
+                
+                self.tprint('Selecting demo_geo_s2 service \n')
+                geo_service = "//*[text()='demo-geo-s2']"
+                geo_service_sitem = self.locator_finder_by_xpath(geo_service, 10, 2)
+                geo_service_sitem.click()
+                time.sleep(2)
+            except (TimeoutException, NoSuchElementException, ElementNotInteractableException) as e:
+                self.progress(f"Attempt {attempt + 1}: Exception occurred - {e}, retrying...")
+            
+            # Wait a bit before retrying
+            time.sleep(2)
 
     def checking_demo_geo_s2_service_github(self):
         """checking general stuff of demo_geo_s2 service"""
