@@ -510,6 +510,7 @@ class Instance(ABC):
         pass
 
     def clone_to_registry(self):
+        """ persist a self copy to the history of ever launched arangods """
         INSTANCE_REGISTRY.append(self.get_essentials())
 
 class ArangodInstance(Instance):
@@ -744,10 +745,11 @@ class ArangodInstance(Instance):
             print(str(logfile))
             with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
-                    if fatal_line is not None:
-                        fatal_line += "\n" + line
-                    elif "] FATAL [" in line:
-                        fatal_line = line
+                    if "] FATAL [" in line or '{crash}' in line:
+                        if fatal_line is not None:
+                            fatal_line += "\n" + line
+                        else:
+                            fatal_line = line
 
         if fatal_line is not None:
             print("Error: ", fatal_line)

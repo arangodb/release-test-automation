@@ -99,7 +99,7 @@ class SyncManager(ArangoCLIprogressiveTimeoutExecutor):
         if more_args is not None:
             args.extend(more_args)
         if is_higher_version(self.version, semver.VersionInfo.parse("2.18.0")):
-            args = args + [f"--timeout={round(deadline*0.95)}s"]
+            args = args + [f"--timeout={round(deadline*0.9)}s"]
         logging.info("SyncManager: stopping sync: %s", str(args))
         params = make_default_params(True)
         ret = self.run_monitored(

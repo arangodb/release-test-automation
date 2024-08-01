@@ -1063,7 +1063,7 @@ class Runner(ABC):
         arangod_dir.mkdir(parents=True)
         for installer_set in self.installers:
             installer_set[1].get_arangod_binary(arangod_dir)
-        arangod_archive = shutil.make_archive(f"{filename}_arangod", "7zip", arangod_dir, self.cfg.base_test_dir)
+        arangod_archive = shutil.make_archive(f"{filename}_arangod", "7zip", self.cfg.base_test_dir,  'arangods')
         attach.file(arangod_archive, "binary dir archive", "application/x-7z-compressed", "7z")
         shutil.rmtree(arangod_dir)
 
