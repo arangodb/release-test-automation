@@ -643,7 +643,7 @@ class Dc2Dc(Runner):
     def jam_attempt_impl(self):
         """stress the DC2DC, test edge cases"""
         self.progress(True, "stopping sync")
-        self._stop_sync(240)
+        self._stop_sync(300)
         self.progress(True, "creating volatile data on secondary DC")
         self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data("_DC2")
         for db_name, one_shard, count_offset in self.makedata_databases():
