@@ -62,8 +62,8 @@ def detect_file_ulimit():
 
 def detect_locale():
     """check that system locale is set correctly"""
-    if sys.platform != "linux":
-        return
+    # if sys.platform != "linux":
+    return
 
     locale_env = {
         "LANG": r"en_US(|:.*)",
