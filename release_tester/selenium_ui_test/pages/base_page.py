@@ -37,7 +37,9 @@ from reporting.reporting_utils import step
 class BasePage:
     """Base class for page objects"""
 
+    # Initialize the webdriver and a list to collect performance metrics
     driver: WebDriver
+    collected_metrics = []
 
     def __init__(self, webdriver, cfg, video_start_time):
         """base initialization"""
@@ -124,6 +126,66 @@ class BasePage:
             wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
         except TimeoutException:
             pass
+
+    def get_performance_metrics(self, driver):
+        """Execute JavaScript to get performance data"""
+        navigation_timing = driver.execute_script("return window.performance.timing")
+
+        # Calculate performance metrics
+        metrics = {
+            'load_time': navigation_timing['loadEventEnd'] - navigation_timing['navigationStart'],
+            'dom_content_loaded': navigation_timing['domContentLoadedEventEnd'] - navigation_timing['navigationStart'],
+            'response_time': navigation_timing['responseEnd'] - navigation_timing['requestStart'],
+            'connect_time': navigation_timing['connectEnd'] - navigation_timing['connectStart'],
+            'dom_interactive': navigation_timing['domInteractive'] - navigation_timing['navigationStart'],
+        }
+
+        return metrics
+
+    def evaluate_performance_metrics(self, metrics):
+        """Evaluate performance metrics against thresholds in milliseconds"""
+        thresholds = {
+            'load_time': 2000,
+            'dom_content_loaded': 1000,
+            'response_time': 200,
+            'connect_time': 100,
+            'dom_interactive': 1000
+        }
+
+        evaluations = {}
+        for key, threshold in thresholds.items():
+            value = metrics.get(key, None)
+            if value is None:
+                evaluations[key] = 'Metric not available'
+            else:
+                evaluations[key] = 'Good' if value < threshold else 'Poor'
+        
+        return evaluations
+
+    def aggregate_metrics(self):
+        """Aggregate collected metrics and return average values"""
+        if not self.collected_metrics:
+            return {}
+
+        # Initialize an empty dictionary to store aggregated metrics
+        aggregated_metrics = {}
+        # Iterate over each key (metric name) in the first collected metrics dictionary
+        for key in self.collected_metrics[0]:
+            # Calculate the average value for each metric
+            aggregated_metrics[key] = sum(metrics[key] for metrics in self.collected_metrics) / len(self.collected_metrics)
+        
+        # Return the dictionary containing aggregated (average) metrics
+        return aggregated_metrics
+
+    def print_combined_performance_results(self):
+        """Print combined performance results after all tests"""
+        # Aggregate the collected metrics
+        aggregated_metrics = self.aggregate_metrics()
+        # Evaluate the aggregated metrics
+        aggregated_evaluations = self.evaluate_performance_metrics(aggregated_metrics)
+        # Print the combined performance results
+        self.tprint(f"Combined performance metrics: {aggregated_metrics}")
+        self.tprint(f"Combined performance results: {aggregated_evaluations}")
 
     def clear_all_text(self, locator=None):
         """This method will select all text and clean it"""
@@ -336,14 +398,35 @@ class BasePage:
             raise Exception(locator_name, " locator was not found.")
         return self.locator
 
-    def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
+    def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False):
         """This method finds locators by their ID using Fluent Wait with retry."""
+        if benchmark:
+            # Get performance metrics before finding the locator
+            metrics_before = self.get_performance_metrics(self.webdriver)
+
         for attempt in range(max_retries + 1):
             try:
+                # Attempt to find the locator using WebDriverWait
                 self.locator = WebDriverWait(self.webdriver, timeout, poll_frequency=poll_frequency).until(
                     EC.element_to_be_clickable((BY.ID, locator_name)),
                     message=f"UI-Test: {locator_name} locator was not found.",
                 )
+
+                if benchmark:
+                    # Get performance metrics after finding the locator
+                    metrics_after = self.get_performance_metrics(self.webdriver)
+                    self.collected_metrics.append(metrics_after)
+
+                    # Evaluate and print performance metrics
+                    evaluations_before = self.evaluate_performance_metrics(metrics_before)
+                    evaluations_after = self.evaluate_performance_metrics(metrics_after)
+                    
+                    self.tprint(f"Performance metrics: {metrics_before}")
+                    self.tprint(f"Performance before finding locator {locator_name}: {evaluations_before}")
+
+                    self.tprint(f"Performance metrics: {metrics_after}")
+                    self.tprint(f"Performance after finding locator {locator_name}: {evaluations_after}")
+
                 return self.locator
             except TimeoutException as ex:
                 if expec_fail or attempt == max_retries:
@@ -357,14 +440,32 @@ class BasePage:
 
         raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
 
-    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False):
+
+    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False):
         """This method finds locators by their xpath using Fluent Wait with retry."""
+        if benchmark:
+            metrics_before = self.get_performance_metrics(self.webdriver)
+
         for attempt in range(max_retries + 1):
             try:
                 self.locator = WebDriverWait(self.webdriver, timeout, poll_frequency=poll_frequency).until(
                     EC.element_to_be_clickable((BY.XPATH, locator_name)),
                     message=f"UI-Test: {locator_name} locator was not found.",
                 )
+
+                if benchmark:
+                    metrics_after = self.get_performance_metrics(self.webdriver)
+                    self.collected_metrics.append(metrics_after)
+
+                    evaluations_before = self.evaluate_performance_metrics(metrics_before)
+                    evaluations_after = self.evaluate_performance_metrics(metrics_after)
+                    
+                    self.tprint(f"Performance metrics: {metrics_before}")
+                    self.tprint(f"Performance before finding locator {locator_name}: {evaluations_before}")
+
+                    self.tprint(f"Performance metrics: {metrics_after}")
+                    self.tprint(f"Performance after finding locator {locator_name}: {evaluations_after}")
+
                 return self.locator
             except TimeoutException as ex:
                 if expec_fail or attempt == max_retries:

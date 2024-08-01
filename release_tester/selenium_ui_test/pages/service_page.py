@@ -179,9 +179,11 @@ class ServicePage(NavigationBarPage):
                 
                 self.tprint('Selecting demo_geo_s2 service \n')
                 geo_service = "//*[text()='demo-geo-s2']"
-                geo_service_sitem = self.locator_finder_by_xpath(geo_service, 10, 2)
+                geo_service_sitem = self.locator_finder_by_xpath(geo_service, 10, 2, benchmark=True)
                 geo_service_sitem.click()
                 time.sleep(2)
+                
+                break
             except (TimeoutException, NoSuchElementException, ElementNotInteractableException) as e:
                 self.progress(f"Attempt {attempt + 1}: Exception occurred - {e}, retrying...")
             
@@ -216,7 +218,7 @@ class ServicePage(NavigationBarPage):
 
         self.tprint(f'Selecting service mount point at {mount_path} \n')
         mount_point = "/html//input[@id='new-app-mount']"
-        mount_point_sitem = self.locator_finder_by_xpath(mount_point)
+        mount_point_sitem = self.locator_finder_by_xpath(mount_point, benchmark=True)
         mount_point_sitem.click()
         mount_point_sitem.clear()
         mount_point_sitem.send_keys(mount_path)
@@ -224,7 +226,7 @@ class ServicePage(NavigationBarPage):
         # selecting install button
         self.tprint('Selecting install button \n')
         install_btn = 'modalButton1'
-        install_btn_sitem = self.locator_finder_by_id(install_btn)
+        install_btn_sitem = self.locator_finder_by_id(install_btn, benchmark=True)
         install_btn_sitem.click()
         time.sleep(6)
         self.webdriver.refresh()
@@ -515,10 +517,9 @@ class ServicePage(NavigationBarPage):
         self.navbar_goto("services")
         self.wait_for_ajax()
         self.select_add_service_button()
-
         self.tprint('Selecting graphql service \n')
         graphql = "//*[text()='demo-graphql']"
-        graphql_sitem = self.locator_finder_by_xpath(graphql)
+        graphql_sitem = self.locator_finder_by_xpath(graphql, benchmark=True)
         graphql_sitem.click()
         time.sleep(2)
 
@@ -547,20 +548,20 @@ class ServicePage(NavigationBarPage):
 
         self.tprint('Installing the graphql service started \n')
         install_graphql = 'installService'
-        install_graphql_sitem = self.locator_finder_by_id(install_graphql)
+        install_graphql_sitem = self.locator_finder_by_id(install_graphql, benchmark=True)
         install_graphql_sitem.click()
         time.sleep(3)
 
         self.tprint('Mounting the demo graphql service \n')
         mount_point = "/html//input[@id='new-app-mount']"
-        mount_point_sitem = self.locator_finder_by_xpath(mount_point)
+        mount_point_sitem = self.locator_finder_by_xpath(mount_point, benchmark=True)
         mount_point_sitem.click()
         mount_point_sitem.send_keys(mount_path)
         time.sleep(1)
 
         self.tprint('Install the service \n')
         install_btn = 'modalButton1'
-        install_btn_sitem = self.locator_finder_by_id(install_btn)
+        install_btn_sitem = self.locator_finder_by_id(install_btn, benchmark=True)
         install_btn_sitem.click()
         time.sleep(6)
         
@@ -816,3 +817,5 @@ class ServicePage(NavigationBarPage):
                 self.tprint(f'Info: {service_name} has already been deleted or never created. \n')
             except Exception:
                 raise Exception('Critical Error occurred and need manual inspection!! \n')
+        
+        self.print_combined_performance_results()
