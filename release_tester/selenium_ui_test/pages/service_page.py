@@ -6,6 +6,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 
 
 class ServicePage(NavigationBarPage):
@@ -172,21 +173,46 @@ class ServicePage(NavigationBarPage):
 
     def select_demo_geo_s2_service(self, max_retries=3):
         """Selecting demo geo s2 service from the list"""
+        # XPath expression to locate the 'demo-geo-s2' service
+        geo_service = "//*[text()='demo-geo-s2']"
+        
         for attempt in range(max_retries):
             try:
-                self.webdriver.refresh()
-                self.wait_for_ajax()
+                # Refresh the page only after the first attempt
+                if attempt > 0:
+                    self.webdriver.refresh()
+                    self.wait_for_ajax()
                 
+                # Logging the attempt to select the service
                 self.tprint('Selecting demo_geo_s2 service \n')
-                geo_service = "//*[text()='demo-geo-s2']"
-                geo_service_sitem = self.locator_finder_by_xpath(geo_service, 10, 2)
+                
+                # Finding the service element, with benchmarking on the first attempt
+                geo_service_sitem = self.locator_finder_by_xpath(geo_service, benchmark=(attempt == 0))
+                
+                # Clicking on the located service element
                 geo_service_sitem.click()
+                
+                # Wait briefly to ensure the click action is processed
                 time.sleep(2)
-            except (TimeoutException, NoSuchElementException, ElementNotInteractableException) as e:
-                self.progress(f"Attempt {attempt + 1}: Exception occurred - {e}, retrying...")
+                
+                # Return the element if successfully clicked
+                return geo_service_sitem
+            except TimeoutException as e:
+                # Handle TimeoutException and log progress
+                self.progress(f"Attempt {attempt + 1}: TimeoutException - {e}, retrying...")
+            except NoSuchElementException as e:
+                # Handle NoSuchElementException and log progress
+                self.progress(f"Attempt {attempt + 1}: NoSuchElementException - {e}, retrying...")
+            except ElementNotInteractableException as e:
+                # Handle ElementNotInteractableException and log progress
+                self.progress(f"Attempt {attempt + 1}: ElementNotInteractableException - {e}, retrying...")
             
             # Wait a bit before retrying
             time.sleep(2)
+        
+        # Raise an exception if the element could not be found after the maximum number of attempts
+        raise Exception("Failed to select demo_geo_s2 service after multiple attempts.")
+
 
     def checking_demo_geo_s2_service_github(self):
         """checking general stuff of demo_geo_s2 service"""
@@ -216,7 +242,7 @@ class ServicePage(NavigationBarPage):
 
         self.tprint(f'Selecting service mount point at {mount_path} \n')
         mount_point = "/html//input[@id='new-app-mount']"
-        mount_point_sitem = self.locator_finder_by_xpath(mount_point)
+        mount_point_sitem = self.locator_finder_by_xpath(mount_point, benchmark=True)
         mount_point_sitem.click()
         mount_point_sitem.clear()
         mount_point_sitem.send_keys(mount_path)
@@ -224,7 +250,7 @@ class ServicePage(NavigationBarPage):
         # selecting install button
         self.tprint('Selecting install button \n')
         install_btn = 'modalButton1'
-        install_btn_sitem = self.locator_finder_by_id(install_btn)
+        install_btn_sitem = self.locator_finder_by_id(install_btn, benchmark=True)
         install_btn_sitem.click()
         time.sleep(6)
         self.webdriver.refresh()
@@ -515,10 +541,9 @@ class ServicePage(NavigationBarPage):
         self.navbar_goto("services")
         self.wait_for_ajax()
         self.select_add_service_button()
-
         self.tprint('Selecting graphql service \n')
         graphql = "//*[text()='demo-graphql']"
-        graphql_sitem = self.locator_finder_by_xpath(graphql)
+        graphql_sitem = self.locator_finder_by_xpath(graphql, benchmark=True)
         graphql_sitem.click()
         time.sleep(2)
 
@@ -547,20 +572,20 @@ class ServicePage(NavigationBarPage):
 
         self.tprint('Installing the graphql service started \n')
         install_graphql = 'installService'
-        install_graphql_sitem = self.locator_finder_by_id(install_graphql)
+        install_graphql_sitem = self.locator_finder_by_id(install_graphql, benchmark=True)
         install_graphql_sitem.click()
         time.sleep(3)
 
         self.tprint('Mounting the demo graphql service \n')
         mount_point = "/html//input[@id='new-app-mount']"
-        mount_point_sitem = self.locator_finder_by_xpath(mount_point)
+        mount_point_sitem = self.locator_finder_by_xpath(mount_point, benchmark=True)
         mount_point_sitem.click()
         mount_point_sitem.send_keys(mount_path)
         time.sleep(1)
 
         self.tprint('Install the service \n')
         install_btn = 'modalButton1'
-        install_btn_sitem = self.locator_finder_by_id(install_btn)
+        install_btn_sitem = self.locator_finder_by_id(install_btn, benchmark=True)
         install_btn_sitem.click()
         time.sleep(6)
         
@@ -816,3 +841,5 @@ class ServicePage(NavigationBarPage):
                 self.tprint(f'Info: {service_name} has already been deleted or never created. \n')
             except Exception:
                 raise Exception('Critical Error occurred and need manual inspection!! \n')
+        
+        self.print_combined_performance_results()
