@@ -23,10 +23,10 @@ class ServicePage(NavigationBarPage):
         """selecting new service button"""
         if self.version_is_newer_than("3.11.100"):
             add_new_service = "(//button[normalize-space()='Add service'])[1]"
-            add_new_service_sitem = self.locator_finder_by_xpath(add_new_service)
+            add_new_service_sitem = self.locator_finder_by_xpath(add_new_service, benchmark=True)
         else:
             add_new_service = "addApp"
-            add_new_service_sitem = self.locator_finder_by_id(add_new_service)
+            add_new_service_sitem = self.locator_finder_by_id(add_new_service, benchmark=True)
 
         add_new_service_sitem.click()
         time.sleep(2)
@@ -174,6 +174,8 @@ class ServicePage(NavigationBarPage):
     def select_demo_geo_s2_service(self, max_retries=3):
         """Selecting demo geo s2 service from the list"""
         # XPath expression to locate the 'demo-geo-s2' service
+        self.select_add_service_button()
+        
         geo_service = "//*[text()='demo-geo-s2']"
         
         for attempt in range(max_retries):
@@ -206,10 +208,8 @@ class ServicePage(NavigationBarPage):
             except ElementNotInteractableException as e:
                 # Handle ElementNotInteractableException and log progress
                 self.progress(f"Attempt {attempt + 1}: ElementNotInteractableException - {e}, retrying...")
-            
-            # Wait a bit before retrying
-            time.sleep(2)
-        
+                time.sleep(0.5)
+
         # Raise an exception if the element could not be found after the maximum number of attempts
         raise Exception("Failed to select demo_geo_s2 service after multiple attempts.")
 
@@ -231,7 +231,13 @@ class ServicePage(NavigationBarPage):
 
     def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
+        self.webdriver.refresh()   
         self.wait_for_ajax()
+
+        self.navbar_goto("dashboard") # go to dashboard page
+        self.wait_for_ajax()
+        self.navbar_goto("services") # go to services page
+
         self.select_demo_geo_s2_service()
 
         self.tprint('Installing demo_geo_s2 service \n')
