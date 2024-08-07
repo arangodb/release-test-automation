@@ -234,7 +234,7 @@ class ServicePage(NavigationBarPage):
         self.webdriver.refresh()   
         self.wait_for_ajax()
 
-        self.navbar_goto("dashboard") # go to dashboard page
+        self.navbar_goto("queries") # go to queries page
         self.wait_for_ajax()
         self.navbar_goto("services") # go to services page
 
