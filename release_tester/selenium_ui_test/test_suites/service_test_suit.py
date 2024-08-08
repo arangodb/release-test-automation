@@ -50,6 +50,7 @@ class ServiceTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
+            service.print_combined_performance_results()
             service.delete_service("/geo")
             service.delete_service("/graphql")
             del service

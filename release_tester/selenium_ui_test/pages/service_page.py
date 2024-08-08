@@ -847,5 +847,4 @@ class ServicePage(NavigationBarPage):
                 self.tprint(f'Info: {service_name} has already been deleted or never created. \n')
             except Exception:
                 raise Exception('Critical Error occurred and need manual inspection!! \n')
-        
-        self.print_combined_performance_results()
+
