@@ -178,30 +178,6 @@ class BasePage:
         # Return the dictionary containing aggregated (average) metrics
         return aggregated_metrics
 
-    # def print_combined_performance_results(self):
-    #     """Print combined performance results after all tests"""
-    #     # Aggregate the collected metrics
-    #     aggregated_metrics = self.aggregate_metrics()
-    #     # Evaluate the aggregated metrics
-    #     aggregated_evaluations = self.evaluate_performance_metrics(aggregated_metrics)
-    #     # Print the combined performance results
-    #     self.tprint(f"Combined performance metrics: {aggregated_metrics}")
-    #     self.tprint(f"Combined performance results: {aggregated_evaluations}")
-        
-    #     # Add results to Allure report
-    #     with allure.step("Combined Performance Metrics"):
-    #         allure.attach(
-    #             str(aggregated_metrics),
-    #             name="Combined Performance Metrics",
-    #             attachment_type=allure.attachment_type.TEXT
-    #         )
-    #     with allure.step("Combined Performance Results"):
-    #         allure.attach(
-    #             str(aggregated_evaluations),
-    #             name="Combined Performance Results",
-    #             attachment_type=allure.attachment_type.TEXT
-    #     )
-
     def print_combined_performance_results(self):
         """Print combined performance results after all tests"""
         # Aggregate the collected metrics
