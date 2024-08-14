@@ -676,7 +676,7 @@ class CollectionPage(NavigationBarPage):
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         self.tprint(f"Creating {index_name} index started \n")
-        add_index = '//*[@id="content-react"]/div/div/button'
+        add_index = '//button[text()="Add index"]'
         create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
         create_new_index_btn_sitem.click()
         time.sleep(2)
@@ -1212,7 +1212,7 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
             self.wait_for_ajax()
 
-            delete_final_confirmation = "(//button[@class='chakra-button css-flye6g'])[1]"
+            delete_final_confirmation = '(//button[text()="Delete"])[2]'
             delete_final_confirmation_sitem = self.locator_finder_by_xpath(delete_final_confirmation)
             delete_final_confirmation_sitem.click()
             time.sleep(1)

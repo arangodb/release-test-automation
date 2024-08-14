@@ -252,7 +252,7 @@ class AnalyzerPage(NavigationBarPage):
         self.wait_for_ajax()
 
         if self.version_is_newer_than('3.11.99'):
-            add_new_analyzer_btn = '//*[@id="content-react"]/div/div[1]/span/button'
+            add_new_analyzer_btn = "(//button[normalize-space()='Add analyzer'])[1]"
         else:
             add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
 
@@ -265,9 +265,9 @@ class AnalyzerPage(NavigationBarPage):
         if self.version_is_newer_than('3.11.99'):
             analyzer_name = "(//input[@id='name'])[1]"
             analyzer_type = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
-            frequency = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[1]/span[1]/span'
-            norm = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[2]/span[1]/span'
-            position = '//*[@id="chakra-modal--body-7"]/div/div[2]/div/label[3]/span[1]'
+            frequency = "(//label[normalize-space()='Frequency'])[1]"
+            norm = "(//label[normalize-space()='Norm'])[1]"
+            position = "(//label[normalize-space()='Position'])[1]"
             local_placeholder = "(//input[@id='properties.locale'])[1]"
             case_placeholder = "(//label[normalize-space()='Case'])[1]"
         else:
@@ -387,7 +387,7 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Preserve original value for {name}\n')
             if self.version_is_newer_than('3.11.99'):
-                preserve = "(//span[@class='chakra-switch__thumb css-7roig'])[5]"
+                preserve = '(//label[text()="Preserve Original"])'
             else:
                 preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
 
@@ -468,17 +468,16 @@ class AnalyzerPage(NavigationBarPage):
                 self.locator_finder_by_select_using_xpath(case_placeholder, 1)
 
             self.tprint('Selecting stem for the analyzer \n')
-            if self.version_is_newer_than('3.11.99'):
-                stem = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[5]/div/div/label[2]/span/span'
-            else:
+            # stemming is already toggled in this version 3.12.2 nightly, thus keep it as it is
+            if self.version_is_older_than('3.11.99'):
                 stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
-            stem_sitem = self.locator_finder_by_xpath(stem)
-            stem_sitem.click()
-            time.sleep(2)
+                stem_sitem = self.locator_finder_by_xpath(stem)
+                stem_sitem.click()
+                time.sleep(2)
 
             self.tprint('Selecting accent for the analyzer \n')
             if self.version_is_newer_than('3.11.99'):
-                accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[6]/div/div/label[2]/span/span'
+                accent = '(//label[text()="Accent"])'
             else:
                 accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
             accent_sitem = self.locator_finder_by_xpath(accent)
@@ -501,7 +500,7 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Selecting preserve original for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                preserve = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[9]/div/div/label[2]/span/span'
+                preserve = "(//label[normalize-space()='Preserve Original'])[1]"
             else:
                 preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
             preserve_sitem = self.locator_finder_by_xpath(preserve)
@@ -545,7 +544,7 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Selecting collapse position for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                collapse = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[4]/div/div/label[2]/span/span'
+                collapse = "(//label[normalize-space()='Collapse Positions'])[1]"
             else:
                 collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
             collapse_sitem = self.locator_finder_by_xpath(collapse)
@@ -577,7 +576,7 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "My_Stopwords_Analyzer":
             self.tprint(f'Selecting stopwords for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                stopwords = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div/div[1]/div[1]/div[2]'
+                stopwords = "(//label[normalize-space()='Stopwords'])[1]"
                 stopwords_sitem = self.locator_finder_by_xpath(stopwords)
                 stopwords_sitem.click()
                 self.send_key_action('616e64')
@@ -599,7 +598,7 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Selecting hex value for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                hex_value = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[2]/div/div/label[2]/span/span'
+                hex_value = "(//label[normalize-space()='Hex'])[1]"
             else:
                 hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
             hex_sitem = self.locator_finder_by_xpath(hex_value)
@@ -680,7 +679,7 @@ class AnalyzerPage(NavigationBarPage):
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             self.tprint(f'Selecting add analyzer button for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                add_analyzer01 = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/button'
+                add_analyzer01 = '(//button[text()="Add analyzer"])[2]'
             else:
                 add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
             add_analyzer01_sitem = self.locator_finder_by_xpath(add_analyzer01)
@@ -689,12 +688,12 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Selecting first pipeline analyzer as Norm for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                norm = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div/div/div/div[1]/div[2]'
+                norm = '(//*[text()="Type"])[3]'
                 norm_sitem = self.locator_finder_by_xpath(norm)
                 norm_sitem.click()
 
                 # selecting norm analyzer
-                for _ in range(3):
+                for _ in range(4):
                     self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
                 time.sleep(1)
@@ -707,7 +706,7 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(1)
 
                 # selecting case for norm analyzer
-                case = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div[2]/div/div[2]/div/div/div[1]/div[2]'
+                case = "(//label[normalize-space()='Case'])[1]"
                 case_sitem = self.locator_finder_by_xpath(case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -715,7 +714,7 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(1)
 
                 # selecting accent
-                accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div/div[1]/div[2]/div/div[3]/div/div/label[2]/span/span'
+                accent = "(//label[normalize-space()='Accent'])[1]"
                 accent_sitem = self.locator_finder_by_xpath(accent)
                 accent_sitem.click()
                 time.sleep(1)
@@ -789,7 +788,7 @@ class AnalyzerPage(NavigationBarPage):
         # GeoJson
         elif name == "My_GeoJSON_Analyzer":
             if self.version_is_newer_than('3.11.99'):
-                types = '//*[@id="field-11-label"]'
+                types = '(//*[text()="Type"])[3]'
                 types_sitem = self.locator_finder_by_xpath(types)
                 types_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -896,7 +895,7 @@ class AnalyzerPage(NavigationBarPage):
         elif name == 'My_GeoS2_Analyzer':
             self.tprint("Selecting type of geos2 analyzer")
             if self.version_is_newer_than('3.11.99'):
-                types = "(//label[@id='field-11-label'])[1]"
+                types = '(//*[text()="Type"])[3]'
             else:
                 types = "(//label[normalize-space()='Type'])[1]"
 
@@ -965,10 +964,11 @@ class AnalyzerPage(NavigationBarPage):
         # Minhash
         elif name == 'My_Minhash_Analyzer':
             self.tprint("Selecting type of minhash analyzer")
-            analyzer_type = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[1]/div[1]/div[1]/div/div/div[1]/div[2]'
+            analyzer_type = '(//*[text()="Analyzer type"])[2]'
             analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
             analyzer_type_sitem.click()
             # selecting minhash for delimiter analyzer
+            self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ARROW_DOWN)
             self.send_key_action(Keys.ENTER)
             time.sleep(2)
@@ -1028,13 +1028,13 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint("Selecting delimiter analyzer\n")
-            delimiter = '//*[@id="chakra-modal--body-7"]/div/div[3]/div[2]/div[1]/div[1]/div/div/div[1]/div[2]'
+            delimiter = '(//*[text()="Analyzer type"])[2]'
             delimiter_sitem = self.locator_finder_by_xpath(delimiter)
             delimiter_sitem.click()
             time.sleep(1)
 
             # selecting multi-delimiter analyzer from the drop-down menu
-            for _ in range(15):
+            for _ in range(16):
                 self.send_key_action(Keys.ARROW_DOWN)
 
             self.send_key_action(Keys.ENTER)
@@ -1043,7 +1043,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
 
             self.tprint("Selecting Multi Delimiters \n")
-            delimiter_properties = '//*[@id="chakra-modal--body-7"]/div/div[3]/div[2]/div[2]/div/div/div/div/div[1]/div[1]/div[2]'
+            delimiter_properties = '//*[text()="Delimiters"]'
             delimiter_properties_sitem = self.locator_finder_by_xpath(delimiter_properties)
             delimiter_properties_sitem.click()
 
@@ -1090,7 +1090,7 @@ class AnalyzerPage(NavigationBarPage):
         self.tprint(f'Selecting the create button for the {name} \n')
         if self.version_is_newer_than('3.11.0'):
             if self.version_is_newer_than('3.11.99'):
-                create = '//*[@id="chakra-modal-7"]/form/footer/div/button[2]'
+                create = "(//button[normalize-space()='Create'])[1]"
             else:
                 create = '//*[@id="chakra-modal-2"]/footer/button[2]'
         else:
@@ -1104,7 +1104,7 @@ class AnalyzerPage(NavigationBarPage):
         try:
             self.tprint(f"Checking successful creation of the {name} \n")
             if self.version_is_newer_than('3.11.99'):
-                success_message = "/html/body/div[10]/ul[5]/li/div/div/div/div"
+                success_message = "/html//div[@id='chakra-toast-manager-bottom']"
                 success_message_sitem = self.locator_finder_by_xpath(success_message).text
                 self.tprint(f"Notification: {success_message_sitem}\n")
                 expected_msg = f"The analyzer: {name} was successfully created"
@@ -2421,7 +2421,7 @@ class AnalyzerPage(NavigationBarPage):
                     select_delete_btn_sitem.click()
                     time.sleep(1)
 
-                    delete_confirm_btn = "(//button[@class='chakra-button css-flye6g'])[1]"
+                    delete_confirm_btn = '(//button[text()="Delete"])[2]'
                     delete_confirm_btn_sitem = self.locator_finder_by_xpath(delete_confirm_btn)
                     delete_confirm_btn_sitem.click()
                     time.sleep(1)
