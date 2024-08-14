@@ -265,9 +265,9 @@ class AnalyzerPage(NavigationBarPage):
         if self.version_is_newer_than('3.11.99'):
             analyzer_name = "(//input[@id='name'])[1]"
             analyzer_type = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
-            frequency = "(//span[@class='chakra-switch__track css-1nai6ld'])[1]"
-            norm = "(//span[@class='chakra-switch__track css-1nai6ld'])[2]"
-            position = "(//span[@class='chakra-switch__track css-1nai6ld'])[3]"
+            frequency = "(//label[normalize-space()='Frequency'])[1]"
+            norm = "(//label[normalize-space()='Norm'])[1]"
+            position = "(//label[normalize-space()='Position'])[1]"
             local_placeholder = "(//input[@id='properties.locale'])[1]"
             case_placeholder = "(//label[normalize-space()='Case'])[1]"
         else:
@@ -387,7 +387,7 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Preserve original value for {name}\n')
             if self.version_is_newer_than('3.11.99'):
-                preserve = "(//span[@class='chakra-switch__thumb css-7roig'])[5]"
+                preserve = '(//label[text()="Preserve Original"])'
             else:
                 preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
 
@@ -477,7 +477,7 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint('Selecting accent for the analyzer \n')
             if self.version_is_newer_than('3.11.99'):
-                accent = "(//span[@class='chakra-switch__track css-1nai6ld'])[6]"
+                accent = '(//label[text()="Accent"])'
             else:
                 accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
             accent_sitem = self.locator_finder_by_xpath(accent)
@@ -679,7 +679,7 @@ class AnalyzerPage(NavigationBarPage):
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             self.tprint(f'Selecting add analyzer button for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                add_analyzer01 = "(//button[@class='chakra-button css-oni4cz'])[1]"
+                add_analyzer01 = '(//button[text()="Add analyzer"])[2]'
             else:
                 add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
             add_analyzer01_sitem = self.locator_finder_by_xpath(add_analyzer01)
@@ -688,12 +688,12 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Selecting first pipeline analyzer as Norm for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                norm = "(//div[contains(@class,'css-nmh171')])[3]"
+                norm = '(//*[text()="Type"])[3]'
                 norm_sitem = self.locator_finder_by_xpath(norm)
                 norm_sitem.click()
 
                 # selecting norm analyzer
-                for _ in range(3):
+                for _ in range(4):
                     self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
                 time.sleep(1)
