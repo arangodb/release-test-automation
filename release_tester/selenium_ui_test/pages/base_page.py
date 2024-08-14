@@ -178,6 +178,17 @@ class BasePage:
         # Return the dictionary containing aggregated (average) metrics
         return aggregated_metrics
 
+    def get_status_circle(self, value, threshold):
+        """Return HTML for a colored circle based on the value compared to a threshold."""
+        if value is None:
+            return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: gray; border: 1px solid #000;"></span>'
+        elif value < threshold:
+            return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: green; border: 1px solid #000;"></span>'
+        elif value < threshold * 1.5:  # Example: yellow if value is within 1.5 times the threshold
+            return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: yellow; border: 1px solid #000;"></span>'
+        else:
+            return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: red; border: 1px solid #000;"></span>'
+
     def print_combined_performance_results(self):
         """Print combined performance results after all tests"""
         # Aggregate the collected metrics
@@ -189,28 +200,37 @@ class BasePage:
         self.tprint(f"Combined performance metrics: {aggregated_metrics}")
         self.tprint(f"Combined performance results: {aggregated_evaluations}")
         
-        # Format the metrics and evaluations as HTML tables
-        metrics_html = "<h2>Combined Performance Metrics</h2><table border='1'><tr><th>Metric</th><th>Value</th></tr>"
-        for key, value in aggregated_metrics.items():
-            metrics_html += f"<tr><td>{key}</td><td>{value}</td></tr>"
-        metrics_html += "</table>"
-
-        evaluations_html = "<h2>Combined Performance Results</h2><table border='1'><tr><th>Metric</th><th>Result</th></tr>"
-        for key, value in aggregated_evaluations.items():
-            evaluations_html += f"<tr><td>{key}</td><td>{value}</td></tr>"
-        evaluations_html += "</table>"
+        # Format the metrics and evaluations into a single HTML table with centered content
+        combined_html = """
+        <h2>Combined Performance Results</h2>
+        <table border='1' style='border-collapse: collapse; width: 100%; text-align: center;'>
+            <tr>
+                <th style='text-align: center;'>Metric</th>
+                <th style='text-align: center;'>Value</th>
+                <th style='text-align: center;'>Result</th>
+                <th style='text-align: center;'>Status</th>
+            </tr>
+        """
+        
+        for key in aggregated_metrics:
+            value = aggregated_metrics[key]
+            result = aggregated_evaluations.get(key, 'Metric not available')
+            status_circle = self.get_status_circle(value, 2000)  # Example threshold
+            combined_html += f"""
+            <tr>
+                <td>{key}</td>
+                <td>{value}</td>
+                <td>{result}</td>
+                <td>{status_circle}</td>
+            </tr>
+            """
+        
+        combined_html += "</table>"
 
         # Add results to Allure report
-        with allure.step("Combined Performance Metrics"):
-            allure.attach(
-                metrics_html,
-                name="Combined Performance Metrics",
-                attachment_type=allure.attachment_type.HTML
-            )
-        
         with allure.step("Combined Performance Results"):
             allure.attach(
-                evaluations_html,
+                combined_html,
                 name="Combined Performance Results",
                 attachment_type=allure.attachment_type.HTML
             )
