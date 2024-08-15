@@ -99,8 +99,7 @@ class CollectionPage(NavigationBarPage):
         self.select_ttl_expiry_id = "newTtlExpireAfter"
         self.select_ttl_background_id = "newTtlBackground"
 
-        self.select_index_for_delete_id = "/html//table[@id='collectionEditIndexTable']/tbody/tr[2]/th[9]/span[" \
-                                          "@title='Delete index']"
+        self.select_index_for_delete_id = '//*[@id="content-react"]/div/div/div/table/tbody/tr[2]/td[10]/div/button'
         self.select_index_confirm_delete = "indexConfirmDelete"
         self.select_info_tab_id = "//*[@id='subNavigationBarPage']/ul[2]/li[3]/a"
 
@@ -676,7 +675,11 @@ class CollectionPage(NavigationBarPage):
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         self.tprint(f"Creating {index_name} index started \n")
-        add_index = '//button[text()="Add index"]'
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
+            add_index = '//button[text()="Add index"]'
+        else:
+            add_index = '//button[text()="Add Index"]'
+        
         create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
         create_new_index_btn_sitem.click()
         time.sleep(2)
@@ -1212,11 +1215,12 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
             self.wait_for_ajax()
 
-            delete_final_confirmation = '(//button[text()="Delete"])[2]'
-            delete_final_confirmation_sitem = self.locator_finder_by_xpath(delete_final_confirmation)
-            delete_final_confirmation_sitem.click()
-            time.sleep(1)
-            self.wait_for_ajax()
+            if self.current_package_version() > semver.VersionInfo.parse("3.11.99"): 
+                delete_final_confirmation = '(//button[text()="Delete"])[2]'
+                delete_final_confirmation_sitem = self.locator_finder_by_xpath(delete_final_confirmation)
+                delete_final_confirmation_sitem.click()
+                time.sleep(1)
+                self.wait_for_ajax()
 
         except TimeoutException as e:
             try:
