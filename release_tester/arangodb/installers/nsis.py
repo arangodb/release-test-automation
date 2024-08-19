@@ -156,7 +156,7 @@ class InstallerNsis(InstallerWin):
             install.kill()
             raise Exception("Upgrade install failed to complete on time") from exc
 
-        self.service = psutil.win_service_get("ArangoDB")
+        self.get_service()
         while not self.check_service_up():
             logging.info("starting...")
             time.sleep(1)
@@ -210,7 +210,7 @@ class InstallerNsis(InstallerWin):
                 )
             install.kill()
             raise Exception("Installing failed to complete on time") from exc
-        self.service = psutil.win_service_get("ArangoDB")
+        self.get_service()
         while not self.check_service_up():
             logging.info("starting...")
             time.sleep(1)
@@ -269,7 +269,9 @@ class InstallerNsis(InstallerWin):
             return
         # pylint: disable=broad-except
         try:
+            logging.info("getting service")
             self.service = psutil.win_service_get("ArangoDB")
+            logging.info("getting service done")
         except Exception as exc:
             logging.error("failed to get service! - %s", str(exc))
             return
@@ -371,7 +373,6 @@ class InstallerNsis(InstallerWin):
         time.sleep(30 / multiprocessing.cpu_count())
         # pylint: disable=broad-except, disable=unnecessary-pass
         try:
-            logging.info(psutil.win_service_get("ArangoDB"))
             self.get_service()
             if self.service and self.service.status() != "stopped":
                 logging.info("service shouldn't exist anymore!")
