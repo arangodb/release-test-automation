@@ -189,6 +189,7 @@ db.testCollection.save({test: "document"})
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
             ["true"],
+            log_debug=True
         )
         if not retval:
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
@@ -200,21 +201,13 @@ db.testCollection.save({test: "document"})
 
     def after_makedata_check(self):
         lh.subsubsection("wait for all shards to be in sync - test setup")
-        self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ["true"],
-        )
+        self._check_for_shards_in_sync()
 
     def wait_for_restore_impl(self, backup_starter):
         for starter in self.starter_instances:
             for dbserver in starter.get_dbservers():
                 dbserver.detect_restore_restart()
-        self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ["true"],
-        )
+        self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
@@ -242,13 +235,7 @@ db.testCollection.save({test: "document"})
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
         lh.subsubsection("wait for all shards to be in sync - Manual upgrade")
-        retval = self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ["true"],
-        )
-        if not retval:
-            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        self._check_for_shards_in_sync()
         print("all in sync.")
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
@@ -310,13 +297,7 @@ db.testCollection.save({test: "document"})
     def downgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
         lh.subsubsection("wait for all shards to be in sync - downgrade")
-        retval = self.starter_instances[0].arangosh.run_in_arangosh(
-            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
-            [],
-            ["true"],
-        )
-        if not retval:
-            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        self._check_for_shards_in_sync()
         print("all in sync.")
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)

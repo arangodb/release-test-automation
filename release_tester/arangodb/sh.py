@@ -285,6 +285,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         result_line_handler=default_line_result,
         deadline=1000,
         progressive_timeout=100,
+        log_debug=False,
     ):
         """mimic runInArangosh testing.js behaviour"""
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes
@@ -319,6 +320,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 process_control=True,
                 verbose=self.cfg.verbose,
                 deadline=deadline,
+                log_debug=log_debug,
             )
         except CliExecutionException as ex:
             print(f"{datetime.now()}execution of {testname} failed. Its output was: \n{ex.message}")
