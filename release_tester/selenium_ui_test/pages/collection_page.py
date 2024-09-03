@@ -143,15 +143,13 @@ class CollectionPage(NavigationBarPage):
     def select_collection_page(self):
         """selecting collection tab"""
         self.navbar_goto("collections")
-        # select_collection_page_sitem = self.locator_finder_by_id(self.select_collection_page_id)
-        # select_collection_page_sitem.click()
         self.webdriver.refresh()
         self.wait_for_ajax()
         time.sleep(1)
 
     def select_create_collection(self):
         """Clicking on create new collection box"""
-        select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id)
+        select_create_collection_sitem = self.locator_finder_by_id(self.select_create_collection_id, benchmark=True)
         select_create_collection_sitem.click()
         time.sleep(1)
 
@@ -209,10 +207,10 @@ class CollectionPage(NavigationBarPage):
 
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             select_create_collection_id = "//*[text()='Add collection']"
-            select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id)
+            select_create_collection_sitem = self.locator_finder_by_xpath(select_create_collection_id, benchmark=True)
         else:
             select_create_collection_id = "createCollection"
-            select_create_collection_sitem = self.locator_finder_by_id(select_create_collection_id)
+            select_create_collection_sitem = self.locator_finder_by_id(select_create_collection_id, benchmark=True)
 
         select_create_collection_sitem.click()
         time.sleep(1)
@@ -432,7 +430,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_collection_settings(self):
         """selecting collection settings icon"""
-        select_collection_settings_sitem = self.locator_finder_by_id(self.select_collection_settings_id)
+        select_collection_settings_sitem = self.locator_finder_by_id(self.select_collection_settings_id, benchmark=True)
         select_collection_settings_sitem.click()
         time.sleep(2)
 
@@ -456,7 +454,7 @@ class CollectionPage(NavigationBarPage):
 
     def select_status_loaded(self):
         """Displaying status loaded collection"""
-        select_status_loaded_sitem = self.locator_finder_by_xpath(self.select_status_loaded_id)
+        select_status_loaded_sitem = self.locator_finder_by_xpath(self.select_status_loaded_id, benchmark=True)
         select_status_loaded_sitem.click()
         time.sleep(2)
 
@@ -666,12 +664,6 @@ class CollectionPage(NavigationBarPage):
         # Perform a click action
         actions.click().perform()
 
-    # def select_testdoc_collection(self):
-    #     self.tprint('Selecting TestDoc Collection \n')
-    #     select_doc_collection_sitem = self.locator_finder_by_xpath(self.select_doc_collection_id)
-    #     select_doc_collection_sitem.click()
-    #     time.sleep(1)
-
     def create_index(self, index_name):
         """This method will create indexes for >= v3.11.0"""
         self.tprint(f"Creating {index_name} index started \n")
@@ -689,7 +681,7 @@ class CollectionPage(NavigationBarPage):
         if index_name == 'Persistent':
             # selecting persistent index's filed
             persistent_field = "/html//input[@id='fields']"
-            persistent_field_sitem = self.locator_finder_by_xpath(persistent_field)
+            persistent_field_sitem = self.locator_finder_by_xpath(persistent_field, benchmark=True)
             persistent_field_sitem.click()
             persistent_field_sitem.send_keys('name')
 
@@ -725,7 +717,7 @@ class CollectionPage(NavigationBarPage):
             self.select_desired_index_from_the_list('Geo Index')
             # selecting geo index's filed
             geo_field = "/html//input[@id='fields']"
-            geo_field_sitem = self.locator_finder_by_xpath(geo_field)
+            geo_field_sitem = self.locator_finder_by_xpath(geo_field, benchmark=True)
             geo_field_sitem.click()
             geo_field_sitem.send_keys('region')
 
@@ -739,7 +731,7 @@ class CollectionPage(NavigationBarPage):
             self.select_desired_index_from_the_list('Fulltext Index')
             # selecting fullText index's filed
             full_text_field = "/html//input[@id='fields']"
-            full_text_field_sitem = self.locator_finder_by_xpath(full_text_field)
+            full_text_field_sitem = self.locator_finder_by_xpath(full_text_field, benchmark=True)
             full_text_field_sitem.click()
             full_text_field_sitem.send_keys('region')
 
@@ -759,7 +751,7 @@ class CollectionPage(NavigationBarPage):
             self.select_desired_index_from_the_list('TTL Index')
             # selecting ttl index's filed
             ttl_field = "/html//input[@id='fields']"
-            ttl_field_sitem = self.locator_finder_by_xpath(ttl_field)
+            ttl_field_sitem = self.locator_finder_by_xpath(ttl_field, benchmark=True)
             ttl_field_sitem.click()
             ttl_field_sitem.send_keys('region')
 
@@ -783,7 +775,7 @@ class CollectionPage(NavigationBarPage):
             else:
                 fields = "(//div[contains(@class,'css-1d6mnfj')])[2]"
 
-            fields_sitem = self.locator_finder_by_xpath(fields)
+            fields_sitem = self.locator_finder_by_xpath(fields, benchmark=True)
             fields_sitem.click()
             action.send_keys('region').send_keys(Keys.ENTER).send_keys('name').send_keys(Keys.ENTER).perform()
             time.sleep(1)
@@ -1251,9 +1243,9 @@ class CollectionPage(NavigationBarPage):
         if self.current_package_version() >= semver.VersionInfo.parse("3.8.0"):
             if self.current_package_version() >= semver.VersionInfo.parse("3.9.100"):
                 schema = '//*[@id="subNavigationBar"]/ul[2]/li[6]/a'
-                select_schema_tab_sitem = self.locator_finder_by_xpath(schema)
+                select_schema_tab_sitem = self.locator_finder_by_xpath(schema, benchmark=True)
             else:
-                select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id)
+                select_schema_tab_sitem = self.locator_finder_by_xpath(self.select_schema_tab_id, benchmark=True)
             select_schema_tab_sitem.click()
             time.sleep(2)
         else:

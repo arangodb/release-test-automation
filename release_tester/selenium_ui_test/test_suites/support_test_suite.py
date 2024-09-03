@@ -37,5 +37,6 @@ class SupportTestSuite(BaseSeleniumTestSuite):
         # self.tprint("Checking Rest API tab \n")
         # # support.rest_api()
 
+        support.print_combined_performance_results()
         del support
         self.tprint("---------Checking Support page completed--------- \n")

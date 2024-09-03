@@ -206,7 +206,7 @@ class GraphPage(NavigationBarPage):
         self.tprint(f"selecting {graph_name} \n")
 
         select_graph = "//*[text()='Add graph']"
-        select_graph = self.locator_finder_by_xpath(select_graph)
+        select_graph = self.locator_finder_by_xpath(select_graph, benchmark=True)
         select_graph.click()
         time.sleep(1)
         # Selecting example graph button
@@ -271,7 +271,7 @@ class GraphPage(NavigationBarPage):
         if graph_name == "Knows Graph":
             self.wait_for_ajax()
             knows_collection = '//*[@id="collection_knows"]/div/h5'
-            knows_collection_sitem = self.locator_finder_by_xpath(knows_collection)
+            knows_collection_sitem = self.locator_finder_by_xpath(knows_collection, benchmark=True)
             expected_title = "knows"
             try:
                 assert (
@@ -292,7 +292,7 @@ class GraphPage(NavigationBarPage):
         elif graph_name == "Traversal Graph":
             self.wait_for_ajax()
             circle_collection = '//*[@id="collection_circles"]/div/h5'
-            circle_collection_sitem = self.locator_finder_by_xpath(circle_collection)
+            circle_collection_sitem = self.locator_finder_by_xpath(circle_collection, benchmark=True)
             expected_title = "circles"
             try:
                 assert (
@@ -314,7 +314,7 @@ class GraphPage(NavigationBarPage):
             self.wait_for_ajax()
             connections_collection = '//*[@id="collection_connections"]/div/h5'
             connections_collection_sitem = self.locator_finder_by_xpath(
-                connections_collection
+                connections_collection, benchmark=True
             )
             expected_title = "connections"
             try:
@@ -337,7 +337,7 @@ class GraphPage(NavigationBarPage):
             self.wait_for_ajax()
             mps_verts_collection = '//*[@id="collection_mps_verts"]/div/h5'
             mps_verts_collection_sitem = self.locator_finder_by_xpath(
-                mps_verts_collection
+                mps_verts_collection, benchmark=True
             )
             expected_title = "mps_verts"
             try:
@@ -374,7 +374,7 @@ class GraphPage(NavigationBarPage):
 
             worldEdges_collection = '//*[@id="collection_worldEdges"]/div/h5'
             worldEdges_collection_sitem = self.locator_finder_by_xpath(
-                worldEdges_collection
+                worldEdges_collection, benchmark=True
             )
             expected_title = "worldEdges"
             try:
@@ -420,7 +420,7 @@ class GraphPage(NavigationBarPage):
             self.wait_for_ajax()
             frenchCity_collection = '//*[@id="collection_frenchCity"]/div/h5'
             frenchCity_collection_sitem = self.locator_finder_by_xpath(
-                frenchCity_collection
+                frenchCity_collection, benchmark=True
             )
             expected_title = "frenchCity"
             try:
@@ -484,42 +484,42 @@ class GraphPage(NavigationBarPage):
         if graph_name == "Knows Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='knows_graph'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "Traversal Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='traversalGraph'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "k Shortest Paths Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='kShortestPathsGraph'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "Mps Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='mps_graph'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "World Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='worldCountry'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
         elif graph_name == "Social Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='social'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
@@ -527,7 +527,7 @@ class GraphPage(NavigationBarPage):
         elif graph_name == "City Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='routeplanner'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
@@ -535,7 +535,7 @@ class GraphPage(NavigationBarPage):
         elif graph_name == "Connected Components Graph":
             self.wait_for_ajax()
             graph_id = "(//button[@graph-id='connectedComponentsGraph'])[1]"
-            graph_id_sitem = self.locator_finder_by_xpath(graph_id)
+            graph_id_sitem = self.locator_finder_by_xpath(graph_id, benchmark=True)
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
@@ -992,7 +992,7 @@ class GraphPage(NavigationBarPage):
         time.sleep(4)
 
         self.tprint("Selecting Knows Graph share option\n")
-        share_sitem = self.locator_finder_by_xpath(self.select_share_id)
+        share_sitem = self.locator_finder_by_xpath(self.select_share_id, benchmark=True)
         share_sitem.click()
         time.sleep(2)
 

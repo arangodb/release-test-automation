@@ -52,6 +52,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
+            analyzers.print_combined_performance_results()
             if self.package_version >= semver.VersionInfo.parse("3.9.0"):
                 self.tprint("Analyzer deletion started.")
                 analyzers.deleting_all_created_analyzers()

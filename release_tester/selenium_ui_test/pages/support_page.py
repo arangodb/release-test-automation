@@ -24,14 +24,14 @@ class SupportPage(NavigationBarPage):
     def select_support_page(self):
         """Selecting support page"""
         support = self.select_support_page_id
-        support = self.locator_finder_by_id(support)
+        support = self.locator_finder_by_id(support, benchmark=True)
         support.click()
         time.sleep(1)
 
     def select_documentation_support(self):
         """selecting documentation support"""
         documentation = self.select_documentation_support_id
-        documentation = self.locator_finder_by_id(documentation)
+        documentation = self.locator_finder_by_id(documentation, benchmark=True)
         documentation.click()
         time.sleep(1)
 
@@ -376,7 +376,7 @@ class SupportPage(NavigationBarPage):
 
             self.tprint("Checking Backup Restore option started\n")
             backup_restore = '//*[@id="operations-tag-BackupRestore"]'
-            backup_restore = self.locator_finder_by_xpath(backup_restore)
+            backup_restore = self.locator_finder_by_xpath(backup_restore, benchmark=True)
             backup_restore.click()
             time.sleep(1)
 

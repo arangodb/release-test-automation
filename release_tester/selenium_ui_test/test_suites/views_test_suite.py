@@ -137,6 +137,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
+            views.print_combined_performance_results()
             # deleting views for <= v3.8.x
             if views.current_package_version() < semver.VersionInfo.parse("3.9.0"):
                 self.tprint("Deleting views started for <= v3.8.x\n")

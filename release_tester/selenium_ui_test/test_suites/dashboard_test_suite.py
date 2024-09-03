@@ -50,4 +50,9 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
         self.tprint("Opening Google group link \n")
         dash.click_google_group_link()
         # login.logout_button()
+        dash.print_combined_performance_results()
+        del dash
         self.tprint("---------Checking Dashboard Completed--------- \n")
+        
+        
+

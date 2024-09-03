@@ -56,7 +56,7 @@ class LoginPage(BasePage):
         for attempt in range(max_retries):
             try:
                 self.webdriver.refresh()
-                logname = self.locator_finder_by_id("loginUsername", 10, 2)
+                logname = self.locator_finder_by_id("loginUsername", 10, 2, benchmark=True)
 
                 logname.click()
                 logname.clear()
@@ -164,7 +164,7 @@ class LoginPage(BasePage):
 
     def log_out(self):
         """click log out icon on the user bar and wait for"""
-        logout_button_sitem = self.locator_finder_by_id(self.logout_button_id)
+        logout_button_sitem = self.locator_finder_by_id(self.logout_button_id, benchmark=True)
         logout_button_sitem.click()
         self.tprint("Logout from the current user\n")
         self.wait_for_ajax()
