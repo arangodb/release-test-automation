@@ -41,7 +41,7 @@ class AnalyzerPage(NavigationBarPage):
             self.webdriver.refresh()
             self.tprint("Selecting Analyzers help filter button \n")
             help_filter = "//a[@href='#analyzers']//i[@class='fa fa-question-circle']"
-            help_sitem = self.locator_finder_by_xpath(help_filter)
+            help_sitem = self.locator_finder_by_xpath(help_filter, benchmark=True)
             help_sitem.click()
             time.sleep(3)
             self.webdriver.refresh()
@@ -54,14 +54,14 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         built_in = "//*[contains(text(),'Built-in')]"
-        built_in_sitem = self.locator_finder_by_xpath(built_in)
+        built_in_sitem = self.locator_finder_by_xpath(built_in, benchmark=True)
         built_in_sitem.click()
         time.sleep(2)
 
     def select_built_in_analyzers_close(self):
         """Checking in-built analyzers list and description"""
         built_in = "//*[contains(text(),'Built-in')]"
-        built_in_sitem = self.locator_finder_by_xpath(built_in)
+        built_in_sitem = self.locator_finder_by_xpath(built_in, benchmark=True)
         built_in_sitem.click()
         time.sleep(2)
 
@@ -256,7 +256,7 @@ class AnalyzerPage(NavigationBarPage):
         else:
             add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
 
-        add_analyzer_sitem = self.locator_finder_by_xpath(add_new_analyzer_btn)
+        add_analyzer_sitem = self.locator_finder_by_xpath(add_new_analyzer_btn, benchmark=True)
         add_analyzer_sitem.click()
         time.sleep(2)
 
@@ -287,7 +287,7 @@ class AnalyzerPage(NavigationBarPage):
 
         self.tprint('Selecting analyzer type \n')
         if self.version_is_newer_than('3.11.99'):
-            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
+            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type, benchmark=True)
             analyzer_type_sitem.click()
             time.sleep(2)
             # this will simulate down arrow key according to its index position

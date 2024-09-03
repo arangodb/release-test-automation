@@ -22,3 +22,6 @@ class LogInTestSuite(BaseSeleniumTestSuite):
         login_page.login_webif("root", self.root_passvoid)
         assert login_page.current_user() == "ROOT", "current user is root?"
         assert login_page.current_database() == "_SYSTEM", "current database is _system?"
+        login_page.print_combined_performance_results()
+        del login_page
+

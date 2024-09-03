@@ -368,7 +368,7 @@ FOR doc IN Characters
     def import_queries(self, path):
         """importing new queries"""
         toggle_query = "toggleQueries1"
-        toggle_query = self.locator_finder_by_id(toggle_query)
+        toggle_query = self.locator_finder_by_id(toggle_query, benchmark=True)
         toggle_query.click()
         time.sleep(1)
 
@@ -593,7 +593,7 @@ FOR doc IN Characters
         output_switch_graph.click()
 
         execution_area1 = self.query_execution_area
-        execution_area1 = self.locator_finder_by_xpath(execution_area1)
+        execution_area1 = self.locator_finder_by_xpath(execution_area1, benchmark=True)
         execution_area1.click()
         time.sleep(1)
 
@@ -803,7 +803,7 @@ FOR doc IN Characters
         """his method will check saved query featured that introduced on 3.11.x"""
         if self.version_is_newer_than("3.11.99"):
             save_query = "(//button[normalize-space()='Save as'])[1]"
-            save_query_sitem = self.locator_finder_by_xpath(save_query)
+            save_query_sitem = self.locator_finder_by_xpath(save_query, benchmark=True)
             save_query_sitem.click()
             time.sleep(1)
 

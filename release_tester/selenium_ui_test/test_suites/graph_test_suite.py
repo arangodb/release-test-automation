@@ -55,6 +55,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.deleting_example_graphs("Social Graph")
             # graph.deleting_example_graphs("City Graph")
         
+        graph.print_combined_performance_results()
         # self.tprint("Manual Graph creation started \n")
         # this_graph.select_graph_page()
 

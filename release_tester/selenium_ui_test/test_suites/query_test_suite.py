@@ -126,5 +126,6 @@ class QueryTestSuite(BaseSeleniumTestSuite):
             query_page.delete_all_collections()
             self.tprint("Deleting collections completed \n")
 
+        query_page.print_combined_performance_results()
         del query_page
         self.tprint("---------Checking Query completed--------- \n")

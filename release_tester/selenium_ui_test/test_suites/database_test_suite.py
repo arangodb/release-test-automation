@@ -56,6 +56,7 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
+            db.print_combined_performance_results()
             self.tprint("Database deletion started.")
             # db.deleting_database('Sharded')
             # db.deleting_database('OneShard')

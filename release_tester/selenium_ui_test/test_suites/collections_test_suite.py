@@ -197,6 +197,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             self.error = traceback.format_exc()
 
         finally:
+            col.print_combined_performance_results()
             # these will clearup the resources even in failed test case scenario
             self.tprint("Collection deletion started \n")
             col.delete_collection("TestDoc", col.select_doc_collection_id, self.is_cluster)          

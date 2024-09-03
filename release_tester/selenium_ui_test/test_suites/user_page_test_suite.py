@@ -109,6 +109,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             self.exception = True   # mark the exception as true
             self.error = traceback.format_exc()
         finally:
+            user.print_combined_performance_results()
             # logout from the current user to get back to root
             self.webdriver.refresh()
             user.log_out()

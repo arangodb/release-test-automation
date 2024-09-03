@@ -48,10 +48,10 @@ class UserPage(NavigationBarPage):
         self.tprint(f"New user {tester} creation begins \n")
         if self.version_is_newer_than("3.11.99"):
             new_user = "(//button[normalize-space()='Add user'])[1]"
-            add_new_user_id_sitem = self.locator_finder_by_xpath(new_user)
+            add_new_user_id_sitem = self.locator_finder_by_xpath(new_user, benchmark=True)
         else:
             new_user = "createUser"
-            add_new_user_id_sitem = self.locator_finder_by_id(new_user)
+            add_new_user_id_sitem = self.locator_finder_by_id(new_user, benchmark=True)
         add_new_user_id_sitem.click()
 
         # entering new user name
@@ -107,11 +107,11 @@ class UserPage(NavigationBarPage):
         """Selecting tester user with pass tester"""
         if self.version_is_newer_than("3.11.99"):
             new_user = "(//a[normalize-space()='tester'])[1]"
-            new_user = self.locator_finder_by_xpath(new_user)
+            new_user = self.locator_finder_by_xpath(new_user, benchmark=True)
             new_user.click()
         else:
             new_user = self.selecting_user_tester_id
-            new_user = self.locator_finder_by_id(new_user)
+            new_user = self.locator_finder_by_id(new_user, benchmark=True)
             new_user.click()
 
     def selecting_permission_tab(self):
@@ -138,7 +138,7 @@ class UserPage(NavigationBarPage):
             db_permission = "(//span[@aria-hidden='true'])[6]"
         else:
             db_permission = self.db_permission_read_only
-        db_permission = self.locator_finder_by_xpath(db_permission)
+        db_permission = self.locator_finder_by_xpath(db_permission, benchmark=True)
         db_permission.click()
 
     def changing_db_permission_read_write(self):
@@ -265,7 +265,7 @@ class UserPage(NavigationBarPage):
         self.tprint("check_user_collection_sort started \n")
         # selecting root user
         root_user = '//h5[@class="collectionName"][text()="root "]'
-        root_user_sitem = self.locator_finder_by_xpath(root_user)
+        root_user_sitem = self.locator_finder_by_xpath(root_user, benchmark=True)
         root_user_sitem.click()
         time.sleep(1)
 

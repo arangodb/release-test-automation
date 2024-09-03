@@ -26,7 +26,7 @@ class DatabasePage(NavigationBarPage):
         self.tprint(f'Creating {db_name} database started \n')
         if self.version_is_newer_than("3.11.99"):
             create_new_db_btn = "(//button[normalize-space()='Add database'])[1]"
-            create_new_db_btn_sitem = self.locator_finder_by_xpath(create_new_db_btn)
+            create_new_db_btn_sitem = self.locator_finder_by_xpath(create_new_db_btn, benchmark=True)
         else:
             create_new_db_btn = self.create_new_db_btn
             create_new_db_btn_sitem = self.locator_finder_by_id(create_new_db_btn)
@@ -37,10 +37,10 @@ class DatabasePage(NavigationBarPage):
         self.tprint("fill up all the database details \n")
         if self.version_is_newer_than("3.11.99"):
             new_db_name = "(//input[@id='name'])[1]"
-            new_db_name_sitem = self.locator_finder_by_xpath(new_db_name)
+            new_db_name_sitem = self.locator_finder_by_xpath(new_db_name, benchmark=True)
         else:
             new_db_name = 'newDatabaseName'
-            new_db_name_sitem = self.locator_finder_by_id(new_db_name)
+            new_db_name_sitem = self.locator_finder_by_id(new_db_name, benchmark=True)
 
         new_db_name_sitem.click()
         new_db_name_sitem.send_keys(db_name)

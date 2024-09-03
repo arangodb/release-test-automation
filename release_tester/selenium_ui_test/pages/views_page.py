@@ -69,7 +69,7 @@ class ViewsPage(NavigationBarPage):
     def create_new_views(self, name):
         """creating new views tab"""
         self.tprint(f"Creating {name} started \n")
-        create_new_views_sitem = self.locator_finder_by_xpath(self.create_new_views_id)
+        create_new_views_sitem = self.locator_finder_by_xpath(self.create_new_views_id, benchmark=True)
         create_new_views_sitem.click()
 
         self.tprint("Naming new views \n")
@@ -86,14 +86,14 @@ class ViewsPage(NavigationBarPage):
 
     def select_views_settings(self):
         """selecting view setting"""
-        select_views_settings_sitem = self.locator_finder_by_xpath(self.select_views_settings_id)
+        select_views_settings_sitem = self.locator_finder_by_xpath(self.select_views_settings_id, benchmark=True)
         select_views_settings_sitem.click()
         time.sleep(3)
         self.wait_for_ajax()
 
     def select_sorting_views(self):
         """sorting multiple views into descending"""
-        select_sorting_views_sitem = self.locator_finder_by_xpath(self.select_sorting_views_id)
+        select_sorting_views_sitem = self.locator_finder_by_xpath(self.select_sorting_views_id, benchmark=True)
         select_sorting_views_sitem.click()
         time.sleep(3)
         self.wait_for_ajax()
@@ -102,7 +102,7 @@ class ViewsPage(NavigationBarPage):
         search_views = self.search_views_id
         for i in range(3):
             try:
-                search_views_sitem = self.locator_finder_by_xpath(search_views)
+                search_views_sitem = self.locator_finder_by_xpath(search_views, benchmark=True)
                 search_views_sitem.click()
                 search_views_sitem.clear()
                 search_views_sitem.send_keys(expected_text)
@@ -140,7 +140,7 @@ class ViewsPage(NavigationBarPage):
 
     def select_first_view(self):
         """selecting first view"""
-        select_first_view_sitem = self.locator_finder_by_xpath(self.select_first_view_id)
+        select_first_view_sitem = self.locator_finder_by_xpath(self.select_first_view_id, benchmark=True)
         select_first_view_sitem.click()
 
     def select_collapse_btn(self):
@@ -149,7 +149,7 @@ class ViewsPage(NavigationBarPage):
             collapse_btn = 'jsoneditor-compact'
             select_collapse_btn_sitem = self.locator_finder_by_class(collapse_btn)
         else:
-            select_collapse_btn_sitem = self.locator_finder_by_xpath(self.select_collapse_btn_id)
+            select_collapse_btn_sitem = self.locator_finder_by_xpath(self.select_collapse_btn_id, benchmark=True)
         select_collapse_btn_sitem.click()
         time.sleep(3)
         self.wait_for_ajax()
@@ -160,7 +160,7 @@ class ViewsPage(NavigationBarPage):
             expand_btn = 'jsoneditor-format'
             select_expand_btn_sitem = self.locator_finder_by_class(expand_btn)
         else:
-            select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id)
+            select_expand_btn_sitem = self.locator_finder_by_xpath(self.select_expand_btn_id, benchmark=True)
         select_expand_btn_sitem.click()
         time.sleep(3)
         self.wait_for_ajax()
@@ -177,7 +177,7 @@ class ViewsPage(NavigationBarPage):
 
     def switch_to_code_editor_mode(self):
         """switching editor mode to Code"""
-        switch_to_code_editor_mode_sitem = self.locator_finder_by_xpath(self.switch_to_code_editor_mode_id)
+        switch_to_code_editor_mode_sitem = self.locator_finder_by_xpath(self.switch_to_code_editor_mode_id, benchmark=True)
         switch_to_code_editor_mode_sitem.click()
         time.sleep(3)
         self.wait_for_ajax()
@@ -207,7 +207,7 @@ class ViewsPage(NavigationBarPage):
 
     def select_inside_search(self, keyword):
         """Selecting search option inside views"""
-        select_inside_search_sitem = self.locator_finder_by_xpath(self.select_inside_search_id)
+        select_inside_search_sitem = self.locator_finder_by_xpath(self.select_inside_search_id, benchmark=True)
         select_inside_search_sitem.click()
         select_inside_search_sitem.clear()
         select_inside_search_sitem.send_keys(keyword)
@@ -384,7 +384,7 @@ class ViewsPage(NavigationBarPage):
         self.search_views("improved_arangosearch_view_02", self.select_improved_arangosearch_view_02)
 
         self.tprint(f"Selecting {name} for checking \n")
-        select_view_sitem = self.locator_finder_by_xpath(locator)
+        select_view_sitem = self.locator_finder_by_xpath(locator, benchmark=True)
         select_view_sitem.click()
 
         self.select_collapse_btn()
@@ -450,7 +450,7 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
         self.tprint('Selecting Link tab \n')
         links = "//div[@id='subNavigationBar']/ul[2]//a[.='Links']"
-        links_sitem = self.locator_finder_by_xpath(links)
+        links_sitem = self.locator_finder_by_xpath(links, benchmark=True)
         links_sitem.click()
         time.sleep(1)
 
@@ -478,7 +478,7 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
         self.tprint('Select my_collection \n')
         select_my_col = f"//*[text()='{collection_name}']"
-        select_my_col_sitem = self.locator_finder_by_xpath(select_my_col)
+        select_my_col_sitem = self.locator_finder_by_xpath(select_my_col, benchmark=True)
         select_my_col_sitem.click()
         time.sleep(1)
 
@@ -537,7 +537,7 @@ class ViewsPage(NavigationBarPage):
         time.sleep(1)
 
         col_name = '//*[@id="new-collection-name"]'
-        col_name_sitem = self.locator_finder_by_xpath(col_name)
+        col_name_sitem = self.locator_finder_by_xpath(col_name, benchmark=True)
         col_name_sitem.click()
         col_name_sitem.send_keys('views_collection')
         time.sleep(1)
@@ -580,7 +580,7 @@ class ViewsPage(NavigationBarPage):
         """this method will open the general tab of views"""
         self.tprint("Selecting views general tab \n")
         general = "(//button[@id='accordion-button-2'])[1]"
-        general_sitem = self.locator_finder_by_xpath(general)
+        general_sitem = self.locator_finder_by_xpath(general, benchmark=True)
         general_sitem.click()
         time.sleep(1)
 
@@ -647,7 +647,7 @@ class ViewsPage(NavigationBarPage):
         else:
             create_new_views = "(//button[normalize-space()='Add view'])[1]"
 
-        create_new_views_id = self.locator_finder_by_xpath(create_new_views)
+        create_new_views_id = self.locator_finder_by_xpath(create_new_views, benchmark=True)
         create_new_views_id.click()
         time.sleep(2)
 
@@ -954,7 +954,7 @@ class ViewsPage(NavigationBarPage):
         """This method will check negative input for views name during creation"""
         self.navbar_goto("views")
         self.tprint('Selecting views create button \n')
-        create_new_views_id = self.locator_finder_by_id(self.create_new_view)
+        create_new_views_id = self.locator_finder_by_id(self.create_new_view, benchmark=True)
         create_new_views_id.click()
         time.sleep(2)
         self.wait_for_ajax()
