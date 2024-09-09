@@ -7,9 +7,12 @@ import traceback
 from uuid import uuid4
 
 import distro
+from allure_commons._allure import attach
 from allure_commons.model2 import Status, StatusDetails
 
 # pylint: disable=import-error
+from allure_commons.types import AttachmentType
+
 from reporting.reporting_utils import AllureTestSuiteContext, RtaTestcase, step
 from test_suites_core.models import RtaTestResult
 
@@ -219,13 +222,13 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     func()
                 except TestMustBeSkipped as ex:
                     raise ex
-                # pylint: disable=bare-except
-                except:
+                # pylint: disable=broad-except
+                except Exception:
+                    attach(traceback.format_exc(), "Traceback", attachment_type=AttachmentType.TEXT)
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
             if exc_val:
-                # raise Exception("Fixture failed.") from exc_val
-                raise exc_type(exc_val).with_traceback(exc_tb)
+                raise Exception("Fixture failed. See attachment in allure report for detailed traceback.") from exc_val
 
     def run_after_fixtures(self, funcs):
         """run a set of fixtures after the test suite or test case"""
