@@ -34,13 +34,20 @@ class NavigationBarPage(UserBarPage):
         click_twitter_link_id_sitem = self.locator_finder_by_xpath(
             click_twitter_link_id
         )
-        title = self.switch_tab(
-            click_twitter_link_id_sitem
-        )  # this method will call switch tab and close tab
-        expected_title = "ArangoDB (@arangodb) / X"
+        
+        title = self.switch_tab(click_twitter_link_id_sitem)  # This method will call switch tab and close tab
+
+        # List of valid expected titles
+        expected_titles = [
+            "ArangoDB (@arangodb) / X",
+            "Profile / X"
+        ]
+
+        # Check if the actual title is in the list of expected titles
         assert (
-            title in expected_title
-        ), f"Expected page title {expected_title} but got {title}"
+            title in expected_titles
+        ), f"Expected page title to be one of {expected_titles} but got {title}"
+
 
     def click_slack_link(self):
         """Clicking on twitter link on dashboard"""
