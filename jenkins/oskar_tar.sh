@@ -79,6 +79,7 @@ done
 . ./jenkins/common/register_cleanup_trap.sh
 
 DOCKER_ARGS+=(
+       --net=host
        -v "$(pwd)/../../:/oskar"
        -v "$(pwd)/../:/work"
        --env=BASE_DIR=/oskar
