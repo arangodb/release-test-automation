@@ -18,6 +18,10 @@ else
     ARCH="-arm64v8"
 fi
 
+if test -z "${WORK}"; then
+    WORK="/work"
+fi
+
 VERSION=$(cat VERSION.json)
 git status
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
@@ -79,8 +83,8 @@ done
 . ./jenkins/common/register_cleanup_trap.sh
 
 DOCKER_ARGS+=(
-       -v "$(pwd)/../:/work"
-       --env=BASE_DIR=/work/ArangoDB
+       -v "$(pwd)/../:${WORK}"
+       --env=BASE_DIR=${WORK}/ArangoDB
 )
 # we need --init since our upgrade leans on zombies not happening:
 docker run \

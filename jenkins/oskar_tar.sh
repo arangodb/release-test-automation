@@ -78,7 +78,11 @@ done
 
 . ./jenkins/common/register_cleanup_trap.sh
 
+# scoop all but the docker bridge and localhost, pick the first...
+PUBLIC_IP=$(ip address |grep 'inet ' |grep -v 'br-' |grep -v '127.0.0'  |head -n 1|sed -e "s;.*inet ;;" -e "s;/.*;;")
+
 DOCKER_ARGS+=(
+       -e HOST_SYMBOLIZER_URL="http://${PUBLIC_IP}:43210"
        -v "$(pwd)/../../:/oskar"
        -v "$(pwd)/../:/work"
        --env=BASE_DIR=/oskar
