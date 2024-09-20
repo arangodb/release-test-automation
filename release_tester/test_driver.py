@@ -9,6 +9,8 @@ import time
 import traceback
 from pathlib import Path
 
+import psutil
+
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, StatusDetails, Label
 from allure_commons.types import LabelType
@@ -35,7 +37,11 @@ from overload_thread import spawn_overload_watcher_thread, shutdown_overload_wat
 
 import tools.loghelper as lh
 from tools.killall import kill_all_processes
-
+HAVE_SAN = False
+for varname in [
+    'TSAN_OPTIONS', 'UBSAN_OPTIONS', 'LSAN_OPTIONS', 'ASAN_OPTIONS'
+]:
+    HAVE_SAN = HAVE_SAN or varname in os.environ
 try:
     # pylint: disable=unused-import
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -104,6 +110,8 @@ class TestDriver:
         self.installer_type = None
 
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
+        if HAVE_SAN:
+            self.symbolizer = psutil.Popen('/work/ArangoDB/utils/llvm-symbolizer-server.py')
 
     def __del__(self):
         self.destructor()
@@ -111,6 +119,9 @@ class TestDriver:
     def destructor(self):
         """shutdown this environment"""
         self._stop_monitor()
+        if HAVE_SAN:
+            self.symbolizer.kill()
+            self.symbolizer.wait()
 
     def _stop_monitor(self):
         if self.use_monitoring:
