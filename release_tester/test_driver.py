@@ -111,7 +111,11 @@ class TestDriver:
 
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
         if HAVE_SAN:
-            self.symbolizer = psutil.Popen('/work/ArangoDB/utils/llvm-symbolizer-server.py')
+            symbolizer = Path('/utils/llvm-symbolizer-server.py')
+            if not symbolizer.exists():
+                raise Exception(f"couldn't locate symbolizer {str(symbolizer)}")
+            print(f"launching symbolizer {str(symbolizer)}")
+            self.symbolizer = psutil.Popen(path=str(symbolizer))
 
     def __del__(self):
         self.destructor()
