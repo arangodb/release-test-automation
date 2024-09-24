@@ -85,6 +85,7 @@ DOCKER_ARGS+=(
        -e HOST_SYMBOLIZER_URL="http://${PUBLIC_IP}:43210"
        -v "$(pwd)/../../:/oskar"
        -v "$(pwd)/../:/work"
+       -v "$(pwd)/../ArangoDB/utils:/utils"
        --env=BASE_DIR=/oskar
 )
 # we need --init since our upgrade leans on zombies not happening:
