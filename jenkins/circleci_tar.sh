@@ -1,6 +1,6 @@
 #!/bin/bash
 DOCKER_SUFFIX=tar-oskar
-
+find / |grep /utils/llvm-symbolizer-client.py
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
     ALLURE_DIR="${WORKSPACE}/allure-results"
