@@ -1,6 +1,5 @@
 #!/bin/bash
 DOCKER_SUFFIX=tar-oskar
-find / |grep /utils/llvm-symbolizer-client.py
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
     ALLURE_DIR="${WORKSPACE}/allure-results"
@@ -84,7 +83,7 @@ done
 
 DOCKER_ARGS+=(
        -v "$(pwd)/../:${WORK}"
-       -v "$(pwd)/../../utils:/utils"
+       -v "/home/circleci/project/work/ArangoDB/utils/:/utils"
        --env=BASE_DIR=${WORK}/ArangoDB
 )
 # we need --init since our upgrade leans on zombies not happening:
