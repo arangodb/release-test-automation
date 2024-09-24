@@ -84,6 +84,7 @@ done
 
 DOCKER_ARGS+=(
        -v "$(pwd)/../:${WORK}"
+       -v "$(pwd)/../../utils:/utils"
        --env=BASE_DIR=${WORK}/ArangoDB
 )
 # we need --init since our upgrade leans on zombies not happening:
