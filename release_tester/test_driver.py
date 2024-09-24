@@ -115,7 +115,7 @@ class TestDriver:
             if not symbolizer.exists():
                 raise Exception(f"couldn't locate symbolizer {str(symbolizer)}")
             print(f"launching symbolizer {str(symbolizer)}")
-            self.symbolizer = psutil.Popen(path=str(symbolizer))
+            self.symbolizer = psutil.Popen(str(symbolizer))
 
     def __del__(self):
         self.destructor()
