@@ -64,7 +64,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         """run a command that throws to check exit code handling"""
         logging.info("running arangosh check")
         result = self.run_command(
-            ("check throw exit codes", "throw 'yipiahea motherfucker'"),
+            ("check throw exit codes", "throw 'thy shall not pass!'"),
             verbose=self.cfg.verbose,
             expect_to_fail=True,
         )
