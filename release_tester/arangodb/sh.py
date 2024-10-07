@@ -86,6 +86,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             progressive_timeout=25,
             result_line_handler=default_line_result,
             verbose=self.cfg.verbose,
+            expect_to_fail=True,
         )
         success = result[0]
         logging.debug("sanity result: " + str(success) + " - expected: False")
