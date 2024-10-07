@@ -80,6 +80,31 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
         if not success:
             raise Exception("arangosh doesn't exit with 0 to indicate no errors")
+        result = self.run_script_monitored(
+            cmd=["checking throw to exit 1", self.cfg.test_data_dir.resolve() / "check_throw_exitcode.js"],
+            args=[],
+            progressive_timeout=25,
+            result_line_handler=default_line_result,
+            verbose=self.cfg.verbose,
+        )
+        success = result[0]
+        logging.debug("sanity result: " + str(success) + " - expected: False")
+
+        if success:
+            raise Exception("arangosh doesn't exit with non-0 to indicate errors")
+
+        result = self.run_script_monitored(
+            cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "check_exit.js"],
+            args=[],
+            progressive_timeout=25,
+            result_line_handler=default_line_result,
+            verbose=self.cfg.verbose,
+        )
+        success = result[0]
+        logging.debug("sanity result: " + str(success) + " - expected: True")
+
+        if not success:
+            raise Exception("arangosh doesn't exit with 0 to indicate no errors")
 
     @step
     def run_script_monitored(
