@@ -384,6 +384,8 @@ class Runner(ABC):
                     self.starter_prepare_env()
                     self.starter_run()
                     self.finish_setup()
+                logging.debug("self test after installation")
+                self.makedata_instances[0].arangosh.self_test()
                 if self.create_oneshard_db:
                     self.custom_databases.append(["system_oneshard_makedata", True, 1])
                 self.make_data()
