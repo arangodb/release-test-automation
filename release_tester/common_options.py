@@ -379,6 +379,15 @@ def common_options(
             help='Create an extra database with sharding attribute set to "single" and run makedata tests in it '
             "in addition to the _system database.",
         )(function)
+        function = click.option(
+            "--tarball-limit",
+            "tarball_count_limit",
+            is_flag=False,
+            default=-1,
+            help="Limit number of tarballs created during test run. Default value: -1(unlimited). "
+            "This is intended for runs with large number of deployments/configurations to save disk space "
+            "in case all of the tests fail because of the same error.",
+        )(function)
         return function
 
     return inner_func
@@ -386,7 +395,15 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = ["ftp:stage1", "ftp:stage2", "http:stage2", "http:stage2-rta", "nightlypublic", "public", "local"]
+    download_sources = [
+        "ftp:stage1",
+        "ftp:stage2",
+        "http:stage2",
+        "http:stage2-rta",
+        "nightlypublic",
+        "public",
+        "local",
+    ]
 
     def inner_func(function):
         default_local_httpuser = get_default_value("RTA_LOCAL_HTTPUSER", "", "")

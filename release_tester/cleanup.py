@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ Release testing script"""
-# pylint: disable=duplicate-code
+# pylint: disable=duplicate-code disable=too-many-statements
 
 from pathlib import Path
 import click
@@ -45,6 +45,7 @@ def main(**kwargs):
     kwargs["test"] = ""
     kwargs["monitoring"] = False
     kwargs["cluster_nodes"] = 3
+    kwargs["tarball_count_limit"] = 0
 
     # pylint: disable=broad-except disable=bare-except
     versions = ["3.3.3"]

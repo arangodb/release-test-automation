@@ -30,6 +30,7 @@ from package_installation_tests.community_package_installation_test_suite import
 from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from reporting.reporting_utils2 import generate_suite_name
+import reporting.reporting_utils
 from siteconfig import SiteConfig
 from test_suites.misc.binary_test_suite import BinaryComplianceTestSuite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
@@ -37,10 +38,9 @@ from overload_thread import spawn_overload_watcher_thread, shutdown_overload_wat
 
 import tools.loghelper as lh
 from tools.killall import kill_all_processes
+
 HAVE_SAN = False
-for varname in [
-    'TSAN_OPTIONS', 'UBSAN_OPTIONS', 'LSAN_OPTIONS', 'ASAN_OPTIONS'
-]:
+for varname in ["TSAN_OPTIONS", "UBSAN_OPTIONS", "LSAN_OPTIONS", "ASAN_OPTIONS"]:
     HAVE_SAN = HAVE_SAN or varname in os.environ
 try:
     # pylint: disable=unused-import
@@ -71,6 +71,11 @@ class TestDriver:
     def __init__(self, **kwargs):
         self.sitecfg = SiteConfig("")
         self.use_monitoring = kwargs["monitoring"]
+        tarball_limit = int(kwargs["tarball_count_limit"])
+        if tarball_limit == -1:
+            tarball_limit = 999999999
+        reporting.reporting_utils.TARBALL_LIMIT = tarball_limit
+        reporting.reporting_utils.TARBALL_COUNT = 0
         if self.use_monitoring:
             spawn_overload_watcher_thread(self.sitecfg)
         self.launch_dir = Path.cwd()
@@ -111,11 +116,11 @@ class TestDriver:
 
         self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
         if HAVE_SAN:
-            symbolizer = Path('/work/ArangoDB/utils/llvm-symbolizer-server.py')
+            symbolizer = Path("/work/ArangoDB/utils/llvm-symbolizer-server.py")
             if not symbolizer.exists():
                 raise Exception(f"couldn't locate symbolizer {str(symbolizer)}")
             print(f"launching symbolizer {str(symbolizer)}")
-            self.symbolizer = psutil.Popen(str(symbolizer), cwd=Path('/work/ArangoDB'))
+            self.symbolizer = psutil.Popen(str(symbolizer), cwd=Path("/work/ArangoDB"))
 
     def __del__(self):
         self.destructor()
@@ -247,9 +252,11 @@ class TestDriver:
             with AllureTestSuiteContext(
                 parent_test_suite_name=parent_test_suite_name,
                 suite_name=runner_strings[runner_type],
-                labels=[Label(name=LabelType.TAG, value=f"HB: {self.get_hb_provider()}")]
-                if self.get_hb_provider() is not None
-                else None,
+                labels=(
+                    [Label(name=LabelType.TAG, value=f"HB: {self.get_hb_provider()}")]
+                    if self.get_hb_provider() is not None
+                    else None
+                ),
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
                     one_result = {
@@ -602,10 +609,14 @@ class TestDriver:
             installers,
             self.selenium,
             self.selenium_driver_args,
+            [],
             "perf",
             run_props.ssl,
             run_props.replication2,
-            use_auto_certs=self.use_auto_certs
+            self.use_auto_certs,
+            False,
+            False,
+            3,
         )
         runner.do_install = do_install
         runner.do_uninstall = do_uninstall
