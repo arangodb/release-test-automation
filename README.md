@@ -100,6 +100,7 @@ Supported Parameters:
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.
@@ -151,6 +152,7 @@ Supported Parameters:
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
@@ -186,6 +188,7 @@ Supported Parameters:
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -204,6 +207,7 @@ Supported Parameters:
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -216,6 +220,7 @@ Supported Parameters:
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -307,6 +312,7 @@ Supported Parameters:
  - `--force` overwrite readily existing downloaded packages
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
@@ -688,6 +694,7 @@ Supported Parameters:
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
+ - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.

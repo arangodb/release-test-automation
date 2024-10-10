@@ -131,6 +131,7 @@ class Download:
             test="",
             arangods=[],
             check_locale=True,
+            checkdata=True,
         )
 
         self.inst = make_installer(self.cfg)

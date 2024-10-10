@@ -384,7 +384,7 @@ class Runner(ABC):
                     self.starter_prepare_env()
                     self.starter_run()
                     self.finish_setup()
-                logging.debug("self test after installation")
+                self.progress(True, "self test after installation")
                 self.makedata_instances[0].arangosh.self_test()
                 if self.create_oneshard_db:
                     self.custom_databases.append(["system_oneshard_makedata", True, 1])
@@ -614,7 +614,7 @@ class Runner(ABC):
         inst.start_service()
         sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version)
 
-        logging.debug("self test after installation")
+        self.progress(True, "self test after installation")
         if inst.cfg.have_system_service:
             sys_arangosh.self_test()
 
@@ -622,7 +622,7 @@ class Runner(ABC):
             sys_arangosh.js_version_check()
             # TODO: here we should invoke Makedata for the system installation.
 
-            logging.debug("stop system service to make ports available for starter")
+            self.progress(True, "stop system service to make ports available for starter")
         inst.stop_service()
 
     @step
@@ -677,6 +677,9 @@ class Runner(ABC):
     @step
     def make_data(self):
         """check if setup is functional"""
+        if not self.cfg.checkdata:
+            self.progress(True, "{0} - skipping make data".format(str(self.name)))
+            return
         self.progress(True, "{0} - make data".format(str(self.name)))
         self.make_data_impl()
 
@@ -822,7 +825,7 @@ class Runner(ABC):
     def make_data_impl(self):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
-        logging.debug("makedata instances")
+        self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
             "--tempDataDir",
@@ -885,6 +888,10 @@ class Runner(ABC):
     @step
     def check_data_impl(self):
         """check for data on the installation"""
+        if not self.cfg.checkdata:
+            print("skipping makedata/checkdata")
+            return
+
         frontend_found = False
         for starter in self.makedata_instances:
             if not starter.is_leader:
