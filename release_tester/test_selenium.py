@@ -9,6 +9,8 @@ from common_options import very_common_options, common_options, ui_test_suite_fi
 from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import RunnerType, make_runner, STARTER_MODES
 import tools.loghelper as lh
+import reporting.reporting_utils
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-locals
 def run_upgrade(
@@ -101,8 +103,11 @@ def main(
         # common_options
         old_version, test_data_dir, encryption_at_rest, interactive,
         starter_mode, stress_upgrade, abort_on_error, publicip,
-        selenium, selenium_driver_args, ui_include_test_suites, ssl):
+        selenium, selenium_driver_args, ui_include_test_suites, ssl, tarball_count_limit):
     """ main trampoline """
+
+    reporting.reporting_utils.init_archive_count_limit(int(tarball_count_limit))
+
     return run_upgrade(old_version, new_version, verbose,
                        package_dir, test_data_dir,
                        zip_package, hot_backup, hb_provider, hb_storage_path_prefix, interactive,

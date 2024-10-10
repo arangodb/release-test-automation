@@ -10,11 +10,11 @@ import traceback
 from pathlib import Path
 
 import psutil
-
 from allure_commons._allure import attach
 from allure_commons.model2 import Status, StatusDetails, Label
 from allure_commons.types import LabelType
 
+import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
 from arangodb.starter.deployments import (
     RunnerType,
@@ -26,17 +26,14 @@ from arangodb.starter.deployments.cluster_perf import ClusterPerf
 from debugger_tests.debugger_test_suite import DebuggerTestSuite
 from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
 from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
+from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
 from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
 from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from reporting.reporting_utils2 import generate_suite_name
-import reporting.reporting_utils
 from siteconfig import SiteConfig
 from test_suites.misc.binary_test_suite import BinaryComplianceTestSuite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
-from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
-
-import tools.loghelper as lh
 from tools.killall import kill_all_processes
 
 HAVE_SAN = False
@@ -71,11 +68,6 @@ class TestDriver:
     def __init__(self, **kwargs):
         self.sitecfg = SiteConfig("")
         self.use_monitoring = kwargs["monitoring"]
-        tarball_limit = int(kwargs["tarball_count_limit"])
-        if tarball_limit == -1:
-            tarball_limit = 999999999
-        reporting.reporting_utils.TARBALL_LIMIT = tarball_limit
-        reporting.reporting_utils.TARBALL_COUNT = 0
         if self.use_monitoring:
             spawn_overload_watcher_thread(self.sitecfg)
         self.launch_dir = Path.cwd()

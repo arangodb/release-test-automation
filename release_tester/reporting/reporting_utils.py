@@ -16,8 +16,24 @@ from tabulate import tabulate
 # pylint: disable=import-error
 from reporting.helpers import AllureListener
 
-# pylint: disable=global-at-module-level
-global TARBALL_LIMIT, TARBALL_COUNT
+
+TARBALL_LIMIT = 999999999
+TARBALL_COUNT = 0
+TARBALL_LIMIT_INITIALIZED = False
+
+
+def init_archive_count_limit(limit_value: int):
+    """set global variables to control the number of created archives during long runs"""
+    # pylint: disable=global-statement
+    global TARBALL_LIMIT, TARBALL_COUNT, TARBALL_LIMIT_INITIALIZED
+    if not TARBALL_LIMIT_INITIALIZED:
+        if limit_value == -1:
+            limit_value = 999999999
+        TARBALL_LIMIT = limit_value
+        TARBALL_COUNT = 0
+        TARBALL_LIMIT_INITIALIZED = True
+    else:
+        print("tarball limit must be set only once per run. doing nothing.", file=sys.stderr)
 
 
 def attach_table(table, title="HTML table"):

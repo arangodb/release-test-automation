@@ -13,12 +13,20 @@ import semver
 import tools.loghelper as lh
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
 from arangodb.instance import dump_instance_registry
-from common_options import very_common_options, common_options, download_options, full_common_options, \
-    hotbackup_options, ui_test_suite_filtering_options
+from common_options import (
+    very_common_options,
+    common_options,
+    download_options,
+    full_common_options,
+    hotbackup_options,
+    ui_test_suite_filtering_options,
+)
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
+import reporting.reporting_utils
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -102,13 +110,18 @@ def upgrade_package_test(
             community_packages_are_present = False
             print(f"Failed to download file: {ex} ")
             print("".join(traceback.TracebackException.from_exception(ex).format()))
-            results.append([{'messages': [f"Failed to download file: {ex} "],
-                             'error':True,
-                             'success': False,
-                             'testrun name': '',
-                             'progress': '',
-                             'testrun name': '',
-                             'testscenario': ''}]);
+            results.append(
+                [
+                    {
+                        "messages": [f"Failed to download file: {ex} "],
+                        "error": True,
+                        "success": False,
+                        "testrun name": "",
+                        "progress": "",
+                        "testscenario": "",
+                    }
+                ]
+            )
     if count == 0:
         raise Exception("Unknown edition specified")
     params = deepcopy(test_driver.cli_test_suite_params)
@@ -134,7 +147,12 @@ def upgrade_package_test(
         params.enterprise = True
         results.append(
             test_driver.run_test_suites(
-                include_suites=("DebuggerTestSuite", "BasicLicenseManagerTestSuite", "UpgradeLicenseManagerTestSuite", "BinaryComplianceTestSuite"),
+                include_suites=(
+                    "DebuggerTestSuite",
+                    "BasicLicenseManagerTestSuite",
+                    "UpgradeLicenseManagerTestSuite",
+                    "BinaryComplianceTestSuite",
+                ),
                 params=params,
             )
         )
@@ -143,7 +161,10 @@ def upgrade_package_test(
         params.enterprise = False
         results.append(
             test_driver.run_test_suites(
-                include_suites=("DebuggerTestSuite", "BinaryComplianceTestSuite",),
+                include_suites=(
+                    "DebuggerTestSuite",
+                    "BinaryComplianceTestSuite",
+                ),
                 params=params,
             )
         )
@@ -186,6 +207,8 @@ def main(**kwargs):
     kwargs["hb_cli_cfg"] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
+
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
     test_driver = None
     ret = 1

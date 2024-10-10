@@ -23,6 +23,7 @@ from download import DownloadOptions
 from full_download_upgrade_test import upgrade_package_test
 from test_driver import TestDriver
 from tools.release_tracker_client.client import ReleaseTrackerApiClient, OS, Arch
+import reporting.reporting_utils
 
 
 @click.command()
@@ -61,6 +62,8 @@ def main(**kwargs):
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
+
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
     upgrade_matrix = None
     if kwargs['upgrade_matrix'] == "":
