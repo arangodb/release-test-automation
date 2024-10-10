@@ -197,6 +197,7 @@ class InstallerConfig:
         test: str,
         arangods: list,
         check_locale: bool,
+        checkdata: bool,
     ):
         self.publicip = publicip
         self.interactive = interactive
@@ -260,6 +261,7 @@ class InstallerConfig:
         self.test = test
         self.arangods = arangods
         self.check_locale = check_locale
+        self.checkdata = checkdata
 
     def __repr__(self):
         return """
@@ -277,6 +279,7 @@ public ip: {0.publicip}
 interactive: {0.interactive}
 verbose: {0.verbose}
 test filter: {0.test}
+run make/check data: {0.checkdata}
 """.format(
             self
         )
@@ -336,6 +339,7 @@ test filter: {0.test}
             self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
             self.test = other_cfg.test
             self.check_locale = other_cfg.check_locale
+            self.checkdata = other_cfg.checkdata
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -536,6 +540,7 @@ class InstallerBaseConfig(OptionGroup):
     stress_upgrade: bool
     test: str
     check_locale: bool
+    checkdata: bool
 
 
 # pylint: disable=too-many-locals
@@ -576,6 +581,7 @@ def create_config_installer_set(
             base_config.test,
             base_config.arangods,
             base_config.check_locale,
+            base_config.checkdata
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

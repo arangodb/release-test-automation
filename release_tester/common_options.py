@@ -205,7 +205,13 @@ def very_common_options(support_multi_version=False):
             default=defver,
         )(function)
         function = click.option(
-            "--check_locale",
+            "--checkdata/--no-checkdata",
+            is_flag=True,
+            default=True,
+            help="whether to run makedata/checkdata.",
+        )(function)
+        function = click.option(
+            "--check_locale/--no-check_locale",
             is_flag=True,
             default=True,
             help="whether to skip the initial locale environment check.",
