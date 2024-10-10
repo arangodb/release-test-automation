@@ -1,4 +1,5 @@
 """ utility functions/classes for allure reporting """
+
 import platform
 import sys
 from pathlib import Path
@@ -14,6 +15,25 @@ from tabulate import tabulate
 
 # pylint: disable=import-error
 from reporting.helpers import AllureListener
+
+
+TARBALL_LIMIT = 999999999
+TARBALL_COUNT = 0
+TARBALL_LIMIT_INITIALIZED = False
+
+
+def init_archive_count_limit(limit_value: int):
+    """set global variables to control the number of created archives during long runs"""
+    # pylint: disable=global-statement
+    global TARBALL_LIMIT, TARBALL_COUNT, TARBALL_LIMIT_INITIALIZED
+    if not TARBALL_LIMIT_INITIALIZED:
+        if limit_value == -1:
+            limit_value = 999999999
+        TARBALL_LIMIT = limit_value
+        TARBALL_COUNT = 0
+        TARBALL_LIMIT_INITIALIZED = True
+    else:
+        print("tarball limit must be set only once per run. doing nothing.", file=sys.stderr)
 
 
 def attach_table(table, title="HTML table"):
@@ -61,6 +81,7 @@ def attach_table(table, title="HTML table"):
 
 
 def attach_http_request_to_report(method: str, url: str, headers: dict, body: str):
+    """attach HTTP request info to allure report"""
     request = f"""
     <html>
     <p><b>Method: </b>${method.upper()}</p>
@@ -70,13 +91,14 @@ def attach_http_request_to_report(method: str, url: str, headers: dict, body: st
     """
     for key in headers:
         request += f"<b>{key}: </b>{headers[key]}<br>"
-    request += f"</p>"
+    request += "</p>"
     request += f"<p><b>Body:<br></b>{body}</p>"
     request += "</html>"
     attach(request, "HTTP request", AttachmentType.HTML)
 
 
 def attach_http_response_to_report(response):
+    """attach HTTP response info to allure report"""
     response_html = f"""
     <html>
     <p><b>Status code:</b> {response.status_code}</p>
@@ -236,14 +258,14 @@ class AllureTestSuiteContext:
         AllureTestSuiteContext.test_suite_count += 1
 
     def generate_container_name(self):
+        """generate container name"""
         if self.sub_suite_name:
             return self.sub_suite_name
-        elif self.test_suite_name:
+        if self.test_suite_name:
             return self.sub_suite_name
-        elif self.parent_test_suite_name:
+        if self.parent_test_suite_name:
             return self.parent_test_suite_name
-        else:
-            return "Container name is undefined"
+        return "Container name is undefined"
 
     def destroy(self):
         """close test suite context"""

@@ -16,6 +16,7 @@ import time
 import psutil
 import py7zr
 
+import reporting.reporting_utils
 from allure_commons._allure import attach
 import certifi
 from beautifultable import BeautifulTable
@@ -1052,6 +1053,9 @@ class Runner(ABC):
     @step
     def zip_test_dir(self):
         """💾 store the test directory for later analysis"""
+        if reporting.reporting_utils.TARBALL_COUNT >= reporting.reporting_utils.TARBALL_LIMIT:
+            print("skipping creation of test dir archive: limit for the number of archives is reached")
+            return
         build_number = os.environ.get("BUILD_NUMBER")
         if build_number:
             build_number = "_" + build_number
@@ -1068,11 +1072,11 @@ class Runner(ABC):
             build_number,
         )
         # keep binaries in a separate directory
-        arangod_dir = self.cfg.base_test_dir / 'arangods'
+        arangod_dir = self.cfg.base_test_dir / "arangods"
         arangod_dir.mkdir(parents=True)
         for installer_set in self.installers:
             installer_set[1].get_arangod_binary(arangod_dir)
-        arangod_archive = shutil.make_archive(f"{filename}_arangod", "7zip", self.cfg.base_test_dir,  'arangods')
+        arangod_archive = shutil.make_archive(f"{filename}_arangod", "7zip", self.cfg.base_test_dir, "arangods")
         attach.file(arangod_archive, "binary dir archive", "application/x-7z-compressed", "7z")
         shutil.rmtree(arangod_dir)
 
@@ -1099,6 +1103,7 @@ class Runner(ABC):
             attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
+        reporting.reporting_utils.TARBALL_COUNT += 1
 
     @step
     def cleanup(self, reset_tmp=True):

@@ -8,6 +8,7 @@ import sys
 import click
 import semver
 
+import reporting.reporting_utils
 from common_options import (
     very_common_options,
     common_options,
@@ -26,6 +27,7 @@ from test_driver import TestDriver
 from tools.killall import list_all_processes
 
 from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def package_test(
@@ -90,22 +92,32 @@ def package_test(
             community_packages_are_present = True
         this_test_dir = test_dir / props.directory_suffix
         test_driver.reset_test_data_dir(this_test_dir)
-        results.append([{'messages': [str(dl_new.cfg.version)],
-                        'testrun name': '',
-                        'progress': '',
-                        'success': True,
-                        'testrun name': '',
-                         'testscenario': ''}]);
+        results.append(
+            [
+                {
+                    "messages": [str(dl_new.cfg.version)],
+                    "testrun name": "",
+                    "progress": "",
+                    "success": True,
+                    "testscenario": "",
+                }
+            ]
+        )
         results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
 
     if run_test_suites:
-        results.append([{'messages': [f"Testsuites:"],
-                        'error':False,
-                        'success': True,
-                        'testrun name': '',
-                        'progress': '',
-                        'testrun name': '',
-                         'testscenario': ''}]);
+        results.append(
+            [
+                {
+                    "messages": ["Testsuites:"],
+                    "error": False,
+                    "success": True,
+                    "testrun name": "",
+                    "progress": "",
+                    "testscenario": "",
+                }
+            ]
+        )
         params = deepcopy(test_driver.cli_test_suite_params)
         params.new_version = dl_new.cfg.version
         if enterprise_packages_are_present:
@@ -164,6 +176,8 @@ def main(**kwargs):
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
+
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
     test_driver = TestDriver(**kwargs)
     try:

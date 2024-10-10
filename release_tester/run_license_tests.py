@@ -10,6 +10,7 @@ from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
+import reporting.reporting_utils
 
 
 @click.command()
@@ -27,6 +28,8 @@ def main(**kwargs):
 
     kwargs["hb_cli_cfg"] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
+
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
     test_driver = TestDriver(**kwargs)
     try:

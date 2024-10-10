@@ -24,6 +24,7 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
+import reporting.reporting_utils
 
 
 class DownloadDummy:
@@ -330,6 +331,8 @@ def main(**kwargs):
     # we run either enterprise or community:
     if len(kwargs['editions']) == len(EXECUTION_PLAN):
         kwargs['editions'] = ["EP","EPr2"]
+
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
     test_driver = TestDriver(**kwargs)
     try:

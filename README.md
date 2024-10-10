@@ -125,6 +125,7 @@ Supported Parameters:
  - `--[no-]replication2` use replication v.2 if applicable(version must be 3.12.0 or above) (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl) 
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--tarball-limit` - limit number of times the test directory can be archived and added to the report, to save disk space during long runs. Default value: -1(unlimited)
 Example usage:
  - Windows: `python ./release_tester/test.py --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
  - Linux (ubuntu|debian) `python3 ./release_tester/test.py --new-version 3.6.2 --no-enterprise --package-dir /home/willi/Downloads`
@@ -170,6 +171,7 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--tarball-limit` - limit number of times the test directory can be archived and added to the report, to save disk space during long runs. Default value: -1(unlimited)
 
 Example usage:
  - Windows: `python ./release_tester/upgrade.py --old-version 3.5.4 --new-version 3.6.2 --enterprise --package-dir c:/Users/willi/Downloads `
@@ -335,6 +337,7 @@ Supported Parameters:
  - `--[no-]ssl` use SSL (default = False)
  - `--use-auto-certs` use self-signed SSL certificates (only applicable when using --ssl)
  - `--abort-on-error/--do-not-abort-on-error` - abort if one of the deployments failed
+ - `--tarball-limit` - limit number of times the test directory can be archived and added to the report, to save disk space during long runs. Default value: -1(unlimited)
 
 Example usage:
 
