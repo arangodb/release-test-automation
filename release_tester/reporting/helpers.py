@@ -1,4 +1,5 @@
 """ classes for allure integration """
+
 import sys
 
 import allure_commons
@@ -21,27 +22,16 @@ from allure_commons.utils import now, format_traceback, format_exception, uuid4
 from reporting.logging import IoDuplicator
 
 
-# pylint: disable=too-few-public-methods
-class StepData:
-    """a class to store step context"""
-
-    system_stdout = sys.stdout
-    system_stderr = sys.stderr
-
-    def __init__(self):
-        self.prev_stdout = sys.stdout
-        self.prev_stderr = sys.stderr
-        StepData.system_stdout.reconfigure(encoding='utf-8')
-        StepData.system_stderr.reconfigure(encoding='utf-8')
-        new_stdout = IoDuplicator(StepData.system_stdout)
-        new_stderr = IoDuplicator(StepData.system_stderr)
-        sys.stdout = new_stdout
-        sys.stderr = new_stderr
-
-
 # pylint: disable=too-many-instance-attributes
 class AllureListener:
     """allure plugin implementation"""
+
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+    stdout_duplicator = IoDuplicator(sys.stdout)
+    stderr_duplicator = IoDuplicator(sys.stderr)
+    sys.stdout = stdout_duplicator
+    sys.stderr = stderr_duplicator
 
     def __init__(
         self,
@@ -101,8 +91,8 @@ class AllureListener:
     @allure_commons.hookimpl
     def start_step(self, uuid, title, params):
         """start step"""
-        step_data = StepData()
-        self._cache.push(step_data, uuid)
+        AllureListener.stdout_duplicator.grow_stack()
+        AllureListener.stderr_duplicator.grow_stack()
         parameters = [Parameter(name=name, value=value) for name, value in params.items()]
         step = TestStepResult(name=title, start=now(), parameters=parameters)
         self.allure_logger.start_step(None, uuid, step)
@@ -110,17 +100,12 @@ class AllureListener:
     @allure_commons.hookimpl
     def stop_step(self, uuid, exc_type, exc_val, exc_tb):
         """stop step"""
-        step_data = self._cache.get(uuid)
-        out = sys.stdout.getvalue()
-        sys.stdout.close()
+        out = AllureListener.stdout_duplicator.pop_stack()
         if len(out) != 0:
             self.attach_data(out, "STDOUT", AttachmentType.TEXT, "txt")
-        sys.stdout = step_data.prev_stdout
-        err = sys.stderr.getvalue()
-        sys.stderr.close()
+        err = AllureListener.stderr_duplicator.pop_stack()
         if len(err) != 0:
             self.attach_data(err, "STDERR", AttachmentType.TEXT, "txt")
-        sys.stderr = step_data.prev_stderr
         self.allure_logger.stop_step(
             uuid,
             stop=now(),
