@@ -431,9 +431,10 @@ class ClusterPerf(Cluster):
         starter = frontends[0]
         assert starter.arangosh, "no starter associated arangosh!"
         arangosh = starter.arangosh
-        arangosh.check_test_data(
-            "xx", supports_foxx_tests=True, args=makedata_job_params["args"], result_line_handler=result_line
-        )
+        if self.cfg.checkdata:
+            arangosh.check_test_data(
+                "xx", supports_foxx_tests=True, args=makedata_job_params["args"], result_line_handler=result_line
+            )
 
     def _restore_defined_hb(self, frontends, all_backups, makedata_job_params):
         count = 0

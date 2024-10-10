@@ -200,11 +200,12 @@ class ActiveFailover(Runner):
             "leader can be reached at: %s",
             self.leader.get_frontend().get_public_url(""),
         )
-        ret = self.leader.arangosh.check_test_data(
-            "checking active failover follower node", True, ["--readOnly", "false"]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        if self.cfg.checkdata:
+            ret = self.leader.arangosh.check_test_data(
+                "checking active failover follower node", True, ["--readOnly", "false"]
+            )
+            if not ret[0]:
+                raise Exception("check data failed " + ret[1])
         if self.selenium:
             self.set_selenium_instances()
             self.selenium.test_setup()
@@ -314,9 +315,10 @@ class ActiveFailover(Runner):
                 raise TimeoutError("Timeout waiting for new leader!")
             count += 1
 
-        ret = curr_leader.arangosh.check_test_data("checking active failover new leader node", True)
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        if self.cfg.checkdata:
+            ret = curr_leader.arangosh.check_test_data("checking active failover new leader node", True)
+            if not ret[0]:
+                raise Exception("check data failed " + ret[1])
 
         logging.info("\n" + str(curr_leader))
         url = "{host}/_db/_system/_admin/aardvark/index.html#replication".format(

@@ -379,19 +379,19 @@ db.testCollection.save({test: "document"})
         prompt_user(self.cfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1()
-
-        for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
-            for db_name, oneshard, count_offset in self.makedata_databases():
-                ret = starter_instance.arangosh.check_test_data(
-                    "Cluster one node missing",
-                    True,
-                    ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
-                    oneshard,
-                    db_name,
-                    log_debug=True
-                )
-                if not ret[0]:
-                    raise Exception("check data failed in database %s :\n" % db_name + ret[1])
+        if self.cfg.checkdata:
+            for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
+                for db_name, oneshard, count_offset in self.makedata_databases():
+                    ret = starter_instance.arangosh.check_test_data(
+                        "Cluster one node missing",
+                        True,
+                        ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
+                        oneshard,
+                        db_name,
+                        log_debug=True
+                    )
+                    if not ret[0]:
+                        raise Exception("check data failed in database %s :\n" % db_name + ret[1])
 
         self.starter_instances[terminate_instance].kill_specific_instance([InstanceType.AGENT])
 
@@ -411,7 +411,7 @@ db.testCollection.save({test: "document"})
         self.starter_instances[terminate_instance].detect_instance_pids_still_alive()
         self.set_frontend_instances()
 
-    def _jam_launch_unauthicanted_starter(self):
+    def _jam_launch_unauthenticated_starter(self):
         moreopts = ["--starter.join", "127.0.0.1:9528"]
         curr_cfg = {}
         if self.new_cfg is not None:
@@ -462,7 +462,7 @@ db.testCollection.save({test: "document"})
         self._jam_stop_one_db_server()
 
         logging.info("jamming: Starting instance without jwt")
-        self._jam_launch_unauthicanted_starter()
+        self._jam_launch_unauthenticated_starter()
         if self.selenium:
             self.selenium.jam_step_2()
 
