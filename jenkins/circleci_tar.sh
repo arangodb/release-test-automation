@@ -118,7 +118,7 @@ CLEANUP_PARAMS=(
 . ./jenkins/common/gather_coredumps.sh
 
 if [ "$(find "$(pwd)/../" -name "*san*.log*" | wc -l )" -gt 0 ]; then
-    tar -cvzf sanlogs.tar.gz "$(pwd)/../*san*.log*"
+    tar -cvzf sanlogs.tar.gz "$(pwd)/../"*san*.log*
     printf "\nSan logs found after testrun:\n $(ls -l "$(pwd)/../"*san*.log*)\n" >> "$(pwd)/test_dir/testfailures.txt"
     rm -f "$(pwd)/../"*san*.log*
     mv sanlogs.tar.gz "$(pwd)/test_dir/"
