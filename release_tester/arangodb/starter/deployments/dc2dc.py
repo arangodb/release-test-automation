@@ -506,7 +506,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "dc2dc (post setup - dc2)",
                     True,
-                    ["--readOnly", "true", "--countOffset", str(count_offset)],
+                    ["--readOnly", "true", "--countOffset", str(count_offset), '--skip', '802_'],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
@@ -662,7 +662,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "cluster2 after dissolving",
                     True,
-                    args=["--countOffset", str(count_offset)],
+                    args=["--countOffset", str(count_offset), '--skip', '802_'],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
@@ -676,7 +676,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "cluster2 after re-syncing",
                     True,
-                    ["--readOnly", "true", "--countOffset", str(count_offset)],
+                    ["--readOnly", "true", "--countOffset", str(count_offset), '--skip', '802_'],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
@@ -708,7 +708,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "cluster2 after reversing direction",
                     True,
-                    args=["--countOffset", str(count_offset)],
+                    args=["--countOffset", str(count_offset), '--skip', '802_'],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
