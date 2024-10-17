@@ -316,7 +316,7 @@ class ActiveFailover(Runner):
             count += 1
 
         if self.cfg.checkdata:
-            ret = curr_leader.arangosh.check_test_data("checking active failover new leader node", True)
+            ret = curr_leader.arangosh.check_test_data("checking active failover new leader node", True, log_debug=True)
             if not ret[0]:
                 raise Exception("check data failed " + ret[1])
 
