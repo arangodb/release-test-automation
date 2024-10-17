@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 import requests
+import semver
 from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
@@ -316,7 +317,16 @@ class ActiveFailover(Runner):
             count += 1
 
         if self.cfg.checkdata:
-            ret = curr_leader.arangosh.check_test_data("checking active failover new leader node", True, log_debug=True)
+            args = []
+            if self.old_installer.semver <= semver.VersionInfo.parse("3.11.11"):
+                # we know AFO 3.11.11 and older is broken here:
+                args = ['--skip', '802_']
+                self.checkdata_args = args
+            ret = curr_leader.arangosh.check_test_data(
+                "checking active failover new leader node",
+                True,
+                 args,
+                log_debug=True)
             if not ret[0]:
                 raise Exception("check data failed " + ret[1])
 
