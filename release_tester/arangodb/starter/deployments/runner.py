@@ -196,6 +196,7 @@ class Runner(ABC):
         self.old_version = cfg.version  # The first version of ArangoDB which is used in current launch
         self.certificate_auth = {}
         self.cert_dir = ""
+        self.checkdata_args = []
         self.passvoid = None
         self.versionstr = ""
         if self.new_cfg:
@@ -872,7 +873,7 @@ class Runner(ABC):
                     arangosh.check_test_data(
                         self.name,
                         supports_foxx_tests,
-                        args=["--countOffset", str(count_offset)],
+                        args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
                     )
