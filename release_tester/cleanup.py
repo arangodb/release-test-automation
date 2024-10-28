@@ -46,6 +46,7 @@ def main(**kwargs):
     kwargs["monitoring"] = False
     kwargs["cluster_nodes"] = 3
     kwargs["tarball_count_limit"] = 0
+    kwargs["checkdata"] = False
 
     # pylint: disable=broad-except disable=bare-except
     versions = ["3.3.3"]
