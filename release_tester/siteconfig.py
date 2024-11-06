@@ -112,6 +112,7 @@ class SiteConfig:
         # pylint: disable=too-many-statements disable=too-many-branches
         print_env()
         init_temp()
+        self.basedir = Path.cwd()
         self.datetime_format = "%Y-%m-%dT%H%M%SZ"
         self.trace = False
         self.portbase = 7000

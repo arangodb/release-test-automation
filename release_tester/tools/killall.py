@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ tiny utility to kill all arangodb related processes """
 import logging
+import time
+import json
 
 # import platform
 import collections
@@ -179,3 +181,55 @@ def list_all_processes():
         except psutil.NoSuchProcess:
             pass
         logging.info("{pid} {proc}".format(pid=process.pid, proc=cmdline))
+
+
+def gather_process_thread_statistics(p):
+    """ gather the statistics of one process and all its threads """
+    ret = {}
+    ret['process'] = [{
+        'time': time.ctime(),
+        'pid': p.pid,
+        'name': p.name(),
+        'percent': p.cpu_percent(),
+        'iocounters': p.io_counters(),
+        'ctxSwitches': p.num_ctx_switches(),
+        'numfds': p.num_fds(),
+        'cpu_times': p.cpu_times(),
+        'meminfo': p.memory_full_info(),
+        'netcons': p.connections()
+    }]
+    for t in p.threads():
+        ret[ t.id ] = { 'user': t.user_time, 'sys': t.system_time}
+    return ret
+
+def add_delta(p1, p2):
+    """ calculate and add a delta in cpu and time to all threads of a process """
+    tids = list(p1.keys())
+    for tid in tids:
+        if tid in p2 and tid != 'process':
+            p1[tid]['d_user'] = p2[tid]['user'] - p1[tid]['user']
+            p1[tid]['d_sys'] = p2[tid]['sys'] - p1[tid]['sys']
+    p1['process'].append(p2['process'][0])
+
+def get_all_processes_stats_json():
+    """ aggregate a structure of all processes and their threads plus delta """
+    process_full_list = {}
+    for n in [True, False]:
+        processes = psutil.process_iter()
+        for process in processes:
+            name = ""
+            try:
+                name = process.name()
+                if  process.ppid() != 2 and process.pid not in [1, 2]:
+                    procstat = gather_process_thread_statistics(process)
+                    if n:
+                        process_full_list[f"p{process.pid}"] = procstat
+                    else:
+                        add_delta(process_full_list[f"p{process.pid}"], procstat)
+            except psutil.AccessDenied:
+                pass
+            except Exception as ex:
+                print(f"while inspecting {name}: {ex} ")
+        if n:
+            time.sleep(1)
+    return json.dumps(process_full_list)
