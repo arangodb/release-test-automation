@@ -333,6 +333,9 @@ class Download:
             try:
                 res = requests.get(url, timeout=120)
                 retry = 100
+            except requests.exceptions.ConnectionError as ex:
+                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                retry += 1
             except requests.exceptions.ChunkedEncodingError as ex:
                 print(f"failed to download {url} try {retry} - {ex} - retrying.")
                 retry += 1
