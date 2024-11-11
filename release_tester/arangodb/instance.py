@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """ class to manage an arangod or arangosync instance """
 # pylint: disable=too-many-lines
-import copy
 import datetime
 import json
 import logging
@@ -815,7 +814,7 @@ class ArangodInstance(Instance):
             # locate the timestamp of our 'ready for business' line:
             match = re.search(r"Z \[(\d*)((\])|(-\d*\]))", last_line)
             match = re.search(
-                r"(.*)Z \[" + pid + "((\])|(-\d*\])).*" + ready_for_business,
+                r"(.*)Z \[" + pid + r"((\])|(-\d*\])).*" + ready_for_business,
                 log_file_content[pos - 140 :],
             )
             if match is None:
@@ -935,12 +934,15 @@ class SyncInstance(Instance):
             if pidfile.exists():
                 pid = int(pidfile.read_text(encoding="utf-8"))
                 for process in psutil.process_iter():
-                    if process.ppid() == ppid and process.pid == pid and process.name() == "arangosync":
-                        print(f"identified instance by pid file {pid}")
-                        self.pid_file = pidfile
-                        self.pid = pid
-                        self.instance = psutil.Process(self.pid)
-                        return
+                    try:
+                        if process.ppid() == ppid and process.pid == pid and process.name() == "arangosync":
+                            print(f"identified instance by pid file {pid}")
+                            self.pid_file = pidfile
+                            self.pid = pid
+                            self.instance = psutil.Process(self.pid)
+                            return
+                    except psutil.NoSuchProcess as ex:
+                        print(f"Ignoring {pid} to be gone: {ex}")
         except ValueError:
             pass
 
@@ -1075,5 +1077,6 @@ def print_instances_table(instances, print_table=True, version=False):
     return str(table)
 
 def dump_instance_registry(filename):
+    """ print the table of instances """
     tablestr = print_instances_table(INSTANCE_REGISTRY, True, True)
     Path(filename).write_text(tablestr + '\n', encoding="utf8")
