@@ -66,21 +66,23 @@ class TestDriver:
 
     # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-instance-attributes
     def __init__(self, **kwargs):
-        self.sitecfg = SiteConfig("")
-        self.use_monitoring = kwargs["monitoring"]
-        if self.use_monitoring:
-            spawn_overload_watcher_thread(self.sitecfg)
         self.launch_dir = Path.cwd()
-        if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
-            raise Exception("require PYTHONUTF8=1 in the environment")
-        if "WORKSPACE" in os.environ:
-            self.launch_dir = Path(os.environ["WORKSPACE"])
 
         if not kwargs["test_data_dir"].is_absolute():
             kwargs["test_data_dir"] = self.launch_dir / kwargs["test_data_dir"]
         if not kwargs["test_data_dir"].exists():
             kwargs["test_data_dir"].mkdir(parents=True, exist_ok=True)
         os.chdir(kwargs["test_data_dir"])
+
+        self.sitecfg = SiteConfig("")
+        self.use_monitoring = kwargs["monitoring"]
+        if self.use_monitoring:
+            spawn_overload_watcher_thread(self.sitecfg)
+        if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
+            raise Exception("require PYTHONUTF8=1 in the environment")
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
+
 
         if not kwargs["package_dir"].is_absolute():
             kwargs["package_dir"] = (self.launch_dir / kwargs["package_dir"]).resolve()
