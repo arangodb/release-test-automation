@@ -627,6 +627,12 @@ class Runner(ABC):
             self.progress(True, "stop system service to make ports available for starter")
         inst.stop_service()
 
+    def get_selenium_status(self):
+        """ see whether we have a selenium success """
+        if not self.selenium:
+            return True
+        return self.selenium.success
+
     @step
     def quit_selenium(self):
         """if we have a selenium open, close it."""

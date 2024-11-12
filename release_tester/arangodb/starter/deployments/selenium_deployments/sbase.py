@@ -32,6 +32,7 @@ class SeleniumRunner(ABC):
         self.ssl = ssl
         self.testrun_name = testrun_name
         self.state = ""
+        self.success = True
         self.importer = None
         self.restorer = None
         self.ui_entrypoint_instance = None
@@ -138,6 +139,7 @@ class SeleniumRunner(ABC):
 
     @step
     def take_screenshot(self, filename=None):
+        self.success = False
         """*snap*"""
         if filename is None:
             filename = "%s_%s_exception_screenshot.png" % (
