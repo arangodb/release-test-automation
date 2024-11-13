@@ -305,10 +305,10 @@ class TestDriver:
 
                         try:
                             runner.run()
-                            runner.cleanup()
-                            testcase.context.status = Status.PASSED
                             if not runner.get_selenium_status():
                                 runner.zip_test_dir()
+                            runner.cleanup()
+                            testcase.context.status = Status.PASSED
                         except Exception as ex:
                             one_result["success"] = False
                             one_result["messages"].append("\n" + str(ex))
@@ -493,10 +493,10 @@ class TestDriver:
 
                     try:
                         runner.run()
-                        runner.cleanup()
-                        testcase.context.status = Status.PASSED
                         if not runner.get_selenium_status():
                             runner.zip_test_dir()
+                        runner.cleanup()
+                        testcase.context.status = Status.PASSED
                     # pylint: disable=broad-except
                     except Exception as ex:
                         one_result["success"] = False
