@@ -441,8 +441,9 @@ deadline_signal: {0.deadline_signal}""".format(
                             break
             print_log(f"{identifier} IO-Loop done", params)
             timeout_str = ""
-            if have_progressive_timeout:
+            if have_progressive_timeuot:
                 timeout_str = "TIMEOUT OCCURED!"
+                print_log(timeout_str)
                 print(timeout_str)
                 timeout_str += "\n"
             elif rc_exit is None:
