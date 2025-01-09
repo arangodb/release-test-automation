@@ -443,7 +443,7 @@ deadline_signal: {0.deadline_signal}""".format(
             timeout_str = ""
             if have_progressive_timeout:
                 timeout_str = "TIMEOUT OCCURED!"
-                print_log(timeout_str)
+                print_log(timeout_str, params)
                 print(timeout_str)
                 timeout_str += "\n"
             elif rc_exit is None:
