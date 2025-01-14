@@ -118,15 +118,7 @@ CLEANUP_PARAMS=(
 )
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh
-
-if [ "$(find "$(pwd)/../" -name "*san*.log*" | wc -l )" -gt 0 ]; then
-    7z a sanlogs "$(pwd)/../*san*.log*"
-    printf "\nSan logs found after testrun:\n $(ls -l "$(pwd)/../"*san*.log*)\n" >> "$(pwd)/test_dir/testfailures.txt"
-    rm -f "$(pwd)/../"*san*.log*
-    mv sanlogs.7z "$(pwd)/test_dir/"
-    echo "FAILED BY SAN-LOGS FOUND!"
-    exit 1
-fi
+. ./jenkins/common/gather_sanfiles.sh
 
 if test "${result}" -eq "0"; then
     echo "OK"
