@@ -775,6 +775,7 @@ class ArangodInstance(Instance):
             else:
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
 
+            messages = ""
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
@@ -783,11 +784,13 @@ class ArangodInstance(Instance):
                         continue
                     if "] FATAL [" in line and not self.is_suppressed_log_line(line):
                         print("Error: ", line)
-                        raise Exception("FATAL error found in " + str(self.logfile) + ": " + line)
+                        messages += '\n' +line
                     # save last line and append to string
                     # (why not slurp the whole file?)
                     last_line = line
                     log_file_content += "\n" + line
+            if messages != "":
+                raise Exception("FATAL errors found in " + str(self.logfile) + ": " + messages)
 
             # check last line or continue
             match = re.search(r"Z \[(\d*)((\])|(-\d*\]))", last_line)

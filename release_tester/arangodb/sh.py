@@ -354,6 +354,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
+<<<<<<< Updated upstream
     def create_test_data(
         self,
         testname,
@@ -364,6 +365,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         one_shard: bool = False,
         database_name: str = "_system",
     ):
+=======
+    def create_test_data(self, testname, args=None, result_line_handler=default_line_result, progressive_timeout=100, deadline=900):
+>>>>>>> Stashed changes
         """deploy testdata into the instance"""
         if args is None:
             args = []
