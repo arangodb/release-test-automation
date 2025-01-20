@@ -782,7 +782,9 @@ class ArangodInstance(Instance):
                     if line == "":
                         time.sleep(1)
                         continue
-                    if "] FATAL [" in line and not self.is_suppressed_log_line(line):
+                    if (("] FATAL [" in line
+                         or "{crash}" in line)
+                        and not self.is_suppressed_log_line(line)):
                         print("Error: ", line)
                         messages += '\n' +line
                     # save last line and append to string
