@@ -1,4 +1,4 @@
-
+""" empty test configuration """
 
 class TestConfig:
     """this represents one tests configuration"""

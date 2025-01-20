@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ query testsuite """
 import semver
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.query_page import QueryPage
 from selenium_ui_test.pages.graph_page import GraphPage
 from selenium_ui_test.pages.graph_page import GraphExample, get_graph
@@ -19,11 +19,11 @@ class QueryTestSuite(BaseSeleniumTestSuite):
 
         assert query_page.current_user() == "ROOT", "current user is root?"
         assert query_page.current_database() == "_SYSTEM", "current database is _system?"
-        
+
         self.tprint("Checking saved query feature \n")
         if query_page.current_package_version() > semver.VersionInfo.parse("3.10.99"):
             query_page.saved_query_check()
-        
+
         if query_page.current_package_version() >= semver.VersionInfo.parse("3.10.0"):
             if query_page.current_package_version() > semver.VersionInfo.parse("3.11.99"):
                 # TODO for 3.12.x

@@ -1,3 +1,4 @@
+""" base class defining the models for the tests """
 from dataclasses import dataclass, field
 
 

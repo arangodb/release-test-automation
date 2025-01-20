@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ dashboard testsuite """
 import semver
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.dashboard_page import DashboardPage
 
 
@@ -53,6 +53,3 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
         dash.print_combined_performance_results()
         del dash
         self.tprint("---------Checking Dashboard Completed--------- \n")
-        
-        
-

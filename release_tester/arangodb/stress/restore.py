@@ -1,3 +1,8 @@
+""" run an external restore process """
+import traceback
+from queue import Empty
+from arangodb.async_client import default_line_result
+
 def restore_runner(queue, resq, restore, progressive_timeout):
     """operate one arangosh instance"""
     while True:
@@ -8,7 +13,7 @@ def restore_runner(queue, resq, restore, progressive_timeout):
             res = restore.run_restore_monitored(
                 basepath=str(restore.cfg.base_test_dir.resolve() / job["dir"]),
                 args=job["args"],
-                result_line_handler=result_line,
+                result_line_handler=default_line_result,
                 progressive_timeout=progressive_timeout,
             )
             if not res[0]:
@@ -24,4 +29,3 @@ def restore_runner(queue, resq, restore, progressive_timeout):
         except Exception as ex:
             print("".join(traceback.TracebackException.from_exception(ex).format()))
             break
-

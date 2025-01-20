@@ -43,7 +43,6 @@ class SupportPage(NavigationBarPage):
 
     def loop_through_link_traversal(self, print_statement, link_list, assertion_list):
         """this method will be loop through all the list links"""
-        import time
 
         # Define the maximum number of retries
         max_retries = 3
@@ -53,7 +52,7 @@ class SupportPage(NavigationBarPage):
             self.tprint(print_statement[i])
             title = None
             try_count = 0
-            
+
             # Attempt the operation up to max_retries times
             while try_count < max_retries:
                 try:
@@ -64,18 +63,18 @@ class SupportPage(NavigationBarPage):
                 except Exception as e:
                     # If an error occurs, print the error message
                     self.tprint(f"Error occurred: {e}")
-                    
+
                     # Increment retry count
                     try_count += 1
-                    
+
                     # If maximum retries reached, raise an error
                     if try_count == max_retries:
                         self.tprint(f"Failed after {max_retries} attempts for link: {link_list[i]}")
                         break  # Break out of the retry loop
-                    
+
                     # Wait for a few seconds before retrying
                     time.sleep(3)
-            
+
             # Move to the next link
             i += 1
 
@@ -207,19 +206,19 @@ class SupportPage(NavigationBarPage):
         fox_framework_list = [micro_service, guides, reference, deployment, go_to_fox_start]
 
         if self.version_is_newer_than("3.11.99"):
-            fox_framework_assertion_Check = ['Getting Started | ArangoDB Documentation',
+            fox_framework_assertion_check = ['Getting Started | ArangoDB Documentation',
                                              'Guides | ArangoDB Documentation',
                                              'Foxx reference | ArangoDB Documentation',
                                              'Deployment | ArangoDB Documentation',
                                              'Foxx Microservices | ArangoDB Documentation']
         else:
-            fox_framework_assertion_Check = ['Getting started | Foxx Microservices | Manual | ArangoDB Documentation',
+            fox_framework_assertion_check = ['Getting started | Foxx Microservices | Manual | ArangoDB Documentation',
                                              'Guides | Foxx Microservices | Manual | ArangoDB Documentation',
                                              'Reference | Foxx Microservices | Manual | ArangoDB Documentation',
                                              'Deployment | Foxx Microservices | Manual | ArangoDB Documentation',
                                              'Foxx Microservices | ArangoDB Documentation']
 
-        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_Check)
+        self.loop_through_link_traversal(fox_framework_print_statement, fox_framework_list, fox_framework_assertion_check)
 
         self.tprint("Checking all arangodb Fox Framework link completed\n")
 
@@ -236,7 +235,7 @@ class SupportPage(NavigationBarPage):
             arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[5]/a'
             drivers_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
 
-            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+            official_print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
                                         'Checking ArangoDB Go driver link \n',
                                         'Checking Go to ArangoDB Spring Data page link \n',
@@ -262,7 +261,7 @@ class SupportPage(NavigationBarPage):
             arangodb_spark_connector = '//*[@id="documentation"]/div/div[5]/ul/li[6]/a'
             driver_and_integration = '//*[@id="documentation"]/div/div[5]/ul/li[7]/a'
 
-            Official_print_statement = ['Checking ArangoDB Java Driver link \n',
+            official_print_statement = ['Checking ArangoDB Java Driver link \n',
                                         'Checking ArangoJS - Javascript Driver link \n',
                                         'Checking ArangoDB-PHP link \n',
                                         'Checking ArangoDB Go Driver link \n',
@@ -282,7 +281,7 @@ class SupportPage(NavigationBarPage):
                                                   'Install Official Drivers, Integrations and Community Drivers | '
                                                   'ArangoDB Documentation']
 
-        self.loop_through_link_traversal(Official_print_statement, drivers_and_integration,
+        self.loop_through_link_traversal(official_print_statement, drivers_and_integration,
                                          driver_integration_assertion_check)
 
         self.tprint('Checking all arangodb Drivers and Integration link completed\n')

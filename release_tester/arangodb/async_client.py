@@ -181,7 +181,9 @@ def expect_failure(expect_to_fail, ret, params):
     res = (None, None, None, None)
     if ret["have_deadline"] or ret["progressive_timeout"]:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
-        raise CliExecutionException("Execution failed by timeout.", res, ret["progressive_timeout"] or ret["have_deadline"])
+        raise CliExecutionException(
+            "Execution failed by timeout.", res,
+            ret["progressive_timeout"] or ret["have_deadline"])
     if ret["rc_exit"] != 0:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         if expect_to_fail:
@@ -349,6 +351,7 @@ deadline_signal: {0.deadline_signal}""".format(
             thread2.start()
 
             try:
+                # pylint: disable=line-too-long
                 print(
                     f"{identifier} my PID:{str(os.getpid())} launched PID:{str(process.pid)} {str(process.name())} with LWPID:{str(thread1.native_id)} and LWPID:{str(thread2.native_id)}"
                     )

@@ -29,6 +29,8 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     def __init__(self, selenium_runner):
         self.selenium_runner = selenium_runner
         super().__init__()
+        self.exception = False
+        self.error = ""
         self.video_start_time = selenium_runner.video_start_time
         self.webdriver = selenium_runner.webdriver
         self.frontend = selenium_runner.ui_entrypoint_instance

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ graph testsuite """
 import semver
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
-from selenium_ui_test.pages.graph_page import GraphPage, GraphExample, get_graph
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+from selenium_ui_test.pages.graph_page import GraphPage#, get_graph ,GraphExample
 
 
 class GraphTestSuite(BaseSeleniumTestSuite):
@@ -15,9 +15,9 @@ class GraphTestSuite(BaseSeleniumTestSuite):
         this_graph = GraphPage(self.webdriver, self.cfg, self.video_start_time)
         assert this_graph.current_user() == "ROOT", "current user is root?"
         assert this_graph.current_database() == "_SYSTEM", "current database is _system?"
-        
+
         graph = GraphPage(self.webdriver, self.cfg, self.video_start_time)  # creating obj for Graph
-        
+
         self.tprint("Example Graphs creation started\n")
         if graph.current_package_version() > semver.VersionInfo.parse("3.11.100"):
             graph.create_example_graph_for_312("Knows Graph")
@@ -54,7 +54,7 @@ class GraphTestSuite(BaseSeleniumTestSuite):
             graph.deleting_example_graphs("World Graph")
             graph.deleting_example_graphs("Social Graph")
             # graph.deleting_example_graphs("City Graph")
-        
+
         graph.print_combined_performance_results()
         # self.tprint("Manual Graph creation started \n")
         # this_graph.select_graph_page()

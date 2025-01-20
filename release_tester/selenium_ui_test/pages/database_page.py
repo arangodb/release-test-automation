@@ -2,13 +2,12 @@
 """ database page object """
 import time
 import semver
-import traceback
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
-# pylint: disable=too-many-statements
+# pylint: disable=too-many-statements disable=too-many-branches
 class DatabasePage(NavigationBarPage):
     """ database page object """
     def __init__(self, webdriver, cfg, video_start_time):
@@ -52,7 +51,7 @@ class DatabasePage(NavigationBarPage):
                 replication_factor = 'replicationFactor'
             else:
                 replication_factor = 'new-replication-factor'
-            
+
             replication_factor_sitem = self.locator_finder_by_id(replication_factor)
             replication_factor_sitem.click()
             if self.version_is_newer_than("3.11.99"):
@@ -68,7 +67,7 @@ class DatabasePage(NavigationBarPage):
                 write_concern = 'writeConcern'
             else:
                 write_concern = 'new-write-concern'
-            
+
             write_concern_sitem = self.locator_finder_by_id(write_concern)
             write_concern_sitem.click()
             if self.version_is_newer_than("3.11.99"):
@@ -83,7 +82,7 @@ class DatabasePage(NavigationBarPage):
                 if self.version_is_newer_than("3.11.99"):
                     self.tprint(f"selecting one shard database for {db_name}\n")
                     if db_name == "OneShard":
-                        self.tprint(f"Skipped for Forced oneshard for now, need to figure out a way.\n")
+                        self.tprint("Skipped for Forced oneshard for now, need to figure out a way.\n")
                         # one_shard = '//*[@id="chakra-modal--body-4"]/div/div/div[2]/div[5]/div/div/label/span/span'
                         # one_shard_sitem = self.locator_finder_by_xpath(one_shard)
                         # one_shard_sitem.click()
@@ -119,11 +118,11 @@ class DatabasePage(NavigationBarPage):
         else:
             create_db = "modalButton1"
             create_db_sitem = self.locator_finder_by_id(create_db)
-        
+
         create_db_sitem.click()
         time.sleep(4)
         self.tprint(f"Creating {db_name} database completed \n")
-        
+
         if self.current_package_version() < semver.VersionInfo.parse("3.11.0"):
             self.tprint(f"Logging into newly created {db_name} database \n")
             change_db = '//*[@id="dbStatus"]/a[3]/i'
@@ -188,7 +187,7 @@ class DatabasePage(NavigationBarPage):
         ver_db_names = semver.VersionInfo.parse("3.9.0")
         ver_db_replf = semver.VersionInfo.parse("3.8.0")
         version = self.current_package_version()
-        
+
         if version >= ver_db_names:
             db_name_error_input = ["1", ".", "/"]  # name must be 64 bit thus 65 character won't work too.
             db_name_print_statement = [
@@ -447,10 +446,9 @@ class DatabasePage(NavigationBarPage):
         except TimeoutException:
             self.tprint('TimeoutException occurred! \n')
             self.tprint('Info: Database has already been deleted or never created. \n')
-        except Exception:
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
+        except Exception as ex:
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
-    
     def deleting_user(self, username):
         """Deleting users created for the Database test"""
         self.wait_for_ajax()
@@ -493,5 +491,5 @@ class DatabasePage(NavigationBarPage):
         except TimeoutException:
             self.tprint('TimeoutException occurred! \n')
             self.tprint('Info: User has already been deleted or never created. \n')
-        except Exception:
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
+        except Exception as ex:
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex

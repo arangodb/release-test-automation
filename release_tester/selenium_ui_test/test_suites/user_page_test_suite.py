@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 """ user page testsuite """
-import semver
 import traceback
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+
 from test_suites_core.base_test_suite import testcase
 
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.user_page import UserPage
 from selenium_ui_test.pages.login_page import LoginPage
-
 from selenium_ui_test.pages.collection_page import CollectionPage
-from selenium.common.exceptions import TimeoutException
-import time
 
 class UserPageTestSuite(BaseSeleniumTestSuite):
 # pylint: disable=too-many-statements
     """ user page testsuite """
+
     @testcase
     def test_user(self):
         """testing user page"""

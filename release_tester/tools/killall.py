@@ -111,6 +111,7 @@ def get_all_processes(kill_selenium):
 @step
 def kill_all_processes(kill_selenium=True):
     """killall arangod arangodb arangosync"""
+    # pylint: disable=too-many-branches
     processlist = get_all_processes(kill_selenium)
     print(processlist)
     attach(str(processlist), "List of processes")

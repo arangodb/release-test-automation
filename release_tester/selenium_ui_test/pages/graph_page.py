@@ -3,13 +3,13 @@
 import time
 from enum import IntEnum
 import semver
-from selenium_ui_test.pages.base_page import Keys
 from selenium.webdriver.common.by import By
-from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
+from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium_ui_test.pages.base_page import Keys
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=line-too-long disable=too-many-lines disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals
+# pylint: disable=line-too-long disable=too-many-lines disable=too-many-instance-attributes disable=too-many-statements disable=too-many-locals disable=too-many-branches
 
 
 class GraphExample(IntEnum):
@@ -145,7 +145,6 @@ class GraphPage(NavigationBarPage):
 
         self.select_new_graph_name_id = "createNewGraphName"
 
-    
     def checking_created_collections_for_312(self, graph_name):
         """selecting collection tab"""
         # todo add navigation instead
@@ -196,7 +195,7 @@ class GraphPage(NavigationBarPage):
                 ), f"Expected page title {expected_title} but got {knows_collection_sitem.text}"
             except AssertionError:
                 self.tprint(f"Assertion Error occurred! for {expected_title}\n")
-    
+
     def create_example_graph_for_312(self, graph_name):
         """Creating example graphs"""
         self.webdriver.refresh()
@@ -216,50 +215,50 @@ class GraphPage(NavigationBarPage):
         time.sleep(1)
 
         if graph_name == "Knows Graph":
-            self.select_knows_graph_id = self.locator_finder_by_xpath(
+            select_knows_graph_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[1]"
             )
-            self.select_knows_graph_id.click()
+            select_knows_graph_id.click()
 
             # TODO
             # self.tprint(f"Checking required collections created for {graph_name}\n")
             # self.checking_created_collections_for_312("knows_graph")
 
         elif graph_name == "Traversal Graph":
-            self.select_traversal_graph_id = self.locator_finder_by_xpath(
+            select_traversal_graph_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[2]"
             )
-            self.select_traversal_graph_id.click()
+            select_traversal_graph_id.click()
         elif graph_name == "k Shortest Paths Graph":
-            self.select_k_shortest_path_id = self.locator_finder_by_xpath(
+            select_k_shortest_path_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[3]"
             )
-            self.select_k_shortest_path_id.click()
+            select_k_shortest_path_id.click()
         elif graph_name == "Mps Graph":
-            self.select_maps_graph_id = self.locator_finder_by_xpath(
+            select_maps_graph_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[4]"
             )
-            self.select_maps_graph_id.click()
+            select_maps_graph_id.click()
         elif graph_name == "World Graph":
-            self.select_world_graph_id = self.locator_finder_by_xpath(
+            select_world_graph_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[5]"
             )
-            self.select_world_graph_id.click()
+            select_world_graph_id.click()
         elif graph_name == "Social Graph":
-            self.select_social_graph_id = self.locator_finder_by_xpath(
+            select_social_graph_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[6]"
             )
-            self.select_social_graph_id.click()
+            select_social_graph_id.click()
         elif graph_name == "City Graph":
-            self.select_city_graph_id = self.locator_finder_by_xpath(
+            select_city_graph_id = self.locator_finder_by_xpath(
                 "(//button[@type='submit'][normalize-space()='Create'])[7]"
             )
-            self.select_city_graph_id.click()
+            select_city_graph_id.click()
         else:
             self.tprint("Invalid Graph\n")
         time.sleep(3)
         self.wait_for_ajax()
-    
+
     def checking_created_collections(self, graph_name):
         """This method will check all the example graphs created collections"""
         self.wait_for_ajax()
@@ -360,27 +359,27 @@ class GraphPage(NavigationBarPage):
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "World Graph":
             self.wait_for_ajax()
-            worldVertices_collection = '//*[@id="collection_worldVertices"]/div/h5'
-            worldVertices_collection_sitem = self.locator_finder_by_xpath(
-                worldVertices_collection
+            world_vertices_collection = '//*[@id="collection_worldVertices"]/div/h5'
+            world_vertices_collection_sitem = self.locator_finder_by_xpath(
+                world_vertices_collection
             )
             expected_title = "worldVertices"
             try:
                 assert (
-                    expected_title == worldVertices_collection_sitem.text
-                ), f"Expected page title {expected_title} but got {worldVertices_collection_sitem.text}"
+                    expected_title == world_vertices_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {world_vertices_collection_sitem.text}"
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
 
-            worldEdges_collection = '//*[@id="collection_worldEdges"]/div/h5'
-            worldEdges_collection_sitem = self.locator_finder_by_xpath(
-                worldEdges_collection, benchmark=True
+            world_edges_collection = '//*[@id="collection_worldEdges"]/div/h5'
+            world_edges_collection_sitem = self.locator_finder_by_xpath(
+                world_edges_collection, benchmark=True
             )
             expected_title = "worldEdges"
             try:
                 assert (
-                    expected_title == worldEdges_collection_sitem.text
-                ), f"Expected page title {expected_title} but got {worldEdges_collection_sitem.text}"
+                    expected_title == world_edges_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {world_edges_collection_sitem.text}"
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "Social Graph":
@@ -418,55 +417,54 @@ class GraphPage(NavigationBarPage):
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
         elif graph_name == "City Graph":
             self.wait_for_ajax()
-            frenchCity_collection = '//*[@id="collection_frenchCity"]/div/h5'
-            frenchCity_collection_sitem = self.locator_finder_by_xpath(
-                frenchCity_collection, benchmark=True
+            french_city_collection = '//*[@id="collection_frenchCity"]/div/h5'
+            french_city_collection_sitem = self.locator_finder_by_xpath(
+                french_city_collection, benchmark=True
             )
             expected_title = "frenchCity"
             try:
                 assert (
-                    expected_title == frenchCity_collection_sitem.text
-                ), f"Expected page title {expected_title} but got {frenchCity_collection_sitem.text}"
+                    expected_title == french_city_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {french_city_collection_sitem.text}"
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
 
-            germanCity_collection = '//*[@id="collection_germanCity"]/div/h5'
-            germanCity_collection_sitem = self.locator_finder_by_xpath(
-                germanCity_collection
+            german_city_collection = '//*[@id="collection_germanCity"]/div/h5'
+            german_city_collection_sitem = self.locator_finder_by_xpath(
+                german_city_collection
             )
             expected_title = "germanCity"
             try:
                 assert (
-                    expected_title == germanCity_collection_sitem.text
-                ), f"Expected page title {expected_title} but got {germanCity_collection_sitem.text}"
+                    expected_title == german_city_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {german_city_collection_sitem.text}"
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
 
-            frenchHighway_collection = '//*[@id="collection_frenchHighway"]/div/h5'
-            frenchHighway_collection_sitem = self.locator_finder_by_xpath(
-                frenchHighway_collection
+            french_highway_collection = '//*[@id="collection_frenchHighway"]/div/h5'
+            french_highway_collection_sitem = self.locator_finder_by_xpath(
+                french_highway_collection
             )
             expected_title = "frenchHighway"
             try:
                 assert (
-                    expected_title == frenchHighway_collection_sitem.text
-                ), f"Expected page title {expected_title} but got {frenchHighway_collection_sitem.text}"
+                    expected_title == french_highway_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {french_highway_collection_sitem.text}"
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
 
-            germanHighway_collection = '//*[@id="collection_germanHighway"]/div/h5'
-            germanHighway_collection_sitem = self.locator_finder_by_xpath(
-                germanHighway_collection
+            german_highway_collection = '//*[@id="collection_germanHighway"]/div/h5'
+            german_highway_collection_sitem = self.locator_finder_by_xpath(
+                german_highway_collection
             )
             expected_title = "germanHighway"
             try:
                 assert (
-                    expected_title == germanHighway_collection_sitem.text
-                ), f"Expected page title {expected_title} but got {germanHighway_collection_sitem.text}"
+                    expected_title == german_highway_collection_sitem.text
+                ), f"Expected page title {expected_title} but got {german_highway_collection_sitem.text}"
             except AssertionError as ex:
                 raise Exception("Assertion Error occurred! for {expected_title} \n") from ex
 
-    
     def create_example_graph(self, graph_name):
         """This method will create all the example graphs"""
         self.webdriver.refresh()
@@ -539,7 +537,7 @@ class GraphPage(NavigationBarPage):
             graph_id_sitem.click()
             time.sleep(3)
             self.checking_created_collections(graph_name)
-    
+
     # pylint: disable=unused-argument
     def create_manual_graph(self, importer, test_data_dir):
         """creating graph manually"""
@@ -1231,7 +1229,7 @@ class GraphPage(NavigationBarPage):
                 if retry > 10:
                     raise exc
                 self.tprint("retrying delete " + str(retry))
-    
+
     def deleting_example_graphs(self, graph_name):
         """This method will delete all the example graphs"""
         retry = 0
@@ -1290,7 +1288,7 @@ class GraphPage(NavigationBarPage):
                         except Exception as e_alternative:
                             self.tprint(f"An error occurred: {e_alternative} using alternative xpath locator \n")
                             # If both attempts fail, raise the original exception
-                            raise e
+                            raise e_alternative from e
 
                     delete_with_collection_sitem.click()
 
@@ -1299,39 +1297,38 @@ class GraphPage(NavigationBarPage):
                     delete_confirm_sitem.click()
                     time.sleep(1)
                     break
-                else:
-                    # Find the <a> element with the text "knows_graph"
-                    a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
-                    # Navigate to the parent <td> element
-                    td_element = a_element.find_element(By.XPATH, "./ancestor::td")
-                    # Find the <button> element within the same row
-                    button_element = td_element.find_element(By.XPATH, "./following-sibling::td//button[@type='button']")
-                    # Click the button
-                    button_element.click()
+                # Find the <a> element with the text "knows_graph"
+                a_element = self.locator_finder_by_xpath(f"//a[text()='{graph_name}']")
+                # Navigate to the parent <td> element
+                td_element = a_element.find_element(By.XPATH, "./ancestor::td")
+                # Find the <button> element within the same row
+                button_element = td_element.find_element(By.XPATH, "./following-sibling::td//button[@type='button']")
+                # Click the button
+                button_element.click()
 
-                    time.sleep(2)
-                    self.wait_for_ajax()
-                    delete_btn = "(//button[normalize-space()='Delete'])[1]"
-                    delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
-                    delete_btn_sitem.click()
+                time.sleep(2)
+                self.wait_for_ajax()
+                delete_btn = "(//button[normalize-space()='Delete'])[1]"
+                delete_btn_sitem = self.locator_finder_by_xpath(delete_btn)
+                delete_btn_sitem.click()
 
-                    time.sleep(2)
-                    self.wait_for_ajax()
-                    delete_with_collection = (
-                        "(//label[normalize-space()='Also drop collections'])[1]"
-                    )
+                time.sleep(2)
+                self.wait_for_ajax()
+                delete_with_collection = (
+                    "(//label[normalize-space()='Also drop collections'])[1]"
+                )
 
-                    delete_with_collection_sitem = self.locator_finder_by_xpath(
-                        delete_with_collection
-                    )
-                    delete_with_collection_sitem.click()
+                delete_with_collection_sitem = self.locator_finder_by_xpath(
+                    delete_with_collection
+                )
+                delete_with_collection_sitem.click()
 
-                    time.sleep(2)
-                    self.wait_for_ajax()
-                    delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
-                    delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
-                    delete_confirm_sitem.click()
-                    break
+                time.sleep(2)
+                self.wait_for_ajax()
+                delete_confirm = "(//button[@type='submit'][normalize-space()='Delete'])[1]"
+                delete_confirm_sitem = self.locator_finder_by_xpath(delete_confirm)
+                delete_confirm_sitem.click()
+                break
             except TimeoutException as exc:
                 retry += 1
                 if retry > 2:

@@ -11,8 +11,12 @@ from selenium_ui_test.test_suites.single.jam_1_test_suite import SingleJamStepOn
 class Single(SeleniumRunner):
     """check the single setup and its properties"""
 
-    def __init__(self, selenium_args, properties: RunnerProperties, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
-        # pylint: disable=useless-super-delegation
+    def __init__(self, selenium_args,
+                 properties: RunnerProperties,
+                 testrun_name: str,
+                 ssl: bool,
+                 selenium_include_suites: list[str]):
+        # pylint: disable=useless-super-delegation disable=too-many-arguments
         super().__init__(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
         self.main_test_suite_list = [BasicTestSuite]
         self.after_install_test_suite_list = [SingleAfterInstallTestSuite]

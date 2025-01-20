@@ -1,3 +1,6 @@
+""" run a random arangosh code executor """
+from arangodb.async_client import default_line_result
+
 def arangosh_runner(queue, resq, arangosh, progressive_timeout):
     """operate one arangosh instance"""
     while True:
@@ -11,7 +14,7 @@ def arangosh_runner(queue, resq, arangosh, progressive_timeout):
                     arangosh.cfg.test_data_dir.resolve() / job["script"],
                 ],
                 args=job["args"],
-                result_line_handler=result_line,
+                result_line_handler=default_line_result,
                 progressive_timeout=progressive_timeout,
             )
             if not res[0]:

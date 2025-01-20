@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ analyzer page testsuite """
-import semver
 import traceback
+import semver
 
 from selenium_ui_test.pages.analyzers_page import AnalyzerPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
@@ -22,16 +22,16 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
 
         self.exception = False
         self.error = None
-        self.package_version = analyzers.current_package_version()
+        package_version = analyzers.current_package_version()
         try:
-            if self.package_version >= semver.VersionInfo.parse("3.9.0"):
+            if package_version >= semver.VersionInfo.parse("3.9.0"):
                 analyzers.select_analyzers_page()
                 analyzers.select_help_filter_btn()
 
                 self.tprint('Checking analyzer page transition\n')
                 analyzers.checking_analyzer_page_transition('transition')
 
-                if self.package_version < semver.VersionInfo.parse("3.11.0"):
+                if package_version < semver.VersionInfo.parse("3.11.0"):
                     self.tprint('Checking all built-in analyzers\n')
                     analyzers.checking_all_built_in_analyzer()
 
@@ -53,7 +53,7 @@ class AnalyzersTestSuite(BaseSeleniumTestSuite):
 
         finally:
             analyzers.print_combined_performance_results()
-            if self.package_version >= semver.VersionInfo.parse("3.9.0"):
+            if package_version >= semver.VersionInfo.parse("3.9.0"):
                 self.tprint("Analyzer deletion started.")
                 analyzers.deleting_all_created_analyzers()
                 del analyzers

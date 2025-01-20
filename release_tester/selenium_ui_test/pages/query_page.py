@@ -224,7 +224,7 @@ RETURN c
         col_name = self.locator_finder_by_xpath(col_name)
         col_name.click()
         time.sleep(1)
-        
+
         self.navigate_to_col_content_tab()
 
         # get key text from the first row
@@ -798,7 +798,7 @@ FOR doc IN Characters
         toggle_query = self.locator_finder_by_id(toggle_query)
         toggle_query.click()
         time.sleep(1)
-    
+
     def save_query(self, query_name):
         """his method will check saved query featured that introduced on 3.11.x"""
         if self.version_is_newer_than("3.11.99"):

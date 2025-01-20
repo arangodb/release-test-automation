@@ -7,8 +7,12 @@ from arangodb.starter.deployments.selenium_deployments.sbase import SeleniumRunn
 class NoStarter(SeleniumRunner):
     """check the leader follower setup and its properties"""
 
-    def __init__(self, selenium_args, properties: RunnerProperties, testrun_name: str, ssl: bool, selenium_include_suites: list[str]):
-        # pylint: disable=useless-super-delegation
+    def __init__(self, selenium_args,
+                 properties: RunnerProperties,
+                 testrun_name: str,
+                 ssl: bool,
+                 selenium_include_suites: list[str]):
+        # pylint: disable=useless-super-delegation disable=too-many-arguments
         super().__init__(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
 
     def check_old(self, cfg, leader_follower=False, expect_follower_count=2, retry_count=10):

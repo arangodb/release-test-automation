@@ -7,7 +7,7 @@ from arangodb.starter.deployments.runner import Runner, RunnerProperties
 class NoStarter(Runner):
     """This runner does not use the starter"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes, disable=unused-argument
     def __init__(
         self,
         runner_type,

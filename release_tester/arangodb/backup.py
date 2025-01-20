@@ -40,6 +40,7 @@ class HotBackupConfig:
     SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
     def __init__(self, basecfg, name, raw_install_prefix):
+        # pylint: disable=too-many-statements
         self.hb_timeout = 20
         hbcfg = basecfg.hb_cli_cfg
         self.hb_provider_cfg = basecfg.hb_provider_cfg

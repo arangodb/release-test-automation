@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 """page object for views editing"""
 import time
-import semver
 import traceback
+import semver
 
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException, TimeoutException
@@ -11,6 +11,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
+# pylint: disable=too-many-lines disable=too-many-locals
 
 
 class ViewsPage(NavigationBarPage):
@@ -66,24 +67,6 @@ class ViewsPage(NavigationBarPage):
         create_new_views_sitem = self.locator_finder_by_id(self.select_views_tab_id)
         create_new_views_sitem.click()
 
-    def create_new_views(self, name):
-        """creating new views tab"""
-        self.tprint(f"Creating {name} started \n")
-        create_new_views_sitem = self.locator_finder_by_xpath(self.create_new_views_id, benchmark=True)
-        create_new_views_sitem.click()
-
-        self.tprint("Naming new views \n")
-        naming_new_view_sitem = self.locator_finder_by_xpath(self.naming_new_view_id)
-        naming_new_view_sitem.click()
-        naming_new_view_sitem.send_keys(name)
-
-        self.tprint("Creating new views tab \n")
-        select_create_btn_sitem = self.locator_finder_by_xpath(self.select_create_btn_id)
-        select_create_btn_sitem.click()
-        time.sleep(2)
-        self.wait_for_ajax()
-        self.tprint(f"Creating {name} completed \n")
-
     def select_views_settings(self):
         """selecting view setting"""
         select_views_settings_sitem = self.locator_finder_by_xpath(self.select_views_settings_id, benchmark=True)
@@ -99,8 +82,9 @@ class ViewsPage(NavigationBarPage):
         self.wait_for_ajax()
 
     def search_views(self, expected_text, search_locator):
+        """ iterate search views """
         search_views = self.search_views_id
-        for i in range(3):
+        for _ in range(3):
             try:
                 search_views_sitem = self.locator_finder_by_xpath(search_views, benchmark=True)
                 search_views_sitem.click()
@@ -420,7 +404,6 @@ class ViewsPage(NavigationBarPage):
             self.tprint("Rename the current Views completed \n")
         self.tprint(f"Checking {name} Completed \n")
 
-    
     def create_collection(self, collection_name):
         """Creating collection for testing"""
         self.wait_for_ajax()
@@ -443,8 +426,7 @@ class ViewsPage(NavigationBarPage):
         save_btn_sitem = self.locator_finder_by_id(save_btn)
         save_btn_sitem.click()
         time.sleep(2)
-        
-    
+
     def adding_collection_to_the_link(self, collection_name):
         """This method will add collection to the views link"""
         self.wait_for_ajax()
@@ -550,7 +532,7 @@ class ViewsPage(NavigationBarPage):
         # go back to view tab
         self.navbar_goto("views")
         time.sleep(1)
-    
+
     def check_views_changes_saved(self, name, ex_msg=None):
         """checking the creation of the view using the green notification bar appears at the bottom"""
         self.wait_for_ajax()
@@ -568,7 +550,7 @@ class ViewsPage(NavigationBarPage):
         except TimeoutException:
             self.tprint('Error occurred!! required manual inspection.\n')
         self.tprint(f'Creating {name} completed successfully \n')
-    
+
     def open_tier_tab(self):
         """This method will open tier tab inside consolidation tab of views"""
         tier = "//tr[@id='row_change-view-policyType']//select"
@@ -620,7 +602,7 @@ class ViewsPage(NavigationBarPage):
         actions.move_to_element(element)
         # Perform a click action
         actions.click().perform()
-    
+
     def select_desired_views_from_the_list(self, view_type_name):
         """this method will find the desired views from the list using given locator"""
         select_view = "(//*[name()='svg'][@class='css-8mmkcg'])[1]"
@@ -636,8 +618,7 @@ class ViewsPage(NavigationBarPage):
         actions.move_to_element(element)
         # Perform a click action
         actions.click().perform()
-    
-    
+
     def create_improved_views_311(self, view_name, types, variation):
         """This method will create the improved views for v3.11+"""
         self.wait_for_ajax()
@@ -659,7 +640,7 @@ class ViewsPage(NavigationBarPage):
         name_id_sitem.send_keys(view_name)
         time.sleep(2)
 
-        self.tprint(f"Select view's type")
+        self.tprint("Select view's type")
         if types == "search-alias":
             self.select_desired_views_from_the_list("search-alias")
 
@@ -764,7 +745,7 @@ class ViewsPage(NavigationBarPage):
         create_sitem.click()
         time.sleep(3)
         self.webdriver.refresh()
-    
+
     def checking_improved_views_for_v310(self, name, locator, is_cluster):
         """This method will check improved views for v3.10.x"""
         self.wait_for_ajax()
@@ -988,14 +969,14 @@ class ViewsPage(NavigationBarPage):
         error_message = [error, error, error, error]
 
         if self.current_package_version() >= semver.VersionInfo.parse("3.9.0"):
-            self.tprint(f'Select advance options \n')
+            self.tprint('Select advance options \n')
             advance_option = '//*[@id="accordion4"]/div/div[1]/a/span[2]/b'
             advance_option_sitem = self.locator_finder_by_xpath(advance_option)
             advance_option_sitem.click()
             time.sleep(2)
             self.wait_for_ajax()
 
-            self.tprint(f'Select write buffer idle value\n')
+            self.tprint('Select write buffer idle value\n')
             buffer_locator_id = "//input[@value='64']"
             error_locator_id = '//*[@id="row_newWriteBufferIdle"]/th[2]/p'
 
@@ -1017,7 +998,6 @@ class ViewsPage(NavigationBarPage):
 
     def delete_views(self, name, locator):
         """This method will delete views"""
-        
         try:
             self.navbar_goto("views")
             self.wait_for_ajax()
@@ -1042,10 +1022,10 @@ class ViewsPage(NavigationBarPage):
             self.wait_for_ajax()
         except TimeoutException as e:
             self.tprint('TimeoutException occurred! \n')
-            self.tprint('Info: Views has already been deleted or never created. \n')
-        except Exception:
+            self.tprint(f'Info: Views has already been deleted or never created. \n{e}')
+        except Exception as ex:
             traceback.print_exc()
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
     def delete_created_collection(self, col_name):
         """this method will delete all the collection created for views"""
@@ -1079,9 +1059,9 @@ class ViewsPage(NavigationBarPage):
         except TimeoutException:
             self.tprint('TimeoutException occurred! \n')
             self.tprint(f'Info: {col_name} has already been deleted or never created. \n')
-        except Exception:
+        except Exception as ex:
             traceback.print_exc()
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
     def delete_views_310(self, name):
         """this method will delete all the newer version views"""
@@ -1124,15 +1104,15 @@ class ViewsPage(NavigationBarPage):
             time.sleep(2)
             self.wait_for_ajax()
 
-        except (TimeoutException, AttributeError) as e:
+        except (TimeoutException, AttributeError) as ex:
             self.tprint('TimeoutException occurred! \n')
-            self.tprint(f'Info: {name} has already been deleted or never created. \n')
+            self.tprint(f'Info: {name} has already been deleted or never created. \n{ex}')
         except NoSuchElementException:
             self.tprint('Element not found, which might be happen due to force cleanup.')
-        except Exception:
+        except Exception as ex:
             traceback.print_exc()
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
-    
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
+
     def delete_views_312(self, name):
         """this method will delete all the newer version views > 3.11"""
         self.wait_for_ajax()
@@ -1161,7 +1141,7 @@ class ViewsPage(NavigationBarPage):
                 confirm_delete_btn = "//*[text()='Cancel']/following-sibling::button"
             else:
                 confirm_delete_btn = "(//button[@class='button-danger'])[1]"
-            
+
             confirm_delete_btn_sitem = self.locator_finder_by_xpath(confirm_delete_btn)
             confirm_delete_btn_sitem.click()
             time.sleep(2)
@@ -1171,7 +1151,6 @@ class ViewsPage(NavigationBarPage):
         except TimeoutException:
             self.tprint("TimeoutException occurred! \n")
             self.tprint(f"Info: {name} has already been deleted or never created. \n")
-        except Exception:
+        except Exception as ex:
             traceback.print_exc()
-            raise Exception("Critical Error occurred and need manual inspection!! \n")
-
+            raise Exception("Critical Error occurred and need manual inspection!! \n") from ex

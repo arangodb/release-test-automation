@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ login testsuite """
 
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.login_page import LoginPage
 
 
@@ -24,4 +24,3 @@ class LogInTestSuite(BaseSeleniumTestSuite):
         assert login_page.current_database() == "_SYSTEM", "current database is _system?"
         login_page.print_combined_performance_results()
         del login_page
-

@@ -27,7 +27,7 @@ more_nodes_supported_starter = [
 class Cluster(Runner):
     """this launches a cluster setup"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes, disable=too-many-locals
     def __init__(
         self,
         runner_type,

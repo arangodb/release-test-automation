@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """ collection testsuite """
-import semver
 import traceback
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+import semver
 from test_suites_core.base_test_suite import testcase
 
-
 # from selenium_ui_test.models import IndexType
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.collection_page import CollectionPage
 
 
 class CollectionsTestSuite(BaseSeleniumTestSuite):
     """collection tab suite"""
-    # pylint: disable=too-many-statements
+    # pylint: disable=too-many-statements disable=too-many-branches
     @testcase
     def test_collection(self):
         """testing collection page"""
@@ -91,7 +90,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     col.select_choose_file_btn(str(self.ui_data_dir / "ui_data" / "edges.json"))
                     col.select_confirm_upload_btn()
                     self.webdriver.refresh()
-                    self.tprint("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
+                    self.tprint(f"Uploading {col.getting_total_row_count()} documents to the collection Completed\n")
                     self.tprint("Selecting size of the displayed\n")
 
                     col.select_collection_page()
@@ -104,7 +103,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                     col.select_choose_file_btn(str(self.ui_data_dir / "ui_data" / "names_100.json"))
                     col.select_confirm_upload_btn()
                     self.webdriver.refresh()
-                    self.tprint("Uploading " + col.getting_total_row_count() + " documents to the collection Completed\n")
+                    self.tprint(f"Uploading {col.getting_total_row_count()} documents to the collection Completed\n")
                     self.tprint("Selecting size of the displayed\n")
 
                     # self.tprint("Downloading Documents as JSON file\n")
@@ -162,7 +161,7 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
                         col.create_new_index('ZKD', 5, self.is_cluster)
 
                     self.tprint("Deleting all index started for < v3.11.x\n")
-                    for i in range(4):
+                    for _ in range(4):
                         col.delete_index_311(True)
                     self.tprint("Deleting all index completed\n")
                 else:
@@ -200,11 +199,11 @@ class CollectionsTestSuite(BaseSeleniumTestSuite):
             col.print_combined_performance_results()
             # these will clearup the resources even in failed test case scenario
             self.tprint("Collection deletion started \n")
-            col.delete_collection("TestDoc", col.select_doc_collection_id, self.is_cluster)          
+            col.delete_collection("TestDoc", col.select_doc_collection_id, self.is_cluster)
             col.delete_collection("TestDocRenamed", col.select_renamed_doc_collection_id, self.is_cluster)
             col.delete_collection("TestEdge", col.select_edge_collection_id, self.is_cluster)
             col.delete_collection("Test", col.select_test_doc_collection_id, self.is_cluster)
-            col.delete_collection("ComputedValueCol", col.select_computedValueCol_id, self.is_cluster)
+            col.delete_collection("ComputedValueCol", col.select_computed_value_col_id, self.is_cluster)
             self.tprint("Deleting Collection completed\n")
 
             if self.exception:

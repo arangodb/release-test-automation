@@ -11,6 +11,7 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 
 class InstallerSource(InstallerArchive):
     """adjust to arango source directory"""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, cfg):
         self.server_package = None

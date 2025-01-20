@@ -8,7 +8,13 @@ from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_l
 class ArangoDumpExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    def run_dump_monitored(self, basepath, args, progressive_timeout, verbose=True, result_line_handler=default_line_result, expect_to_fail=False):
+    def run_dump_monitored(self,
+                           basepath,
+                           args,
+                           progressive_timeout,
+                           verbose=True,
+                           result_line_handler=default_line_result,
+                           expect_to_fail=False):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
         runs an import in background tracing with

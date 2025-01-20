@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """ user page object """
 import time
-from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
-from selenium_ui_test.pages.base_page import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
+
+from selenium_ui_test.pages.navbar import NavigationBarPage
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements
@@ -233,12 +232,12 @@ class UserPage(NavigationBarPage):
             except TimeoutException:
                 self.tprint('FAIL: Unexpected error occurred! \n')
 
-        except TimeoutException:
+        except TimeoutException as ex:
             if test_name == 'access':
                 self.tprint("Collection creation failed, which is expected\n")
             elif test_name == 'read/write':
-                raise Exception("FAIL: Unexpected error occurred!\n")
-    
+                raise Exception("FAIL: Unexpected error occurred!\n") from ex
+
     def delete_user_btn(self):
         """Delete user button"""
         if self.version_is_newer_than("3.11.99"):

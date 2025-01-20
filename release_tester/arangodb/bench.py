@@ -13,7 +13,7 @@ import tools.loghelper as lh
 BENCH_TODOS = {}
 
 BENCH_COUNT = 0
-
+# pylint: disable=too-many-instance-attributes, disable=global-variable-not-assigned
 def load_scenarios():
     """load the yaml testcases"""
     yamldir = pathlib.Path(__file__).parent.absolute() / ".." / ".." / "scenarios" / "arangobench"

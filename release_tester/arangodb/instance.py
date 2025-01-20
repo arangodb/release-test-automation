@@ -506,6 +506,7 @@ class Instance(ABC):
 
     def clean_hotbackup(self):
         """ find and clear hotbackups """
+        # pylint: disable=unnecessary-pass
         pass
 
     def clone_to_registry(self):
@@ -929,7 +930,7 @@ class SyncInstance(Instance):
         if line.find("--log.file") >= 0:
             self.logfile_parameter = line
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches disable=too-many-statements
     def detect_pid(self, ppid, offset, full_binary_path):
         # first get the starter provided commandline:
         self.ppid = ppid
