@@ -107,6 +107,14 @@ class SupportPage(NavigationBarPage):
         scaling = '//*[@id="documentation"]/div/div[2]/ul/li[4]/a'
         graphs = '//*[@id="documentation"]/div/div[2]/ul/li[5]/a'
         go_to_manual_start_page = '//*[@id="documentation"]/div/div[2]/ul/li[6]/a'
+        manual_link_list = [
+            getting_started,
+            data_models_and_modelling,
+            administration,
+            scaling,
+            graphs,
+            go_to_manual_start_page,
+        ]
 
         manual_link_list_print_statement = [
             "Checking Getting started link \n",
@@ -117,29 +125,22 @@ class SupportPage(NavigationBarPage):
             "Checking Go to Manual start page link \n",
         ]
 
-        manual_link_list = [
-            getting_started,
-            data_models_and_modelling,
-            administration,
-            scaling,
-            graphs,
-            go_to_manual_start_page,
-        ]
-
         if self.version_is_newer_than("3.11.99"):
-            manual_link_assertion_check = ['Get Started | ArangoDB Documentation',
-                                           'Data Models | ArangoDB Documentation',
-                                           'Administration | ArangoDB Documentation',
-                                           'The scalability of ArangoDB and its data models | ArangoDB Documentation',
-                                           'Graphs | ArangoDB Documentation',
-                                           'Recommended Resources | ArangoDB Documentation']
+            manual_link_assertion_check = [
+                'Get Started | ArangoDB Documentation',
+                'Data Models | ArangoDB Documentation',
+                'Administration | ArangoDB Documentation',
+                'The scalability of ArangoDB and its data models | ArangoDB Documentation',
+                'Graphs | ArangoDB Documentation',
+                'Recommended Resources | ArangoDB Documentation']
         else:
-            manual_link_assertion_check = ['Getting Started | Manual | ArangoDB Documentation',
-                                           'Modeling Data for ArangoDB | ArangoDB Documentation',
-                                           'Administration | Manual | ArangoDB Documentation',
-                                           'Scaling | Manual | ArangoDB Documentation',
-                                           'Graphs | Manual | ArangoDB Documentation',
-                                           'Introduction to ArangoDB Documentation | ArangoDB Documentation']
+            manual_link_assertion_check = [
+                'Getting Started | Manual | ArangoDB Documentation',
+                'Modeling Data for ArangoDB | ArangoDB Documentation',
+                'Administration | Manual | ArangoDB Documentation',
+                'Scaling | Manual | ArangoDB Documentation',
+                'Graphs | Manual | ArangoDB Documentation',
+                'Introduction to ArangoDB Documentation | ArangoDB Documentation']
 
         self.loop_through_link_traversal(
             manual_link_list_print_statement, manual_link_list, manual_link_assertion_check
