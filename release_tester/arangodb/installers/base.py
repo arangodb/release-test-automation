@@ -341,7 +341,7 @@ class InstallerBase(ABC):
         return self.cli_executor.run_monitored(
             executeable=self.cfg.real_sbin_dir / "arangod",
             args=["--version"],
-            params=make_default_params(True),
+            params=make_default_params(True, "arangod versioncheck"),
             deadline=10,
         )
 

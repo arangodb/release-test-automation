@@ -19,5 +19,5 @@ def run_cmd_and_log_stdout_async(cfg, cmd, timeout=1200):
     """run command and save output"""
     logging.info(f"Running command:\n{cmd}")
     prog = RunAnonProgramm(cfg)
-    params = make_default_params(cfg.verbose)
+    params = make_default_params(cfg.verbose, cmd)
     return prog.run_monitored(cmd[0], cmd[1:], params, timeout)
