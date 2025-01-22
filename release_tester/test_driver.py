@@ -83,7 +83,6 @@ class TestDriver:
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
 
-
         if not kwargs["package_dir"].is_absolute():
             kwargs["package_dir"] = (self.launch_dir / kwargs["package_dir"]).resolve()
         if not kwargs["package_dir"].exists():

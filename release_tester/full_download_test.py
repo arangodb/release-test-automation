@@ -70,12 +70,10 @@ def package_test(
         dl_opt = deepcopy(dl_opts)
         dl_opt.force = dl_opts.force and props.force_dl
         dl_new = Download(
+            test_driver.base_config,
             dl_opt,
-            test_driver.base_config.hb_cli_cfg,
             new_version,
             props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
             new_dlstage,
             versions,
             fresh_versions,

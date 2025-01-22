@@ -33,19 +33,16 @@ class DownloadDummy:
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods
     def __init__(
         self,
+        bc: InstallerBaseConfig,
         options: DownloadOptions,
-        hb_cli_cfg: HotBackupCliCfg,
         version: str,
         enterprise: bool,
-        zip_package: bool,
-        src_testing: bool,
         source,
         existing_version_states=None,
         new_version_states=None,
         git_version="",
         force_arch="",
         force_os="",
-        arangods=None,
     ):
         """main"""
         if existing_version_states is None:
@@ -54,25 +51,13 @@ class DownloadDummy:
             new_version_states = {}
         self.cfg = InstallerConfig(
             version=version,
-            verbose=options.verbose,
             enterprise=enterprise,
             encryption_at_rest=False,
-            zip_package=zip_package,
-            src_testing=src_testing,
-            hb_cli_cfg=hb_cli_cfg,
-            package_dir=options.package_dir,
-            test_dir=Path("/"),
+            bc=bc,
             deployment_mode="all",
-            publicip="127.0.0.1",
-            interactive=False,
-            stress_upgrade=False,
             ssl=False,
             force_one_shard=False,
             use_auto_certs=False,
-            test="",
-            arangods=[] if arangods is None else arangods,
-            check_locale=True,
-            checkdata=True,
         )
 
         self.inst = make_installer(self.cfg)

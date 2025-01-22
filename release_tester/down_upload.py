@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 # pylint: disable=duplicate-code
+import copy
 import os
 from pathlib import Path
 import sys
@@ -77,13 +78,13 @@ def main(**kwargs):
 
         for zipit in [True, False]:
             for com_ep in [True, False]:
+                one_bc = copy.deepcopy(kwargs['base_config'])
+                one_bc.zip_package = zipit
                 downloader = Download(
+                    bc=one_bc,
                     options=dl_opts,
-                    hb_cli_cfg=kwargs['hb_cli_cfg'],
                     version=kwargs['new_version'],
                     enterprise=com_ep,
-                    zip_package=zipit,
-                    src_testing=kwargs['src_testing'],
                     source=kwargs['source'],
                     force_arch=kwargs['force_arch'],
                     force_os=kwargs['force_os'])
