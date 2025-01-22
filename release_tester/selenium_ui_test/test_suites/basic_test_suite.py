@@ -31,8 +31,3 @@ class BasicTestSuite(BaseSeleniumTestSuite):
         SupportTestSuite,
         ServiceTestSuite,
     ]
-
-    def __init__(self, selenium_runner):
-        super().__init__(
-            selenium_runner,
-        )

@@ -108,6 +108,7 @@ class SiteConfig:
     """this environment - adapted to oskar defaults"""
 
     # pylint: disable=too-few-public-methods disable=too-many-instance-attributes
+    # pylint: disable=unused-argument
     def __init__(self, definition_file):
         # pylint: disable=too-many-statements disable=too-many-branches
         print_env()
@@ -203,7 +204,9 @@ class SiteConfig:
  - {str(TEMP)} - temporary directory
  - current Disk I/O: {str(psutil.disk_io_counters())}
  - current Swap: {str(psutil.swap_memory())}
- - Starting {str(datetime.now())} soft deadline will be: {str(self.deadline)} hard deadline will be: {str(self.hard_deadline)}
+ - Starting {str(datetime.now())}
+    - soft deadline will be: {str(self.deadline)}
+    - hard deadline will be: {str(self.hard_deadline)}
  - {self.core_dozend} / {self.loop_sleep} machine size / loop frequency
  - {socket_count} number of currently active tcp sockets
 {san_gcov_msg}"""

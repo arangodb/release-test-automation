@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """ views testsuite """
-
-import semver
 import traceback
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
+import semver
+
 from test_suites_core.base_test_suite import testcase
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.views_page import ViewsPage
-import time
 
-
-
+# pylint: disable=(too-many-branches
 class ViewsTestSuite(BaseSeleniumTestSuite):
     """ views testsuite """
     @testcase
@@ -54,7 +52,9 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                     views.create_improved_views("improved_arangosearch_view_02", 1)
 
                 # Checking improved views for v3.10.x
-                if semver.VersionInfo.parse("3.9.100") < views.current_package_version() < semver.VersionInfo.parse("3.10.100"):
+                if (semver.VersionInfo.parse("3.9.100")
+                    < views.current_package_version()
+                    < semver.VersionInfo.parse("3.10.100")):
                     views.checking_improved_views_for_v310(
                         "improved_arangosearch_view_01",
                         views.select_improved_arangosearch_view_01,
@@ -73,55 +73,6 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                         self.is_cluster
                     )
 
-            elif views.current_package_version() <= semver.VersionInfo.parse("3.8.100"):
-                views.create_new_views('firstView')
-                views.create_new_views('secondView')
-
-                views.select_views_settings()
-                self.tprint("Sorting views to descending\n")
-                views.select_sorting_views()
-                self.tprint("Sorting views to ascending\n")
-                views.select_sorting_views()
-
-                self.tprint("search views option testing\n")
-                views.search_views("secondView", views.search_second_view)
-                views.search_views("firstView", views.search_first_view)
-
-                self.tprint("Selecting first Views \n")
-                views.select_first_view()
-                self.tprint("Selecting collapse button \n")
-                views.select_collapse_btn()
-                self.tprint("Selecting expand button \n")
-                views.select_expand_btn()
-                self.tprint("Selecting editor mode \n")
-                views.select_editor_mode_btn(0)
-                self.tprint("Switch editor mode to Code \n")
-                views.switch_to_code_editor_mode()
-                self.tprint("Switch editor mode to Compact mode Code \n")
-                views.compact_json_data()
-
-                self.tprint("Selecting editor mode \n")
-                views.select_editor_mode_btn(1)
-                self.tprint("Switch editor mode to Tree \n")
-                views.switch_to_tree_editor_mode()
-
-                self.tprint("Clicking on ArangoSearch documentation link \n")
-                views.click_arangosearch_documentation_link()
-                self.tprint("Selecting search option\n")
-                views.select_inside_search("i")
-                self.tprint("Traversing all results up and down \n")
-                views.search_result_traverse_down()
-                views.search_result_traverse_up()
-
-                if self.is_cluster:
-                    self.tprint('View rename is disabled in Cluster mode \n')
-                else:
-                    self.tprint("Rename firstViews to thirdViews started \n")
-                    views.clicking_rename_views_btn()
-                    views.rename_views_name("thirdView")
-                    views.rename_views_name_confirm()
-                    self.tprint("Rename the current Views completed \n")
-                self.webdriver.back()
 
             # checking negative scenarios for all package version
             if (
@@ -129,7 +80,7 @@ class ViewsTestSuite(BaseSeleniumTestSuite):
                 < views.current_package_version()
                 < semver.VersionInfo.parse("3.9.100")
                 ):
-                    views.checking_views_negative_scenario_for_views()
+                views.checking_views_negative_scenario_for_views()
 
         except BaseException:
             self.tprint(f"{'x' * 45}\nINFO: Error Occurred! Force Deletion Started\n{'x' * 45}")

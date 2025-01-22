@@ -7,10 +7,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
-
-from selenium_ui_test.pages.base_page import BasePage
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 
+from selenium_ui_test.pages.base_page import BasePage
 # can't circumvent long lines..
 # pylint: disable=line-too-long
 
@@ -61,18 +60,17 @@ class LoginPage(BasePage):
                 logname.click()
                 logname.clear()
                 logname.send_keys(user)
-                
+
                 # Verify if the input was successful
                 if logname.get_attribute("value") == user:
                     return True
-                else:
-                    self.progress(f"Attempt {attempt + 1}: Username not set correctly, retrying...")
+                self.progress(f"Attempt {attempt + 1}: Username not set correctly, retrying...")
             except (TimeoutException, NoSuchElementException, ElementNotInteractableException) as e:
                 self.progress(f"Attempt {attempt + 1}: Exception occurred - {e}, retrying...")
-            
+
             # Wait a bit before retrying
             time.sleep(2)
-        
+
         # If all attempts fail
         self.progress("Failed to fill in the username after multiple attempts.")
         return False
@@ -100,7 +98,7 @@ class LoginPage(BasePage):
         select = Select(self.locator_finder_by_xpath(self.database_select))
         select.select_by_visible_text(database_name)
         return True
-    
+
     def login_webif(self, user, passvoid, database="_system"):
         """Log into an ArangoDB web interface."""
         self.tprint(f"Logging {user} into {database} with passvoid {passvoid}")
@@ -114,7 +112,7 @@ class LoginPage(BasePage):
             except Exception as e:
                 self.tprint(f"Error waiting for login screen: {e}")
                 continue
-            
+
             try:
                 if not self._login_fill_username(user):
                     self.tprint(f"Failed to fill username: {user}")
@@ -122,7 +120,7 @@ class LoginPage(BasePage):
             except Exception as e:
                 self.tprint(f"Error filling username: {e}")
                 continue
-            
+
             try:
                 if not self._login_fill_passvoid(passvoid):
                     self.tprint(f"Failed to fill password for user: {user}")
@@ -130,7 +128,7 @@ class LoginPage(BasePage):
             except Exception as e:
                 self.tprint(f"Error filling password: {e}")
                 continue
-            
+
             try:
                 if not self._login_choose_database(database):
                     self.tprint(f"Failed to choose database: {database}")
@@ -138,25 +136,25 @@ class LoginPage(BasePage):
             except Exception as e:
                 self.tprint(f"Error choosing database: {e}")
                 continue
-            
+
             try:
                 self.locator_finder_by_id(self.select_db_btn_id).click()
             except Exception as e:
                 self.tprint(f"Error clicking select database button: {e}")
                 continue
-            
+
             self.progress("We're in!")
-            
+
             try:
                 self.wait_for_ajax()
             except Exception as e:
                 self.tprint(f"Error waiting for AJAX: {e}")
                 continue
-            
+
             if "No results found." in self.webdriver.page_source:
                 self.tprint("Login failed: No results found.")
                 continue
-            
+
             self.tprint("Login successful!")
             return True
 

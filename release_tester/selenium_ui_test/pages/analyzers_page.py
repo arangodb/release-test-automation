@@ -4,15 +4,14 @@ import time
 import traceback
 import semver
 from selenium_ui_test.pages.base_page import Keys
-from selenium.webdriver.common.by import By
 from selenium_ui_test.pages.navbar import NavigationBarPage
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.action_chains import ActionChains
 
-
+# pylint: disable=line-too-long disable=too-many-lines disable=too-many-branches
 class AnalyzerPage(NavigationBarPage):
     """ analyzer page object """
-    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(self, webdriver, cfg, video_start_time):
         super().__init__(webdriver, cfg, video_start_time)
         self.analyzers_page = "analyzers"
@@ -79,7 +78,8 @@ class AnalyzerPage(NavigationBarPage):
         self.locator_finder_by_xpath(locators).click()
         time.sleep(2)
 
-        switch_view_template_str = lambda id_name: f"//div[@id='modal-content-view-{id_name}']/child::div//div/div[2]/button"
+        def switch_view_template_str(id_name):
+            return f"//div[@id='modal-content-view-{id_name}']/child::div//div/div[2]/button"
         # this will create all the built-in switch view to {code/form} locators as needed
         switch_view_id_list = [switch_view_template_str('identity'),
                                switch_view_template_str('text_de'),
@@ -131,19 +131,16 @@ class AnalyzerPage(NavigationBarPage):
         close_sitem = self.locator_finder_by_xpath(self.close_analyzer_btn)
         close_sitem.click()
         time.sleep(2)
-    
 
     def checking_analyzer_page_transition(self, keyword):
         """This method will check page transition error for BTS-902"""
-        """
-        To reproduce the issue we need to follow steps given below:
-        Login to the web UI
-        Click in the menu on “Analyzers”
-        Click in the menu on “Collections”
-        Click in the menu on “Analyzers” again
-        Click the search icon from the search/filter box if it takes 
-        to the collection page then it's an error.
-        """
+        # To reproduce the issue we need to follow steps given below:
+        # Login to the web UI
+        # Click in the menu on “Analyzers”
+        # Click in the menu on “Collections”
+        # Click in the menu on “Analyzers” again
+        # Click the search icon from the search/filter box if it takes
+        # to the collection page then it's an error.
 
         if self.version_is_newer_than('3.11.99'):
             self.tprint("checking_analyzer_page_transition test skipped \n")
@@ -152,7 +149,6 @@ class AnalyzerPage(NavigationBarPage):
             self.navbar_goto("collections")
             self.navbar_goto("analyzers")
 
-            
             filter_input = "filterInput"
             filter_input_sitem = self.locator_finder_by_id(filter_input)
             filter_input_sitem.click()
@@ -182,8 +178,9 @@ class AnalyzerPage(NavigationBarPage):
             self.webdriver.refresh()
             # going back to analyzer page for the rest of the tests
             self.navbar_goto("analyzers")
-            
+
     def checking_all_built_in_analyzer(self):
+        """ check the built in analyzers """
         built_in_analyzers = [
             "identity",
             "text_de",
@@ -199,22 +196,23 @@ class AnalyzerPage(NavigationBarPage):
             "text_sv",
             "text_zh"
         ]
-        
+
         if self.version_is_newer_than('3.11.99'):
             self.tprint("select_help_filter_btn test skipped \n")
         else:
             self.tprint('Showing in-built Analyzers list \n')
             self.select_built_in_analyzers_open()
-            
+
             for analyzer in built_in_analyzers:
                 self.tprint(f'Checking in-built {analyzer} analyzer \n')
                 xpath = f'//tr/td[text()="{analyzer}"]/following-sibling::td[2]/button'
                 self.select_analyzer_to_check(analyzer, xpath)
-            
+
             self.tprint('Hiding in-built Analyzers list \n')
             self.select_built_in_analyzers_close()
 
     def get_analyzer_index(self, name):
+        """ get the number of the analyzer """
         analyzer_lookup = {
             "My_Identity_Analyzer": 0,
             "My_Delimiter_Analyzer": 1,
@@ -241,12 +239,12 @@ class AnalyzerPage(NavigationBarPage):
 
     def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
-        # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements
+        # pylint: disable=too-many-locals disable=too-many-branches disable=too-many-statements disable=too-many-nested-blocks
         index = self.get_analyzer_index(name)
         if index == -1:
             self.tprint(f"Analyzer '{name}' not found in the lookup table.")
             return
-        
+
         self.select_analyzers_page()
         self.webdriver.refresh()
         self.wait_for_ajax()
@@ -613,7 +611,7 @@ class AnalyzerPage(NavigationBarPage):
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
-        # Segmentation alpha 
+        # Segmentation alpha
         elif name == "My_Segmentation_Alpha_Analyzer":
             self.tprint(f'Selecting segmentation break as alpha for {name} \n')
             if self.version_is_newer_than('3.11.99'):
@@ -928,7 +926,7 @@ class AnalyzerPage(NavigationBarPage):
                 max_s2_cell = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
             else:
                 max_s2_cell = "//*[text()='Max S2 Cells']"
-            
+
             max_s2_cell_sitem = self.locator_finder_by_xpath(max_s2_cell)
             max_s2_cell_sitem.click()
             if self.version_is_newer_than('3.11.99'):
@@ -1069,7 +1067,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
 
             time.sleep(2)
-        
+
         #todo need to fix this one for 3.11.x
         if self.version_is_newer_than('3.11.0'):
             self.tprint("skiped switching view for code view\n")
@@ -1084,7 +1082,6 @@ class AnalyzerPage(NavigationBarPage):
             form_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
             form_view_sitem.click()
             time.sleep(3)
-            
 
         self.tprint(f"Selecting the create button for the {name} \n")
         self.tprint(f'Selecting the create button for the {name} \n')
@@ -1122,7 +1119,7 @@ class AnalyzerPage(NavigationBarPage):
         # --------------------here we are checking the properties of the created analyzer----------------------
         if self.version_is_older_than('3.11.99'):
             # primariliy enable the test for the version below 3.11.99
-            if name == "My_Nearest_Neighbor_Analyzer" or name == "My_Classification_Analyzer":
+            if name in ["My_Nearest_Neighbor_Analyzer", "My_Classification_Analyzer"]:
                 self.tprint(f"Skipping the properties check for {name} \n") #todo: need to fix this for 3.11.x, location porperties has changed due to the dynamic selenoid depoloyment
             else:
                 try:
@@ -1146,7 +1143,7 @@ class AnalyzerPage(NavigationBarPage):
                             # then click on the analyzer to view its properties
                             analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
                             analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
-                        
+
                         if analyzer_sitem is None:
                             self.tprint(f'This {analyzer_name} has never been created \n')
                         else:
@@ -1200,12 +1197,11 @@ class AnalyzerPage(NavigationBarPage):
                             self.tprint(f"expected_properties: {expected_properties} \n")
                             raise AssertionError(
                                 f"Actual properties didn't matches the expected properties for {name}") from ex
-                        else:
-                            self.tprint(f"Actual properties matches the expected properties for {name}. \n")
+                        self.tprint(f"Actual properties matches the expected properties for {name}. \n")
 
                 except TimeoutException as ex:
                     self.tprint(f'Failed to parse properties from the {name} and the error is: {ex} \n')
-                    
+
                 # -------------------- Running a query for each analyzer's after creation----------------------
                 try:
                     self.tprint(f"Checking analyzer query for {name} \n")
@@ -1231,55 +1227,53 @@ class AnalyzerPage(NavigationBarPage):
 
                         if analyzer_query is None:
                             self.tprint(f"Analyzer '{name}' not found. Skipping test.")
-                            pass  # Skip this test and move to the next one
+                            return # Skip this test and move to the next one
+                        if self.version_is_newer_than('3.11.99'):
+                            self.send_key_action(analyzer_query)
                         else:
-                            if self.version_is_newer_than('3.11.99'):
-                                self.send_key_action(analyzer_query)
-                            else:
-                                self.clear_textfield()
-                                self.send_key_action(analyzer_query)
+                            self.clear_textfield()
+                            self.send_key_action(analyzer_query)
 
-                            self.query_execution_btn()
-                            self.scroll(1)
+                        self.query_execution_btn()
+                        self.scroll(1)
 
-                            # Find all elements matching the XPath from the ace editor
-                            if self.version_is_older_than('3.11.99'):
-                                ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
-                                ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
-                                # Initialize an empty list to store text
-                                text_list = []
-                                # Iterate over each element and extract its text
-                                for element in ace_line_groups:
-                                    text_list.append(element.text.strip())  # Append text from each line group
-                                    time.sleep(1)
+                        # Find all elements matching the XPath from the ace editor
+                        if self.version_is_older_than('3.11.99'):
+                            ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
+                            ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
+                            # Initialize an empty list to store text
+                            text_list = []
+                            # Iterate over each element and extract its text
+                            for element in ace_line_groups:
+                                text_list.append(element.text.strip())  # Append text from each line group
+                                time.sleep(1)
 
-                                # Join the text from all elements into a single string
-                                final_text = ''.join(text_list)  # Join the text without splitting
-                                query_actual_output = ''.join(str(final_text).split())
-                                self.tprint(f"query_actual_output: {query_actual_output} \n")
+                            # Join the text from all elements into a single string
+                            final_text = ''.join(text_list)  # Join the text without splitting
+                            query_actual_output = ''.join(str(final_text).split())
+                            self.tprint(f"query_actual_output: {query_actual_output} \n")
 
-                            if self.version_is_newer_than('3.11.99'):
-                                query_expected_output = self.get_analyzer_expected_output_312(name)
-                            else:
-                                query_expected_output = self.get_analyzer_expected_output_311(name)
+                        if self.version_is_newer_than('3.11.99'):
+                            query_expected_output = self.get_analyzer_expected_output_312(name)
+                        else:
+                            query_expected_output = self.get_analyzer_expected_output_311(name)
 
-                            if query_expected_output is None:
-                                self.tprint(f"Analyzer '{name}' not found. Skipping test.")
-                                pass  # Skip this test and move to the next one
-                            else:
-                                # Assert that the copied text matches the expected text
-                                if query_actual_output != ''.join(str(query_expected_output).split()):
-                                    self.tprint(f"query_actual_output: {query_actual_output} \n")
-                                    self.tprint(f"query_expected_output: {query_expected_output} \n")
-                                    raise Exception(
-                                        f"Actual query output didn't matches the expected query output for {name}\n")
-                                else:
-                                    self.tprint(f"Actual query output matches the expected query output for {name}\n")
+                        if query_expected_output is None:
+                            self.tprint(f"Analyzer '{name}' not found. Skipping test.")
+                            return # Skip this test and move to the next one
+                        # Assert that the copied text matches the expected text
+                        if query_actual_output != ''.join(str(query_expected_output).split()):
+                            self.tprint(f"query_actual_output: {query_actual_output} \n")
+                            self.tprint(f"query_expected_output: {query_expected_output} \n")
+                            raise Exception(
+                                f"Actual query output didn't matches the expected query output for {name}\n")
+                        self.tprint(f"Actual query output matches the expected query output for {name}\n")
                 except TimeoutException as ex:
-                    raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}")
+                    raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}") from ex
 
     @staticmethod
     def generate_analyzer_queries_312(analyzer_name):
+        """ return queries for analyzers """
         return {
             "My_Identity_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
@@ -1341,6 +1335,7 @@ class AnalyzerPage(NavigationBarPage):
 
     @staticmethod
     def generate_analyzer_queries_311(analyzer_name):
+        """ generate queries for the analyzers """
         return {
             "My_Identity_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
@@ -1403,8 +1398,8 @@ class AnalyzerPage(NavigationBarPage):
     @staticmethod
     def generate_expected_properties_311(analyzer_name, ui_data_dir=None):
         """Define a method to generate expected text for a specific analyzer for == v311"""
-        if analyzer_name == "My_Identity_Analyzer":
-            return """{
+        location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
+        analyzers = { "My_Identity_Analyzer": """{
                 "name": "_system::My_Identity_Analyzer",
                 "type": "identity",
                 "features": [
@@ -1413,9 +1408,8 @@ class AnalyzerPage(NavigationBarPage):
                     "norm"
                 ],
                 "properties": {}
-            }"""
-        elif analyzer_name == "My_Delimiter_Analyzer":
-            return """{
+            }""",
+                      "My_Delimiter_Analyzer": """{
                   "name": "_system::My_Delimiter_Analyzer",
                   "type": "delimiter",
                   "features": [
@@ -1426,9 +1420,8 @@ class AnalyzerPage(NavigationBarPage):
                   "properties": {
                     "delimiter": "_"
                   }
-                }"""
-        elif analyzer_name == "My_Stem_Analyzer":
-            return """{
+                }""",
+                      "My_Stem_Analyzer": """{
                   "name": "_system::My_Stem_Analyzer",
                   "type": "stem",
                   "features": [
@@ -1439,9 +1432,8 @@ class AnalyzerPage(NavigationBarPage):
                   "properties": {
                     "locale": "en"
                   }
-                }"""
-        elif analyzer_name == "My_Norm_Analyzer":
-            return """{
+                }""",
+                      "My_Norm_Analyzer": """{
                   "name": "_system::My_Norm_Analyzer",
                   "type": "norm",
                   "features": [
@@ -1454,9 +1446,8 @@ class AnalyzerPage(NavigationBarPage):
                     "case": "lower",
                     "accent": true
                   }
-                }"""
-        elif analyzer_name == "My_N-Gram_Analyzer":
-            return """{
+                }""",
+                      "My_N-Gram_Analyzer": """{
                   "name": "_system::My_N-Gram_Analyzer",
                   "type": "ngram",
                   "features": [
@@ -1472,9 +1463,8 @@ class AnalyzerPage(NavigationBarPage):
                     "startMarker": "^",
                     "endMarker": "$"
                   }
-                }"""
-        elif analyzer_name == "My_Text_Analyzer":
-            return """{
+                }""",
+                      "My_Text_Analyzer": """{
                   "name": "_system::My_Text_Analyzer",
                   "type": "text",
                   "features": [
@@ -1494,9 +1484,8 @@ class AnalyzerPage(NavigationBarPage):
                       "preserveOriginal": true
                     }
                   }
-                }"""
-        elif analyzer_name == "My_AQL_Analyzer":
-            return """{
+                }""",
+                      "My_AQL_Analyzer": """{
                   "name": "_system::My_AQL_Analyzer",
                   "type": "aql",
                   "features": [
@@ -1512,9 +1501,8 @@ class AnalyzerPage(NavigationBarPage):
                     "memoryLimit": 1048576,
                     "returnType": "number"
                   }
-                }"""
-        elif analyzer_name == "My_Stopwords_Analyzer":
-            return """{
+                }""",
+                      "My_Stopwords_Analyzer": """{
                   "name": "_system::My_Stopwords_Analyzer",
                   "type": "stopwords",
                   "features": [
@@ -1530,9 +1518,8 @@ class AnalyzerPage(NavigationBarPage):
                     ],
                     "hex": true
                   }
-                }"""
-        elif analyzer_name == "My_Collation_Analyzer":
-            return """{
+                }""",
+                      "My_Collation_Analyzer": """{
                   "name": "_system::My_Collation_Analyzer",
                   "type": "collation",
                   "features": [
@@ -1543,9 +1530,8 @@ class AnalyzerPage(NavigationBarPage):
                   "properties": {
                     "locale": "en_US"
                   }
-                }"""
-        elif analyzer_name == "My_Segmentation_Alpha_Analyzer":
-            return """{
+                }""",
+                      "My_Segmentation_Alpha_Analyzer": """{
                   "name": "_system::My_Segmentation_Alpha_Analyzer",
                   "type": "segmentation",
                   "features": [
@@ -1557,9 +1543,8 @@ class AnalyzerPage(NavigationBarPage):
                     "case": "lower",
                     "break": "alpha"
                   }
-                }"""
-        elif analyzer_name == "My_Pipeline_Analyzer":
-            return """{
+                }""",
+                      "My_Pipeline_Analyzer": """{
                   "name": "_system::My_Pipeline_Analyzer",
                   "type": "pipeline",
                   "features": [
@@ -1581,9 +1566,8 @@ class AnalyzerPage(NavigationBarPage):
                       "streamType":"utf8","startMarker":"^","endMarker":"$"}}
                     ]
                   }
-                }"""
-        elif analyzer_name == "My_GeoJSON_Analyzer":
-            return """{
+                }""",
+                      "My_GeoJSON_Analyzer": """{
                   "name": "_system::My_GeoJSON_Analyzer",
                   "type": "geojson",
                   "features": [
@@ -1598,9 +1582,8 @@ class AnalyzerPage(NavigationBarPage):
                       "maxLevel": 30
                     },
                     "type":"shape","legacy":false}
-                }"""
-        elif analyzer_name == "My_GeoPoint_Analyzer":
-            return """{
+                }""",
+                      "My_GeoPoint_Analyzer": """{
                   "name": "_system::My_GeoPoint_Analyzer",
                   "type": "geopoint",
                   "features": [
@@ -1618,9 +1601,8 @@ class AnalyzerPage(NavigationBarPage):
                     "longitude": ["-73","97"]
                   }
                 }
-                """
-        elif analyzer_name == "My_GeoS2_Analyzer":
-            return """{
+                """,
+                      "My_GeoS2_Analyzer": """{
                       "name": "_system::My_GeoS2_Analyzer",
                       "type": "geo_s2",
                       "features": [
@@ -1637,9 +1619,8 @@ class AnalyzerPage(NavigationBarPage):
                         "type": "point",
                         "format": "s2Point"
                       }
-                    }"""
-        elif analyzer_name == "My_Minhash_Analyzer":
-            return """{
+                    }""",
+                      "My_Minhash_Analyzer": """{
                   "name": "_system::My_Minhash_Analyzer",
                   "type": "minhash",
                   "features": [
@@ -1656,9 +1637,8 @@ class AnalyzerPage(NavigationBarPage):
                       }
                     }
                   }
-                }"""
-        elif analyzer_name == "My_MultiDelimiter_Analyzer":
-            return """{
+                }""",
+                      "My_MultiDelimiter_Analyzer": """{
                   "name": "_system::My_MultiDelimiter_Analyzer",
                   "type": "multi_delimiter",
                   "features": [
@@ -1678,9 +1658,8 @@ class AnalyzerPage(NavigationBarPage):
                       "⚽"
                     ]
                   }
-                }"""
-        elif analyzer_name == "My_WildCard_Analyzer":
-            return """
+                }""",
+                      "My_WildCard_Analyzer":"""
                 {
                   "name": "_system::My_WildCard_Analyzer",
                   "type": "wildcard",
@@ -1706,48 +1685,45 @@ class AnalyzerPage(NavigationBarPage):
                       }
                     }
                   }
-                }"""
-        elif analyzer_name == "My_Nearest_Neighbor_Analyzer":
-            location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-            return (
-                '{'
-                '"name": "_system::My_Nearest_Neighbor_Analyzer",'
-                '"type": "nearest_neighbors",'
-                '"features": ['
-                '"frequency",'
-                '"position",'
-                '"norm"'
-                '],'
-                '"properties": {'
-                f'"model_location": "{(str(location.absolute()))}",'
-                '"top_k": 2'
-                '}'
-                '}'
-            )
-        elif analyzer_name == "My_Classification_Analyzer":
-            location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-            return (
-                '{'
-                '"name": "_system::My_Classification_Analyzer",'
-                '"type": "classification",'
-                '"features": ['
-                '"frequency",'
-                '"position",'
-                '"norm"'
-                '],'
-                '"properties": {'
-                f'"model_location": "{(str(location.absolute()))}",'
-                '"top_k": 2,'
-                '"threshold": 0.8'
-                '}'
-                '}'
-            )
+                }""",
+                      "My_Nearest_Neighbor_Analyzer": f"""
+           {{
+                "name": "_system::My_Nearest_Neighbor_Analyzer",
+                "type": "nearest_neighbors",
+                "features": [
+                "frequency",
+                "position",
+                "norm"
+                ],
+                "properties": {{
+                "model_location": "{str(location.absolute())}"
+                "top_k": 2
+                }}
+                      }}""",
+                      "My_Classification_Analyzer": f"""{{
+                "name": "_system::My_Classification_Analyzer",
+                "type": "classification",
+                "features": [
+                "frequency",
+                "position",
+                "norm"
+                ],
+                "properties": {{
+                "model_location": "{str(location.absolute())}",
+                "top_k": 2,
+                "threshold": 0.8
+                }}
+                }}
+            """,
+                     }
+        return analyzers[analyzer_name]
 
     @staticmethod
     def generate_expected_properties_312(analyzer_name, ui_data_dir=None):
         """Define a method to generate expected text for a specific analyzer"""
-        if analyzer_name == "My_Identity_Analyzer":
-            return """{
+        location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
+        analyzers = {
+            "My_Identity_Analyzer":  """{
                 "name": "_system::My_Identity_Analyzer",
                 "type": "identity",
                 "properties": {},
@@ -1756,9 +1732,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                 ]
-            }"""
-        elif analyzer_name == "My_Delimiter_Analyzer":
-            return """{
+            }""",
+            "My_Delimiter_Analyzer": """{
                   "name": "_system::My_Delimiter_Analyzer",
                   "type": "delimiter",
                   "properties": {
@@ -1769,9 +1744,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Stem_Analyzer":
-            return """{
+                }""",
+            "My_Stem_Analyzer": """{
                   "name": "_system::My_Stem_Analyzer",
                   "type": "stem",
                   "properties": {
@@ -1782,9 +1756,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Norm_Analyzer":
-            return """{
+                }""",
+            "My_Norm_Analyzer": """{
                   "name": "_system::My_Norm_Analyzer",
                   "type": "norm",
                   "properties": {
@@ -1797,9 +1770,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_N-Gram_Analyzer":
-            return """{
+                }""",
+            "My_N-Gram_Analyzer": """{
                   "name": "_system::My_N-Gram_Analyzer",
                   "type": "ngram",
                   "properties": {
@@ -1815,9 +1787,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Text_Analyzer":
-            return """{
+                }""",
+            "My_Text_Analyzer":  """{
                   "name": "_system::My_Text_Analyzer",
                   "type": "text",
                   "properties": {
@@ -1836,9 +1807,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_AQL_Analyzer":
-            return """{
+                }""",
+            "My_AQL_Analyzer": """{
                   "name": "_system::My_AQL_Analyzer",
                   "type": "aql",
                   "properties": {
@@ -1854,9 +1824,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Stopwords_Analyzer":
-            return """{
+                }""",
+            "My_Stopwords_Analyzer":  """{
                   "name": "_system::My_Stopwords_Analyzer",
                   "type": "stopwords",
                   "properties": {
@@ -1871,9 +1840,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Collation_Analyzer":
-            return """{
+                }""",
+            "My_Collation_Analyzer": """{
                   "name": "_system::My_Collation_Analyzer",
                   "type": "collation",
                   "properties": {
@@ -1884,9 +1852,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Segmentation_Alpha_Analyzer":
-            return """{
+                }""",
+            "My_Segmentation_Alpha_Analyzer": """{
                   "name": "_system::My_Segmentation_Alpha_Analyzer",
                   "type": "segmentation",
                   "properties": {
@@ -1898,9 +1865,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Pipeline_Analyzer":
-            return """{
+                }""",
+            "My_Pipeline_Analyzer": """{
                   "name": "_system::My_Pipeline_Analyzer",
                   "type": "pipeline",
                   "properties": {
@@ -1920,9 +1886,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_GeoJSON_Analyzer":
-            return """{
+                }""",
+            "My_GeoJSON_Analyzer": """{
                   "name": "_system::My_GeoJSON_Analyzer",
                   "type": "geojson",
                   "properties": {
@@ -1939,9 +1904,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_GeoPoint_Analyzer":
-            return """{
+                }""",
+            "My_GeoPoint_Analyzer": """{
                   "name": "_system::My_GeoPoint_Analyzer",
                   "type": "geopoint",
                   "properties": {
@@ -1963,9 +1927,8 @@ class AnalyzerPage(NavigationBarPage):
                     "norm"
                   ]
                 }
-                """
-        elif analyzer_name == "My_GeoS2_Analyzer":
-            return """{
+                """,
+            "My_GeoS2_Analyzer": """{
                   "name": "_system::My_GeoS2_Analyzer",
                   "type": "geo_s2",
                   "properties": {
@@ -1982,9 +1945,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Minhash_Analyzer":
-            return """{
+                }""",
+            "My_Minhash_Analyzer": """{
                   "name": "_system::My_Minhash_Analyzer",
                   "type": "minhash",
                   "properties": {
@@ -2001,9 +1963,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_MultiDelimiter_Analyzer":
-            return """{
+                }""",
+            "My_MultiDelimiter_Analyzer": """{
                   "name": "_system::My_MultiDelimiter_Analyzer",
                   "type": "multi_delimiter",
                   "properties": {
@@ -2023,9 +1984,8 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_WildCard_Analyzer":
-            return """
+                }""",
+            "My_WildCard_Analyzer": """
                 {
                   "name": "_system::My_WildCard_Analyzer",
                   "type": "wildcard",
@@ -2051,43 +2011,38 @@ class AnalyzerPage(NavigationBarPage):
                     "position",
                     "norm"
                   ]
-                }"""
-        elif analyzer_name == "My_Nearest_Neighbor_Analyzer":
-                location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-                return (
-                    '{'
-                    '"name": "_system::My_Nearest_Neighbor_Analyzer",'
-                    '"type": "nearest_neighbors",'
-                    '"properties": {'
-                    f'"model_location": "{(str(location.absolute()))}",'
-                    '"top_k": 2'
-                    '},'
-                    '"features": ['
-                    '"frequency",'
-                    '"position",'
-                    '"norm"'
-                    ']'
-                    '}'
-                    )
-
-        elif analyzer_name == "My_Classification_Analyzer":
-                    location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-                    return (
-                        '{'
-                        '"name": "_system::My_Classification_Analyzer",'
-                        '"type": "classification",'
-                        '"properties": {'
-                        f'"model_location": "{(str(location.absolute()))}",'
-                        '"top_k": 2,'
-                        '"threshold": 0.8'
-                        '},'
-                        '"features": ['
-                        '"frequency",'
-                        '"position",'
-                        '"norm"'
-                        ']'
-                        '}'
-                    )
+                }""",
+            "My_Nearest_Neighbor_Analyzer": f"""
+                {{
+                "name": "_system::My_Nearest_Neighbor_Analyzer",
+                "type": "nearest_neighbors",
+                "properties": {{
+                "model_location": "{str(location.absolute())}",
+                "top_k": 2
+                }},
+                "features": [
+                "frequency",
+                "position",
+                "norm"
+                ]
+                }}
+        """,
+            "My_Classification_Analyzer": f"""{{
+                "name": "_system::My_Classification_Analyzer",
+                "type": "classification",
+                "properties": {{
+                f"model_location": "{str(location.absolute())}",
+                "top_k": 2,
+                "threshold": 0.8
+                }},
+                "features": [
+                "frequency",
+                "position",
+                "norm"
+                ]
+            }}"""
+        }
+        return analyzers[analyzer_name]
 
 
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
@@ -2373,7 +2328,7 @@ class AnalyzerPage(NavigationBarPage):
             self.tprint(f"Expected error scenario for the {name} Completed \n")
         except Exception:
             self.tprint('Info: Error occured during checking expected error!')
-    
+
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
         if self.version_is_newer_than('3.11.99'):
@@ -2399,7 +2354,6 @@ class AnalyzerPage(NavigationBarPage):
             self.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
             self.tprint('Checking analyzer search filter options completed \n')
 
-    
     def delete_analyzer(self, analyzer_name):
         """Deleting all the analyzer using their ID"""
         self.select_analyzers_page()
@@ -2455,10 +2409,9 @@ class AnalyzerPage(NavigationBarPage):
         except TimeoutException:
             self.tprint('TimeoutException occurred! \n')
             self.tprint('Info: Analyzer has already been deleted or never created. \n')
-        except Exception:
+        except Exception as ex:
             traceback.print_exc()
-            raise Exception('Critical Error occurred and need manual inspection!! \n')
-    
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
     def deleting_all_created_analyzers(self):
         """Deleting all the created analyzers"""

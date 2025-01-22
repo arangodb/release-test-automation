@@ -175,7 +175,8 @@ class InstallerFrontend:
 class InstallerConfig:
     """stores the baseline of this environment"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-locals
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-locals disable=too-many-statements
     def __init__(
         self,
         version: str,
@@ -511,7 +512,7 @@ directory_suffix: {0.directory_suffix}""".format(
         )
 
 
-# pylint: disable=too-many-function-args
+# pylint: disable=too-many-function-args disable=line-too-long
 EXECUTION_PLAN = [
     RunProperties(True, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
     RunProperties(True, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),

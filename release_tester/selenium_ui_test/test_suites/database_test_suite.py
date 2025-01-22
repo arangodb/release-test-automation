@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """ database testsuite """
+import traceback
+import semver
 from selenium_ui_test.pages.database_page import DatabasePage
 from selenium_ui_test.pages.user_page import UserPage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
-import traceback
-import semver
 
 
 class DatabaseTestSuite(BaseSeleniumTestSuite):
@@ -28,8 +28,6 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
             user.user_tab()
             user.add_new_user("tester")
             user.add_new_user("tester01")
-
-            
             db.create_new_db("Sharded", 0, self.is_cluster, self.is_enterprise)  # 0 = sharded DB
             db.create_new_db("OneShard", 1, self.is_cluster, self.is_enterprise)  # 1 = one shard DB
 
@@ -37,7 +35,8 @@ class DatabaseTestSuite(BaseSeleniumTestSuite):
                 self.tprint("Skipped \n")
             else:
                 if db.current_package_version() < semver.VersionInfo.parse("3.11.0"):
-                    db.test_db_expected_error(self.is_cluster)  # testing expected error condition for database creation
+                    # testing expected error condition for database creation
+                    db.test_database_expected_error(self.is_cluster)
 
                 self.tprint("Checking sorting databases to ascending and descending \n")
                 db.sorting_db()

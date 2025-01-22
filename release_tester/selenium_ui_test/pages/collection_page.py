@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """ collection page object """
 import time
-import semver
 import traceback
 import json
+import semver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import ElementNotInteractableException, TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium_ui_test.pages.navbar import NavigationBarPage
 
 
 # can't circumvent long lines.. nAttr nLines
-# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods
+# pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements
+# pylint: disable=too-many-public-methods disable=too-many-lines disable=too-many-locals
+# pylint: disable=too-many-branches
 
 
 class CollectionPage(NavigationBarPage):
@@ -138,7 +140,7 @@ class CollectionPage(NavigationBarPage):
         self.document_id = "document-id"
         self.select_filter_reset_btn_id = "/html//button[@id='resetView']"
         self.select_renamed_doc_collection_id = '//*[@id="collection_testDocRenamed"]/div/h5'
-        self.select_computedValueCol_id = '//*[@id="collection_ComputedValueCol"]/div/h5'
+        self.select_computed_value_col_id = '//*[@id="collection_ComputedValueCol"]/div/h5'
 
     def select_collection_page(self):
         """selecting collection tab"""
@@ -320,10 +322,10 @@ class CollectionPage(NavigationBarPage):
         warning = 'button-warning'
         warning_sitem = self.locator_finder_by_class(warning)
         # Set x and y offset positions of element
-        xOffset = 100
-        yOffset = 100
+        x_offset = 100
+        y_offset = 100
         # Performs mouse move action onto the element
-        actions = ActionChains(self.webdriver).move_to_element_with_offset(warning_sitem, xOffset, yOffset)
+        actions = ActionChains(self.webdriver).move_to_element_with_offset(warning_sitem, x_offset, y_offset)
         actions.click()
         actions.key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL)
         time.sleep(1)
@@ -379,25 +381,25 @@ class CollectionPage(NavigationBarPage):
             time.sleep(3)
 
             self.tprint("selecting search placeholder and send search input TestDoc \n")
-            search_collection_testDoc = "//*[@placeholder='Search']"
-            search_collection_testDoc_sitem = self.locator_finder_by_xpath(search_collection_testDoc)
-            search_collection_testDoc_sitem.click()
-            search_collection_testDoc_sitem.clear()
-            search_collection_testDoc_sitem.send_keys("TestDoc")
+            search_collection_test_doc = "//*[@placeholder='Search']"
+            search_collection_test_doc_sitem = self.locator_finder_by_xpath(search_collection_test_doc)
+            search_collection_test_doc_sitem.click()
+            search_collection_test_doc_sitem.clear()
+            search_collection_test_doc_sitem.send_keys("TestDoc")
             time.sleep(3)
 
             self.tprint("invoke refresh to go out from the search option and test search works \n")
             self.webdriver.refresh()
 
             self.tprint("trying to find the expected collection from the search")
-            search_testDoc_col = "//a[contains(text(), 'TestDoc')]"
-            search_testDoc_col_sitem = self.locator_finder_by_xpath(search_testDoc_col)
+            search_test_doc_col = "//a[contains(text(), 'TestDoc')]"
+            search_test_doc_col_sitem = self.locator_finder_by_xpath(search_test_doc_col)
             time.sleep(3)
 
             expected_msg = "TestDoc"
             assert (
-                expected_msg == search_testDoc_col_sitem.text
-            ), f"Expected {expected_msg} but got {search_testDoc_col_sitem.text}"
+                expected_msg == search_test_doc_col_sitem.text
+            ), f"Expected {expected_msg} but got {search_test_doc_col_sitem.text}"
 
             self.tprint("after getting TestDoc now clear the name filter")
             # selecting filter btn again
@@ -465,7 +467,7 @@ class CollectionPage(NavigationBarPage):
         time.sleep(2)
 
     def sort_by_type(self):
-        """Sorting collection by type"""              
+        """Sorting collection by type"""
         if self.current_package_version() == semver.VersionInfo.parse("3.8.0"):
             sort_by_type = '//*[@id="collectionsDropdown"]/ul[3]/li[3]/a/label'
             sort_by_type_sitem = self.locator_finder_by_xpath(sort_by_type)
@@ -517,13 +519,11 @@ class CollectionPage(NavigationBarPage):
         """getting_total_row_count"""
         # ATTENTION: this will only be visible & successfull if the browser window is wide enough!
         size = self.webdriver.get_window_size()
-        if (size["width"] > 1000):
+        if size["width"] > 1000:
             getting_total_row_count_sitem = self.locator_finder_by_xpath(self.getting_total_row_count_id, 20)
             return getting_total_row_count_sitem.text
-        else:
-            self.tprint("your browser window is to narrow! " + str(size))
-            return "-1"
-
+        self.tprint("your browser window is to narrow! " + str(size))
+        return "-1"
 
     def download_doc_as_json(self):
         """Exporting documents as JSON file from the collection"""
@@ -671,7 +671,7 @@ class CollectionPage(NavigationBarPage):
             add_index = '//button[text()="Add index"]'
         else:
             add_index = '//button[text()="Add Index"]'
-        
+
         create_new_index_btn_sitem = self.locator_finder_by_xpath(add_index)
         create_new_index_btn_sitem.click()
         time.sleep(2)
@@ -1185,7 +1185,7 @@ class CollectionPage(NavigationBarPage):
         except TimeoutException as e:
             self.tprint(f'Something went wrong {e}\n')
 
-    def delete_index_312(self, index):
+    def delete_index_312(self, _):
         """this method will delete all the indexes one by one for >= 3.12.0"""
         try:
             self.webdriver.refresh()
@@ -1194,7 +1194,7 @@ class CollectionPage(NavigationBarPage):
             if self.current_package_version() > semver.VersionInfo.parse("3.11.99"):
                 delete = "//button[@aria-label='Delete Index'][1]"
             else:
-                delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
+                delete = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[2]"
 
             delete_sitem = self.locator_finder_by_xpath(delete)
             delete_sitem.click()
@@ -1207,7 +1207,7 @@ class CollectionPage(NavigationBarPage):
             time.sleep(1)
             self.wait_for_ajax()
 
-            if self.current_package_version() > semver.VersionInfo.parse("3.11.99"): 
+            if self.current_package_version() > semver.VersionInfo.parse("3.11.99"):
                 delete_final_confirmation = '(//button[text()="Delete"])[2]'
                 delete_final_confirmation_sitem = self.locator_finder_by_xpath(delete_final_confirmation)
                 delete_final_confirmation_sitem.click()
@@ -1216,11 +1216,11 @@ class CollectionPage(NavigationBarPage):
 
         except TimeoutException as e:
             try:
-                self.tprint("Trying again to delete the inverted index")
+                self.tprint(f"Trying again to delete the inverted index \n{e}")
                 self.webdriver.refresh()
                 self.wait_for_ajax()
 
-                delete = f"(//*[name()='svg'][@class='chakra-icon css-onkibi'])[3]"
+                delete = "(//*[name()='svg'][@class='chakra-icon css-onkibi'])[3]"
                 delete_sitem = self.locator_finder_by_xpath(delete)
                 delete_sitem.click()
                 time.sleep(1)
@@ -1228,9 +1228,9 @@ class CollectionPage(NavigationBarPage):
                 delete_confirmation_sitem = self.locator_finder_by_xpath(delete_confirmation)
                 delete_confirmation_sitem.click()
 
-            except BaseException as e:
-                self.tprint(f'Something went wrong {e}\n')
-                self.navbar_goto
+            except BaseException as ex:
+                self.tprint(f'Something went wrong {ex}\n')
+                self.navbar_goto("collections")
 
     def select_info_tab(self):
         """Selecting info tab from the collection submenu"""
@@ -1280,15 +1280,15 @@ class CollectionPage(NavigationBarPage):
             time.sleep(2)
         self.wait_for_ajax()
 
-    def ace_set_value(self, locator, query, check=False):
+    def ace_set_value_x(self, locator, query, check=False):
         """take a string and adjacent locator argument of ace-editor and execute the query"""
         # to unify ace_locator class attribute has been used
         ace_locator = self.locator_finder_by_class(locator)
         # Set x and y offset positions of adjacent element
-        xOffset = 100
-        yOffset = 100
+        x_offset = 100
+        y_offset = 100
         # Performs mouse move action onto the element
-        actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
+        actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, x_offset, y_offset)
         actions.click()
         actions.key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL)
         time.sleep(1)
@@ -1309,7 +1309,7 @@ class CollectionPage(NavigationBarPage):
             self.locator_finder_by_id(create_btn).click()
             time.sleep(1)
 
-    def select_computedValueCol(self):
+    def select_computed_value_col(self):
         """this method will select ComputedValueCol"""
         self.wait_for_ajax()
         col = "//*[text()='ComputedValueCol']"
@@ -1354,7 +1354,7 @@ class CollectionPage(NavigationBarPage):
         compute_query = json.dumps(python_query)
         # button near to ace editor
         warning = 'button-warning'
-        self.ace_set_value(warning, compute_query, True)
+        self.ace_set_value_x(warning, compute_query, True)
 
         self.tprint('go back to collection tab')
         # Define the maximum number of retries
@@ -1370,7 +1370,7 @@ class CollectionPage(NavigationBarPage):
                 self.wait_for_ajax()
 
                 # Attempt to select computed value column
-                self.select_computedValueCol()
+                self.select_computed_value_col()
 
                 # If successful, break out of the loop
                 break
@@ -1383,7 +1383,7 @@ class CollectionPage(NavigationBarPage):
 
                 # If maximum retries reached, raise an error
                 if retry_count == max_retries:
-                    raise RuntimeError("Failed to select computed value column after multiple retries")
+                    raise RuntimeError("Failed to select computed value column after multiple retries") from e
 
                 # Wait for a few seconds before retrying
                 time.sleep(3)
@@ -1403,7 +1403,7 @@ class CollectionPage(NavigationBarPage):
                      "x": 12.9,
                      "y": -284.0}
         insert_query = json.dumps(col_query)
-        self.ace_set_value(insert_data, insert_query)
+        self.ace_set_value_x(insert_data, insert_query)
         self.navbar_goto('queries')
         time.sleep(1)
 

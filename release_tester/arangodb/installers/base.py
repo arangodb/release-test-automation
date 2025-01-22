@@ -341,7 +341,7 @@ class InstallerBase(ABC):
         return self.cli_executor.run_monitored(
             executeable=self.cfg.real_sbin_dir / "arangod",
             args=["--version"],
-            params=make_default_params(True),
+            params=make_default_params(True, "arangod versioncheck"),
             deadline=10,
         )
 
@@ -352,8 +352,6 @@ class InstallerBase(ABC):
         self.calculate_package_names()
         self.arango_binaries = []
         if self.cfg.client_package_is_installed or self.cfg.server_package_is_installed:
-            stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
-
             self.arango_binaries.append(
                 BinaryDescription(
                     self.cfg.real_bin_dir,
@@ -369,17 +367,17 @@ class InstallerBase(ABC):
             )
 
             self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangoexport",
-                    "arangoexport - data exporter",
-                    False,
-                    True,
-                    "1.0.0",
-                    "4.0.0",
-                    [],
-                    "c++",
-                )
+               BinaryDescription(
+                   self.cfg.real_bin_dir,
+                   "arangoexport",
+                   "arangoexport - data exporter",
+                   False,
+                   True,
+                   "1.0.0",
+                   "4.0.0",
+                   [],
+                   "c++",
+               )
             )
 
             self.arango_binaries.append(
@@ -397,32 +395,32 @@ class InstallerBase(ABC):
             )
 
             self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangodump",
-                    "arangodump - data and configuration dumping tool",
-                    False,
-                    True,
-                    "1.0.0",
-                    "4.0.0",
-                    [],
-                    "c++",
-                )
-            )
+               BinaryDescription(
+                   self.cfg.real_bin_dir,
+                   "arangodump",
+                   "arangodump - data and configuration dumping tool",
+                   False,
+                   True,
+                   "1.0.0",
+                   "4.0.0",
+                   [],
+                   "c++",
+               )
+           )
 
             self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangorestore",
-                    "arangrestore - data and configuration restoration tool",
-                    False,
-                    True,
-                    "1.0.0",
-                    "4.0.0",
-                    [],
-                    "c++",
-                )
-            )
+               BinaryDescription(
+                   self.cfg.real_bin_dir,
+                   "arangorestore",
+                   "arangrestore - data and configuration restoration tool",
+                   False,
+                   True,
+                   "1.0.0",
+                   "4.0.0",
+                   [],
+                   "c++",
+               )
+           )
 
             self.arango_binaries.append(
                 BinaryDescription(
@@ -475,7 +473,7 @@ class InstallerBase(ABC):
                     "arangod",
                     "ArangoDB - the native multi-model NoSQL database",
                     False,
-                    stripped_arangod,
+                    False,
                     "1.0.0",
                     "4.0.0",
                     [
@@ -493,7 +491,7 @@ class InstallerBase(ABC):
                     "arangod",
                     "ArangoDB - the native multi-model NoSQL database",
                     False,
-                    stripped_arangod,
+                    True,
                     "1.0.0",
                     "3.6.0",
                     [self.cfg.real_bin_dir / ("arango-dfdb" + FILE_EXTENSION)],

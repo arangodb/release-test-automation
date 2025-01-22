@@ -5,7 +5,7 @@ from arangodb.installers import RunProperties
 
 # pylint: disable=fixme
 # TODO: do not use global vars if possible
-# pylint: disable=global-at-module-level
+# pylint: disable=global-at-module-level, disable=undefined-variable
 global RESULTS_DIR, CLEAN_DIR, ZIP_PACKAGE
 
 

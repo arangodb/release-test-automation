@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """ service page object """
 import time
-import semver
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import NoSuchElementException
-from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 
+from selenium_ui_test.pages.navbar import NavigationBarPage
+
+# pylint: disable=too-many-statements disable=too-many-locals disable=too-many-branches
 
 class ServicePage(NavigationBarPage):
     """service page object"""
     # pylint: disable=too-many-instance-attributes
-    def __init__(self, driver, cfg, video_start_time):
-        super().__init__(driver, cfg, video_start_time)
+    #def __init__(self, driver, cfg, video_start_time):
+    #super().__init__(driver, cfg, video_start_time)
 
     def select_service_page(self):
         """Selecting service page"""
@@ -175,28 +173,28 @@ class ServicePage(NavigationBarPage):
         """Selecting demo geo s2 service from the list"""
         # XPath expression to locate the 'demo-geo-s2' service
         self.select_add_service_button()
-        
+
         geo_service = "//*[text()='demo-geo-s2']"
-        
+
         for attempt in range(max_retries):
             try:
                 # Refresh the page only after the first attempt
                 if attempt > 0:
                     self.webdriver.refresh()
                     self.wait_for_ajax()
-                
+
                 # Logging the attempt to select the service
                 self.tprint('Selecting demo_geo_s2 service \n')
-                
+
                 # Finding the service element, with benchmarking on the first attempt
-                geo_service_sitem = self.locator_finder_by_xpath(geo_service, benchmark=(attempt == 0))
-                
+                geo_service_sitem = self.locator_finder_by_xpath(geo_service, benchmark=attempt == 0)
+
                 # Clicking on the located service element
                 geo_service_sitem.click()
-                
+
                 # Wait briefly to ensure the click action is processed
                 time.sleep(2)
-                
+
                 # Return the element if successfully clicked
                 return geo_service_sitem
             except TimeoutException as e:
@@ -231,7 +229,7 @@ class ServicePage(NavigationBarPage):
 
     def install_demo_geo_s2_service(self, mount_path, ui_data_dir):
         """Installing demo geo s2 service from the list"""
-        self.webdriver.refresh()   
+        self.webdriver.refresh()
         self.wait_for_ajax()
 
         self.navbar_goto("queries") # go to queries page
@@ -332,7 +330,7 @@ class ServicePage(NavigationBarPage):
                     self.navbar_goto("collections")
                     self.wait_for_ajax()
                     time.sleep(1)
-                    
+
                     # looking for restaurants collection has been created or not
                     restaurants_collection = "//*[text()='restaurants']"
                     restaurants_collection_sitem = self.locator_finder_by_xpath(
@@ -370,7 +368,7 @@ class ServicePage(NavigationBarPage):
                             select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
                         else:
                             select_service = "//*[text()='demo-geo-s2']"
-                            
+
                         self.locator_finder_by_xpath(select_service).click()
                         time.sleep(1)
 
@@ -433,7 +431,7 @@ class ServicePage(NavigationBarPage):
             select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
         else:
             select_service = "//*[text()='demo-geo-s2']"
-        
+
         self.locator_finder_by_xpath(select_service).click()
         time.sleep(1)
 
@@ -465,7 +463,7 @@ class ServicePage(NavigationBarPage):
             if i == len(id_list):
                 self.tprint('Checking Foxx leaflets finished \n')
             time.sleep(2)
-    
+
     def inspect_demo_geo_foxx_leaflet_iframe(self):
         """Checking iframe elements of foxx and leaflets"""
         if self.version_is_newer_than("3.11.100"):
@@ -483,8 +481,10 @@ class ServicePage(NavigationBarPage):
             self.locator_finder_by_id(default_view).click()
 
             self.tprint("inspecting documentation through Foxx and leaflet \n")
+            id_list = []
             if self.version_is_newer_than("3.10.0"):
-                template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
+                def template_str(leaflet):
+                    return f"(//span[contains(text(),'{leaflet}')])[1]"
                 id_list = [
                     template_str("/restaurants"),
                     template_str("/neighborhoods"),
@@ -521,8 +521,10 @@ class ServicePage(NavigationBarPage):
             self.locator_finder_by_id(default_view).click()
 
             self.tprint('inspecting documentation through Foxx and leaflet \n')
+            id_list = []
             if self.version_is_newer_than("3.10.0"):
-                template_str = lambda leaflet: f"(//span[contains(text(),'{leaflet}')])[1]"
+                def template_str(leaflet):
+                    return f"(//span[contains(text(),'{leaflet}')])[1]"
                 id_list = [
                     template_str("/restaurants"),
                     template_str("/neighborhoods"),
@@ -594,7 +596,7 @@ class ServicePage(NavigationBarPage):
         install_btn_sitem = self.locator_finder_by_id(install_btn, benchmark=True)
         install_btn_sitem.click()
         time.sleep(6)
-        
+
         if self.version_is_newer_than("3.10.100"):
             # TODO
             self.tprint('skipped for now\n')
@@ -620,22 +622,21 @@ class ServicePage(NavigationBarPage):
                     break
                 except NoSuchElementException as ex:
                     self.tprint(
-                        f"Error occurred while selecting graphql service. Attempt {attempt} \n"
+                        f"Error occurred while selecting graphql service. Attempt {attempt} \n{ex}"
                     )
 
                     time.sleep(2)
                     self.tprint(f"Attempt {attempt}: Element not found. Retrying...")
                     if attempt == max_retries:
                         self.tprint("Maximum retries reached. Exiting.")
-                        raise  # Re-raise the exception if max retries reached
-                    else:
-                        status = False
-                        self.tprint("Refreshing the UI \n")
-                        self.webdriver.refresh()
-                        time.sleep(2)
-                        self.navbar_goto("services")
-                        self.wait_for_ajax()
-                        continue  # Retry the loop
+                        raise  ex # Re-raise the exception if max retries reached
+                    status = False
+                    self.tprint("Refreshing the UI \n")
+                    self.webdriver.refresh()
+                    time.sleep(2)
+                    self.navbar_goto("services")
+                    self.wait_for_ajax()
+                    continue  # Retry the loop
 
             if status:
                 self.tprint('Opening graphql interface \n')
@@ -691,7 +692,7 @@ class ServicePage(NavigationBarPage):
                             id_list = [first, second]
                             self.checking_function_for_fox_leaflet(id_list)
                     except Exception as ex:
-                        self.tprint("Error occurred while inspecting API tab of graphql service")
+                        self.tprint(f"Error occurred while inspecting API tab of graphql service\n{ex}")
                         self.tprint('Getting out of IFrame \n')
                         self.webdriver.switch_to.default_content()
                         time.sleep(1)
@@ -700,7 +701,7 @@ class ServicePage(NavigationBarPage):
         """This method will replace the service"""""
         self.navbar_goto("services")
         self.wait_for_ajax()
-        
+
         if self.version_is_newer_than("3.11.100"):
             select_service = "(//a[@class='chakra-link css-yuehqk'])[1]"
             select_service_sitem = self.locator_finder_by_xpath(select_service)
@@ -733,7 +734,7 @@ class ServicePage(NavigationBarPage):
         replace = "modalButton1"
         self.locator_finder_by_id(replace).click()
         time.sleep(3)
-        
+
         if self.version_is_newer_than("3.11.100"):
             self.tprint('skipped handle_red_bar() \n')
         else:
@@ -744,10 +745,10 @@ class ServicePage(NavigationBarPage):
                 expected_msg_1 = "Services: Upgrading demo-graphql."
                 expected_msg_2 = "Services: Service demo-graphql installed."
                 assert (
-                    expected_msg_1 == success_notification or expected_msg_2 == success_notification
+                    success_notification in [expected_msg_1, expected_msg_2]
                 ), f"Expected {expected_msg_1} or {expected_msg_2} but got {success_notification}"
-            except Exception:
-                raise Exception("Error occurred!! required manual inspection.\n")
+            except Exception as ex:
+                raise Exception("Error occurred!! required manual inspection.\n") from ex
             self.tprint("Service successfully replaced \n")
 
     def select_service_settings(self):
@@ -819,12 +820,12 @@ class ServicePage(NavigationBarPage):
 
                     self.webdriver.refresh()
                     self.tprint(f'{service_sitem} service has been deleted successfully \n')
-                        
+
             except TimeoutException:
                 self.tprint('TimeoutException occurred! \n')
                 self.tprint(f'Info: {service_name} has already been deleted or never created. \n')
-            except Exception:
-                raise Exception('Critical Error occurred and need manual inspection!! \n')
+            except Exception as ex:
+                raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
         if service_name == '/graphql':
             # try to determine service has already been created
@@ -845,6 +846,5 @@ class ServicePage(NavigationBarPage):
             except TimeoutException:
                 self.tprint('TimeoutException occurred! \n')
                 self.tprint(f'Info: {service_name} has already been deleted or never created. \n')
-            except Exception:
-                raise Exception('Critical Error occurred and need manual inspection!! \n')
-
+            except Exception as ex:
+                raise Exception('Critical Error occurred and need manual inspection!! \n') from ex

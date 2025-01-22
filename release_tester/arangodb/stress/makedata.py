@@ -1,3 +1,6 @@
+""" run a makedata injector """
+from arangodb.async_client import default_line_result
+
 def makedata_runner(queue, resq, arangosh, one_shard, progressive_timeout):
     """operate one makedata instance"""
     while True:
@@ -10,7 +13,7 @@ def makedata_runner(queue, resq, arangosh, one_shard, progressive_timeout):
                 one_shard,
                 "_system",
                 args=job["args"],
-                result_line_handler=result_line,
+                result_line_handler=default_line_result,
                 progressive_timeout=progressive_timeout,
             )
             if not res[0]:

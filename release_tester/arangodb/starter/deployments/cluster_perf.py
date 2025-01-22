@@ -72,7 +72,7 @@ class ClusterPerf(Cluster):
     """this launches a cluster setup"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-    # pylint: disable=super-init-not-called
+    # pylint: disable=super-init-not-called disable=too-many-locals
     def __init__(
         self,
         runner_type,

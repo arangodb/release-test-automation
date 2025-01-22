@@ -66,7 +66,12 @@ def main(**kwargs):
                               kwargs['ssh_key_file'],
                               kwargs['upload_path'])
         client.execute_commands([
-            'if test ! -d release-test-automation; then git clone https://github.com/arangodb/release-test-automation.git; else cd release-test-automation; git pull --all; fi',
+            '''if test ! -d release-test-automation; then
+                git clone https://github.com/arangodb/release-test-automation.git;
+            else
+              cd release-test-automation;
+            git pull --all;
+            fi''',
             f'mkdir -p {kwargs["upload_path"]}'
         ])
 

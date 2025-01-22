@@ -34,7 +34,7 @@ class NavigationBarPage(UserBarPage):
         click_twitter_link_id_sitem = self.locator_finder_by_xpath(
             click_twitter_link_id
         )
-        
+
         title = self.switch_tab(click_twitter_link_id_sitem)  # This method will call switch tab and close tab
 
         # List of valid expected titles

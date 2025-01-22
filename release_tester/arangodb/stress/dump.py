@@ -1,3 +1,8 @@
+""" run the arangodump tool """
+import traceback
+from queue import Empty
+from arangodb.async_client import default_line_result
+
 def dump_runner(queue, resq, dump, progressive_timeout):
     """operate one arangosh instance"""
     while True:
@@ -9,7 +14,7 @@ def dump_runner(queue, resq, dump, progressive_timeout):
             res = dump.run_dump_monitored(
                 basepath=str(dump.cfg.base_test_dir.resolve() / job["dir"]),
                 args=job["args"],
-                result_line_handler=result_line,
+                result_line_handler=default_line_result,
                 progressive_timeout=progressive_timeout,
             )
             if not res[0]:

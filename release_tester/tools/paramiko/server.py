@@ -3,7 +3,7 @@
 from os import system
 from typing import List
 
-from paramiko import AutoAddPolicy, RSAKey, SSHClient, agent
+from paramiko import RSAKey, SSHClient, agent
 from paramiko.auth_handler import AuthenticationException, SSHException
 from scp import SCPClient, SCPException
 

@@ -139,8 +139,8 @@ class SeleniumRunner(ABC):
 
     @step
     def take_screenshot(self, filename=None):
-        self.success = False
         """*snap*"""
+        self.success = False
         if filename is None:
             filename = "%s_%s_exception_screenshot.png" % (
                 FNRX.sub("", self.testrun_name),

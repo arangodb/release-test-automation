@@ -19,7 +19,8 @@ from tools.interact import prompt_user
 class ActiveFailover(Runner):
     """This launches an active failover setup"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=unused-argument disable=too-many-branches
     def __init__(
         self,
         runner_type,

@@ -60,53 +60,6 @@ class BasePage:
         with step(msg):
             pass
 
-    @classmethod
-    def set_up_class(cls):
-        """This method will be used for the basic driver setup"""
-
-        # browser_list = ['1 = chrome', '2 = firefox', '3 = edge', '4 = chromium']
-        # self.tprint(f"{str(*browser_list)} sep=\n")
-        # cls.browser_name = None
-
-        # while cls.browser_name not in {1, 2, 3, 4}:
-        #     cls.browser_name = int(input('Choose your browser: '))
-        #
-        #     if cls.browser_name == 1:
-        #         self.tprint("You have chosen: Chrome browser \n")
-        #         cls.driver = webdriver.Chrome(ChromeDriverManager().install())
-        #     elif cls.browser_name == 2:
-        #         self.tprint("You have chosen: Firefox browser \n")
-        #
-        #         # This preference will disappear download bar for firefox
-        #         profile = webdriver.FirefoxProfile()
-        #         profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/json, text/csv")  # mime
-        #         profile.set_preference("browser.download.manager.showWhenStarting", False)
-        #         profile.set_preference("browser.download.dir", "C:\\Users\\rearf\\Downloads")
-        #         profile.set_preference("browser.download.folderList", 2)
-        #         profile.set_preference("pdfjs.disabled", True)
-        #
-        #         cls.driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), firefox_profile=profile)
-        #
-        #     elif cls.browser_name == 3:
-        #         self.tprint("You have chosen: Edge browser \n")
-        #         cls.driver = webdriver.Edge(EdgeChromiumDriverManager().install())
-        #     elif cls.browser_name == 4:
-        #         self.tprint("You have chosen: Chromium browser \n")
-        #         cls.driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-        #     else:
-        #         self.tprint("Kindly provide a specific browser name from the list. \n")
-
-        # cls.driver.set_window_size(1250, 1000)  # custom window size
-        # cls.driver.get("http://127.0.0.1:8529/_db/_system/_admin/aardvark/index.html#login")
-
-    @classmethod
-    def tear_down(cls):
-        """This method will be used for teardown the driver instance"""
-        time.sleep(5)
-        # cls.driver.close()
-        self.tprint("\n--------Now Quiting--------\n")
-        # cls.driver.quit()
-
     def switch_to_iframe(self, iframe_id):
         """This method will switch to IFrame window"""
         self.webdriver.switch_to.frame(self.webdriver.find_element(BY.XPATH, iframe_id))
@@ -160,7 +113,7 @@ class BasePage:
                 evaluations[key] = 'Metric not available'
             else:
                 evaluations[key] = 'Good' if value < threshold else 'Poor'
-        
+
         return evaluations
 
     def aggregate_metrics(self):
@@ -174,7 +127,7 @@ class BasePage:
         for key in self.collected_metrics[0]:
             # Calculate the average value for each metric
             aggregated_metrics[key] = sum(metrics[key] for metrics in self.collected_metrics) / len(self.collected_metrics)
-        
+
         # Return the dictionary containing aggregated (average) metrics
         return aggregated_metrics
 
@@ -182,12 +135,11 @@ class BasePage:
         """Return HTML for a colored circle based on the value compared to a threshold."""
         if value is None:
             return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: gray; border: 1px solid #000;"></span>'
-        elif value < threshold:
+        if value < threshold:
             return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: green; border: 1px solid #000;"></span>'
-        elif value < threshold * 1.5:  # Example: yellow if value is within 1.5 times the threshold
+        if value < threshold * 1.5:  # Example: yellow if value is within 1.5 times the threshold
             return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: yellow; border: 1px solid #000;"></span>'
-        else:
-            return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: red; border: 1px solid #000;"></span>'
+        return '<span style="display: inline-block; width: 15px; height: 15px; border-radius: 50%; background-color: red; border: 1px solid #000;"></span>'
 
     def print_combined_performance_results(self):
         """Print combined performance results after all tests"""
@@ -195,11 +147,11 @@ class BasePage:
         aggregated_metrics = self.aggregate_metrics()
         # Evaluate the aggregated metrics
         aggregated_evaluations = self.evaluate_performance_metrics(aggregated_metrics)
-        
+
         # Print the combined performance results
         self.tprint(f"Combined performance metrics: {aggregated_metrics}")
         self.tprint(f"Combined performance results: {aggregated_evaluations}")
-        
+
         # Format the metrics and evaluations into a single HTML table with centered content
         combined_html = """
         <h2>Combined Performance Results</h2>
@@ -211,7 +163,7 @@ class BasePage:
                 <th style='text-align: center;'>Status</th>
             </tr>
         """
-        
+
         for key in aggregated_metrics:
             value = aggregated_metrics[key]
             result = aggregated_evaluations.get(key, 'Metric not available')
@@ -224,7 +176,7 @@ class BasePage:
                 <td>{status_circle}</td>
             </tr>
             """
-        
+
         combined_html += "</table>"
 
         # Add results to Allure report
@@ -314,10 +266,10 @@ class BasePage:
             query = "//*[text()='Saved Queries']"
             ace_locator = self.locator_finder_by_xpath(query)
             # Set x and y offset positions of adjacent element
-            xOffset = 100
-            yOffset = 100
+            x_offset = 100
+            y_offset = 100
             # Performs mouse move action onto the element
-            actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, xOffset, yOffset)
+            actions = ActionChains(self.webdriver).move_to_element_with_offset(ace_locator, x_offset, y_offset)
             actions.click()
             actions.key_down(Keys.CONTROL).send_keys("a").send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL).perform()
             time.sleep(1)
@@ -446,6 +398,7 @@ class BasePage:
             raise Exception(locator_name, " locator was not found.")
         return self.locator
 
+    # pylint: disable=too-many-arguments
     def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False):
         """This method finds locators by their ID using Fluent Wait with retry."""
         if benchmark:
@@ -468,7 +421,7 @@ class BasePage:
                     # Evaluate and print performance metrics
                     evaluations_before = self.evaluate_performance_metrics(metrics_before)
                     evaluations_after = self.evaluate_performance_metrics(metrics_after)
-                    
+
                     self.tprint(f"Performance metrics: {metrics_before}")
                     self.tprint(f"Performance before finding locator {locator_name}: {evaluations_before}")
 
@@ -488,7 +441,7 @@ class BasePage:
 
         raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
 
-
+    # pylint: disable=too-many-arguments
     def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False):
         """This method finds locators by their xpath using Fluent Wait with retry."""
         if benchmark:
@@ -507,7 +460,7 @@ class BasePage:
 
                     evaluations_before = self.evaluate_performance_metrics(metrics_before)
                     evaluations_after = self.evaluate_performance_metrics(metrics_after)
-                    
+
                     self.tprint(f"Performance metrics: {metrics_before}")
                     self.tprint(f"Performance before finding locator {locator_name}: {evaluations_before}")
 
@@ -533,8 +486,7 @@ class BasePage:
         if self.locator is None:
             self.tprint(f"UI-Test:  {locator_name} locator has not found.")
             return None
-        else:
-            return self.locator
+        return self.locator
 
     def locator_finder_by_select(self, locator_name, value):
         """This method will used for finding all the locators in drop down menu with options"""
@@ -632,7 +584,7 @@ class BasePage:
 
             try:
                 # placeholder's error message id
-                error_sitem = BasePage.locator_finder_by_xpath(error_message_id).text
+                error_sitem = self.locator_finder_by_xpath(error_message_id).text
                 self.tprint(f"Expected error found: {error_sitem}\n")
                 time.sleep(2)
                 error_sitem = self.locator_finder_by_xpath(error_message_id).text

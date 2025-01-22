@@ -14,9 +14,9 @@ class ActiveFailoverJamStepOneSuite(ActiveFailoverBaseTestSuite):
     @testcase
     def jam_step_1(self):
         """check for one set of instances to go away"""
-        NavigationBarPage(self.webdriver, self.cfg).navbar_goto("replication")
-        replication_page = ReplicationPage(self.webdriver, self.cfg)
-        replication_table = replication_page.get_replication_screen(True)
+        NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("replication")
+        replication_page = ReplicationPage(self.webdriver, self.cfg, self.video_start_time)
+        replication_table = replication_page.get_replication_screen(True, ReplicationPage)
         self.tprint(replication_table)
         # head and one follower should be there:
         self.ui_assert(

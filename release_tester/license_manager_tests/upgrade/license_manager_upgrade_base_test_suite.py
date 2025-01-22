@@ -7,7 +7,7 @@ from test_suites_core.base_test_suite import run_after_suite, run_before_suite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 try:
-    from tools.external_helpers.license_generator.license_generator import create_license
+    from tools.external_helpers.license_generator.license_generator import create_license as _
 
     EXTERNAL_HELPERS_LOADED = True
 except ModuleNotFoundError as exc:
@@ -22,7 +22,6 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
         self.suite_name = "License manager tests: Upgrade"
-        versions = [self.old_version, self.new_version]
         self.old_installer = self.installer_set[0][1]
         self.new_installer = self.installer_set[1][1]
         self.installer = self.new_installer

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """enterprise package conflict checking suite"""
-from arangodb.installers import InstallerBaseConfig
 from package_installation_tests.base_package_installation_test_suite import BasePackageInstallationTestSuite
 from package_installation_tests.installation_steps import (
     check_if_server_packages_can_be_installed_consequentially,
@@ -20,6 +19,7 @@ from test_suites_core.base_test_suite import (
 )
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
+# pylint: disable=line-too-long
 
 class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """enterprise package conflict checking suite"""

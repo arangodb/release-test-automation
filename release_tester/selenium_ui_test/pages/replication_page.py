@@ -121,11 +121,11 @@ class ReplicationPage(NavigationBarPage):
         leader_id_sitem = self.locator_finder_by_id(leader_id)
         leader = leader_id_sitem.text
         time.sleep(1)
-        assert leader in ip_list, f"Error occcured, Couldn't find expected leader ip"
+        assert leader in ip_list, "Error occcured, Couldn't find expected leader ip"
 
         self.tprint("checking follower id\n")
         follower_id = '//*[@id="nodes-followers-id"]/span'
         follower_id_sitem = self.locator_finder_by_xpath(follower_id)
         follower = follower_id_sitem.text
         time.sleep(1)
-        assert follower in ip_list, f"Error occcured, Couldn't find expected follower ip"
+        assert follower in ip_list, "Error occcured, Couldn't find expected follower ip"

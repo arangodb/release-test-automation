@@ -1,3 +1,4 @@
+""" Cli base utils tests """
 from dataclasses import dataclass
 from semver import VersionInfo
 
@@ -20,6 +21,7 @@ class CliTestSuiteParameters(OptionGroup):
 
 class CliStartedTestSuite(BaseTestSuite):
     """base class for test suites that can be started from CLI"""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__()

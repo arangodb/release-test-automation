@@ -16,7 +16,7 @@ class InstallerWin(InstallerBase, metaclass=ABCMeta):
     @step
     def install_debug_package_impl(self):
         """unpack the archive with pdb files"""
-        logging.info(f"Unpacking PDB files from package: {str(self.debug_package)}")
+        print(f"Unpacking PDB files from package: {str(self.debug_package)}")
 
         extract_to = self.cfg.install_prefix / ".." / self.debug_package.replace(".zip", "")
         extract_to = extract_to.resolve()

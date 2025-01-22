@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ service page testsuite """
+import traceback
 from selenium_ui_test.pages.service_page import ServicePage
 from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from test_suites_core.base_test_suite import testcase
-import traceback
 
 
 class ServiceTestSuite(BaseSeleniumTestSuite):

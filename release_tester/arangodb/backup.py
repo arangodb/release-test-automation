@@ -40,6 +40,7 @@ class HotBackupConfig:
     SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
     def __init__(self, basecfg, name, raw_install_prefix):
+        # pylint: disable=too-many-statements
         self.hb_timeout = 20
         hbcfg = basecfg.hb_cli_cfg
         self.hb_provider_cfg = basecfg.hb_provider_cfg
@@ -189,7 +190,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         success, output, _, error_found = self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangobackup",
             run_cmd,
-            params=make_default_params(self.cfg.verbose and not silent),
+            params=make_default_params(self.cfg.verbose and not silent, "arangobackup"),
             progressive_timeout=progressive_timeout,
             result_line_handler=inspect_line_result,
             expect_to_fail=expect_to_fail,

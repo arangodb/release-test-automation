@@ -1,6 +1,6 @@
 """License manager tests: DC2DC"""
 
-# pylint: disable=import-error
+# pylint: disable=import-error, disable=line-too-long
 from arangodb.async_client import CliExecutionException
 from license_manager_tests.base.dc2dc_base import LicenseManagerDc2DcBaseTestSuite
 from license_manager_tests.upgrade.license_manager_upgrade_base_test_suite import LicenseManagerUpgradeBaseTestSuite
