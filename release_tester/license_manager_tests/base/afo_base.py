@@ -39,7 +39,6 @@ class LicenseManagerAfoBaseTestSuite(LicenseManagerBaseTestSuite):
                 encryption_at_rest=False,
                 ssl=False,
             ),
-            use_auto_certs=False,
         )
         if isinstance(self.runner, NoStarter):
             raise TestMustBeSkipped(self.runner.msg)

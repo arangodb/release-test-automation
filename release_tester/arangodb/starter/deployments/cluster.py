@@ -11,6 +11,7 @@ from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
+from arangodb.starter.deployments import RunProperties
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
@@ -36,36 +37,24 @@ class Cluster(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
-        name = "CLUSTER" if not force_one_shard else "FORCED_ONESHARD_CLUSTER"
+        name = "CLUSTER" if not rp.force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                name, 400, 600, True, ssl, replication2, use_auto_certs, force_one_shard, create_oneshard_db, 6
-            ),
+            RunnerProperties(rp, name, 400, 600, True, 6),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
         )
-        self.force_one_shard = force_one_shard
-        self.create_oneshard_db = create_oneshard_db
         # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
-        self.cluster_nodes = cluster_nodes
-        if cluster_nodes > 3:
+        if self.properties.cluster_nodes > 3:
             ver_found = 0
             versions = self.get_versions_concerned()
             for ver_pair in more_nodes_supported_starter:
@@ -74,7 +63,7 @@ class Cluster(Runner):
                         ver_found += 1
             if ver_found < len(versions):
                 print("One deployment doesn't support starters with more nodes!")
-                self.cluster_nodes = 3
+                self.properties.cluster_nodes = 3
 
     def starter_prepare_env_impl(self, sm=None):
         # pylint: disable=invalid-name
@@ -109,14 +98,14 @@ db.testCollection.save({test: "document"})
 """,
         )
         common_opts = []
-        if self.replication2:
+        if self.properties.replication2:
             common_opts += [
                 "--dbservers.database.default-replication-version=2",
                 "--coordinators.database.default-replication-version=2",
                 "--args.all.log.level=replication2=debug",
                 "--args.all.log.level=rep-state=debug",
             ]
-        if self.force_one_shard:
+        if self.properties.force_one_shard:
             common_opts += [
                 "--coordinators.cluster.force-one-shard=true",
                 "--dbservers.cluster.force-one-shard=true",
@@ -130,7 +119,7 @@ db.testCollection.save({test: "document"})
             self.create_tls_ca_cert()
         port = 9528
         count = 0
-        for this_node in list(range(1, self.cluster_nodes + 1)):
+        for this_node in list(range(1, self.properties.cluster_nodes + 1)):
             node = []
             node_opts.append(node)
             if this_node != 1:

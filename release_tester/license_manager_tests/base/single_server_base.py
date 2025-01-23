@@ -32,7 +32,6 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
             runner_type=RunnerType.SINGLE,
             abort_on_error=False,
             installer_set=self.installer_set,
-            use_auto_certs=False,
             selenium_worker="none",
             selenium_driver_args=[],
             selenium_include_suites=[],

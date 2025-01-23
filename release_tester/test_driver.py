@@ -88,7 +88,7 @@ class TestDriver:
         if not kwargs["package_dir"].exists():
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
         kwargs["base_config"].package_dir = kwargs["package_dir"]
-        self.cluster_nodes = kwargs["cluster_nodes"]
+
         self.base_config = kwargs["base_config"]
         self.arangods = []
         self.base_config.arangods = self.arangods
@@ -96,7 +96,6 @@ class TestDriver:
         lh.configure_logging(kwargs["verbose"])
         self.abort_on_error = kwargs["abort_on_error"]
 
-        self.use_auto_certs = kwargs["use_auto_certs"]
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
         self.selenium_include_suites = (
@@ -171,7 +170,7 @@ class TestDriver:
         if self.installer_type:
             return self.installer_type
         installers = create_config_installer_set(
-            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False), False
+            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False)
         )
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
@@ -192,7 +191,7 @@ class TestDriver:
         """main"""
         if versions is None:
             versions = ["3.3.3"]
-        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties, False)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -210,7 +209,7 @@ class TestDriver:
         ]
         for runner_type in starter_mode:
             assert runner_type
-            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties, self.cluster_nodes)
+            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties)
             runner.cleanup()
         if inst.calc_config_file_name().is_file():
             try:
@@ -233,7 +232,7 @@ class TestDriver:
         lh.section("startup")
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            installers = create_config_installer_set(versions, self.base_config, "all", run_props, self.use_auto_certs)
+            installers = create_config_installer_set(versions, self.base_config, "all", run_props)
             # pylint: disable=unused-variable
             old_inst = installers[0][1]
             new_inst = installers[1][1]
@@ -284,8 +283,6 @@ class TestDriver:
                             self.selenium_include_suites,
                             installers,
                             run_props,
-                            use_auto_certs=self.use_auto_certs,
-                            cluster_nodes=self.cluster_nodes,
                         )
                         if not runner or runner.runner_type == RunnerType.NONE:
                             testcase.context.status = Status.SKIPPED
@@ -421,8 +418,7 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props,
-            self.use_auto_certs
+            run_props
         )
         lh.section("configuration")
         print(
@@ -457,9 +453,7 @@ class TestDriver:
                         self.selenium_driver_args,
                         self.selenium_include_suites,
                         installers,
-                        run_props,
-                        use_auto_certs=self.use_auto_certs,
-                        cluster_nodes=self.cluster_nodes
+                        run_props
                     )
                     if not runner or runner.runner_type == RunnerType.NONE:
                         testcase.context.status = Status.SKIPPED
@@ -567,6 +561,7 @@ class TestDriver:
                       versions: list,
                       frontends,
                       scenario,
+                      include_suites,
                       run_props: RunProperties):
         # fmt: on
         """ main """
@@ -578,8 +573,7 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props,
-            self.use_auto_certs
+            run_props
         )
         lh.section("configuration")
         print(
@@ -606,14 +600,8 @@ class TestDriver:
             installers,
             self.selenium,
             self.selenium_driver_args,
-            [],
-            "perf",
-            run_props.ssl,
-            run_props.replication2,
-            self.use_auto_certs,
-            False,
-            False,
-            3,
+            include_suites,
+            run_props
         )
         runner.do_install = do_install
         runner.do_uninstall = do_uninstall

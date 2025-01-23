@@ -30,7 +30,15 @@ import reporting.reporting_utils
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
-    dl_opts: DownloadOptions, new_version, old_version, new_dlstage, old_dlstage, git_version, editions, test_driver
+        dl_opts: DownloadOptions,
+        new_version,
+        old_version,
+        new_dlstage,
+        old_dlstage,
+        git_version,
+        editions,
+        test_driver,
+        kwargs
 ):
     """process fetch & tests"""
 
@@ -52,9 +60,12 @@ def upgrade_package_test(
     enterprise_packages_are_present = False
     community_packages_are_present = False
     count = 0
-    for props in EXECUTION_PLAN:
+    for _props in EXECUTION_PLAN:
         if props.directory_suffix not in editions:
             continue
+        props = deepcopy(_props)
+        props.set_kwargs(kwargs)
+
         count += 1
         # pylint: disable=unused-variable
         dl_opt = deepcopy(dl_opts)
@@ -219,6 +230,7 @@ def main(**kwargs):
             kwargs["git_version"],
             kwargs["editions"],
             test_driver,
+            kwargs
         )
     finally:
         test_driver.destructor()

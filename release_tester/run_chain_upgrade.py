@@ -121,7 +121,8 @@ def main(**kwargs):
             kwargs['editions'],
             False,
             False,
-            test_driver
+            test_driver,
+            kwargs
         )
     finally:
         test_driver.destructor()

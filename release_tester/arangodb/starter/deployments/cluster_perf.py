@@ -22,6 +22,7 @@ from arangodb.starter.deployments.cluster import Cluster
 
 # from arangodb.starter.deployments.activefailover import ActiveFailover
 # from arangodb.starter.deployments.single import Single
+from arangodb.starter.deployments import RunProperties
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.stress import TestConfig
 from arangodb.stress.arangosh import arangosh_runner
@@ -81,13 +82,7 @@ class ClusterPerf(Cluster):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         cfg = installer_set[0][1].cfg
@@ -105,12 +100,11 @@ class ClusterPerf(Cluster):
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "CLUSTER", 400, 600, self.scenario.hot_backup, ssl, replication2, use_auto_certs, False, False, 6
+                rp, "CLUSTER", 400, 600, self.scenario.hot_backup, 6
             ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
         )
         self.success = False
         # self.cfg.frontends = []

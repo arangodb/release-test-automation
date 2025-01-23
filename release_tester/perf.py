@@ -60,6 +60,7 @@ def main(**kwargs):
             # pylint: disable=too-many-function-args
             kwargs["frontends"],
             kwargs["scenario"],
+            "",
             RunProperties(kwargs["enterprise"], kwargs["encryption_at_rest"], kwargs["ssl"]),
         )
         print("V" * 80)

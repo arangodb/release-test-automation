@@ -67,8 +67,6 @@ def make_runner(
     selenium_include_suites: list,
     installer_set: list,
     runner_properties: RunProperties,
-    use_auto_certs: bool = True,
-    cluster_nodes: int = 3,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
     # pylint: disable=too-many-return-statements
@@ -111,13 +109,7 @@ def make_runner(
         selenium_worker,
         selenium_driver_args,
         selenium_include_suites,
-        runner_properties.testrun_name,
-        runner_properties.ssl,
-        runner_properties.replication2,
-        use_auto_certs,
-        runner_properties.force_one_shard,
-        runner_properties.create_oneshard_db,
-        cluster_nodes,
+        runner_properties
     )
 
     if runner_type == RunnerType.SINGLE:

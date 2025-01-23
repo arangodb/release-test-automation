@@ -33,7 +33,6 @@ class LicenseManagerDc2DcBaseTestSuite(LicenseManagerBaseTestSuite):
             runner_type=RunnerType.DC2DC,
             abort_on_error=False,
             installer_set=self.installer_set,
-            use_auto_certs=False,
             selenium_worker="none",
             selenium_driver_args=[],
             selenium_include_suites=[],

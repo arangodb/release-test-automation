@@ -490,6 +490,8 @@ class RunProperties:
         testrun_name: str = "",
         directory_suffix: str = "",
         minimum_supported_version: str = "3.5.0",
+        use_auto_certs: bool = True,
+        cluster_nodes: int = 3,
     ):
         """set the values for this testrun"""
         if (create_oneshard_db or force_one_shard) and not enterprise:
@@ -497,6 +499,7 @@ class RunProperties:
         self.enterprise = enterprise
         self.force_dl = force_dl
         self.encryption_at_rest = encryption_at_rest
+        self.use_auto_certs = use_auto_certs
         self.ssl = ssl
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
@@ -504,6 +507,12 @@ class RunProperties:
         self.force_one_shard = force_one_shard
         self.create_oneshard_db = create_oneshard_db
         self.minimum_supported_version = semver.VersionInfo.parse(minimum_supported_version)
+        self.cluster_nodes = cluster_nodes
+
+    def set_kwargs(self, kwargs):
+        """ pick values from the commandline arguments that should override defaults"""
+        self.use_auto_certs = kwargs['use_auto_certs']
+        self.cluster_nodes = kwargs['cluster_nodes']
 
     def __repr__(self):
         return """{0.__class__.__name__}
@@ -535,7 +544,6 @@ def create_config_installer_set(
     base_config: InstallerBaseConfig,
     deployment_mode: str,
     run_properties: RunProperties,
-    use_auto_certs: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
@@ -554,7 +562,7 @@ def create_config_installer_set(
             deployment_mode,
             run_properties.ssl,
             run_properties.force_one_shard,
-            use_auto_certs,
+            run_properties.use_auto_certs
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

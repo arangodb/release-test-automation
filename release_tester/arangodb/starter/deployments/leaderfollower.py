@@ -9,6 +9,7 @@ from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
+from arangodb.starter.deployments import RunProperties
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
@@ -28,25 +29,18 @@ class LeaderFollower(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "LeaderFollower", 400, 500, False, ssl, False, use_auto_certs, force_one_shard, create_oneshard_db, 2
+                rp, "LeaderFollower", 400, 500, False, 2
             ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
         )
 
         self.leader_starter_instance = None

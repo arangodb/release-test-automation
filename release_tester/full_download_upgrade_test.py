@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
 import sys
-from copy import copy, deepcopy
+from copy import deepcopy
 
 # pylint: disable=duplicate-code
 from pathlib import Path
@@ -39,6 +39,7 @@ def upgrade_package_test(
     run_test,
     run_test_suites,
     test_driver,
+    kwargs
 ):
     """process fetch & tests"""
 
@@ -68,9 +69,10 @@ def upgrade_package_test(
                 continue
             packages[version_name] = {}
             for default_props in EXECUTION_PLAN:
-                props = copy(default_props)
+                props = deepcopy(default_props)
                 if props.directory_suffix not in editions:
                     continue
+                props.set_kwargs(kwargs)
                 dl_opt = deepcopy(dl_opts)
                 dl_opt.force = dl_opts.force and props.force_dl
                 props.testrun_name = "test_" + props.testrun_name
@@ -105,7 +107,8 @@ def upgrade_package_test(
         for default_props in EXECUTION_PLAN:
             if default_props.directory_suffix not in editions:
                 continue
-            props = copy(default_props)
+            props = deepcopy(default_props)
+            props.set_kwargs(kwargs)
             if props.directory_suffix not in editions:
                 continue
 
@@ -142,9 +145,11 @@ def upgrade_package_test(
     # STEP 3: Run upgrade tests
     for scenario in upgrade_scenarios:
 
-        for props in EXECUTION_PLAN:
+        for default_props in EXECUTION_PLAN:
             if props.directory_suffix not in editions:
                 continue
+            props = deepcopy(default_props)
+            props.set_kwargs(kwargs)
 
             skip = False
             for version in scenario:
@@ -277,7 +282,8 @@ def main(**kwargs):
             kwargs['editions'],
             kwargs['run_test'],
             kwargs['run_test_suites'],
-            test_driver
+            test_driver,
+            kwargs
         )
     finally:
         test_driver.destructor()

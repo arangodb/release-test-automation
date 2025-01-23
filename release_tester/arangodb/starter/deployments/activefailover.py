@@ -10,6 +10,7 @@ import semver
 from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
+from arangodb.starter.deployments import RunProperties
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
@@ -29,25 +30,18 @@ class ActiveFailover(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "ActiveFailOver", 500, 600, True, ssl, False, use_auto_certs, force_one_shard, create_oneshard_db, 3
+                rp, "ActiveFailOver", 500, 600, True, 3
             ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
         )
         self.starter_instances = []
         self.follower_nodes = None

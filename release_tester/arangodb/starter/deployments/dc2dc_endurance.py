@@ -2,8 +2,9 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 
+from arangodb.starter.deployments import RunProperties
+from arangodb.starter.deployments.runner import RunnerProperties
 from arangodb.starter.deployments.dc2dc import Dc2Dc
-
 
 class Dc2DcEndurance(Dc2Dc):
     """this launches two clusters in dc2dc mode"""
@@ -17,30 +18,19 @@ class Dc2DcEndurance(Dc2Dc):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
+            RunnerProperties(
+                rp, "DC2DC_endurance", 0, 4500, True, 12
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
-            ssl,
-            replication2,
-            use_auto_certs,
-            force_one_shard,
-            create_oneshard_db,
-            cluster_nodes,
         )
-        self.hot_backup = False
 
     def test_setup_impl(self):
         scenarios = ["A", "B", "C", "D", "E", "G", "H"]

@@ -35,6 +35,7 @@ from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
+from arangodb.starter.deployments import RunProperties
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
@@ -122,26 +123,23 @@ class RunnerProperties:
     # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches disable=too-many-instance-attributes
     def __init__(
         self,
+        rp: RunProperties,
         short_name: str,
         disk_usage_community: int,
         disk_usage_enterprise: int,
         supports_hotbackup: bool,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
         no_arangods_non_agency: int,
     ):
         self.short_name = short_name
+        self.testrun_name = rp.testrun_name
         self.disk_usage_community = disk_usage_community
         self.disk_usage_enterprise = disk_usage_enterprise
         self.supports_hotbackup = supports_hotbackup
-        self.ssl = ssl
-        self.replication2 = replication2
-        self.use_auto_certs = use_auto_certs
-        self.force_one_shard = force_one_shard
-        self.create_oneshard_db = create_oneshard_db
+        self.ssl = rp.ssl
+        self.replication2 = rp.replication2
+        self.use_auto_certs = rp.use_auto_certs
+        self.force_one_shard = rp.force_one_shard
+        self.create_oneshard_db = rp.create_oneshard_db
         self.no_arangods_non_agency = no_arangods_non_agency
 
 
@@ -158,7 +156,6 @@ class Runner(ABC):
         selenium_worker: str,
         selenium_driver_args: list,
         selenium_include_suites: list,
-        testrun_name: str,
     ):
         self.properties = properties
         load_scenarios()
@@ -169,7 +166,7 @@ class Runner(ABC):
         )
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
-        self.testrun_name = testrun_name
+        self.testrun_name = properties.testrun_name
         self.min_replication_factor = None
         self.agency = None
         self.state = ""
