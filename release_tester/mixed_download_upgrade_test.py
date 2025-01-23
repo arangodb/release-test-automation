@@ -118,11 +118,8 @@ def upgrade_package_test(
                     ver[props.directory_suffix] = DownloadDummy(
                         bcs,
                         dl_opts,
-                        test_driver.base_config.hb_cli_cfg,
                         version_name,
                         props.enterprise,
-                        False,  # test_driver.base_config.zip_package,
-                        True,  # test_driver.base_config.src_testing,
                         None,  # Source
                         versions,
                         fresh_versions,
@@ -138,11 +135,8 @@ def upgrade_package_test(
                 res = Download(
                     bc,
                     dl_opts,
-                    test_driver.base_config.hb_cli_cfg,
                     version_name,
                     props.enterprise,
-                    test_driver.base_config.zip_package,
-                    test_driver.base_config.src_testing,
                     source,
                     versions,
                     fresh_versions,
