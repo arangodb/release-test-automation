@@ -296,6 +296,7 @@ def upgrade_package_test(
 # pylint: disable=too-many-arguments, disable=unused-argument
 def main(**kwargs):
     """ main """
+    arangods = []
     kwargs['interactive'] = False
     kwargs['abort_on_error'] = False
     kwargs['stress_upgrade'] = False
@@ -307,9 +308,11 @@ def main(**kwargs):
     kwargs['zip_package'] = True
     kwargs['src_testing'] = False
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
+    kwargs['base_config'].arangods = arangods
     kwargs['zip_package'] = False
     kwargs['src_testing'] = True
     kwargs['base_config_src'] = InstallerBaseConfig.from_dict(**kwargs)
+    kwargs['base_config_src'].arangods = arangods
     dl_opts = DownloadOptions.from_dict(**kwargs)
     # we run either enterprise or community:
     if len(kwargs['editions']) == len(EXECUTION_PLAN):
