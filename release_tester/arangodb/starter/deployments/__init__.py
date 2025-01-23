@@ -7,7 +7,7 @@ from typing import Optional
 
 import semver
 
-from arangodb.starter.deployments.runner import Runner
+# from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
@@ -67,7 +67,7 @@ def make_runner(
     selenium_include_suites: list,
     installer_set: list,
     runner_properties: RunProperties,
-) -> Runner:
+):#  -> Runner:
     """get an instance of the arangod runner - as you specify"""
     # pylint: disable=too-many-return-statements
     assert runner_type, "no runner no cry?"

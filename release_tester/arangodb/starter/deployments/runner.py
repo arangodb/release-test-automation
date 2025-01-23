@@ -141,7 +141,7 @@ class RunnerProperties:
         self.force_one_shard = rp.force_one_shard
         self.create_oneshard_db = rp.create_oneshard_db
         self.no_arangods_non_agency = no_arangods_non_agency
-
+        self.cluster_nodes = rp.cluster_nodes
 
 class Runner(ABC):
     """abstract starter deployment runner"""
