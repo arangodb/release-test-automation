@@ -65,6 +65,8 @@ class DownloadDummy:
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
+    bc: InstallerBaseConfig,
+    bcs: InstallerBaseConfig,
     dl_opts: DownloadOptions,
     primary_version: str,
     primary_dlstage: str,
@@ -114,6 +116,7 @@ def upgrade_package_test(
                 if version_name == primary_version:
                     print("skipping source package download")
                     ver[props.directory_suffix] = DownloadDummy(
+                        bcs,
                         dl_opts,
                         test_driver.base_config.hb_cli_cfg,
                         version_name,
@@ -133,6 +136,7 @@ def upgrade_package_test(
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
                 res = Download(
+                    bc,
                     dl_opts,
                     test_driver.base_config.hb_cli_cfg,
                     version_name,
@@ -324,6 +328,7 @@ def main(**kwargs):
         if 'src' not in kwargs['new_version']:
             kwargs['new_version'] = kwargs['new_version'] + '-src'
         return upgrade_package_test(
+            kwargs['base_config'], kwargs['base_config_src'],
             dl_opts,
             kwargs['new_version'],
             kwargs['source'],
