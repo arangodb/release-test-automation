@@ -164,7 +164,7 @@ class BasePage:
             </tr>
         """
 
-        for key in aggregated_metrics.items():
+        for key in aggregated_metrics:
             value = aggregated_metrics[key]
             result = aggregated_evaluations.get(key, 'Metric not available')
             status_circle = self.get_status_circle(value, 2000)  # Example threshold
