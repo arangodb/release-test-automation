@@ -77,12 +77,10 @@ def upgrade_package_test(
                 # Verify that all required packages are exist or can be downloaded
                 source = primary_dlstage if primary_version == version_name else other_source
                 res = Download(
+                    test_driver.base_config,
                     dl_opt,
-                    test_driver.base_config.hb_cli_cfg,
                     version_name,
                     props.enterprise,
-                    test_driver.base_config.zip_package,
-                    test_driver.base_config.src_testing,
                     source,
                     versions,
                     fresh_versions,

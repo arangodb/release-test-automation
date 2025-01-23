@@ -40,12 +40,10 @@ class Download:
     # pylint: disable=too-many-branches disable=too-many-statements
     def __init__(
         self,
+        bc: InstallerBaseConfig,
         options: DownloadOptions,
-        hb_cli_cfg: HotBackupCliCfg,
         version: str,
         enterprise: bool,
-        zip_package: bool,
-        src_testing: bool,
         source,
         existing_version_states=None,
         new_version_states=None,
@@ -89,7 +87,7 @@ class Download:
             raise Exception(f"download target directory doesn't exist: {options.package_dir}")
         print("version: " + str(version))
         print("using enterpise: " + str(enterprise))
-        print("using zip: " + str(zip_package))
+        print("using zip: " + str(bc.zip_package))
         print("package directory: " + str(options.package_dir))
         print("verbose: " + str(options.verbose))
         self.options = options
@@ -113,25 +111,13 @@ class Download:
         lh.section("startup")
         self.cfg = InstallerConfig(
             version=version,
-            verbose=options.verbose,
             enterprise=enterprise,
             encryption_at_rest=False,
-            zip_package=zip_package,
-            src_testing=src_testing,
-            hb_cli_cfg=hb_cli_cfg,
-            package_dir=options.package_dir,
-            test_dir=Path("/"),
+            bc=bc,
             deployment_mode="all",
-            publicip="127.0.0.1",
-            interactive=False,
-            stress_upgrade=False,
             ssl=False,
             force_one_shard=False,
             use_auto_certs=False,
-            test="",
-            arangods=[],
-            check_locale=True,
-            checkdata=True,
         )
 
         self.inst = make_installer(self.cfg)
@@ -416,12 +402,10 @@ def main(**kwargs):
     dl_opts = DownloadOptions.from_dict(**kwargs)
     lh.configure_logging(kwargs['verbose'])
     downloader = Download(
+        bc=kwargs['base_config'],
         options=dl_opts,
-        hb_cli_cfg=kwargs['hb_cli_cfg'],
         version=kwargs['new_version'],
         enterprise=kwargs['enterprise'],
-        zip_package=kwargs['zip_package'],
-        src_testing=kwargs['src_testing'],
         source=kwargs['source'],
         force_arch=kwargs['force_arch'],
         force_os=kwargs['force_os'])

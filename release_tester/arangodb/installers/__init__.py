@@ -100,7 +100,6 @@ class HotBackupProviderCfg:
         while self.path_prefix and "//" in self.path_prefix:
             self.path_prefix = self.path_prefix.replace("//", "/")
 
-
 class OptionGroup:
     """wrapper class to init from kwargs"""
 
@@ -162,6 +161,24 @@ class HotBackupCliCfg(OptionGroup):
     hb_azure_account: str = None
     hb_azure_key: str = None
 
+@dataclass
+class InstallerBaseConfig(OptionGroup):
+    """commandline argument config settings"""
+
+    # pylint: disable=too-many-instance-attributes
+    verbose: bool
+    zip_package: bool
+    src_testing: bool
+    hb_cli_cfg: HotBackupCliCfg
+    package_dir: Path
+    test_data_dir: Path
+    starter_mode: str
+    publicip: str
+    interactive: bool
+    stress_upgrade: bool
+    test: str
+    check_locale: bool
+    checkdata: bool
 
 class InstallerFrontend:
     """class describing frontend instances"""
@@ -180,45 +197,33 @@ class InstallerConfig:
     def __init__(
         self,
         version: str,
-        verbose: bool,
         enterprise: bool,
         encryption_at_rest: bool,
-        zip_package: bool,
-        src_testing: bool,
-        hb_cli_cfg: HotBackupCliCfg,
-        package_dir: Path,
-        test_dir: Path,
+        bc: InstallerBaseConfig,
         deployment_mode: str,
-        publicip: str,
-        interactive: bool,
-        stress_upgrade: bool,
         ssl: bool,
         force_one_shard: bool,
         use_auto_certs: bool,
-        test: str,
-        arangods: list,
-        check_locale: bool,
-        checkdata: bool,
     ):
-        self.publicip = publicip
-        self.interactive = interactive
+        self.publicip = bc.publicip
+        self.interactive = bc.interactive
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest and enterprise
-        self.zip_package = zip_package
-        self.src_testing = src_testing
+        self.zip_package = bc.zip_package
+        self.src_testing = bc.src_testing
 
         self.deployment_mode = deployment_mode
-        self.verbose = verbose
-        self.package_dir = package_dir
+        self.verbose = bc.verbose
+        self.package_dir = bc.package_dir
         self.have_system_service = True
         self.debug_package_is_installed = False
         self.client_package_is_installed = False
         self.server_package_is_installed = False
-        self.stress_upgrade = stress_upgrade
+        self.stress_upgrade = bc.stress_upgrade
 
         self.install_prefix = Path("/")
 
-        self.base_test_dir = test_dir
+        self.base_test_dir = bc.test_data_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta-makedata" / "test_data"
         self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
@@ -250,19 +255,19 @@ class InstallerConfig:
         self.dbdir = Path()
         self.appdir = Path()
         self.cfgdir = Path()
-        self.hb_cli_cfg = hb_cli_cfg
+        self.hb_cli_cfg = bc.hb_cli_cfg
         self.hb_provider_cfg = HotBackupProviderCfg(
-            hb_cli_cfg.hb_mode,
-            HB_PROVIDERS[hb_cli_cfg.hb_provider] if hb_cli_cfg.hb_provider else None,
-            hb_cli_cfg.hb_storage_path_prefix,
+            bc.hb_cli_cfg.hb_mode,
+            HB_PROVIDERS[bc.hb_cli_cfg.hb_provider] if bc.hb_cli_cfg.hb_provider else None,
+            bc.hb_cli_cfg.hb_storage_path_prefix,
         )
         self.hot_backup_supported = (
             self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
         )
-        self.test = test
-        self.arangods = arangods
-        self.check_locale = check_locale
-        self.checkdata = checkdata
+        self.test = bc.test
+        self.arangods = bc.arangods
+        self.check_locale = bc.check_locale
+        self.checkdata = bc.checkdata
 
     def __repr__(self):
         return """
@@ -524,26 +529,6 @@ EXECUTION_PLAN = [
 ]
 
 
-@dataclass
-class InstallerBaseConfig(OptionGroup):
-    """commandline argument config settings"""
-
-    # pylint: disable=too-many-instance-attributes
-    verbose: bool
-    zip_package: bool
-    src_testing: bool
-    hb_cli_cfg: HotBackupCliCfg
-    package_dir: Path
-    test_data_dir: Path
-    starter_mode: str
-    publicip: str
-    interactive: bool
-    stress_upgrade: bool
-    test: str
-    check_locale: bool
-    checkdata: bool
-
-
 # pylint: disable=too-many-locals
 def create_config_installer_set(
     versions: list,
@@ -557,32 +542,19 @@ def create_config_installer_set(
     res = []
 
     for one_version in versions:
-        zipit = base_config.zip_package
-        srcit = base_config.src_testing
+        one_cfg = copy.deepcopy(base_config)
         if str(one_version).find("src") >= 0:
-            zipit = False
-            srcit = True
+            one_cfg.zip_package = False
+            one_cfg.src_testing = True
         install_config = InstallerConfig(
             str(one_version),
-            base_config.verbose,
             run_properties.enterprise,
             run_properties.encryption_at_rest,
-            zipit,
-            srcit,
-            base_config.hb_cli_cfg,
-            base_config.package_dir,
-            base_config.test_data_dir,
+            one_cfg,
             deployment_mode,
-            base_config.publicip,
-            base_config.interactive,
-            base_config.stress_upgrade,
             run_properties.ssl,
             run_properties.force_one_shard,
             use_auto_certs,
-            base_config.test,
-            base_config.arangods,
-            base_config.check_locale,
-            base_config.checkdata
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
