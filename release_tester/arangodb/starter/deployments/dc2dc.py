@@ -10,7 +10,8 @@ import psutil
 import requests
 import semver
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments import RunProperties, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
 from arangodb.starter.deployments.runner import Runner
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager

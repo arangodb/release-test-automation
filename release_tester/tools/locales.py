@@ -40,4 +40,3 @@ def detect_locale():
             )
     if len(errors) > 0:
         raise Exception("Incorrect locale environment variable(s):\n" + "".join(errors))
-

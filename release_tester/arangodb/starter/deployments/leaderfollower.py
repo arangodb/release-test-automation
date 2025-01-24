@@ -9,8 +9,9 @@ from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments import RunProperties
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 

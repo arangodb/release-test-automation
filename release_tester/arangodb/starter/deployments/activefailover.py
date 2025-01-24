@@ -10,7 +10,8 @@ import semver
 from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments import RunProperties, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
 from arangodb.starter.deployments.runner import Runner
 from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress

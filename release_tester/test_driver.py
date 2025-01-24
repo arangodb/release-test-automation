@@ -16,9 +16,9 @@ from allure_commons.types import LabelType
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments import (
+from arangodb.starter.deployments import make_runner
+from arangodb.installers.depvar import (
     RunnerType,
-    make_runner,
     runner_strings,
     STARTER_MODES,
 )

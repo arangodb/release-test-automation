@@ -36,8 +36,8 @@ from arangodb.agency import Agency
 from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
+from arangodb.installers.depvar import RunnerProperties
 from arangodb.sh import ArangoshExecutor
-from arangodb.starter.deployments import RunnerProperties
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()

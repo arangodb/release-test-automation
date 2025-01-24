@@ -10,8 +10,9 @@ from reporting.reporting_utils import step
 from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments import RunProperties, RunnerProperties
 from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
