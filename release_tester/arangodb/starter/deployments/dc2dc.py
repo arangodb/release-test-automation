@@ -257,7 +257,7 @@ class Dc2Dc(Runner):
                 "--coordinators.database.default-replication-version=2",
                 "--args.all.log.level=replication2=debug",
             ]
-        if self.force_one_shard:
+        if self.props.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         _add_starter(self.cluster1, port=7528, moreopts=common_opts)
         _add_starter(

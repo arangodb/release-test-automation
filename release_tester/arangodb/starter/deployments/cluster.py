@@ -54,7 +54,7 @@ class Cluster(Runner):
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
         self.min_replication_factor = 2
-        if self.properties.cluster_nodes > 3:
+        if self.props.cluster_nodes > 3:
             ver_found = 0
             versions = self.get_versions_concerned()
             for ver_pair in more_nodes_supported_starter:
@@ -63,7 +63,7 @@ class Cluster(Runner):
                         ver_found += 1
             if ver_found < len(versions):
                 print("One deployment doesn't support starters with more nodes!")
-                self.properties.cluster_nodes = 3
+                self.props.cluster_nodes = 3
 
     def starter_prepare_env_impl(self, sm=None):
         # pylint: disable=invalid-name
@@ -98,14 +98,14 @@ db.testCollection.save({test: "document"})
 """,
         )
         common_opts = []
-        if self.properties.replication2:
+        if self.props.replication2:
             common_opts += [
                 "--dbservers.database.default-replication-version=2",
                 "--coordinators.database.default-replication-version=2",
                 "--args.all.log.level=replication2=debug",
                 "--args.all.log.level=rep-state=debug",
             ]
-        if self.properties.force_one_shard:
+        if self.props.force_one_shard:
             common_opts += [
                 "--coordinators.cluster.force-one-shard=true",
                 "--dbservers.cluster.force-one-shard=true",
@@ -119,7 +119,7 @@ db.testCollection.save({test: "document"})
             self.create_tls_ca_cert()
         port = 9528
         count = 0
-        for this_node in list(range(1, self.properties.cluster_nodes + 1)):
+        for this_node in list(range(1, self.props.cluster_nodes + 1)):
             node = []
             node_opts.append(node)
             if this_node != 1:

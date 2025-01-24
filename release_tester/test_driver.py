@@ -291,7 +291,7 @@ class TestDriver:
                                 one_result["message"] += runner.msg
                             print(f"Skipping {runner_type}")
                             continue
-                        if run_props.force_one_shard and not runner.force_one_shard:
+                        if run_props.force_one_shard and not runner.props.force_one_shard:
                             testcase.context.status = Status.SKIPPED
                             testcase.context.statusDetails = StatusDetails(
                                 message=f"One shard is not supported for {runner.name}"
@@ -462,7 +462,7 @@ class TestDriver:
                             one_result["message"] += runner.msg
                         print(f"Skipping {runner_type}")
                         continue
-                    if run_props.force_one_shard and not runner.force_one_shard:
+                    if run_props.force_one_shard and not runner.props.force_one_shard:
                         testcase.context.status = Status.SKIPPED
                         testcase.context.statusDetails = StatusDetails(
                         message=f"One shard is not supported for {runner.name}"
