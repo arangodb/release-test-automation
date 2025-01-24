@@ -884,7 +884,7 @@ class Runner(ABC):
                     if not self.cfg.verbose:
                         print(exc.execution_result[1])
                     self.ask_continue_or_exit(
-                        f"check_data has failed for {self.name} in database {db_name} with {exc}",
+                        f"check_data has failed for {self.name} in database {db_name} with {exc} - {exc.message}",
                         exc.execution_result[1],
                         False,
                         exc,
