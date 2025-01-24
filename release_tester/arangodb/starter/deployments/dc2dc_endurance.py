@@ -2,8 +2,7 @@
 """ launch and manage an arango deployment using the starter"""
 import time
 
-from arangodb.starter.deployments import RunProperties
-from arangodb.starter.deployments.runner import RunnerProperties
+from arangodb.starter.deployments import RunProperties, RunnerProperties
 from arangodb.starter.deployments.dc2dc import Dc2Dc
 
 class Dc2DcEndurance(Dc2Dc):

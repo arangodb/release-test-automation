@@ -35,7 +35,7 @@ from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
 from arangodb.sh import ArangoshExecutor
-from arangodb.starter.deployments import RunProperties
+from arangodb.starter.deployments import RunnerProperties
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
@@ -115,33 +115,6 @@ def remove_node_x_from_json(starter_dir):
 
     with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
         json.dump(content, setup_file)
-
-
-class RunnerProperties:
-    """runner properties management class"""
-
-    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches disable=too-many-instance-attributes
-    def __init__(
-        self,
-        rp: RunProperties,
-        short_name: str,
-        disk_usage_community: int,
-        disk_usage_enterprise: int,
-        supports_hotbackup: bool,
-        no_arangods_non_agency: int,
-    ):
-        self.short_name = short_name
-        self.testrun_name = rp.testrun_name
-        self.disk_usage_community = disk_usage_community
-        self.disk_usage_enterprise = disk_usage_enterprise
-        self.supports_hotbackup = supports_hotbackup
-        self.ssl = rp.ssl
-        self.replication2 = rp.replication2
-        self.use_auto_certs = rp.use_auto_certs
-        self.force_one_shard = rp.force_one_shard
-        self.create_oneshard_db = rp.create_oneshard_db
-        self.no_arangods_non_agency = no_arangods_non_agency
-        self.cluster_nodes = rp.cluster_nodes
 
 class Runner(ABC):
     """abstract starter deployment runner"""

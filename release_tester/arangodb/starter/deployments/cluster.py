@@ -11,8 +11,8 @@ from tools.timestamp import timestamp
 from tools.interact import prompt_user
 from arangodb.instance import InstanceType
 from arangodb.starter.manager import StarterManager
-from arangodb.starter.deployments import RunProperties
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.starter.deployments import RunProperties, RunnerProperties
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 

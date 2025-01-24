@@ -22,8 +22,8 @@ from arangodb.starter.deployments.cluster import Cluster
 
 # from arangodb.starter.deployments.activefailover import ActiveFailover
 # from arangodb.starter.deployments.single import Single
-from arangodb.starter.deployments import RunProperties
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.starter.deployments import RunProperties, RunnerProperties
+from arangodb.starter.deployments.runner import Runner
 from arangodb.stress import TestConfig
 from arangodb.stress.arangosh import arangosh_runner
 from arangodb.stress.dump import dump_runner

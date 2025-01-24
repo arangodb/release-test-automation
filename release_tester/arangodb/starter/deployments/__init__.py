@@ -7,7 +7,7 @@ from typing import Optional
 
 import semver
 
-# from arangodb.starter.deployments.runner import Runner
+from arangodb.starter.deployments.runner import Runner
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
@@ -57,6 +57,32 @@ STARTER_MODES = {
     "none": [RunnerType.NONE],
 }
 
+class RunnerProperties:
+    """runner properties management class"""
+
+    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches disable=too-many-instance-attributes
+    def __init__(
+        self,
+        rp: RunProperties,
+        short_name: str,
+        disk_usage_community: int,
+        disk_usage_enterprise: int,
+        supports_hotbackup: bool,
+        no_arangods_non_agency: int,
+    ):
+        self.short_name = short_name
+        self.testrun_name = rp.testrun_name
+        self.disk_usage_community = disk_usage_community
+        self.disk_usage_enterprise = disk_usage_enterprise
+        self.supports_hotbackup = supports_hotbackup
+        self.ssl = rp.ssl
+        self.replication2 = rp.replication2
+        self.use_auto_certs = rp.use_auto_certs
+        self.force_one_shard = rp.force_one_shard
+        self.create_oneshard_db = rp.create_oneshard_db
+        self.no_arangods_non_agency = no_arangods_non_agency
+        self.cluster_nodes = rp.cluster_nodes
+
 # pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args disable=too-many-branches
 @step
 def make_runner(
@@ -67,7 +93,7 @@ def make_runner(
     selenium_include_suites: list,
     installer_set: list,
     runner_properties: RunProperties,
-):#  -> Runner:
+) -> Runner:
     """get an instance of the arangod runner - as you specify"""
     # pylint: disable=too-many-return-statements
     assert runner_type, "no runner no cry?"
