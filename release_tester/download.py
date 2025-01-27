@@ -109,6 +109,7 @@ class Download:
             else:
                 self.remote_host = "download.arangodb.com"
         lh.section("startup")
+        arangods = []
         self.cfg = InstallerConfig(
             version=version,
             enterprise=enterprise,
@@ -118,6 +119,7 @@ class Download:
             ssl=False,
             force_one_shard=False,
             use_auto_certs=False,
+            arangods=arangods
         )
 
         self.inst = make_installer(self.cfg)

@@ -204,6 +204,7 @@ class InstallerConfig:
         ssl: bool,
         force_one_shard: bool,
         use_auto_certs: bool,
+        arangods: list,
     ):
         self.publicip = bc.publicip
         self.interactive = bc.interactive
@@ -265,7 +266,7 @@ class InstallerConfig:
             self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
         )
         self.test = bc.test
-        self.arangods = bc.arangods
+        self.arangods = arangods
         self.check_locale = bc.check_locale
         self.checkdata = bc.checkdata
 
