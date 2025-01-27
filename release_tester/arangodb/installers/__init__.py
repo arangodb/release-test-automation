@@ -563,7 +563,8 @@ def create_config_installer_set(
             deployment_mode,
             run_properties.ssl,
             run_properties.force_one_shard,
-            run_properties.use_auto_certs
+            run_properties.use_auto_certs,
+            base_config.arangods
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
