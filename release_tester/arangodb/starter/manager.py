@@ -79,7 +79,8 @@ class StarterManager:
         # if not IS_WINDOWS:
         #   self.moreopts += ["--args.all.log.level=maintenance=trace"]
         #  self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
-        # self.moreopts += ["--args.all.log.level=startup=trace"]
+        if IS_WINDOWS:
+            self.moreopts += ["--args.all.log.level=startup=trace"]
         # self.moreopts += ["--args.all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
@@ -93,6 +94,10 @@ class StarterManager:
             self.moreopts += [
                 "--all.rclone.argument=--log-level=DEBUG",
                 "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
+            ]
+        if self.cfg.semver > "3.12.3":
+            self.moreopts += [
+                "--all.experimental-vector-index=true",
             ]
         print(self.moreopts)
         # directories
