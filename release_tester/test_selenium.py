@@ -7,7 +7,8 @@ from pathlib import Path
 import click
 from common_options import very_common_options, common_options, ui_test_suite_filtering_options
 from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments import RunnerType, make_runner, STARTER_MODES
+from arangodb.starter.deployments.depvar import RunnerType, STARTER_MODES
+from arangodb.starter.deployments import make_runner
 import tools.loghelper as lh
 import reporting.reporting_utils
 

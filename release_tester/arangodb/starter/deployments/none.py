@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 
+from arangodb.starter.deployments import RunProperties
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
 
@@ -16,13 +17,7 @@ class NoStarter(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
         self.msg = ""
         super().__init__(
@@ -30,12 +25,11 @@ class NoStarter(Runner):
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "none", 0, 1, False, ssl, replication2, use_auto_certs, force_one_shard, create_oneshard_db, 1
+                rp, "none", 0, 1, False, 1
             ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
         )
 
     def starter_prepare_env_impl(self):

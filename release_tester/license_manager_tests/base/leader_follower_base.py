@@ -51,7 +51,6 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
             runner_type=RunnerType.LEADER_FOLLOWER,
             abort_on_error=False,
             installer_set=self.installer_set,
-            use_auto_certs=False,
             selenium_worker="none",
             selenium_driver_args=[],
             selenium_include_suites=[],

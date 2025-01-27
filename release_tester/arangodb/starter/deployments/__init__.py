@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-from enum import Enum
 import logging
 import platform
 from typing import Optional
@@ -8,6 +7,7 @@ from typing import Optional
 import semver
 
 from arangodb.starter.deployments.runner import Runner
+from arangodb.installers.depvar import RunnerProperties, RunnerType
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
@@ -16,46 +16,6 @@ IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_MAC = platform.mac_ver()[0] != ""
 
 
-class RunnerType(Enum):
-    """dial which runner instance you want"""
-
-    NONE = 0
-    SINGLE = 1
-    LEADER_FOLLOWER = 2
-    ACTIVE_FAILOVER = 3
-    CLUSTER = 4
-    DC2DC = 5
-    DC2DCENDURANCE = 6
-    TESTING = 7
-
-
-runner_strings = {
-    RunnerType.NONE: "none",
-    RunnerType.SINGLE: "Single Server",
-    RunnerType.LEADER_FOLLOWER: "Leader / Follower",
-    RunnerType.ACTIVE_FAILOVER: "Active Failover",
-    RunnerType.CLUSTER: "Cluster",
-    RunnerType.DC2DC: "DC 2 DC",
-    RunnerType.DC2DCENDURANCE: "DC 2 DC endurance",
-    RunnerType.TESTING: "Testing",
-}
-
-STARTER_MODES = {
-    "all": [
-        RunnerType.SINGLE,
-        RunnerType.LEADER_FOLLOWER,
-        RunnerType.ACTIVE_FAILOVER,
-        RunnerType.CLUSTER,
-        RunnerType.DC2DC,
-    ],
-    "SG": [RunnerType.SINGLE],
-    "LF": [RunnerType.LEADER_FOLLOWER],
-    "AFO": [RunnerType.ACTIVE_FAILOVER],
-    "CL": [RunnerType.CLUSTER],
-    "DC": [RunnerType.DC2DC],
-    "DCendurance": [RunnerType.DC2DCENDURANCE],
-    "none": [RunnerType.NONE],
-}
 
 # pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args disable=too-many-branches
 @step
@@ -67,8 +27,6 @@ def make_runner(
     selenium_include_suites: list,
     installer_set: list,
     runner_properties: RunProperties,
-    use_auto_certs: bool = True,
-    cluster_nodes: int = 3,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
     # pylint: disable=too-many-return-statements
@@ -111,13 +69,7 @@ def make_runner(
         selenium_worker,
         selenium_driver_args,
         selenium_include_suites,
-        runner_properties.testrun_name,
-        runner_properties.ssl,
-        runner_properties.replication2,
-        use_auto_certs,
-        runner_properties.force_one_shard,
-        runner_properties.create_oneshard_db,
-        cluster_nodes,
+        runner_properties
     )
 
     if runner_type == RunnerType.SINGLE:

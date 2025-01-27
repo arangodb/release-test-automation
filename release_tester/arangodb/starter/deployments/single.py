@@ -8,9 +8,11 @@ import requests
 
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
-from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
+from arangodb.starter.manager import StarterManager
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 from reporting.reporting_utils import step
@@ -28,25 +30,18 @@ class Single(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        testrun_name: str,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        cluster_nodes: int,
+        rp: RunProperties
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
             RunnerProperties(
-                "Single", 400, 500, True, ssl, False, use_auto_certs, force_one_shard, create_oneshard_db, 1
+                rp, "Single", 400, 500, True, 1
             ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
-            testrun_name,
         )
 
         self.starter_instance = None

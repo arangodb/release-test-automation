@@ -50,7 +50,6 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=self.run_props,
-            use_auto_certs=False,
         )
         self.installer = self.installer_set[0][1]
         self.starter = None

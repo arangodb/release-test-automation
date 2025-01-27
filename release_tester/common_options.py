@@ -6,8 +6,8 @@ import sys
 import os
 import click
 
-from arangodb.starter.deployments import STARTER_MODES
 from arangodb.installers import HB_MODES, HB_PROVIDERS, EXECUTION_PLAN
+from arangodb.installers.depvar import STARTER_MODES
 
 CWD = Path.cwd()
 

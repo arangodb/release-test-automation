@@ -38,6 +38,7 @@ def package_test(
     editions,
     run_test_suites,
     test_driver,
+    kwargs
 ):
     """process fetch & tests"""
 
@@ -67,6 +68,7 @@ def package_test(
             continue
         if semver.VersionInfo.parse(new_version) < props.minimum_supported_version:
             continue
+        props.set_kwargs(kwargs)
         dl_opt = deepcopy(dl_opts)
         dl_opt.force = dl_opts.force and props.force_dl
         dl_new = Download(
@@ -186,7 +188,8 @@ def main(**kwargs):
             kwargs['git_version'],
             kwargs['editions'],
             kwargs['run_test_suites'],
-            test_driver
+            test_driver,
+            kwargs
         )
     finally:
         test_driver.destructor()

@@ -27,6 +27,8 @@ import tools.interact as ti
 from tools.clihelper import run_cmd_and_log_stdout_async
 from tools.killall import kill_all_processes
 import tools.loghelper as lh
+from tools.ulimits import detect_file_ulimit
+from tools.locales import detect_locale
 
 from reporting.reporting_utils import step
 
@@ -34,6 +36,7 @@ from arangodb.agency import Agency
 from arangodb.async_client import CliExecutionException
 from arangodb.bench import load_scenarios
 from arangodb.instance import InstanceType, print_instances_table
+from arangodb.installers.depvar import RunnerProperties
 from arangodb.sh import ArangoshExecutor
 
 FNRX = re.compile("[\n@ ]*")
@@ -41,61 +44,6 @@ WINVER = platform.win32_ver()
 
 shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
 
-
-def detect_file_ulimit():
-    """check whether the ulimit for files is to low"""
-    if not WINVER[0]:
-        # pylint: disable=import-outside-toplevel
-        import resource
-
-        nofd = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
-        if nofd < 65535:
-            raise Exception(
-                "please use ulimit -n <count>"
-                " to adjust the number of allowed"
-                " filedescriptors to a value greater"
-                " or equal 65535. Currently you have"
-                " set the limit to: " + str(nofd)
-            )
-        giga_byte = 2**30
-        resource.setrlimit(resource.RLIMIT_CORE, (giga_byte, giga_byte))
-
-
-def detect_locale():
-    """check that system locale is set correctly"""
-    if sys.platform != "linux":
-        return
-
-    locale_env = {
-        "LANG": r"en_US(|:.*)",
-        "LANGUAGE": r"en_US(|:.*)",
-        "LC_CTYPE": r"(^$)|(en_US(|:.*))",
-        "LC_NUMERIC": r"(^$)|(en_US(|:.*))",
-        "LC_TIME": r"(^$)|(en_US(|:.*))",
-        "LC_COLLATE": r"(^$)|(en_US(|:.*))",
-        "LC_MONETARY": r"(^$)|(en_US(|:.*))",
-        "LC_MESSAGES": r"(^$)|(en_US(|:.*))",
-        "LC_PAPER": r"(^$)|(en_US(|:.*))",
-        "LC_NAME": r"(^$)|(en_US(|:.*))",
-        "LC_ADDRESS": r"(^$)|(en_US(|:.*))",
-        "LC_TELEPHONE": r"(^$)|(en_US(|:.*))",
-        "LC_MEASUREMENT": r"(^$)|(en_US(|:.*))",
-        "LC_IDENTIFICATION": r"(^$)|(en_US(|:.*))",
-    }
-    errors = []
-    for key, expected_regex in locale_env.items():
-        var_exists = True
-        try:
-            actual_value = os.environ[key]
-        except KeyError:
-            actual_value = ""
-        if not var_exists or not re.match(expected_regex, actual_value):
-            errors.append(
-                f'Expected {key} to match "{expected_regex}", '
-                + (f'but found "{actual_value}".\n' if var_exists else "but this variable is not set.\n")
-            )
-    if len(errors) > 0:
-        raise Exception("Incorrect locale environment variable(s):\n" + "".join(errors))
 
 
 def remove_node_x_from_json(starter_dir):
@@ -115,36 +63,6 @@ def remove_node_x_from_json(starter_dir):
     with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
         json.dump(content, setup_file)
 
-
-class RunnerProperties:
-    """runner properties management class"""
-
-    # pylint: disable=too-few-public-methods disable=too-many-arguments disable=too-many-branches disable=too-many-instance-attributes
-    def __init__(
-        self,
-        short_name: str,
-        disk_usage_community: int,
-        disk_usage_enterprise: int,
-        supports_hotbackup: bool,
-        ssl: bool,
-        replication2: bool,
-        use_auto_certs: bool,
-        force_one_shard: bool,
-        create_oneshard_db: bool,
-        no_arangods_non_agency: int,
-    ):
-        self.short_name = short_name
-        self.disk_usage_community = disk_usage_community
-        self.disk_usage_enterprise = disk_usage_enterprise
-        self.supports_hotbackup = supports_hotbackup
-        self.ssl = ssl
-        self.replication2 = replication2
-        self.use_auto_certs = use_auto_certs
-        self.force_one_shard = force_one_shard
-        self.create_oneshard_db = create_oneshard_db
-        self.no_arangods_non_agency = no_arangods_non_agency
-
-
 class Runner(ABC):
     """abstract starter deployment runner"""
 
@@ -158,9 +76,8 @@ class Runner(ABC):
         selenium_worker: str,
         selenium_driver_args: list,
         selenium_include_suites: list,
-        testrun_name: str,
     ):
-        self.properties = properties
+        self.props = properties
         load_scenarios()
         assert runner_type, "no runner no cry? no!"
         mem = psutil.virtual_memory()
@@ -169,7 +86,7 @@ class Runner(ABC):
         )
         logging.debug(runner_type)
         self.abort_on_error = abort_on_error
-        self.testrun_name = testrun_name
+        self.testrun_name = properties.testrun_name
         self.min_replication_factor = None
         self.agency = None
         self.state = ""
@@ -264,7 +181,7 @@ class Runner(ABC):
 
             self.selenium = init_selenium(
                 runner_type,
-                self.properties,
+                self.props,
                 selenium_worker,
                 selenium_driver_args,
                 selenium_include_suites,
@@ -293,8 +210,6 @@ class Runner(ABC):
                 )
                 and self.new_installer is None
             )
-            self.force_one_shard = False
-            self.create_oneshard_db = False
             self.upgrade_counter = 0
 
     def get_versions_concerned(self):
@@ -388,7 +303,7 @@ class Runner(ABC):
                     self.finish_setup()
                 self.progress(True, "self test after installation")
                 self.makedata_instances[0].arangosh.self_test()
-                if self.create_oneshard_db:
+                if self.props.create_oneshard_db:
                     self.custom_databases.append(["system_oneshard_makedata", True, 1])
                 self.make_data()
                 self.after_makedata_check()
@@ -887,7 +802,7 @@ class Runner(ABC):
                     if not self.cfg.verbose:
                         print(exc.execution_result[1])
                     self.ask_continue_or_exit(
-                        f"check_data has failed for {self.name} in database {db_name} with {exc}",
+                        f"check_data has failed for {self.name} in database {db_name} with {exc} - {exc.message}",
                         exc.execution_result[1],
                         False,
                         exc,
@@ -1306,4 +1221,4 @@ class Runner(ABC):
 
     def makedata_databases(self):
         """return a list of databases that makedata tests must be ran in"""
-        return [["_system", self.force_one_shard, 0]] + self.custom_databases.copy()
+        return [["_system", self.props.force_one_shard, 0]] + self.custom_databases.copy()
