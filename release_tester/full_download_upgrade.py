@@ -11,7 +11,8 @@ import click
 import semver
 
 import tools.loghelper as lh
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN, InstallerBaseConfig
 from arangodb.instance import dump_instance_registry
 from common_options import (
     very_common_options,

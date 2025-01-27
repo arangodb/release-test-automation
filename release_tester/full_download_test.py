@@ -26,7 +26,8 @@ from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN, InstallerBaseConfig
 
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements

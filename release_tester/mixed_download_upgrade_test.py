@@ -10,7 +10,6 @@ import click
 import semver
 
 import tools.loghelper as lh
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, make_installer, InstallerBaseConfig, InstallerConfig
 from common_options import (
     very_common_options,
     common_options,
@@ -25,6 +24,8 @@ from test_driver import TestDriver
 from tools.killall import list_all_processes
 from write_result_table import write_table
 import reporting.reporting_utils
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN,  make_installer, InstallerBaseConfig, InstallerConfig
 
 
 class DownloadDummy:

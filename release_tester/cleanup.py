@@ -5,7 +5,8 @@
 from pathlib import Path
 import click
 import tools.loghelper as lh
-from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import RunProperties, InstallerBaseConfig
 from arangodb.installers.base import InstallerBase
 from common_options import zip_common_options
 from test_driver import TestDriver

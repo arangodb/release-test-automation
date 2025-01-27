@@ -6,7 +6,8 @@ from pathlib import Path
 
 import click
 
-from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import InstallerBaseConfig
 from common_options import (
     very_common_options,
     common_options,

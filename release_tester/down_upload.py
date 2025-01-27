@@ -9,7 +9,8 @@ import scp
 
 import click
 from common_options import very_common_options, download_options
-from arangodb.installers import HotBackupCliCfg, InstallerBaseConfig
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import InstallerBaseConfig
 from download import Download, DownloadOptions
 
 from tools.paramiko.server import RemoteClient

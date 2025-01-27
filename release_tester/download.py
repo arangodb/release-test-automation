@@ -13,7 +13,8 @@ import sys
 
 import click
 import semver
-from arangodb.installers import make_installer, InstallerConfig, HotBackupCliCfg, InstallerBaseConfig, OptionGroup, tar
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import make_installer, InstallerConfig, InstallerBaseConfig, OptionGroup, tar
 import arangodb.installers as installer
 import tools.loghelper as lh
 

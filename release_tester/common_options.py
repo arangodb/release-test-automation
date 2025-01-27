@@ -6,7 +6,8 @@ import sys
 import os
 import click
 
-from arangodb.installers import HB_MODES, HB_PROVIDERS, EXECUTION_PLAN
+from arangodb.hot_backup_cfg import HB_MODES, HB_PROVIDERS
+from arangodb.installers import EXECUTION_PLAN
 from arangodb.installers.depvar import STARTER_MODES
 
 CWD = Path.cwd()

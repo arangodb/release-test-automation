@@ -10,7 +10,8 @@ import semver
 
 from common_options import very_common_options, common_options, hotbackup_options
 from test_driver import TestDriver
-from arangodb.installers import RunProperties, HotBackupCliCfg, InstallerBaseConfig
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import RunProperties, InstallerBaseConfig
 import reporting.reporting_utils
 
 from write_result_table import write_table

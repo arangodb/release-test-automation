@@ -15,8 +15,8 @@ from reporting.reporting_utils import step
 from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
+from arangodb.hot_backup_cfg import HotBackupMode, HotBackupProviders
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
-from arangodb.installers import HotBackupMode, HotBackupProviders
 
 from siteconfig import IS_MAC
 
