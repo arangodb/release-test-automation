@@ -29,7 +29,7 @@ from tools.killall import kill_all_processes
 import tools.loghelper as lh
 from tools.ulimits import detect_file_ulimit
 from tools.locales import detect_locale
-
+from tools.diskfree import check_diskfree
 from reporting.reporting_utils import step
 
 from arangodb.agency import Agency
@@ -41,10 +41,7 @@ from arangodb.sh import ArangoshExecutor
 
 FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
-
 shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
-
-
 
 def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
@@ -78,21 +75,8 @@ class Runner(ABC):
         selenium_include_suites: list,
     ):
         self.props = properties
-        load_scenarios()
-        assert runner_type, "no runner no cry? no!"
-        mem = psutil.virtual_memory()
-        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
-            int((mem.total * 0.8) / properties.no_arangods_non_agency)
-        )
-        logging.debug(runner_type)
-        self.abort_on_error = abort_on_error
-        self.testrun_name = properties.testrun_name
-        self.min_replication_factor = None
-        self.agency = None
-        self.state = ""
-        self.runner_type = runner_type
-        self.name = str(self.runner_type).split(".")[1]
         self.installers = install_set
+
         cfg = install_set[0][1].cfg
         old_inst = install_set[0][1]
         new_cfg = None
@@ -102,14 +86,30 @@ class Runner(ABC):
             new_cfg = copy.deepcopy(install_set[1][1].cfg)
             new_inst = install_set[1][1]
 
-        self.do_install = cfg.deployment_mode in ["all", "install"]
-        self.do_uninstall = cfg.deployment_mode in ["all", "uninstall"]
-        self.do_system_test = cfg.deployment_mode in ["all", "system"] and cfg.have_system_service
-        self.do_starter_test = cfg.deployment_mode in ["all", "tests"]
-        self.supports_rolling_upgrade = WINVER[0] == ""
-
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
+
+        mem = psutil.virtual_memory()
+        os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
+            int((mem.total * 0.8) / properties.no_arangods_non_agency)
+        )
+
+        is_cleanup = self.cfg.version == "3.3.3"
+        disk_used = properties.disk_usage_community if not cfg.enterprise else properties.disk_usage_enterprise
+        if not is_cleanup:
+            check_diskfree(self.cfg.base_test_dir, disk_used)
+
+        load_scenarios()
+        assert runner_type, "no runner no cry? no!"
+        logging.debug(runner_type)
+        self.abort_on_error = abort_on_error
+        self.testrun_name = properties.testrun_name
+        self.min_replication_factor = None
+        self.agency = None
+        self.state = ""
+        self.runner_type = runner_type
+        self.name = str(self.runner_type).split(".")[1]
+
         self.old_version = cfg.version  # The first version of ArangoDB which is used in current launch
         self.certificate_auth = {}
         self.cert_dir = ""
@@ -123,32 +123,6 @@ class Runner(ABC):
         self.basedir = Path(properties.short_name)
         self.ui_tests_failed = False
         self.ui_test_results_table = None
-        count = 1
-        while True:
-            try:
-                diskfree = shutil.disk_usage(str(self.cfg.base_test_dir))
-                break
-            except FileNotFoundError:
-                count += 1
-                if count > 20:
-                    break
-                self.cfg.base_test_dir.mkdir()
-                time.sleep(1)
-                print(".")
-
-        if count > 20:
-            raise TimeoutError("disk_usage on " + str(self.cfg.base_test_dir) + " not working")
-        is_cleanup = self.cfg.version == "3.3.3"
-        diskused = properties.disk_usage_community if not cfg.enterprise else properties.disk_usage_enterprise
-        if not is_cleanup and diskused * 1024 * 1024 > diskfree.free:
-            logging.error(
-                "Scenario demanded %d MB but only %d MB are available in %s",
-                diskused,
-                diskfree.free / (1024 * 1024),
-                str(self.cfg.base_test_dir),
-            )
-            raise Exception("not enough free disk space to execute test!")
-
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
@@ -260,7 +234,7 @@ class Runner(ABC):
     def run(self):
         """run the full lifecycle flow of this deployment"""
         # pylint: disable=too-many-statements disable=too-many-branches
-        if self.do_starter_test and not self.remote:
+        if self.cfg.do_starter_test and not self.remote:
             detect_file_ulimit()
             if self.cfg.check_locale:
                 detect_locale()
@@ -283,7 +257,7 @@ class Runner(ABC):
 
             self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
-            if i == 0 and self.do_install:
+            if i == 0 and self.cfg.do_install:
                 self.progress(
                     False,
                     "INSTALLATION for {0}".format(str(self.name)),
@@ -292,7 +266,7 @@ class Runner(ABC):
             else:
                 self.cfg.set_directories(self.old_installer.cfg)
 
-            if self.do_starter_test:
+            if self.cfg.do_starter_test:
                 self.progress(
                     False,
                     "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
@@ -411,7 +385,7 @@ class Runner(ABC):
                 logging.info("skipping upgrade step no new version given")
 
             try:
-                if self.do_starter_test:
+                if self.cfg.do_starter_test:
                     self.progress(
                         False,
                         "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
@@ -423,7 +397,7 @@ class Runner(ABC):
                         self.starter_shutdown()
                         for starter in self.starter_instances:
                             starter.detect_fatal_errors()
-                if self.do_uninstall and is_uninstall_now:
+                if self.cfg.do_uninstall and is_uninstall_now:
                     self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
             finally:
                 if self.selenium:
@@ -450,7 +424,7 @@ class Runner(ABC):
         self.old_installer.load_config()
         self.old_installer.calculate_file_locations()
         self.cfg.set_directories(self.old_installer.cfg)
-        if self.do_starter_test:
+        if self.cfg.do_starter_test:
             self.progress(
                 False,
                 "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
@@ -473,7 +447,7 @@ class Runner(ABC):
             )
             self.new_cfg.set_directories(self.new_installer.cfg)
 
-        if self.do_starter_test:
+        if self.cfg.do_starter_test:
             self.progress(
                 False,
                 "TESTS FOR {0}".format(str(self.name)),
@@ -491,7 +465,7 @@ class Runner(ABC):
         self.progress(True, "{0} - install package".format(str(self.name)))
 
         kill_all_processes(False)
-        if self.do_install:
+        if self.cfg.do_install:
             lh.subsubsection("installing server package")
             try:
                 inst.install_server_package()
@@ -535,7 +509,7 @@ class Runner(ABC):
         if inst.cfg.have_system_service:
             sys_arangosh.self_test()
 
-        if self.do_system_test:
+        if self.cfg.do_system_test:
             sys_arangosh.js_version_check()
             # TODO: here we should invoke Makedata for the system installation.
 

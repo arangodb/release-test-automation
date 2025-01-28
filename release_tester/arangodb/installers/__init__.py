@@ -76,15 +76,20 @@ class InstallerConfig:
         self.zip_package = bc.zip_package
         self.src_testing = bc.src_testing
 
-        self.deployment_mode = deployment_mode
+        self.supports_rolling_upgrade = not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
-        self.have_system_service = True
+        self.have_system_service = not self.zip_package and self.src_testing
         self.debug_package_is_installed = False
         self.client_package_is_installed = False
         self.server_package_is_installed = False
         self.stress_upgrade = bc.stress_upgrade
 
+        self.deployment_mode = deployment_mode
+        self.do_install = self.deployment_mode in ["all", "install"]
+        self.do_uninstall = self.deployment_mode in ["all", "uninstall"]
+        self.do_system_test = self.deployment_mode in ["all", "system"] and self.have_system_service
+        self.do_starter_test = self.deployment_mode in ["all", "tests"]
         self.install_prefix = Path("/")
 
         self.base_test_dir = bc.test_data_dir
@@ -172,6 +177,11 @@ run make/check data: {0.checkdata}
             self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
+            self.do_install = other_cfg.do_install
+            self.do_uninstall = other_cfg.do_uninstall
+            self.do_system_test = other_cfg.do_system_test
+            self.do_starter_test = other_cfg.do_starter_test
+            self.supports_rolling_upgrade = other_cfg.supports_rolling_upgrade
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
             self.have_system_service = other_cfg.have_system_service
