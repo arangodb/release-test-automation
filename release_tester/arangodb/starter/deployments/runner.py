@@ -589,7 +589,7 @@ class Runner(ABC):
     @step
     def upgrade_arangod_version(self):
         """upgrade this installation"""
-        mode = "rolling" if self.supports_rolling_upgrade else "manual"
+        mode = "rolling" if self.cfg.supports_rolling_upgrade else "manual"
         self.progress(
             True,
             "{0} - {1} upgrade setup to newer version".format(str(self.name), mode),
@@ -599,7 +599,7 @@ class Runner(ABC):
         print("deinstall")
         print("install")
         print("replace starter")
-        if self.supports_rolling_upgrade:
+        if self.cfg.supports_rolling_upgrade:
             print("upgrading instances in rolling mode")
             self.upgrade_arangod_version_impl()
         else:
