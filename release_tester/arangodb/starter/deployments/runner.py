@@ -596,9 +596,7 @@ class Runner(ABC):
         )
         logging.info("{0} -> {1}".format(self.old_installer.cfg.version, self.new_installer.cfg.version))
 
-        print("deinstall")
-        print("install")
-        print("replace starter")
+        print("deinstall\ninstall\nreplace starter")
         if self.cfg.supports_rolling_upgrade:
             print("upgrading instances in rolling mode")
             self.upgrade_arangod_version_impl()
@@ -612,11 +610,6 @@ class Runner(ABC):
         """check resilience of setup by obstructing its instances"""
         self.progress(True, "{0}{1} - try to jam setup ".format(self.versionstr, str(self.name)))
         self.jam_attempt_impl()
-        # After attempt of jamming, we have peer for nodeX in setup.json.
-        # This peer will brake further updates because this peer is unavailable.
-        # It is necessary to remove this peer from json for each starter instance
-        for instance in self.starter_instances:
-            remove_node_x_from_json(instance.basedir)
 
     @step
     def starter_shutdown(self):

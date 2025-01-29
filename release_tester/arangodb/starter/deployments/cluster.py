@@ -455,6 +455,11 @@ db.testCollection.save({test: "document"})
         self._jam_launch_unauthenticated_starter()
         if self.selenium:
             self.selenium.jam_step_2()
+        # After attempt of jamming, we have peer for nodeX in setup.json.
+        # This peer will brake further updates because this peer is unavailable.
+        # It is necessary to remove this peer from json for each starter instance
+        for instance in self.starter_instances:
+            remove_node_x_from_json(instance.basedir)
 
     def shutdown_impl(self):
         ret = False
