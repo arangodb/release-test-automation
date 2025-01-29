@@ -26,6 +26,23 @@ more_nodes_supported_starter = [
     [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
 ]
 
+def remove_node_x_from_json(starter_dir):
+    """remove node X from setup.json"""
+    path_to_cfg = Path(starter_dir, "setup.json")
+    content = {}
+    with open(path_to_cfg, "r", encoding="utf-8") as setup_file:
+        content = json.load(setup_file)
+        peers = []
+        reg_exp = re.compile(r"^.*\/nodeX$")
+        for peer in content["peers"]["Peers"]:
+            if not reg_exp.match(peer["DataDir"]):
+                # Add only existing nodes. Skip nodeX peer
+                peers.append(peer)
+        content["peers"]["Peers"] = peers  # update 'peers' array
+
+    with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
+        json.dump(content, setup_file)
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
