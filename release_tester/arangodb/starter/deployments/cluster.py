@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
+import copy
+import json
 import logging
 from pathlib import Path
-import copy
 import semver
+import time
 
 from reporting.reporting_utils import step
 from tools.timestamp import timestamp
