@@ -163,7 +163,7 @@ class BasePage:
                 <th style='text-align: center;'>Status</th>
             </tr>
         """
-
+        # pylint: disable=consider-using-dict-items
         for key in aggregated_metrics:
             value = aggregated_metrics[key]
             result = aggregated_evaluations.get(key, 'Metric not available')
