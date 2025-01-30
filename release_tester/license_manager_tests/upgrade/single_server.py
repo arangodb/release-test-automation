@@ -19,12 +19,23 @@ class LicenseManagerSingleServerUpgradeTestSuite(
         """Check that upgrade can be performed with expired license"""
         with step("Create test data"):
             self.starter.arangosh.run_command(
-                ("create collection", 'db._create("upgrade_when_license_is_expired");'), True, expect_to_fail=False
+                (
+                    "create collection",
+                    """
+                    db._create("upgrade_when_license_is_expired");
+                    """),
+                True,
+                expect_to_fail=False
             )
             self.starter.arangosh.run_command(
                 (
                     "create documents",
-                    'for(let i = 0; i < 100; ++i){ db.upgrade_when_license_is_expired.save({"id": i, "a": Math.random(1)})};',
+                    """
+                    for(let i = 0; i < 100; ++i) {
+                      db.upgrade_when_license_is_expired.save(
+                        {"id": i, "a": Math.random(1)})
+                    };
+                    """,
                 ),
                 True,
                 expect_to_fail=False,
@@ -36,7 +47,12 @@ class LicenseManagerSingleServerUpgradeTestSuite(
                 self.starter.arangosh.run_command(
                     (
                         "check that data is present",
-                        'console.assert(db._query("for d in upgrade_when_license_is_expired collect with count into l return l==100").data.result[0])',
+                        """
+                        console.assert(
+                          db._query(
+                            "for d in upgrade_when_license_is_expired collect with count into l return l==100")
+                        .data.result[0])
+                        """,
                     ),
                     True,
                     expect_to_fail=False,
