@@ -33,12 +33,11 @@ class DownloadOptions(OptionGroup):
     httpuser: str
     remote_host: str
 
-
 class Download:
     """manage package downloading from any known arango package source"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-    # pylint: disable=too-many-branches disable=too-many-statements
+    # pylint: disable=too-many-arguments, disable=too-many-instance-attributes
+    # pylint: disable=too-many-branches, disable=too-many-statements
     def __init__(
         self,
         bc: InstallerBaseConfig,
@@ -57,7 +56,6 @@ class Download:
             existing_version_states = {}
         if new_version_states is None:
             new_version_states = {}
-        # pylint: disable=too-many-branches disable=too-many-statements
         lh.section("configuration")
         if force_os != "":
             if force_os == "windows":
@@ -141,7 +139,7 @@ class Download:
         self.new_version_states = new_version_states
         self.version_content = None
         self.version_content = None
-        if version.find("-nightly") >= 0:
+        if self.is_nightly:
             self.version_state_id = version + "_sourceInfo.log"
             if self.version_state_id in self.existing_version_states:
                 self.version_content = self.existing_version_states[self.version_state_id]

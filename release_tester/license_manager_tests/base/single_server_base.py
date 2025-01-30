@@ -57,13 +57,12 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         server_id = server_file_content["serverId"]
         return server_id
 
-    # pylint: disable=redefined-builtin
-    def set_license(self, license):
+    def set_license(self, license_str):
         """set new license"""
         datadir = self.starter.all_instances[0].basedir / "data"
         with open(datadir / ".license", "w", encoding="utf-8") as license_file:
             license_file.truncate()
-            license_file.write(license)
+            license_file.write(license_str)
         self.starter.terminate_instance()
         version = self.runner.new_cfg.version if self.runner.new_cfg is not None else self.runner.cfg.version
         self.starter.respawn_instance(version)

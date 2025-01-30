@@ -1,21 +1,25 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-import time
+import copy
+import json
 import logging
 from pathlib import Path
-import copy
+import re
+import time
+
 import semver
 
 from reporting.reporting_utils import step
+import tools.loghelper as lh
+from tools.asciiprint import print_progress as progress
 from tools.timestamp import timestamp
 from tools.interact import prompt_user
+
 from arangodb.instance import InstanceType
 from arangodb.installers import RunProperties
 from arangodb.installers.depvar import RunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
-import tools.loghelper as lh
-from tools.asciiprint import print_progress as progress
 
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
@@ -25,6 +29,23 @@ more_nodes_supported_starter = [
     [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
     [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
 ]
+
+def remove_node_x_from_json(starter_dir):
+    """remove node X from setup.json"""
+    path_to_cfg = Path(starter_dir, "setup.json")
+    content = {}
+    with open(path_to_cfg, "r", encoding="utf-8") as setup_file:
+        content = json.load(setup_file)
+        peers = []
+        reg_exp = re.compile(r"^.*\/nodeX$")
+        for peer in content["peers"]["Peers"]:
+            if not reg_exp.match(peer["DataDir"]):
+                # Add only existing nodes. Skip nodeX peer
+                peers.append(peer)
+        content["peers"]["Peers"] = peers  # update 'peers' array
+
+    with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
+        json.dump(content, setup_file)
 
 class Cluster(Runner):
     """this launches a cluster setup"""
@@ -455,6 +476,11 @@ db.testCollection.save({test: "document"})
         self._jam_launch_unauthenticated_starter()
         if self.selenium:
             self.selenium.jam_step_2()
+        # After attempt of jamming, we have peer for nodeX in setup.json.
+        # This peer will brake further updates because this peer is unavailable.
+        # It is necessary to remove this peer from json for each starter instance
+        for instance in self.starter_instances:
+            remove_node_x_from_json(instance.basedir)
 
     def shutdown_impl(self):
         ret = False

@@ -61,10 +61,9 @@ class LicenseManagerClusterBaseTestSuite(LicenseManagerBaseTestSuite):
         agent_list.sort()
         return "".join(agent_list)
 
-    # pylint: disable=redefined-builtin
-    def set_license(self, license):
+    def set_license(self, license_str):
         """set new license"""
-        body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
+        body = """[[{"/arango/.license":{"op":"set","new": """ + license_str + """}}]]"""
         resp = self.runner.agency.get_leader_starter_instance().send_request(
             InstanceType.AGENT,
             requests.post,

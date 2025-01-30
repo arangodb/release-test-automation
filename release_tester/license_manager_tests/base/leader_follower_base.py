@@ -31,15 +31,15 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
         server_id = server_file_content["serverId"]
         return server_id
 
-    # pylint: disable=redefined-builtin disable=arguments-differ
-    def set_license(self, license, starter_instance=None):
+    # pylint: disable=arguments-differ
+    def set_license(self, license_str, starter_instance=None):
         """set new license"""
         if not starter_instance:
             starter_instance = self.starter
         datadir = starter_instance.all_instances[0].basedir / "data"
         with open(datadir / ".license", "w", encoding="utf-8") as license_file:
             license_file.truncate()
-            license_file.write(license)
+            license_file.write(license_str)
         starter_instance.restart_arangods()
         self.wait()
 

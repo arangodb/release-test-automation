@@ -25,7 +25,7 @@ import psutil
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
 
-# pylint: disable=import-error
+# pylint: disable=import-error, disable=possibly-used-before-assignment
 IS_WINDOWS = platform.win32_ver()[0] != ""
 if IS_WINDOWS:
     from mss import mss

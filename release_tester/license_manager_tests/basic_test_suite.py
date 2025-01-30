@@ -51,3 +51,7 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
 
     def teardown_suite(self):
         """mute parent method"""
+
+    def set_license(self, license_str):
+        """set new license"""
+        raise NotImplementedError(f"Setting license not implemented for {type(self)}")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ convert cli options from click to structures """
 
+# pylint: disable=too-few-public-methods
 class OptionGroup:
     """wrapper class to init from kwargs"""
 
@@ -19,4 +20,3 @@ class OptionGroup:
         for key, value in dict2.items():
             dict1[key] = value
         return cls(**(dict1))
-

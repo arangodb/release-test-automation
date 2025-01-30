@@ -56,10 +56,9 @@ class LicenseManagerAfoBaseTestSuite(LicenseManagerBaseTestSuite):
         agent_ids.sort()
         return "".join(agent_ids)
 
-    # pylint: disable=redefined-builtin
-    def set_license(self, license):
+    def set_license(self, license_str):
         """set new license"""
-        body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
+        body = """[[{"/arango/.license":{"op":"set","new": """ + license_str + """}}]]"""
         resp = self.runner.agency.get_leader_starter_instance().send_request(
             InstanceType.AGENT,
             requests.post,
