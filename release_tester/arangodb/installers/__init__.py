@@ -44,6 +44,7 @@ class InstallerBaseConfig(OptionGroup):
     checkdata: bool
 
 class InstallerFrontend:
+    # pylint: disable=too-few-public-methods
     """class describing frontend instances"""
 
     def __init__(self, proto: str, ip_address: str, port: int):
@@ -331,7 +332,6 @@ def make_installer(install_config: InstallerConfig):
 
         if DISTRO == "":
             dist = distro.linux_distribution(full_distribution_name=False)[0]
-        print(dist)
         if dist in ["debian", "ubuntu"]:
             from arangodb.installers.deb import InstallerDeb
 
