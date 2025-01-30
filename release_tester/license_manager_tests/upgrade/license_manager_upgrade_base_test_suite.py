@@ -57,3 +57,7 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         self.runner.new_cfg.set_directories(self.new_installer.cfg)
         self.runner.upgrade_arangod_version()  # make sure to pass new version
         self.old_installer.un_install_server_package_for_upgrade()
+
+    def set_license(self, license_str):
+        """set new license"""
+        raise NotImplementedError(f"Setting license not implemented for {type(self)}")

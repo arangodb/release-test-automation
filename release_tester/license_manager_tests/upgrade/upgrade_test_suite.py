@@ -25,3 +25,7 @@ class UpgradeLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         LicenseManagerAfoUpgradeTestSuite,
         LicenseManagerDc2DcUpgradeTestSuite,
     ]
+
+    def set_license(self, license_str):
+        """set new license"""
+        raise NotImplementedError(f"Setting license not implemented for {type(self)}")

@@ -81,9 +81,8 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     @step
     def check_that_license_is_not_expired(self, time_left_threshold=0):
         """check that license is not expired"""
-        # pylint: disable=redefined-builtin
-        license = self.get_license()
-        license_expiry_timestamp = license["features"]["expires"]
+        license_str = self.get_license()
+        license_expiry_timestamp = license_str["features"]["expires"]
         time_left = license_expiry_timestamp - time()
         if time_left >= 0:
             message = f"License expires in {time_left} seconds."
@@ -118,12 +117,10 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             requests.get,
             "/_db/_system/_admin/license",
         )
-        # pylint: disable=redefined-builtin
-        license = json.loads(resp[0].content)
-        return license
+        license_str = json.loads(resp[0].content)
+        return license_str
 
-    # pylint: disable=redefined-builtin
-    def set_license(self, license):
+    def set_license(self, license_str):
         """set new license"""
         raise NotImplementedError(f"Setting license not implemented for {type(self)}")
 
@@ -133,9 +130,8 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         # pylint: disable=assignment-from-no-return
         new_timestamp = str(int(time() - 1))
         server_id = self.get_server_id()
-        # pylint: disable=redefined-builtin
-        license = create_license(new_timestamp, server_id)
-        self.set_license(license)
+        license_str = create_license(new_timestamp, server_id)
+        self.set_license(license_str)
 
     @step
     def wait(self):
@@ -150,9 +146,8 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         new_timestamp = str(int(time() + 59 * 60))
         # pylint: disable=assignment-from-no-return
         server_id = self.get_server_id()
-        # pylint: disable=redefined-builtin
-        license = create_license(new_timestamp, server_id)
-        self.set_license(license)
+        license_str = create_license(new_timestamp, server_id)
+        self.set_license(license_str)
 
     @step
     def check_readonly(self):
