@@ -30,6 +30,7 @@ from test_suites_core.base_test_suite import (
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
+# pylint: disable=used-before-assignment
 OS_IS_WINDOWS = bool(platform.win32_ver()[0])
 if OS_IS_WINDOWS:
     import wexpect
