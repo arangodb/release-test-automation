@@ -79,7 +79,8 @@ class StarterManager:
         # if not IS_WINDOWS:
         #   self.moreopts += ["--args.all.log.level=maintenance=trace"]
         #  self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
-        # self.moreopts += ["--args.all.log.level=startup=trace"]
+        if IS_WINDOWS and mode == "cluster":
+            self.moreopts += ["--args.all.log.level=startup=trace"]
         # self.moreopts += ["--args.all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
