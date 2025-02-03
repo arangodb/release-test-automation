@@ -1,6 +1,9 @@
 #!/bin/bash
-DOCKER_SUFFIX=tar-oskar
-
+if test "$BASE_VERSION" == devel or "$BASE_VERSION" == "3.12"; then
+    DOCKER_SUFFIX=tar-oskarnew
+else
+    DOCKER_SUFFIX=tar-oskar
+fi
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
     ALLURE_DIR="${WORKSPACE}/allure-results"
