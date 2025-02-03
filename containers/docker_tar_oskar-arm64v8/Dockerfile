@@ -1,4 +1,4 @@
-from arangodb/ubuntubuildarangodb-3.11:1
+from arangodb/ubuntubuildarangodb-311:1
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
 ENV LANG en_US.UTF-8
