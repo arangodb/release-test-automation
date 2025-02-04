@@ -95,6 +95,10 @@ class StarterManager:
                 "--all.rclone.argument=--log-level=DEBUG",
                 "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
             ]
+        if self.cfg.semver > "3.12.4":
+            self.moreopts += [
+                "--all.experimental-vector-index=true",
+            ]
         print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
