@@ -105,7 +105,7 @@ class Single(Runner):
 
         if self.selenium:
             self.selenium.test_after_install()
-        self.make_data()
+        #self.make_data()
         if self.selenium:
             self.selenium.test_setup()
 

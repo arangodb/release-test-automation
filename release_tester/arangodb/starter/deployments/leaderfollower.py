@@ -284,7 +284,7 @@ process.exit(0);
         self.follower_starter_instance.supports_foxx_tests = False
         logging.info("Leader follower testing makedata on follower")
         self.makedata_instances.append(self.follower_starter_instance)
-        self.make_data()
+        # self.make_data()
         if self.selenium:
             self.selenium.test_setup()
 
