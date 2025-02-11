@@ -1,5 +1,5 @@
 #!/bin/bash
-if test "$BASE_VERSION" == devel or "$BASE_VERSION" == "3.12"; then
+if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12"; then
     DOCKER_SUFFIX=tar-oskarnew
 else
     DOCKER_SUFFIX=tar-oskar
