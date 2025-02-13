@@ -99,6 +99,10 @@ docker run \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
        \
+       --env="LLVM_PROFILE_FILE=${LLVM_PROFILE_FILE}" \
+       --env="LCOV_PREFIX_STRIP=${LCOV_PREFIX_STRIP}" \
+       --env="CLANG_VERSION"=${CLANG_VERSION}" \
+       \
        --pid=host \
        --init \
        \
