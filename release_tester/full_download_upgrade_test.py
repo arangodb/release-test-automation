@@ -147,10 +147,11 @@ def upgrade_package_test(
     for scenario in upgrade_scenarios:
 
         for default_props in EXECUTION_PLAN:
-            if props.directory_suffix not in editions:
-                continue
             props = deepcopy(default_props)
             props.set_kwargs(kwargs)
+
+            if props.directory_suffix not in editions:
+                continue
 
             skip = False
             for version in scenario:
