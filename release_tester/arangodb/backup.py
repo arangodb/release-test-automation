@@ -78,6 +78,7 @@ class HotBackupConfig:
             config["access_key_id"] = hbcfg.hb_aws_access_key_id
             config["secret_access_key"] = hbcfg.hb_aws_secret_access_key
             config["region"] = hbcfg.hb_aws_region
+            config["location_constraint"] = config["region"]
             config["acl"] = hbcfg.hb_aws_acl
         elif self.hb_provider_cfg.mode == HotBackupMode.DIRECTORY:
             config["copy-links"] = "false"
