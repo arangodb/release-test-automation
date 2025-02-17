@@ -101,7 +101,7 @@ docker run \
        \
        --env="LLVM_PROFILE_FILE=${LLVM_PROFILE_FILE}" \
        --env="LCOV_PREFIX_STRIP=${LCOV_PREFIX_STRIP}" \
-       --env="CLANG_VERSION"=${CLANG_VERSION}" \
+       --env="CLANG_VERSION=${CLANG_VERSION}" \
        \
        --pid=host \
        --init \
