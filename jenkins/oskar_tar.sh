@@ -91,6 +91,13 @@ DOCKER_ARGS+=(
        -v "$(pwd)/../ArangoDB/utils:/utils"
        --env=BASE_DIR=/oskar
 )
+
+if test -n "${COVERAGE}"; then
+  DOCKER_ARGS+=(-e "COVERAGE=${COVERAGE}")
+fi
+if test -n "${SAN}"; then
+  DOCKER_ARGS+=(-e "SAN=${SAN}")
+fi
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        "${DOCKER_ARGS[@]}" \
