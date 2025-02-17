@@ -400,7 +400,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         database_name: str = "_system",
         result_line_handler=default_line_result,
         log_debug=False,
-        deadline=900
+        deadline=900,
+        progressive_timeout=25
     ):
         """check back the testdata in the instance"""
         if args is None:
@@ -426,7 +427,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--passvoid', self.cfg.passvoid
             ] + test_filter,
             # fmt: on
-            progressive_timeout=25,
+            progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
             verbose=self.cfg.verbose or log_debug,
             log_debug=log_debug,
