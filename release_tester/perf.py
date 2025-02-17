@@ -46,6 +46,7 @@ def main(**kwargs):
     kwargs["package_dir"] = Path(kwargs["package_dir"])
     kwargs["test_data_dir"] = Path(kwargs["test_data_dir"])
     kwargs["alluredir"] = Path(kwargs["alluredir"])
+    kwargs['is_instrumented'] = False
 
     kwargs["hb_cli_cfg"] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
