@@ -73,6 +73,7 @@ class InstallerConfig:
     ):
         self.publicip = bc.publicip
         self.interactive = bc.interactive
+        self.is_instrumented = bc.is_instrumented
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = bc.zip_package
@@ -173,6 +174,7 @@ run make/check data: {0.checkdata}
             self.default_restore_args = copy.deepcopy(other_cfg.default_restore_args)
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
+            self.is_instrumented = other_cfg.is_instrumented
             self.enterprise = other_cfg.enterprise
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
