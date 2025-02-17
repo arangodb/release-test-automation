@@ -180,9 +180,10 @@ def expect_failure(expect_to_fail, ret, params):
     attach(str(ret["rc_exit"]), f"Exit code: {str(ret['rc_exit'])} == {expect_to_fail}")
     res = (None, None, None, None)
     if ret["have_deadline"] or ret["progressive_timeout"]:
+        detail = "deadline" if ret["have_deadline"] else "progressive timeout"
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         raise CliExecutionException(
-            "Execution failed by timeout.", res,
+            f"Execution failed by {detail}.", res,
             ret["progressive_timeout"] or ret["have_deadline"])
     if ret["rc_exit"] != 0:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
