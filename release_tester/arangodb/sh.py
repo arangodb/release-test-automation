@@ -399,7 +399,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         one_shard: bool = False,
         database_name: str = "_system",
         result_line_handler=default_line_result,
-        log_debug=False
+        log_debug=False,
+        deadline=900
     ):
         """check back the testdata in the instance"""
         if args is None:
@@ -429,6 +430,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             result_line_handler=result_line_handler,
             verbose=self.cfg.verbose or log_debug,
             log_debug=log_debug,
+            deadline=deadline,
         )
         return ret
 

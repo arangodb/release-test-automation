@@ -42,6 +42,7 @@ class InstallerBaseConfig(OptionGroup):
     test: str
     check_locale: bool
     checkdata: bool
+    is_instrumented: bool
 
 class InstallerFrontend:
     # pylint: disable=too-few-public-methods

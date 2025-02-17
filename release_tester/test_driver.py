@@ -75,6 +75,7 @@ class TestDriver:
         os.chdir(kwargs["test_data_dir"])
 
         self.sitecfg = SiteConfig("")
+        kwargs['is_instrumented'] = self.sitecfg.is_instrumented()
         self.use_monitoring = kwargs["monitoring"]
         if self.use_monitoring:
             spawn_overload_watcher_thread(self.sitecfg)

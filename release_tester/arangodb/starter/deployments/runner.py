@@ -698,6 +698,7 @@ class Runner(ABC):
     def make_data_impl(self):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
+        deadline = 1800 if self.cfg.is_instrumented else 900
         self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
@@ -721,6 +722,7 @@ class Runner(ABC):
                             args + ["--countOffset", str(count_offset)],
                             one_shard=one_shard,
                             database_name=db_name,
+                            deadline=deadline
                         )
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
@@ -738,6 +740,7 @@ class Runner(ABC):
     @step
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """check for data on the installation"""
+        deadline = 1800 if self.cfg.is_instrumented else 900
         if self.has_makedata_data:
             for db_name, one_shard, count_offset in self.makedata_databases():
                 try:
@@ -747,6 +750,7 @@ class Runner(ABC):
                         args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
+                        deadline=deadline
                     )
                 except CliExecutionException as exc:
                     if not self.cfg.verbose:
