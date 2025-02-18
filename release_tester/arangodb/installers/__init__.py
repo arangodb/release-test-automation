@@ -40,6 +40,7 @@ class InstallerBaseConfig(OptionGroup):
     interactive: bool
     stress_upgrade: bool
     test: str
+    skip: str
     check_locale: bool
     checkdata: bool
     is_instrumented: bool
@@ -137,6 +138,7 @@ class InstallerConfig:
             self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
         )
         self.test = bc.test
+        self.skip = bc.skip
         self.arangods = arangods
         self.check_locale = bc.check_locale
         self.checkdata = bc.checkdata
@@ -157,6 +159,7 @@ public ip: {0.publicip}
 interactive: {0.interactive}
 verbose: {0.verbose}
 test filter: {0.test}
+skip filter: {0.skip}
 run make/check data: {0.checkdata}
 """.format(
             self
@@ -222,6 +225,7 @@ run make/check data: {0.checkdata}
             self.hot_backup_supported = other_cfg.hot_backup_supported
             self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
             self.test = other_cfg.test
+            self.skip = other_cfg.skip
             self.check_locale = other_cfg.check_locale
             self.checkdata = other_cfg.checkdata
         except AttributeError:

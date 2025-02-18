@@ -377,6 +377,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter+= ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
@@ -417,6 +419,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter += ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
             # fmt: off

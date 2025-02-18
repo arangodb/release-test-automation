@@ -114,7 +114,8 @@ Supported Parameters:
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non-Windows)
    - `DCendurance` - use DC setup to launch long running arangobenches (not part of `all`)
- - `--test` filter for tests of makedata / check data; comma separated list.
+ - `--test` filter for tests to only run of makedata / check data; comma separated list.
+ - `--skip` filter for tests to skip of makedata / check data; comma separated list.
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
@@ -163,7 +164,8 @@ Supported Parameters:
    - `AFO` - Active Failover - start the agency and servers for active failover, test failovers, leader changes etc.
    - `CL` - Cluster - start a cluster with 3 agents, 3 db-servers, 3 coordinators. Test stopping one. 
    - `DC` - setup 2 clusters, connect them with arangosync (enterprise only, non Windows and non Mac)
- - `--test` filter for tests of makedata / check data; comma separated list.
+ - `--test` filter for tests to only run of makedata / check data; comma separated list.
+ - `--skip` filter for tests to skip of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -329,7 +331,8 @@ Supported Parameters:
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
    - `OS` enterprise with forced one shard
- - `--test` filter for tests of makedata / check data; comma separated list.
+ - `--test` filter for tests to only run of makedata / check data; comma separated list.
+ - `--skip` filter for tests to skip of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -397,7 +400,8 @@ Supported Parameters:
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
    - `OS` enterprise with forced one shard
- - `--test` filter for tests of makedata / check data; comma separated list.
+ - `--test` filter for tests to only run of makedata / check data; comma separated list.
+ - `--skip` filter for tests to skip of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
@@ -467,7 +471,8 @@ Supported Parameters:
    - `EP` enterprise
    - `EE` enterprise with encryption at rest
    - `OS` enterprise with forced one shard
- - `--test` filter for tests of makedata / check data; comma separated list.
+ - `--test` filter for tests to only run of makedata / check data; comma separated list.
+ - `--skip` filter for tests to skip of makedata / check data; comma separated list.
  - `--selenium` - specify the webdriver to be used to work with selenium (if)
  - `--selenium-driver-args` - arguments to the selenium browser - like `headless`
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
