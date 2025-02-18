@@ -177,7 +177,9 @@ def list_all_processes():
                 cmdline = "[" + process.name() + "]"
         except psutil.AccessDenied:
             pass
-        except psutil.ProcessLookupError:
+        except psutil.ZombieProcess:
+            pass
+        except ProcessLookupError:
             pass
         except psutil.NoSuchProcess:
             pass
