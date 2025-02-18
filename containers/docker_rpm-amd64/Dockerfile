@@ -11,7 +11,10 @@ ARG OPENSSL_VERSION="1.1.1t"
 ARG PYENV_APP_VERSION="2.3.15"
 
 # COPY epel.repo /etc/yum.repos.d/epel.repo
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+RUN yum install -y https://archives.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm?
+#
+#
+
 VOLUME [ "/sys/fs/cgroup" ]
 run mkdir -p /home/release-test-automation \
  /home/package_cache \
