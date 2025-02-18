@@ -96,7 +96,10 @@ if test -n "${COVERAGE}"; then
   DOCKER_ARGS+=(-e "COVERAGE=${COVERAGE}")
 fi
 if test -n "${SAN}"; then
-  DOCKER_ARGS+=(-e "SAN=${SAN}")
+    DOCKER_ARGS+=(
+        -e "SAN=${SAN}"
+        -e "SAN_MODE="${SAN_MODE}"
+    )
 fi
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
