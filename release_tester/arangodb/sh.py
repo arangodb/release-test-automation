@@ -194,7 +194,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         )
 
     @step
-    def js_version_check(self):
+    def js_version_check(self, is_instrumented):
         """run a version check command; this can double as password check"""
         logging.info("running version check")
         semdict = dict(self.cfg.semver.to_dict())

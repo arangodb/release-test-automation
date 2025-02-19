@@ -493,7 +493,7 @@ class Runner(ABC):
             sys_arangosh.self_test()
 
         if self.cfg.do_system_test:
-            sys_arangosh.js_version_check()
+            sys_arangosh.js_version_check(self.cfg.is_instrumented)
             # TODO: here we should invoke Makedata for the system installation.
 
             self.progress(True, "stop system service to make ports available for starter")
@@ -743,7 +743,7 @@ class Runner(ABC):
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """check for data on the installation"""
         deadline = 1800 if self.cfg.is_instrumented else 900
-        progressive_timeout = 100 if self.cfg.is_instrumented else 25
+        progressive_timeout = 1000 if self.cfg.is_instrumented else 25
         if self.has_makedata_data:
             for db_name, one_shard, count_offset in self.makedata_databases():
                 try:
