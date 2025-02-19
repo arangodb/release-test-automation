@@ -83,7 +83,7 @@ class InstallerConfig:
         self.supports_rolling_upgrade = not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
-        self.have_system_service = not self.zip_package and self.src_testing
+        self.have_system_service = False # TODO: re-enable not self.zip_package and self.src_testing
         self.debug_package_is_installed = False
         self.client_package_is_installed = False
         self.server_package_is_installed = False
