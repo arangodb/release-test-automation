@@ -699,7 +699,7 @@ class Runner(ABC):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
         deadline = 3600 if self.cfg.is_instrumented else 900
-        progressive_timeout = 200 if self.cfg.is_instrumented else 100
+        progressive_timeout = 400 if self.cfg.is_instrumented else 100
         self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
@@ -730,7 +730,7 @@ class Runner(ABC):
                         if self.cfg.verbose:
                             print(exc.execution_result[1])
                         self.ask_continue_or_exit(
-                            f"make_data failed for {self.name} in database {db_name} with {exc}",
+                            f"make_data failed for {self.name} in database {db_name} with {str(exc)}",
                             exc.execution_result[1],
                             False,
                             exc,

@@ -332,7 +332,7 @@ process.exit(0);
         """run the replication fuzzing test"""
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
-        deadline=10000 if self.cfg.is_instrumented else 1000
+        deadline=50000 if self.cfg.is_instrumented else 1000
         progressive_timeout=1000 if self.cfg.is_instrumented else 100
         self.tcp_ping_all_nodes()
         ret = self.leader_starter_instance.arangosh.run_in_arangosh(
