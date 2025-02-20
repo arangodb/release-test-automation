@@ -699,7 +699,7 @@ class Runner(ABC):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
         deadline = 3600 if self.cfg.is_instrumented else 900
-        progressive_timeout = 400 if self.cfg.is_instrumented else 100
+        progressive_timeout = 800 if self.cfg.is_instrumented else 100
         self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
