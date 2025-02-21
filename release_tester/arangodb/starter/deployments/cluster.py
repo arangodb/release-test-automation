@@ -401,7 +401,7 @@ db.testCollection.save({test: "document"})
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
-                        log_debug=True
+                        log_debug=True,
                         deadline=deadline,
                         progressive_timeout=progressive_timeout
                     )
