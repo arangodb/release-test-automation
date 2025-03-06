@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 DOCKER_SUFFIX=rpm
 . ./jenkins/common/default_variables.sh
 . ./jenkins/common/default_matrix.sh

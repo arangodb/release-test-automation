@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 DOCKER_SUFFIX=tar-oskarnew
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then

@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 
 ARCH="-$(uname -m)"
 

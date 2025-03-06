@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 
 mkdir -p /tmp/rpm_versions /tmp/deb_versions
 VERSION=$(cat VERSION.json)
