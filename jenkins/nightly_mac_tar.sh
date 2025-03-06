@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')

@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12"; then
     DOCKER_SUFFIX=tar-oskarnew
 else
