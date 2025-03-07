@@ -24,6 +24,7 @@ docker run \
        --privileged \
        -itd \
        --cap-add audit_write --cap-add audit_control \
+       --pids-limit 256704 \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
