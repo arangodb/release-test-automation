@@ -123,8 +123,11 @@ class TestDriver:
         """shutdown this environment"""
         self._stop_monitor()
         if HAVE_SAN:
-            self.symbolizer.kill()
-            self.symbolizer.wait()
+            try:
+                self.symbolizer.kill()
+                self.symbolizer.wait()
+            except psutil.NoSuchProcess:
+                print(f"{self.symbolizer} already gone, ignoring.")
 
     def _stop_monitor(self):
         if self.use_monitoring:
