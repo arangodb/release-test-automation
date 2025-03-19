@@ -1,5 +1,6 @@
 #!/bin/bash
-export DOCKER=docker
+export DOCKER=podman
+export REGISTRY_URL='docker.io/'
 DOCKER_SUFFIX=tar
 . ./jenkins/common/default_variables.sh
 
@@ -16,10 +17,9 @@ DOCKER_SUFFIX=tar
 . ./jenkins/common/register_cleanup_trap.sh
 
 # we need --init since our upgrade leans on zombies not happening:
-docker run \
+${DOCKER} run \
        "${DOCKER_ARGS[@]}" \
        --pid=host \
-       --init \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
@@ -32,7 +32,7 @@ result=$?
 
 # don't need docker stop $DOCKER_TAR_NAME
 
-. ./jenkins/common/cleanup_ownership.sh
+# . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh
 
 if test "${result}" -eq "0"; then
