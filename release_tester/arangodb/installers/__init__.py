@@ -93,7 +93,7 @@ class InstallerConfig:
         self.do_install = self.deployment_mode in ["all", "install"]
         self.do_uninstall = self.deployment_mode in ["all", "uninstall"]
         self.do_system_test = self.deployment_mode in ["all", "system"] and self.have_system_service
-        self.do_starter_test = self.deployment_mode in ["all", "tests"]
+        self.do_starter_test = self.deployment_mode != "none" # in ["all", "tests"]
         self.install_prefix = Path("/")
 
         self.base_test_dir = bc.test_data_dir
