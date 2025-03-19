@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 
 DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat containers/this_version.txt)
 docker pull $DOCKER_DEB_TAG || exit
