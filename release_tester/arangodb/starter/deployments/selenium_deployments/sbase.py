@@ -45,6 +45,7 @@ class SeleniumRunner(ABC):
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
         self.selenium_include_suites = selenium_include_suites
+        self.props = properties
         self.video_name = f"{properties.short_name}_{testrun_name}.mp4".replace( '\n', '_').replace('@', '_')
         mylist = list(
             selenium_args['selenium_driver_args'])
