@@ -30,7 +30,7 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
                 table = NodesPage(self.webdriver,
                                   self.cfg,
                                   self.video_start_time).cluster_get_nodes_table(
-                                      300, self.selenium_runner.props.cluster_nodes)
+                                      500, self.selenium_runner.props.cluster_nodes)
             except StaleElementReferenceException:
                 self.progress(" skip once")
                 continue
