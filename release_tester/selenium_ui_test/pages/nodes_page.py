@@ -17,7 +17,7 @@ from reporting.reporting_utils import attach_table
 class NodesPage(NavigationBarPage):
     """Class for Nodes page"""
 
-    def cluster_get_nodes_table(self, timeout=20, cluster_nodes):
+    def cluster_get_nodes_table(self, timeout=20, cluster_nodes=5):
         """
         extract the table of coordinators / dbservers from the 'nodes' page
         """
