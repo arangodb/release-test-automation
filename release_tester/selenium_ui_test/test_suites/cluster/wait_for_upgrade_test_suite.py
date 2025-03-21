@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """ cluster upgrade monitoring testsuite """
 import time
@@ -26,7 +27,10 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         while not upgrade_done:
             table = []
             try:
-                table = NodesPage(self.webdriver, self.cfg, self.video_start_time).cluster_get_nodes_table(300)
+                table = NodesPage(self.webdriver,
+                                  self.cfg,
+                                  self.video_start_time).cluster_get_nodes_table(
+                                      300, self.selenium_runner.props.cluster_nodes)
             except StaleElementReferenceException:
                 self.progress(" skip once")
                 continue

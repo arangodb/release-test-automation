@@ -46,7 +46,7 @@ class ClusterJamStepTwoSuite(BaseSeleniumTestSuite):
 
         NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("nodes")
         nodes_page = NodesPage(self.webdriver, self.cfg, self.video_start_time)
-        table = nodes_page.cluster_get_nodes_table()
+        table = nodes_page.cluster_get_nodes_table(20, self.selenium_runner.props.cluster_nodes)
         row_count = 0
         for row in table:
             if row["state"] == "SERVING":

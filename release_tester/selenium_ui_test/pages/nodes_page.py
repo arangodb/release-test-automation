@@ -17,12 +17,12 @@ from reporting.reporting_utils import attach_table
 class NodesPage(NavigationBarPage):
     """Class for Nodes page"""
 
-    def cluster_get_nodes_table(self, timeout=20):
+    def cluster_get_nodes_table(self, timeout=20, cluster_nodes):
         """
         extract the table of coordinators / dbservers from the 'nodes' page
         """
         while True:
-            table = self._get_nodes_table(timeout)
+            table = self._get_nodes_table(timeout, cluster_nodes)
             try:
                 return table
             except StaleElementReferenceException:
@@ -36,7 +36,7 @@ class NodesPage(NavigationBarPage):
             except TimeoutException as ex:
                 raise ex
 
-    def _get_nodes_table(self, timeout):
+    def _get_nodes_table(self, timeout, cluster_nodes):
         """repeatable inner func"""
         table_coord_elm = WebDriverWait(self.webdriver, timeout).until(
             EC.presence_of_element_located(
@@ -53,7 +53,7 @@ class NodesPage(NavigationBarPage):
                 for table_row_num in [1, 2, 3]:
                     row = {}
                     table.append(row)
-                    for table_column in [1, 2, 3, 4, 5]:
+                    for table_column in range(1, cluster_nodes):
                         table_cell_elm = None
                         if table_column == 5:
                             table_cell_elm = self.locator_finder_by_xpath(

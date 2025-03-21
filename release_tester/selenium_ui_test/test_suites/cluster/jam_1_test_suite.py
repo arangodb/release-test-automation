@@ -55,7 +55,7 @@ class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
-            table = nodes_page.cluster_get_nodes_table(300)
+            table = nodes_page.cluster_get_nodes_table(300, self.selenium_runner.props.cluster_nodes)
             for row in table:
                 if row["state"] == "SERVING":
                     row_count += 1
