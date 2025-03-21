@@ -57,7 +57,8 @@ class NodesPage(NavigationBarPage):
                         table_cell_elm = None
                         if table_column == 5:
                             table_cell_elm = self.locator_finder_by_xpath(
-                                "div[%d]/div[%d]/i" % (table_row_num, table_column))
+                                "div[%d]/div[%d]/i" % (table_row_num, table_column),
+                                timeout=timeout)
                             try:
                                 row[column_names[table_column - 1]] = table_cell_elm.get_attribute("data-original-title")
                             except NoSuchElementException:
