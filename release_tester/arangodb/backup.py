@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ Manage one instance of the arangodb hotbackup CLI tool """
 
-import logging
 import json
 import os
 import re
@@ -168,7 +167,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     ):
         """run arangobackup"""
         if not silent:
-            logging.info("running hot backup " + name)
+            print(f"running hot backup {name} - cwd: {str(self.cfg.test_data_dir.resolve())}")
         run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
