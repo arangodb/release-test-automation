@@ -186,10 +186,6 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
-            self.do_install = other_cfg.do_install
-            self.do_uninstall = other_cfg.do_uninstall
-            self.do_system_test = other_cfg.do_system_test
-            self.do_starter_test = other_cfg.do_starter_test
             self.supports_rolling_upgrade = other_cfg.supports_rolling_upgrade
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
