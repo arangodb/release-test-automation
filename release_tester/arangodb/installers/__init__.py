@@ -100,6 +100,7 @@ class InstallerConfig:
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta-makedata" / "test_data"
         self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
+        self.sublaunch_pwd = self.test_data_dir
 
         self.username = "root"
         self.passvoid = ""
@@ -161,6 +162,7 @@ verbose: {0.verbose}
 test filter: {0.test}
 skip filter: {0.skip}
 run make/check data: {0.checkdata}
+sublaunch pwd = {0.test_data_dir}
 """.format(
             self
         )
@@ -202,6 +204,7 @@ run make/check data: {0.checkdata}
             self.base_test_dir = other_cfg.base_test_dir
             self.pwd = other_cfg.pwd
             self.test_data_dir = other_cfg.test_data_dir
+            self.sublaunch_pwd = other_cfg.sublaunch_pwd
 
             self.username = other_cfg.username
             self.passvoid = other_cfg.passvoid

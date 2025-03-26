@@ -54,6 +54,8 @@ class InstallerSource(InstallerArchive):
         self.arangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
         self.copy_for_result = False
         self.hot_backup = self.cfg.enterprise
+        self.cfg.sublaunch_pwd = self.test_dir
+        print("this now the source directory: " + str(self.test_dir))
 
     def calculate_installation_dirs(self):
         self.cfg.bin_dir = self.test_dir / "build" / "bin"
