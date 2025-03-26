@@ -16,19 +16,6 @@ import reporting.reporting_utils
 
 
 @click.command()
-@click.option(
-    "--mode",
-    type=click.Choice(
-        [
-            "all",
-            "install",
-            "uninstall",
-            "tests",
-        ]
-    ),
-    default="all",
-    help="operation mode.",
-)
 @very_common_options()
 @hotbackup_options()
 @common_options(support_old=False)
@@ -49,7 +36,6 @@ def main(**kwargs):
     try:
         test_driver.set_r_limits()
         results = test_driver.run_test(
-            kwargs["mode"],
             kwargs["starter_mode"],
             [semver.VersionInfo.parse(kwargs["new_version"])],
             # pylint: disable=too-many-function-args
