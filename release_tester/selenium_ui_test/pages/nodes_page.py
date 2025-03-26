@@ -47,16 +47,15 @@ class NodesPage(NavigationBarPage):
         table_dbsrv_elm = self.by_class("pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body")
         column_names = ["name", "url", "version", "date", "state"]
         table = []
-        # TODO: why not use the for variable?
         try:
-            for _ in [table_coord_elm, table_dbsrv_elm]:
+            for elm in [table_coord_elm, table_dbsrv_elm]:
                 for table_row_num in [1, 2, 3]:
                     row = {}
                     table.append(row)
                     for table_column in range(1, cluster_nodes):
                         table_cell_elm = None
                         if table_column == 5:
-                            table_cell_elm = self.locator_finder_by_xpath(
+                            table_cell_elm = elm.find_element_by_xpath(
                                 "div[%d]/div[%d]/i" % (table_row_num, table_column),
                                 timeout=timeout)
                             try:
@@ -66,7 +65,7 @@ class NodesPage(NavigationBarPage):
                             if row[column_names[table_column - 1]] is None:
                                 row[column_names[table_column - 1]] = table_cell_elm.get_property("title")
                         else:
-                            table_cell_elm = self.locator_finder_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
+                            table_cell_elm = elm.find_element_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
                             row[column_names[table_column - 1]] = table_cell_elm.text
         except Exception as ex:
             raise Exception(f"table incomplete, already got: {table}") from ex
