@@ -107,7 +107,7 @@ docker run \
        --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
-       --env="UBSAN_OPTIONS=${TSAN_OPTIONS}" \
+       --env="TBSAN_OPTIONS=${TSAN_OPTIONS}" \
        --env="OMP_TOOL_LIBRARIES=/usr/lib/llvm-19/lib/libarcher.so" \
        --env='ARCHER_OPTIONS="verbose=1"' \
        \
