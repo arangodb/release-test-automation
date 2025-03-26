@@ -162,7 +162,7 @@ verbose: {0.verbose}
 test filter: {0.test}
 skip filter: {0.skip}
 run make/check data: {0.checkdata}
-sublaunch pwd = {0.test_data_dir}
+sublaunch pwd = {0.sublaunch_pwd}
 """.format(
             self
         )
