@@ -108,8 +108,8 @@ docker run \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
-       --env="OMP_TOOL_LIBRARIES=/usr/lib/llvm-19/lib/libarcher.so" \
-       --env='ARCHER_OPTIONS="verbose=1"' \
+       --env="OMP_TOOL_LIBRARIES=${OMP_TOOL_LIBRARIES}" \
+       --env='ARCHER_OPTIONS=${ARCHER_OPTIONS}' \
        \
        --env="LLVM_PROFILE_FILE=${LLVM_PROFILE_FILE}" \
        --env="LCOV_PREFIX_STRIP=${LCOV_PREFIX_STRIP}" \
