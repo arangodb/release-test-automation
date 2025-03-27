@@ -56,6 +56,7 @@ class InstallerSource(InstallerArchive):
         self.hot_backup = self.cfg.enterprise
         self.cfg.sublaunch_pwd = self.test_dir
         print("this now the source directory: " + str(self.test_dir))
+        print(self.cfg)
 
     def calculate_installation_dirs(self):
         self.cfg.bin_dir = self.test_dir / "build" / "bin"

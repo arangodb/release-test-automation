@@ -166,6 +166,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=DEFAULT_PROGRESSIVE_TIMEOUT
     ):
         """run arangobackup"""
+        print(self.cfg)
         if not silent:
             print(f"running hot backup {name} - cwd: {str(self.cfg.test_data_dir.resolve())}")
         run_cmd = copy.deepcopy(self.cfg.default_backup_args)
