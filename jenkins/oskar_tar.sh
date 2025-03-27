@@ -109,7 +109,7 @@ docker run \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
        --env="OMP_TOOL_LIBRARIES=${OMP_TOOL_LIBRARIES}" \
-       --env='ARCHER_OPTIONS=${ARCHER_OPTIONS}' \
+       --env="ARCHER_OPTIONS=${ARCHER_OPTIONS}" \
        \
        --env="LLVM_PROFILE_FILE=${LLVM_PROFILE_FILE}" \
        --env="LCOV_PREFIX_STRIP=${LCOV_PREFIX_STRIP}" \
