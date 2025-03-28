@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=docker
+. ./jenkins/common/detect_podman.sh
 
 mkdir -p /tmp/rpm_versions /tmp/deb_versions
 VERSION=$(cat VERSION.json)
@@ -22,15 +22,15 @@ else
     force_arg+=(--remote-host 172.17.4.0)
 fi
 
-trap "docker kill $DOCKER_DEB_NAME; \
-     docker rm $DOCKER_DEB_NAME; \
-     docker kill $DOCKER_RPM_NAME; \
-     docker rm $DOCKER_RPM_NAME;" EXIT
+trap "$DOCKER kill $DOCKER_DEB_NAME; \
+     $DOCKER rm $DOCKER_DEB_NAME; \
+     $DOCKER kill $DOCKER_RPM_NAME; \
+     $DOCKER rm $DOCKER_RPM_NAME;" EXIT
 
 version=$(git rev-parse --verify HEAD)
 
-docker build containers/docker_deb -t $DOCKER_DEB_TAG || exit
-docker build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
+$DOCKER build containers/docker_deb -t $DOCKER_DEB_TAG || exit
+$DOCKER build containers/docker_rpm -t $DOCKER_RPM_TAG || exit
 
 ssh -o StrictHostKeyChecking=no -T git@github.com
 if test ! -d $(pwd)/release_tester/tools/external_helpers; then
@@ -40,7 +40,7 @@ fi
 git submodule init
 git submodule update
 
-docker run -itd \
+$DOCKER run -itd \
        --ulimit core=-1 \
        --privileged \
        --name=$DOCKER_DEB_NAME \
@@ -56,7 +56,7 @@ docker run -itd \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-if docker exec $DOCKER_DEB_NAME \
+if $DOCKER exec $DOCKER_DEB_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --selenium Chrome \
           --selenium-driver-args headless \
@@ -68,7 +68,7 @@ else
 fi
 
 
-docker run \
+$DOCKER run \
        --ulimit core=-1 \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        -v `pwd`:/home/release-test-automation \
@@ -85,7 +85,7 @@ docker run \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-if docker exec $DOCKER_RPM_NAME \
+if $DOCKER exec $DOCKER_RPM_NAME \
           /home/release-test-automation/release_tester/full_download_upgrade_test.py \
           --no-zip \
           --selenium Chrome \

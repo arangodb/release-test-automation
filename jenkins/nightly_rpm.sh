@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=podman
+. ./jenkins/common/detect_podman.sh
 export REGISTRY_URL='docker.io/'
 DOCKER_SUFFIX=rpm
 . ./jenkins/common/default_variables.sh
@@ -16,7 +16,7 @@ DOCKER_SUFFIX=rpm
 
 . ./jenkins/common/register_cleanup_trap.sh
 
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
@@ -30,7 +30,7 @@ docker run \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec \
+$DOCKER exec \
        "${DOCKER_NAME}" \
        /home/release-test-automation/release_tester/full_download_upgrade.py \
        --old-version "${OLD_VERSION}" \
@@ -40,7 +40,7 @@ docker exec \
        "${@}"
 result=$?
 
-docker stop "${DOCKER_NAME}"
+$DOCKER stop "${DOCKER_NAME}"
 
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh

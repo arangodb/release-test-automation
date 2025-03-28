@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=docker
+. ./jenkins/common/detect_podman.sh
 
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')

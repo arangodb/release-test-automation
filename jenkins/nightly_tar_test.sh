@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=podman
+. ./jenkins/common/detect_podman.sh
 export REGISTRY_URL='docker.io/'
 DOCKER_SUFFIX=tar
 . ./jenkins/common/default_variables.sh

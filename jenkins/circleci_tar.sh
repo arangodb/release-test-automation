@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=docker
+. ./jenkins/common/detect_podman.sh
 DOCKER_SUFFIX=tar-oskarnew
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
@@ -88,7 +88,7 @@ DOCKER_ARGS+=(
        --env=BASE_DIR=${WORK}/ArangoDB
 )
 # we need --init since our upgrade leans on zombies not happening:
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
