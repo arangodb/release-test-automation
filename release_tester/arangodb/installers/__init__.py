@@ -93,13 +93,14 @@ class InstallerConfig:
         self.do_install = self.deployment_mode in ["all", "install"]
         self.do_uninstall = self.deployment_mode in ["all", "uninstall"]
         self.do_system_test = self.deployment_mode in ["all", "system"] and self.have_system_service
-        self.do_starter_test = self.deployment_mode in ["all", "tests"]
+        self.do_starter_test = self.deployment_mode != "none" # in ["all", "tests"]
         self.install_prefix = Path("/")
 
         self.base_test_dir = bc.test_data_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta-makedata" / "test_data"
         self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
+        self.sublaunch_pwd = self.test_data_dir
 
         self.username = "root"
         self.passvoid = ""
@@ -161,6 +162,7 @@ verbose: {0.verbose}
 test filter: {0.test}
 skip filter: {0.skip}
 run make/check data: {0.checkdata}
+sublaunch pwd = {0.sublaunch_pwd}
 """.format(
             self
         )
@@ -202,6 +204,7 @@ run make/check data: {0.checkdata}
             self.base_test_dir = other_cfg.base_test_dir
             self.pwd = other_cfg.pwd
             self.test_data_dir = other_cfg.test_data_dir
+            self.sublaunch_pwd = other_cfg.sublaunch_pwd
 
             self.username = other_cfg.username
             self.passvoid = other_cfg.passvoid

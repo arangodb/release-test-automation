@@ -24,3 +24,7 @@ docker push $DOCKER_TAR_TAG${ARCH} || exit
 DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskar:$(cat containers/this_version.txt)
 docker build containers/docker_tar_oskar${ARCH} -t $DOCKER_TAR_TAG${ARCH} || exit
 docker push $DOCKER_TAR_TAG${ARCH} || exit
+
+DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskarnew:$(cat containers/this_version.txt)
+docker build containers/docker_tar_oskarnew${ARCH} -t $DOCKER_TAR_TAG${ARCH} || exit
+docker push $DOCKER_TAR_TAG${ARCH} || exit

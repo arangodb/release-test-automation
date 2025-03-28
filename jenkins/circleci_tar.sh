@@ -1,6 +1,6 @@
 #!/bin/bash
 export DOCKER=docker
-DOCKER_SUFFIX=tar-oskar
+DOCKER_SUFFIX=tar-oskarnew
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
     ALLURE_DIR="${WORKSPACE}/allure-results"
@@ -94,6 +94,8 @@ docker run \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
+       --env="OMP_TOOL_LIBRARIES=/usr/lib/llvm-19/lib/libarcher.so" \
+       --env='ARCHER_OPTIONS="verbose=1"' \
        \
        --pid=host \
        --init \

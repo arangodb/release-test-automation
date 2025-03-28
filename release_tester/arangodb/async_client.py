@@ -340,7 +340,7 @@ deadline_signal: {0.deadline_signal}""".format(
             stdout=PIPE,
             stderr=PIPE,
             close_fds=ON_POSIX,
-            cwd=self.cfg.test_data_dir.resolve(),
+            cwd=self.cfg.sublaunch_pwd.resolve(),
         ) as process:
             queue = Queue()
             thread1 = Thread(
