@@ -194,7 +194,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         )
 
     @step
-    def js_version_check(self):
+    def js_version_check(self, is_instrumented):
         """run a version check command; this can double as password check"""
         logging.info("running version check")
         semdict = dict(self.cfg.semver.to_dict())
@@ -377,6 +377,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter+= ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
@@ -399,7 +401,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         one_shard: bool = False,
         database_name: str = "_system",
         result_line_handler=default_line_result,
-        log_debug=False
+        log_debug=False,
+        deadline=900,
+        progressive_timeout=25
     ):
         """check back the testdata in the instance"""
         if args is None:
@@ -415,6 +419,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter += ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
             # fmt: off
@@ -425,10 +431,11 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--passvoid', self.cfg.passvoid
             ] + test_filter,
             # fmt: on
-            progressive_timeout=25,
+            progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
             verbose=self.cfg.verbose or log_debug,
             log_debug=log_debug,
+            deadline=deadline,
         )
         return ret
 

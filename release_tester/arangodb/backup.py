@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ Manage one instance of the arangodb hotbackup CLI tool """
 
-import logging
 import json
 import os
 import re
@@ -148,7 +147,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     # pylint: disable=too-many-instance-attributes
     """manages one arangobackup instance"""
 
-    def __init__(self, config, name, raw_install_prefix, connect_instance):
+    def __init__(self, config, name, raw_install_prefix, connect_instance, cfg):
         super().__init__(config, connect_instance)
 
         # directories
@@ -159,6 +158,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         self.backup_dir = self.install_prefix / "backup"
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
+        self.cfg = cfg
 
     # pylint: disable=too-many-arguments
     @step
@@ -167,7 +167,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     ):
         """run arangobackup"""
         if not silent:
-            logging.info("running hot backup " + name)
+            print(f"running hot backup {name} - cwd: {str(self.cfg.test_data_dir.resolve())}")
         run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]

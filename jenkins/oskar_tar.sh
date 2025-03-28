@@ -91,6 +91,16 @@ DOCKER_ARGS+=(
        -v "$(pwd)/../ArangoDB/utils:/utils"
        --env=BASE_DIR=/oskar
 )
+
+if test -n "${COVERAGE}"; then
+  DOCKER_ARGS+=(-e "COVERAGE=${COVERAGE}")
+fi
+if test -n "${SAN}"; then
+    DOCKER_ARGS+=(
+        -e "SAN=${SAN}"
+        -e "SAN_MODE=${SAN_MODE}"
+    )
+fi
 # we need --init since our upgrade leans on zombies not happening:
 docker run \
        "${DOCKER_ARGS[@]}" \
@@ -98,10 +108,12 @@ docker run \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
+       --env="OMP_TOOL_LIBRARIES=/usr/lib/llvm-19/lib/libarcher.so" \
+       --env='ARCHER_OPTIONS="verbose=1"' \
        \
        --env="LLVM_PROFILE_FILE=${LLVM_PROFILE_FILE}" \
        --env="LCOV_PREFIX_STRIP=${LCOV_PREFIX_STRIP}" \
-       --env="CLANG_VERSION"=${CLANG_VERSION}" \
+       --env="CLANG_VERSION=${CLANG_VERSION}" \
        \
        --pid=host \
        --init \

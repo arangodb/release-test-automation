@@ -40,8 +40,10 @@ class InstallerBaseConfig(OptionGroup):
     interactive: bool
     stress_upgrade: bool
     test: str
+    skip: str
     check_locale: bool
     checkdata: bool
+    is_instrumented: bool
 
 class InstallerFrontend:
     # pylint: disable=too-few-public-methods
@@ -72,6 +74,7 @@ class InstallerConfig:
     ):
         self.publicip = bc.publicip
         self.interactive = bc.interactive
+        self.is_instrumented = bc.is_instrumented
         self.enterprise = enterprise
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = bc.zip_package
@@ -80,19 +83,21 @@ class InstallerConfig:
         self.supports_rolling_upgrade = not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
-        self.have_system_service = not self.zip_package and self.src_testing
+        self.have_system_service = False # TODO: re-enable not self.zip_package and self.src_testing
         self.debug_package_is_installed = False
         self.client_package_is_installed = False
         self.server_package_is_installed = False
         self.stress_upgrade = bc.stress_upgrade
 
         self.deployment_mode = deployment_mode
+
         self.install_prefix = Path("/")
 
         self.base_test_dir = bc.test_data_dir
         self.pwd = Path(os.path.dirname(os.path.realpath(__file__)))
         self.test_data_dir = self.pwd / ".." / ".." / ".." / "rta-makedata" / "test_data"
         self.ui_data_dir = self.pwd / ".." / ".." / ".." / "test_data"
+        self.sublaunch_pwd = self.test_data_dir
 
         self.username = "root"
         self.passvoid = ""
@@ -131,6 +136,7 @@ class InstallerConfig:
             self.enterprise and not IS_WINDOWS and self.hb_provider_cfg.mode != HotBackupMode.DISABLED
         )
         self.test = bc.test
+        self.skip = bc.skip
         self.arangods = arangods
         self.check_locale = bc.check_locale
         self.checkdata = bc.checkdata
@@ -151,7 +157,9 @@ public ip: {0.publicip}
 interactive: {0.interactive}
 verbose: {0.verbose}
 test filter: {0.test}
+skip filter: {0.skip}
 run make/check data: {0.checkdata}
+sublaunch pwd = {0.sublaunch_pwd}
 """.format(
             self
         )
@@ -168,6 +176,7 @@ run make/check data: {0.checkdata}
             self.default_restore_args = copy.deepcopy(other_cfg.default_restore_args)
             self.publicip = other_cfg.publicip
             self.interactive = other_cfg.interactive
+            self.is_instrumented = other_cfg.is_instrumented
             self.enterprise = other_cfg.enterprise
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
@@ -188,6 +197,7 @@ run make/check data: {0.checkdata}
             self.base_test_dir = other_cfg.base_test_dir
             self.pwd = other_cfg.pwd
             self.test_data_dir = other_cfg.test_data_dir
+            self.sublaunch_pwd = other_cfg.sublaunch_pwd
 
             self.username = other_cfg.username
             self.passvoid = other_cfg.passvoid
@@ -211,6 +221,7 @@ run make/check data: {0.checkdata}
             self.hot_backup_supported = other_cfg.hot_backup_supported
             self.hb_cli_cfg = copy.deepcopy(other_cfg.hb_cli_cfg)
             self.test = other_cfg.test
+            self.skip = other_cfg.skip
             self.check_locale = other_cfg.check_locale
             self.checkdata = other_cfg.checkdata
         except AttributeError:

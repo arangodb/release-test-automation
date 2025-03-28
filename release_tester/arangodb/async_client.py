@@ -180,9 +180,10 @@ def expect_failure(expect_to_fail, ret, params):
     attach(str(ret["rc_exit"]), f"Exit code: {str(ret['rc_exit'])} == {expect_to_fail}")
     res = (None, None, None, None)
     if ret["have_deadline"] or ret["progressive_timeout"]:
+        detail = "deadline" if ret["have_deadline"] else "progressive timeout"
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         raise CliExecutionException(
-            "Execution failed by timeout.", res,
+            f"Execution failed by {detail}.", res,
             ret["progressive_timeout"] or ret["have_deadline"])
     if ret["rc_exit"] != 0:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
@@ -333,7 +334,7 @@ deadline_signal: {0.deadline_signal}""".format(
             else:
                 deadline = datetime.now() + timedelta(seconds=deadline)
         final_deadline = deadline + timedelta(seconds=deadline_grace_period)
-        lh.log_cmd(run_cmd)
+        lh.log_cmd(run_cmd, progressive_timeout=progressive_timeout, deadline=deadline)
         with psutil.Popen(
             run_cmd,
             stdout=PIPE,

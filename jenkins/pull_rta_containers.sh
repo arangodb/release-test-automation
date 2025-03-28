@@ -8,3 +8,9 @@ docker pull $DOCKER_RPM_TAG || exit
 
 DOCKER_TAR_TAG=arangodb/release-test-automation-tar:$(cat containers/this_version.txt)
 docker pull $DOCKER_TAR_TAG || exit
+
+DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskar:$(cat containers/this_version.txt)
+docker pull $DOCKER_TAR_TAG || exit
+
+DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskar-new:$(cat containers/this_version.txt)
+docker pull $DOCKER_TAR_TAG || exit

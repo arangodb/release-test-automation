@@ -395,9 +395,11 @@ def main(**kwargs):
     kwargs['hb_mode'] = "disabled"
     kwargs['hb_storage_path_prefix'] = ""
     kwargs['hb_provider'] = ""
+    kwargs['is_instrumented'] = False
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg("disabled","","","","","","")
     kwargs['test'] = ''
+    kwargs['skip'] = ''
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
 
     dl_opts = DownloadOptions.from_dict(**kwargs)

@@ -481,9 +481,9 @@ class Runner(ABC):
         self.progress(True, "self test after installation")
         if inst.cfg.have_system_service:
             sys_arangosh.self_test()
-            sys_arangosh.js_version_check()
-            # TODO: here we should invoke Makedata for the system installation.
-            self.progress(True, "stop system service to make ports available for starter")
+        sys_arangosh.js_version_check(self.cfg.is_instrumented)
+        # TODO: here we should invoke Makedata for the system installation.
+        self.progress(True, "stop system service to make ports available for starter")
         inst.stop_service()
 
     def get_selenium_status(self):
@@ -685,6 +685,8 @@ class Runner(ABC):
     def make_data_impl(self):
         """upload testdata into the deployment, and check it"""
         assert self.makedata_instances, "don't have makedata instance!"
+        deadline = 3600 if self.cfg.is_instrumented else 900
+        progressive_timeout = 1600 if self.cfg.is_instrumented else 100
         self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
@@ -708,12 +710,14 @@ class Runner(ABC):
                             args + ["--countOffset", str(count_offset)],
                             one_shard=one_shard,
                             database_name=db_name,
+                            deadline=deadline,
+                            progressive_timeout=progressive_timeout
                         )
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
                             print(exc.execution_result[1])
                         self.ask_continue_or_exit(
-                            f"make_data failed for {self.name} in database {db_name} with {exc}",
+                            f"make_data failed for {self.name} in database {db_name} with {str(exc)}",
                             exc.execution_result[1],
                             False,
                             exc,
@@ -725,6 +729,8 @@ class Runner(ABC):
     @step
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
         """check for data on the installation"""
+        deadline = 1800 if self.cfg.is_instrumented else 900
+        progressive_timeout = 1000 if self.cfg.is_instrumented else 25
         if self.has_makedata_data:
             for db_name, one_shard, count_offset in self.makedata_databases():
                 try:
@@ -734,6 +740,8 @@ class Runner(ABC):
                         args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
+                        deadline=deadline,
+                        progressive_timeout=progressive_timeout
                     )
                 except CliExecutionException as exc:
                     if not self.cfg.verbose:

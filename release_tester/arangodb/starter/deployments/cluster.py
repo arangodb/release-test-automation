@@ -390,6 +390,8 @@ db.testCollection.save({test: "document"})
         prompt_user(self.cfg, "instance stopped")
         if self.selenium:
             self.selenium.jam_step_1()
+        deadline = 1800 if self.cfg.is_instrumented else 900
+        progressive_timeout = 1000 if self.cfg.is_instrumented else 25
         if self.cfg.checkdata:
             for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
                 for db_name, oneshard, count_offset in self.makedata_databases():
@@ -399,7 +401,9 @@ db.testCollection.save({test: "document"})
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
-                        log_debug=True
+                        log_debug=True,
+                        deadline=deadline,
+                        progressive_timeout=progressive_timeout
                     )
                     if not ret[0]:
                         raise Exception("check data failed in database %s :\n" % db_name + ret[1])

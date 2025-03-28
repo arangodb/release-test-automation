@@ -34,6 +34,7 @@ def main(**kwargs):
     kwargs['starter_mode'] = 'all'
     kwargs['stress_upgrade'] = False
     kwargs['publicip'] = "127.0.0.1"
+    kwargs['is_instrumented'] = False
 
     kwargs['hb_mode'] = "disabled"
     kwargs['hb_provider'] = ""

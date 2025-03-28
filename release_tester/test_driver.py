@@ -75,6 +75,8 @@ class TestDriver:
         os.chdir(kwargs["test_data_dir"])
 
         self.sitecfg = SiteConfig("")
+        kwargs['is_instrumented'] = self.sitecfg.is_instrumented()
+        kwargs["base_config"].is_instrumented = self.sitecfg.is_instrumented()
         self.use_monitoring = kwargs["monitoring"]
         if self.use_monitoring:
             spawn_overload_watcher_thread(self.sitecfg)
@@ -121,8 +123,11 @@ class TestDriver:
         """shutdown this environment"""
         self._stop_monitor()
         if HAVE_SAN:
-            self.symbolizer.kill()
-            self.symbolizer.wait()
+            try:
+                self.symbolizer.kill()
+                self.symbolizer.wait()
+            except psutil.NoSuchProcess:
+                print(f"{self.symbolizer} already gone, ignoring.")
 
     def _stop_monitor(self):
         if self.use_monitoring:
