@@ -1,6 +1,5 @@
 #!/bin/bash
 . ./jenkins/common/detect_podman.sh
-export REGISTRY_URL='docker.io/'
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
 
