@@ -450,7 +450,7 @@ def create_config_installer_set(
             base_config.arangods
         )
         installer = make_installer(install_config)
-        print(installer_config)
+        print(install_config)
         print('ab'*40)
         installer.calculate_package_names()
         res.append([install_config, installer])
