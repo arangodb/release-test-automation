@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 
 DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat containers/this_version.txt)
 DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat containers/this_version.txt)

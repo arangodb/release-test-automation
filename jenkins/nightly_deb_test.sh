@@ -1,4 +1,5 @@
 #!/bin/bash
+export DOCKER=docker
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
 

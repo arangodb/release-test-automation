@@ -1,4 +1,6 @@
 #!/bin/bash
+export DOCKER=podman
+export REGISTRY_URL='docker.io/'
 DOCKER_SUFFIX=rpm
 . ./jenkins/common/default_variables.sh
 
@@ -21,6 +23,8 @@ docker run \
        \
        --privileged \
        -itd \
+       --cap-add audit_write --cap-add audit_control \
+       --pids-limit 256704 \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
