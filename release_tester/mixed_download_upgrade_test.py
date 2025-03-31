@@ -31,7 +31,7 @@ from arangodb.installers import EXECUTION_PLAN,  make_installer, InstallerBaseCo
 class DownloadDummy:
     """mimic download class interface for source directory"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods disable=invalid-name
     def __init__(
         self,
         bc: InstallerBaseConfig,
@@ -65,7 +65,7 @@ class DownloadDummy:
         self.inst = make_installer(self.cfg)
 
 
-# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements disable=invalid-name
 def upgrade_package_test(
     bc: InstallerBaseConfig,
     bcs: InstallerBaseConfig,
