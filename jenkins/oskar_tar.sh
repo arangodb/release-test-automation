@@ -117,7 +117,6 @@ $DOCKER run \
        --env="CLANG_VERSION=${CLANG_VERSION}" \
        \
        --pid=host \
-       --init \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
