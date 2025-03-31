@@ -40,7 +40,7 @@ def upgrade_package_test(
     run_test,
     run_test_suites,
     test_driver,
-    kwargs
+    kwargs,
 ):
     """process fetch & tests"""
 

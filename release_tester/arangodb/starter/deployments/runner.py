@@ -43,6 +43,7 @@ FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
 
+
 class Runner(ABC):
     """abstract starter deployment runner"""
 
@@ -367,9 +368,9 @@ class Runner(ABC):
 
             try:
                 self.progress(
-                     False,
-                     "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
-                 )
+                    False,
+                    "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
+                )
                 self.test_setup()
                 self.jam_attempt()
                 self.check_data_impl()
@@ -489,7 +490,7 @@ class Runner(ABC):
         inst.stop_service()
 
     def get_selenium_status(self):
-        """ see whether we have a selenium success """
+        """see whether we have a selenium success"""
         if not self.selenium:
             return True
         return self.selenium.success
@@ -713,7 +714,7 @@ class Runner(ABC):
                             one_shard=one_shard,
                             database_name=db_name,
                             deadline=deadline,
-                            progressive_timeout=progressive_timeout
+                            progressive_timeout=progressive_timeout,
                         )
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
@@ -743,7 +744,7 @@ class Runner(ABC):
                         database_name=db_name,
                         one_shard=one_shard,
                         deadline=deadline,
-                        progressive_timeout=progressive_timeout
+                        progressive_timeout=progressive_timeout,
                     )
                 except CliExecutionException as exc:
                     if not self.cfg.verbose:

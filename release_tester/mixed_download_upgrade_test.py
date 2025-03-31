@@ -25,7 +25,7 @@ from tools.killall import list_all_processes
 from write_result_table import write_table
 import reporting.reporting_utils
 from arangodb.hot_backup_cfg import HotBackupCliCfg
-from arangodb.installers import EXECUTION_PLAN,  make_installer, InstallerBaseConfig, InstallerConfig
+from arangodb.installers import EXECUTION_PLAN, make_installer, InstallerBaseConfig, InstallerConfig
 
 
 class DownloadDummy:
