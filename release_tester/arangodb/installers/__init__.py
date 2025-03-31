@@ -59,7 +59,7 @@ class InstallerConfig:
     """stores the baseline of this environment"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-    # pylint: disable=too-many-locals disable=too-many-statements
+    # pylint: disable=too-many-locals disable=too-many-statements disable=invalid-name
     def __init__(
         self,
         version: str,
