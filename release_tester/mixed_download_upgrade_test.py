@@ -97,6 +97,7 @@ def upgrade_package_test(
     upgrade_scenarios = []
     packages = {}
     map_versions = {}
+    enterprise_set = []
 
     # STEP 1: Prepare. Download all required packages for current launch
     enterprise_packages_are_present = False
@@ -113,10 +114,12 @@ def upgrade_package_test(
             for default_props in EXECUTION_PLAN:
                 props = copy(default_props)
                 if props.directory_suffix not in editions:
+                    print('skip ' + props.directory_suffix)
                     continue
+                enterprise_set.append(props.enterprise)
                 props.testrun_name = "test_" + props.testrun_name
                 if version_name == primary_version:
-                    print("skipping source package download")
+                    print(f"skipping source package download for {version_name}")
                     ver[props.directory_suffix] = DownloadDummy(
                         bcs,
                         dl_opts,
@@ -157,6 +160,10 @@ def upgrade_package_test(
                     community_packages_are_present = True
                 packages[version_name] = res
     params = deepcopy(test_driver.cli_test_suite_params)
+    ep_default = enterprise_set[0]
+    for one in enterprise_set:
+        if one != ep_default:
+            raise Exception("mixed mode enterprise/community not supported by this entrypoint! " + editions)
     # STEP 2: Run test for primary version
     if run_test:
         print("running tests")
@@ -201,7 +208,7 @@ def upgrade_package_test(
                     print(f"Skipping {str(props)}")
                     continue
                 this_test_dir = test_dir / props.directory_suffix
-                print("Cleaning up" + props.testrun_name)
+                print("Cleaning up " + props.testrun_name)
                 test_driver.run_cleanup(props)
                 test_driver.reset_test_data_dir(this_test_dir)
                 print("Cleanup done")
@@ -321,7 +328,6 @@ def main(**kwargs):
     # we run either enterprise or community:
     if len(kwargs['editions']) == len(EXECUTION_PLAN):
         kwargs['editions'] = ["EP","EPr2"]
-
     reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
     test_driver = TestDriver(**kwargs)
