@@ -180,7 +180,6 @@ def upgrade_package_test(
             print("launching test")
             results.append(
                 test_driver.run_test(
-                    "all",
                     params.base_cfg.starter_mode,
                     [packages[primary_version][props.directory_suffix].cfg.version],
                     props,

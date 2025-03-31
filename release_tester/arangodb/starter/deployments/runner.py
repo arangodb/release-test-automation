@@ -481,7 +481,7 @@ class Runner(ABC):
         self.progress(True, "self test after installation")
         if inst.cfg.have_system_service:
             sys_arangosh.self_test()
-        sys_arangosh.js_version_check(self.cfg.is_instrumented)
+            sys_arangosh.js_version_check(self.cfg.is_instrumented)
         # TODO: here we should invoke Makedata for the system installation.
         self.progress(True, "stop system service to make ports available for starter")
         inst.stop_service()

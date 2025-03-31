@@ -104,7 +104,7 @@ def package_test(
                 }
             ]
         )
-        results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
     if run_test_suites:
         results.append(
