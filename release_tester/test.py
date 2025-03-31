@@ -41,13 +41,14 @@ def main(**kwargs):
             [semver.VersionInfo.parse(kwargs["new_version"])],
             # pylint: disable=too-many-function-args
             RunProperties(
-                kwargs["enterprise"],
-                True,
-                kwargs["encryption_at_rest"],
-                kwargs["ssl"],
-                kwargs["replication2"],
-                kwargs["force_one_shard"],
-                kwargs["create_oneshard_db"],
+                enterprise=kwargs["enterprise"],
+                force_dl=False,
+                encryption_at_rest=kwargs["encryption_at_rest"],
+                ssl=kwargs["ssl"],
+                replication2=kwargs["replication2"],
+                force_one_shard=kwargs["force_one_shard"],
+                create_oneshard_db=kwargs["create_oneshard_db"],
+                use_auto_certs=kwargs["use_auto_certs"],
             ),
         )
         print("V" * 80)

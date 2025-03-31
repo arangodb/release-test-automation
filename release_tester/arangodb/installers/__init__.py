@@ -367,7 +367,7 @@ class RunProperties:
         testrun_name: str = "",
         directory_suffix: str = "",
         minimum_supported_version: str = "3.5.0",
-        use_auto_certs: bool = True,
+        use_auto_certs: bool = False,
         cluster_nodes: int = 3,
     ):
         """set the values for this testrun"""
