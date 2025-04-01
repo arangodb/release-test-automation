@@ -141,7 +141,8 @@ db.testCollection.save({test: "document"})
             self.create_tls_ca_cert()
         port = 9528
         count = 0
-        for this_node in list(range(1, self.props.cluster_nodes + 1)):
+        full_node_count = self.props.cluster_nodes + 2 # we need 2 additional nodes for hotbackup testing
+        for this_node in list(range(1, full_node_count + 1)):
             node = []
             node_opts.append(node)
             if this_node != 1:
@@ -153,23 +154,22 @@ db.testCollection.save({test: "document"})
             add_starter(f"node{this_node}", port, node + common_opts, sm, count < 3)
             port += 100
             count += 1
-        self.backup_instance_count = count
         for instance in self.starter_instances:
             instance.is_leader = True
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
-        for manager in self.starter_instances:
+        for manager in self.starter_instances[:self.props.cluster_nodes]:
             logging.info("Spawning instance")
             manager.run_starter()
 
         logging.info("waiting for the starters to become alive")
-        not_started = self.starter_instances[:]  # This is a explicit copy
+        not_running = self.get_running_starters()  # This is a explicit copy
         count = 0
-        while not_started:
-            logging.debug("waiting for mananger with logfile:" + str(not_started[-1].log_file))
-            if not_started[-1].is_instance_up():
-                not_started.pop()
+        while not_running:
+            logging.debug("waiting for mananger with logfile:" + str(not_running[-1].log_file))
+            if not_running[-1].is_instance_up():
+                not_running.pop()
             progress(".")
             time.sleep(1)
             count += 1
@@ -177,20 +177,20 @@ db.testCollection.save({test: "document"})
                 raise Exception("Cluster installation didn't come up in two minutes!")
 
         logging.info("waiting for the cluster instances to become alive")
-        for node in self.starter_instances:
+        for node in self.get_running_starters():
             node.detect_instances()
             node.detect_instance_pids()
             # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
 
         logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
         count = 0
-        for node in self.starter_instances:
+        for node in self.get_running_starters():
             node.set_passvoid("cluster", count == 0)
             count += 1
         self.passvoid = "cluster"
 
     def finish_setup_impl(self):
-        self.makedata_instances = self.starter_instances[:]
+        self.makedata_instances = self.get_running_starters()
         self.set_frontend_instances()
 
     def _check_for_shards_in_sync(self):
@@ -483,12 +483,12 @@ db.testCollection.save({test: "document"})
         # After attempt of jamming, we have peer for nodeX in setup.json.
         # This peer will brake further updates because this peer is unavailable.
         # It is necessary to remove this peer from json for each starter instance
-        for instance in self.starter_instances:
+        for instance in self.get_running_starters():
             remove_node_x_from_json(instance.basedir)
 
     def shutdown_impl(self):
         ret = False
-        for node in self.starter_instances:
+        for node in self.get_running_starters():
             ret = ret or node.terminate_instance()
         logging.info("test ended")
         return ret
@@ -528,3 +528,80 @@ db.testCollection.save({test: "document"})
                 "--host=localhost",
             ]
         )
+
+    @step
+    def test_hotbackup_impl(self):
+        """ test hotbackup feature: Cluster """
+        # step 1: create a backup
+        self.create_backup_and_upload("thy_name_is_" + self.name)
+        backup_from_step_1 = self.uploaded_backups[-1]
+
+        # step 2: create non-backup data
+        self.create_non_backup_data()
+        self.tcp_ping_all_nodes()
+
+        # step 3: add new db server
+        new_starter = self.get_not_running_starters()[0]
+        self.run_starter_and_wait(new_starter)
+
+        # step 4: create a backup
+        self.create_backup_and_upload("thy_name_is_" + self.name + "_+1_server")
+        backup_from_step_4 = self.uploaded_backups[-1]
+
+        # step 5: remove old db server
+        terminate_instance = None
+        if not self.starter_instances[1].have_this_instance(self.agency.get_leader()):
+            terminate_instance = self.starter_instances[1]
+        else:
+            terminate_instance = self.starter_instances[2]
+        terminate_instance.stop_dbserver()
+
+        # step 6: create another backup
+        self.create_backup_and_upload("thy_name_is_" + self.name + "_+1_server_-1server")
+
+        # step 7: download and restore backup from step 1
+        self.download_backup(backup_from_step_1)
+        self.validate_local_backup(backup_from_step_1)
+        backups = self.list_backup()
+        if backups[-1] != backup_from_step_1:
+            raise Exception("downloaded backup has different name? " + str(backups))
+        self.restore_backup(backup_from_step_1)
+        self.tcp_ping_all_nodes()
+
+        # step 8: check data
+        self.check_data_impl()
+        if not self.check_non_backup_data():
+            raise Exception("data created after backup is still there??")
+
+        # step 9: add new db server
+        new_starter2 = self.get_not_running_starters()[0]
+        self.run_starter_and_wait(new_starter2)
+
+        # step 10: download and restore backup from step 4
+        self.download_backup(backup_from_step_4)
+        self.validate_local_backup(backup_from_step_4)
+        backups = self.list_backup()
+        if backups[-1] != backup_from_step_4:
+            raise Exception("downloaded backup has different name? " + str(backups))
+        self.restore_backup(backup_from_step_4)
+        self.tcp_ping_all_nodes()
+
+        # step 11: check data
+        self.check_data_impl()
+        if not self.check_non_backup_data():
+            raise Exception("data created after backup is still there??")
+
+    @staticmethod
+    def run_starter_and_wait(starter):
+        starter.run_starter()
+        count = 0
+        while not starter.is_instance_up():
+            logging.debug("waiting for mananger with logfile:" + str(starter.log_file))
+            progress(".")
+            time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Starter manager installation didn't come up in two minutes!")
+        starter.detect_instances()
+        starter.detect_instance_pids()
+

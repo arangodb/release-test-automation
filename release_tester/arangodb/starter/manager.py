@@ -188,6 +188,8 @@ class StarterManager:
         self.pid = None
         self.ppid = None
 
+        self.is_running = False
+
     def _get_arguments(self):
         return (
             [
@@ -372,6 +374,7 @@ class StarterManager:
         if not expect_to_fail:
             self.wait_for_logfile()
             self.wait_for_port_bind()
+        self.is_running = True
 
     @step
     def attach_running_starter(self):
