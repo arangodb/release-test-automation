@@ -1280,6 +1280,15 @@ class StarterManager:
         number_of_occurances = self.get_log_file().count(substring)
         return number_of_occurances
 
+    def stop_dbserver(self):
+        """stop db server managed by this starter"""
+        dbserver = self.get_dbserver()
+        self.kill_instance()
+        dbserver.terminate_instance()
+        self.all_instances.remove(dbserver)
+        self.moreopts.append("--cluster.start-dbserver=false")
+        self.run_starter()
+
 
 class StarterNonManager(StarterManager):
     """this class is a dummy starter manager to work with similar interface"""

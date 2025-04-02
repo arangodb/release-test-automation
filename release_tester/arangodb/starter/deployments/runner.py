@@ -897,6 +897,7 @@ class Runner(ABC):
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
             starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count, timeout=timeout)
             self.uploaded_backups.append(name)
+            return
         raise Exception("no frontend found.")
 
     @step
