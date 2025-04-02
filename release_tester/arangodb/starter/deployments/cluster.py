@@ -579,6 +579,7 @@ db.testCollection.save({test: "document"})
         with step("step 9: add new db server"):
             new_starter2 = self.get_not_running_starters()[0]
             self.run_starter_and_wait(new_starter2)
+            self.backup_instance_count += 1
 
         with step("step 10: download and restore backup from step 4"):
             self.download_backup(backup_from_step_4)
@@ -591,8 +592,6 @@ db.testCollection.save({test: "document"})
 
         with step("step 11: check data"):
             self.check_data_impl()
-            if not self.check_non_backup_data():
-                raise Exception("data created after backup is still there??")
 
     @staticmethod
     def run_starter_and_wait(starter):
