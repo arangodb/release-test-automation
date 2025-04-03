@@ -29,7 +29,7 @@ HB_2_RCLONE_TYPE = {
 
 #DEFAULT_PROGRESSIVE_TIMEOUT = 20
 #if True:
-DEFAULT_PROGRESSIVE_TIMEOUT = 40
+DEFAULT_PROGRESSIVE_TIMEOUT = 80
 
 
 class HotBackupConfig:
@@ -40,7 +40,7 @@ class HotBackupConfig:
 
     def __init__(self, basecfg, name, raw_install_prefix):
         # pylint: disable=too-many-statements
-        self.hb_timeout = 60
+        self.hb_timeout = 120
         hbcfg = basecfg.hb_cli_cfg
         self.hb_provider_cfg = basecfg.hb_provider_cfg
 
