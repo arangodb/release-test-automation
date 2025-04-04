@@ -40,7 +40,7 @@ def upgrade_package_test(
     run_test,
     run_test_suites,
     test_driver,
-    kwargs
+    kwargs,
 ):
     """process fetch & tests"""
 
@@ -136,7 +136,6 @@ def upgrade_package_test(
             )
             results.append(
                 test_driver.run_test(
-                    "all",
                     params.base_cfg.starter_mode,
                     [packages[primary_version][props.directory_suffix].cfg.version],
                     props,

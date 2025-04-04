@@ -12,17 +12,13 @@ from tools.option_group import OptionGroup
 
 from reporting.reporting_utils import step
 
-from arangodb.hot_backup_cfg import (
-    HotBackupCliCfg,
-    HotBackupProviderCfg,
-    HotBackupMode,
-    HB_PROVIDERS
-)
+from arangodb.hot_backup_cfg import HotBackupCliCfg, HotBackupProviderCfg, HotBackupMode, HB_PROVIDERS
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_MAC = platform.mac_ver()[0] != ""
 SYSTEM = platform.system()
 DISTRO = ""
+
 
 @dataclass
 class InstallerBaseConfig(OptionGroup):
@@ -45,6 +41,7 @@ class InstallerBaseConfig(OptionGroup):
     checkdata: bool
     is_instrumented: bool
 
+
 class InstallerFrontend:
     # pylint: disable=too-few-public-methods
     """class describing frontend instances"""
@@ -59,7 +56,7 @@ class InstallerConfig:
     """stores the baseline of this environment"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-    # pylint: disable=too-many-locals disable=too-many-statements
+    # pylint: disable=too-many-locals disable=too-many-statements disable=invalid-name
     def __init__(
         self,
         version: str,
@@ -83,7 +80,7 @@ class InstallerConfig:
         self.supports_rolling_upgrade = not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
-        self.have_system_service = False # TODO: re-enable not self.zip_package and self.src_testing
+        self.have_system_service = False  # TODO: re-enable not self.zip_package and self.src_testing
         self.debug_package_is_installed = False
         self.client_package_is_installed = False
         self.server_package_is_installed = False
@@ -186,10 +183,6 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
-            self.do_install = other_cfg.do_install
-            self.do_uninstall = other_cfg.do_uninstall
-            self.do_system_test = other_cfg.do_system_test
-            self.do_starter_test = other_cfg.do_starter_test
             self.supports_rolling_upgrade = other_cfg.supports_rolling_upgrade
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
@@ -374,7 +367,7 @@ class RunProperties:
         testrun_name: str = "",
         directory_suffix: str = "",
         minimum_supported_version: str = "3.5.0",
-        use_auto_certs: bool = True,
+        use_auto_certs: bool = False,
         cluster_nodes: int = 3,
     ):
         """set the values for this testrun"""
@@ -394,9 +387,9 @@ class RunProperties:
         self.cluster_nodes = cluster_nodes
 
     def set_kwargs(self, kwargs):
-        """ pick values from the commandline arguments that should override defaults"""
-        self.use_auto_certs = kwargs['use_auto_certs']
-        self.cluster_nodes = kwargs['cluster_nodes']
+        """pick values from the commandline arguments that should override defaults"""
+        self.use_auto_certs = kwargs["use_auto_certs"]
+        self.cluster_nodes = kwargs["cluster_nodes"]
 
     def __repr__(self):
         return """{0.__class__.__name__}
@@ -447,7 +440,7 @@ def create_config_installer_set(
             run_properties.ssl,
             run_properties.force_one_shard,
             run_properties.use_auto_certs,
-            base_config.arangods
+            base_config.arangods,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
