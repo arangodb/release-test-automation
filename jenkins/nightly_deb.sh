@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
 
@@ -14,18 +15,20 @@ DOCKER_SUFFIX=deb
 
 . ./jenkins/common/register_cleanup_trap.sh
 
-docker run \
+${DOCKER} run \
        "${DOCKER_ARGS[@]}" \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        \
        --privileged \
-       -itd \
+       -td \
+       --cap-add audit_write --cap-add audit_control \
+       --pids-limit 256704 \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec \
+${DOCKER} exec \
        "${DOCKER_NAME}" \
        /home/release-test-automation/release_tester/full_download_upgrade.py \
        --old-version "${OLD_VERSION}" \
@@ -35,7 +38,7 @@ docker exec \
        "${@}"
 result=$?
 
-docker stop "${DOCKER_NAME}"
+$DOCKER stop "${DOCKER_NAME}"
 
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh

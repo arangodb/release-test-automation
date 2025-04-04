@@ -681,6 +681,7 @@ class StarterManager:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
+        self.cfg = new_install_cfg
         self.arangosh = None
         self.detect_arangosh_instances(new_install_cfg, old_version)
 
@@ -1105,6 +1106,7 @@ class StarterManager:
                     config,
                     self.raw_basedir,
                     config.base_test_dir / self.raw_basedir,
+                    self.cfg.is_instrumented,
                 )
 
     @step

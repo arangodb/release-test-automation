@@ -3,16 +3,16 @@ DOCKER_NAME="release-test-automation-${DOCKER_SUFFIX}"
 
 DOCKER_TAG="${DOCKER_NAME}:$(cat containers/this_version.txt)${ARCH}"
 DOCKER_NAMESPACE="arangodb/"
-if docker pull "${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
+if ${DOCKER} pull "${REGISTRY_URL}${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
     echo "using ready built container"
 else
-    docker build "containers/docker_$(echo "${DOCKER_SUFFIX}"|sed "s;-;_;g")${ARCH}"  -t "${DOCKER_TAG}" || exit
+    ${DOCKER} build "containers/${DOCKER}_$(echo "${DOCKER_SUFFIX}"|sed "s;-;_;g")${ARCH}"  -t "${DOCKER_TAG}" || exit
     DOCKER_NAMESPACE=""
 fi
 
 . ./jenkins/common/pre_cleanup_docker.sh
 
-docker network create $DOCKER_NETWORK_NAME
+${DOCKER} network create $DOCKER_NETWORK_NAME
 DOCKER_ARGS=(
     --env="BUILD_NUMBER=${BUILD_NUMBER}" \
          --env="PYTHONUNBUFFERED=1" \
@@ -25,7 +25,7 @@ DOCKER_ARGS=(
          --network="${DOCKER_NETWORK_NAME}" \
          --name="${DOCKER_NAME}" \
          --ulimit core=-1 \
-         --rm \
+# containerd         --rm \
          -v "$(pwd):/home/release-test-automation" \
          -v "$(pwd)/test_dir:/home/test_dir" \
          -v "/tmp:/tmp" \
@@ -35,7 +35,7 @@ DOCKER_ARGS=(
         )
 
 TRAP_CLEANUP=(
-    "docker kill ${DOCKER_NAME}"
-    "docker rm ${DOCKER_NAME}"
+    "${DOCKER} kill ${DOCKER_NAME}"
+    "${DOCKER} rm ${DOCKER_NAME}"
     "${TRAP_CLEANUP[@]}"
 )

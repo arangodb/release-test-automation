@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
 
@@ -14,7 +15,7 @@ DOCKER_SUFFIX=deb
 
 . ./jenkins/common/register_cleanup_trap.sh
 
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        \
@@ -25,7 +26,7 @@ docker run \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec \
+$DOCKER exec \
        "${DOCKER_NAME}" \
        /home/release-test-automation/release_tester/full_download_test.py \
        --new-version "${NEW_VERSION}" \
@@ -35,7 +36,7 @@ docker exec \
        "${@}"
 result=$?
 
-docker stop "${DOCKER_DEB_NAME}"
+$DOCKER stop "${DOCKER_DEB_NAME}"
 
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh
