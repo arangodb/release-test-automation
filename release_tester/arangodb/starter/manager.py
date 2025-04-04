@@ -1106,6 +1106,7 @@ class StarterManager:
                     config,
                     self.raw_basedir,
                     config.base_test_dir / self.raw_basedir,
+                    self.cfg.is_instrumented,
                 )
 
     @step
