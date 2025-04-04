@@ -8,7 +8,7 @@ ${DOCKER} rm "minio1" || true
 ${DOCKER} kill "selenoid" || true
 ${DOCKER} rm "selenoid" || true
 
-${DOCKER} rm $DOCKER_NETWORK_NAME || true
+${DOCKER} network rm $DOCKER_NETWORK_NAME || true
 mkdir -p "${PACKAGE_CACHE}"
 mkdir -p test_dir/miniodata/home/test_dir
 rm -rf test_dir/miniodata/home/test_dir/*
