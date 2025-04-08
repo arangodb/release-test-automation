@@ -1,4 +1,5 @@
 #!/bin/bash
+ulimit -n 65535
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
