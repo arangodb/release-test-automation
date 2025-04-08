@@ -1,5 +1,6 @@
 #!/bin/bash
 ulimit -n 65535
+export LANGUAGE=EN_us
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
