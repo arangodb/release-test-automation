@@ -2,14 +2,14 @@
 RTA_DIR="$(pwd)"
 
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
-. "${RTA_DIR}/common/default_variables.sh"
-. "${RTA_DIR}/common/setup_docker.sh"
-. "${RTA_DIR}/common/set_max_map_count.sh"
-. "${RTA_DIR}/common/setup_selenium.sh"
-. "${RTA_DIR}/common/evaluate_force.sh"
-. "${RTA_DIR}/common/load_git_submodules.sh"
-. "${RTA_DIR}/common/launch_minio.sh"
-. "${RTA_DIR}/common/register_cleanup_trap.sh"
+. "${RTA_DIR}/jenkins/common/default_variables.sh"
+. "${RTA_DIR}/jenkins/common/setup_docker.sh"
+. "${RTA_DIR}/jenkins/common/set_max_map_count.sh"
+. "${RTA_DIR}/jenkins/common/setup_selenium.sh"
+. "${RTA_DIR}/jenkins/common/evaluate_force.sh"
+. "${RTA_DIR}/jenkins/common/load_git_submodules.sh"
+. "${RTA_DIR}/jenkins/common/launch_minio.sh"
+. "${RTA_DIR}/jenkins/common/register_cleanup_trap.sh"
 
 "${RTA_DIR}/release_tester/full_download_upgrade.py" \
        --old-version "${OLD_VERSION}" \
@@ -19,8 +19,8 @@ RTA_DIR="$(pwd)"
        "${@}"
 result=$?
 
-. "${RTA_DIR}/common/cleanup_ownership.sh"
-. '${RTA_DIR}/common/gather_coredumps.sh"
+. "${RTA_DIR}/jenkins/common/cleanup_ownership.sh"
+. '${RTA_DIR}/jenkins/common/gather_coredumps.sh"
 
 if test "${result}" -eq "0"; then
     echo "OK"
