@@ -1,5 +1,5 @@
 #!/bin/bash
-RTA_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/.."
+RTA_DIR="$(pwd)"
 
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
 . "${RTA_DIR}/common/default_variables.sh"
