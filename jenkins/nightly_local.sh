@@ -14,7 +14,6 @@ MODE=native
 "${RTA_DIR}/release_tester/full_download_upgrade.py" \
        --old-version "${OLD_VERSION}" \
        --new-version "${NEW_VERSION}" \
-       --no-zip \
        "${RTA_ARGS[@]}" \
        "${@}"
 result=$?
