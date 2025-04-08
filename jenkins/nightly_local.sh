@@ -1,6 +1,6 @@
 #!/bin/bash
 RTA_DIR="$(pwd)"
-
+MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
 . "${RTA_DIR}/jenkins/common/default_variables.sh"
 . "${RTA_DIR}/jenkins/common/setup_docker.sh"
