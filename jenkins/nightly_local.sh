@@ -1,7 +1,8 @@
 #!/bin/bash
 ulimit -n 65535
-export LANGUAGE='EN_US@utf-8'
-export LANG='EN_US@utf-8'
+export LANGUAGE='en_US@utf-8'
+export LANG='en_US@utf-8'
+export LC_CTYPE='en_US@utf-8'
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
