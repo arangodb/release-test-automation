@@ -1,6 +1,7 @@
 #!/bin/bash
 ulimit -n 65535
 export LANGUAGE='EN_US@utf-8'
+export LANG='EN_US@utf-8'
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
@@ -20,7 +21,8 @@ MODE=native
        "${@}"
 result=$?
 
-. "${RTA_DIR}/jenkins/common/cleanup_ownership.sh"
+# . "${RTA_DIR}/jenkins/common/cleanup_ownership.sh"
+chown -R jenkins "${RTA_DIR}"
 . '${RTA_DIR}/jenkins/common/gather_coredumps.sh"
 
 if test "${result}" -eq "0"; then
