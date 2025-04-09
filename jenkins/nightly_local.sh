@@ -28,7 +28,7 @@ result=$?
 
 # . "${RTA_DIR}/jenkins/common/cleanup_ownership.sh"
 chown -R jenkins "${RTA_DIR}"
-. '${RTA_DIR}/jenkins/common/gather_coredumps.sh"
+. "${RTA_DIR}/jenkins/common/gather_coredumps.sh"
 
 if test "${result}" -eq "0"; then
     echo "OK"
