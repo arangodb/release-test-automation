@@ -3,6 +3,7 @@ ulimit -n 65535
 export LANGUAGE=en_US@utf-8
 export ENDPOINT=http://localhost:9000
 DOCKER_NETWORK_NAME=host
+export ENDPOINT=localhost
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
