@@ -1,7 +1,7 @@
 #!/bin/bash
 ulimit -n 65535
 export LANGUAGE=en_US@utf-8
-export ENDPOINT=localhost
+export ENDPOINT=http://localhost:9000
 DOCKER_NETWORK_NAME=host
 RTA_DIR="$(pwd)"
 MODE=native
