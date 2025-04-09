@@ -2,6 +2,7 @@
 ulimit -n 65535
 
 DOCKER_NETWORK_NAME=host
+export ENDPOINT=localhost
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
