@@ -1,6 +1,6 @@
 #!/bin/bash
 ulimit -n 65535
-
+LANGUAGE=en_US@utf-8
 DOCKER_NETWORK_NAME=host
 export ENDPOINT=localhost
 RTA_DIR="$(pwd)"
