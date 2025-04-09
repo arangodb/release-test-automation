@@ -89,7 +89,7 @@ class StarterManager:
         # self.moreopts += ["--args.all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
-        self.moreopts += ["--args.all.temp.dumpenv=true"]
+        # self.moreopts += ["--args.all.temp.dumpenv=true"]
 
         if self.cfg.hot_backup_supported and self.cfg.semver.prerelease is not None and self.cfg.semver.minor >= 9:
             self.moreopts += [
