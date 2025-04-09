@@ -228,7 +228,7 @@ class BaseTestSuite(metaclass=MetaTestSuite):
                     exc_type, exc_val, exc_tb = sys.exc_info()
             self.test_suite_context.test_listener.stop_before_fixture(fixture_uuid, exc_type, exc_val, exc_tb)
             if exc_val:
-                raise Exception("Fixture failed. See attachment in allure report for detailed traceback.") from exc_val
+                raise Exception("Fixture failed.") from exc_val
 
     def run_after_fixtures(self, funcs):
         """run a set of fixtures after the test suite or test case"""
