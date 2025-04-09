@@ -1,12 +1,7 @@
 #!/bin/bash
 ulimit -n 65535
-export LANGUAGE='en_US@utf-8'
-export LANG='en_US@utf-8'
-export LC_CTYPE='en_US@utf-8'
-echo "locales locales/default_environment_locale select en_US.UTF-8" | debconf-set-selections |true
-echo "locales locales/locales_to_be_generated multiselect en_US.UTF-8 UTF-8" | debconf-set-selections |true
-rm "/etc/locale.gen" |true
-dpkg-reconfigure --frontend noninteractive locales |true
+
+DOCKER_NETWORK_NAME=host
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
