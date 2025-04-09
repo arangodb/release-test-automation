@@ -1,8 +1,8 @@
 #!/bin/bash
 ulimit -n 65535
-LANGUAGE=en_US@utf-8
-DOCKER_NETWORK_NAME=host
+export LANGUAGE=en_US@utf-8
 export ENDPOINT=localhost
+DOCKER_NETWORK_NAME=host
 RTA_DIR="$(pwd)"
 MODE=native
 . "${RTA_DIR}/jenkins/common/detect_podman.sh"
