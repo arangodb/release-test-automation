@@ -1,4 +1,7 @@
-DOCKER_NETWORK_NAME=rta-bridge
+if test -z "$DOCKER_NETWORK_NAME"; then
+    DOCKER_NETWORK_NAME=rta-bridge
+fi
+
 DOCKER_NAME="release-test-automation-${DOCKER_SUFFIX}"
 
 DOCKER_TAG="${DOCKER_NAME}:$(cat containers/this_version.txt)${ARCH}"
@@ -13,7 +16,9 @@ if test "${MODE}" != "native"; then
 fi
 . ./jenkins/common/pre_cleanup_docker.sh
 
-${DOCKER} network create $DOCKER_NETWORK_NAME
+if test "$DOCKER_NETWORK_NAME" != "host"; then
+    ${DOCKER} network create $DOCKER_NETWORK_NAME
+fi
 DOCKER_ARGS=(
     --env="BUILD_NUMBER=${BUILD_NUMBER}" \
          --env="PYTHONUNBUFFERED=1" \
