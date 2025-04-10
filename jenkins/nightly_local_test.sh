@@ -16,7 +16,6 @@ MODE=native
 . "${RTA_DIR}/jenkins/common/register_cleanup_trap.sh"
 
 "${RTA_DIR}/release_tester/full_download_test.py" \
-       --old-version "${OLD_VERSION}" \
        --new-version "${NEW_VERSION}" \
        "${RTA_ARGS[@]}" \
        "${@}"
