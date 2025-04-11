@@ -10,16 +10,18 @@ MODE=native
 . "${RTA_DIR}/jenkins/common/setup_docker.sh"
 . "${RTA_DIR}/jenkins/common/set_max_map_count.sh"
 . "${RTA_DIR}/jenkins/common/setup_selenium.sh"
-. "${RTA_DIR}/jenkins/common/evaluate_force.sh"
+# . "${RTA_DIR}/jenkins/common/evaluate_force.sh"
 . "${RTA_DIR}/jenkins/common/load_git_submodules.sh"
 . "${RTA_DIR}/jenkins/common/launch_minio.sh"
 . "${RTA_DIR}/jenkins/common/register_cleanup_trap.sh"
 
 "${RTA_DIR}/release_tester/full_download_upgrade_test.py" \
-       --new-version "${RELEASE_VERSION}" \
-       --upgrade-matrix "${UPGRADE_MATRIX}" \
-       "${RTA_ARGS[@]}" \
-       "${@}"
+    --other-source public \
+    --source stage2-rta \
+    --new-version "${RELEASE_VERSION}" \
+    --upgrade-matrix "${UPGRADE_MATRIX}" \
+    "${RTA_ARGS[@]}" \
+    "${@}"
 result=$?
 
 # . "${RTA_DIR}/jenkins/common/cleanup_ownership.sh"
