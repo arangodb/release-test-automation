@@ -17,7 +17,7 @@ MODE=native
 
 "${RTA_DIR}/release_tester/full_download_upgrade_test.py" \
     --other-source public \
-    --source stage2-rta \
+    --source http:stage2-rta \
     --new-version "${RELEASE_VERSION}" \
     --upgrade-matrix "${UPGRADE_MATRIX}" \
     "${RTA_ARGS[@]}" \
