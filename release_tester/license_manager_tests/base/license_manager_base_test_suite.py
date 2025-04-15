@@ -1,4 +1,5 @@
 """base class for license manager test suites"""
+
 import json
 from time import time
 
@@ -29,20 +30,28 @@ except ModuleNotFoundError as exc:
 class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     """base class for license manager test suites"""
 
-    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-instance-attributes disable=too-many-boolean-expressions
     def __init__(self, params: CliTestSuiteParameters):
         min_version = semver.VersionInfo.parse("3.9.0-nightly")
+        max_version = semver.VersionInfo.parse("3.12.4")
         super().__init__(params)
         if (
             self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < min_version
-            or self.old_version is not None
-            and semver.VersionInfo.parse(self.old_version) < min_version
+            and (
+                semver.VersionInfo.parse(self.new_version) < min_version
+                or semver.VersionInfo.parse(self.new_version) > max_version
+            )
+        ) or (
+            self.old_version is not None
+            and (
+                semver.VersionInfo.parse(self.old_version) < min_version
+                or semver.VersionInfo.parse(self.old_version) > max_version
+            )
         ):
             self.__class__.is_disabled = True
             # pylint: disable=no-member
             self.__class__.disable_reasons.append(
-                "License manager test suite is only applicable to versions 3.9 and newer."
+                "License manager test suite is only applicable to versions 3.9.0 to 3.12.4."
             )
         self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         self.installer_set = create_config_installer_set(
