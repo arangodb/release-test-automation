@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
 if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12"; then
     DOCKER_SUFFIX=tar-oskarnew
 else
@@ -102,7 +103,7 @@ if test -n "${SAN}"; then
     )
 fi
 # we need --init since our upgrade leans on zombies not happening:
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
@@ -116,7 +117,6 @@ docker run \
        --env="CLANG_VERSION=${CLANG_VERSION}" \
        \
        --pid=host \
-       --init \
        \
        "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \

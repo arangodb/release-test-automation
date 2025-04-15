@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
 
 # ./jenkins/qa-tester.sh 3.7.15 "3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1" http:stage2 --zip
 

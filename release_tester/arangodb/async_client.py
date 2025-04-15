@@ -334,7 +334,10 @@ deadline_signal: {0.deadline_signal}""".format(
             else:
                 deadline = datetime.now() + timedelta(seconds=deadline)
         final_deadline = deadline + timedelta(seconds=deadline_grace_period)
-        lh.log_cmd(run_cmd, progressive_timeout=progressive_timeout, deadline=deadline)
+        lh.log_cmd(run_cmd,
+                   progressive_timeout=progressive_timeout,
+                   deadline=deadline,
+                   cwd=self.cfg.sublaunch_pwd.resolve())
         with psutil.Popen(
             run_cmd,
             stdout=PIPE,

@@ -38,7 +38,7 @@ from tools.killall import kill_all_processes
 
 HAVE_SAN = False
 for varname in ["TSAN_OPTIONS", "UBSAN_OPTIONS", "LSAN_OPTIONS", "ASAN_OPTIONS"]:
-    HAVE_SAN = HAVE_SAN or varname in os.environ
+    HAVE_SAN = HAVE_SAN or varname in os.environ and len(os.environ[varname]) != 0
 try:
     # pylint: disable=unused-import
     from tools.external_helpers.license_generator.license_generator import create_license
