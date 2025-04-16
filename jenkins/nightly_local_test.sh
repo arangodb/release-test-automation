@@ -1,7 +1,6 @@
 #!/bin/bash
 ulimit -n 65535
 export LANGUAGE=en_US@utf-8
-export PYTHONUNBUFFERED=1
 export LANG=en_US.UTF-8
 export LC_CTYPE=en_US.UTF-8
 export LC_NUMERIC=en_US.UTF-8
@@ -15,6 +14,7 @@ export LC_ADDRESS=en_US.UTF-8
 export LC_TELEPHONE=en_US.UTF-8
 export LC_MEASUREMENT=en_US.UTF-8
 export LC_IDENTIFICATION=en_US.UTF-8
+export PYTHONUNBUFFERED=1
 export ENDPOINT=http://localhost:9000
 DOCKER_NETWORK_NAME=host
 RTA_DIR="$(pwd)"
