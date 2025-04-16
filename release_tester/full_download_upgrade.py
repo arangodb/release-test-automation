@@ -62,7 +62,7 @@ def upgrade_package_test(
     community_packages_are_present = False
     count = 0
     for _props in EXECUTION_PLAN:
-        if props.directory_suffix not in editions:
+        if _props.directory_suffix not in editions:
             continue
         props = deepcopy(_props)
         props.set_kwargs(kwargs)

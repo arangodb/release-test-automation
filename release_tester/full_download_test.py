@@ -32,14 +32,7 @@ from arangodb.installers import EXECUTION_PLAN, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def package_test(
-    dl_opts: DownloadOptions,
-    new_version,
-    new_dlstage,
-    git_version,
-    editions,
-    run_test_suites,
-    test_driver,
-    kwargs
+    dl_opts: DownloadOptions, new_version, new_dlstage, git_version, editions, run_test_suites, test_driver, kwargs
 ):
     """process fetch & tests"""
 
@@ -104,7 +97,7 @@ def package_test(
                 }
             ]
         )
-        results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
 
     if run_test_suites:
         results.append(

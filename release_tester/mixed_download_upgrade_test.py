@@ -25,13 +25,13 @@ from tools.killall import list_all_processes
 from write_result_table import write_table
 import reporting.reporting_utils
 from arangodb.hot_backup_cfg import HotBackupCliCfg
-from arangodb.installers import EXECUTION_PLAN,  make_installer, InstallerBaseConfig, InstallerConfig
+from arangodb.installers import EXECUTION_PLAN, make_installer, InstallerBaseConfig, InstallerConfig
 
 
 class DownloadDummy:
     """mimic download class interface for source directory"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods disable=invalid-name
     def __init__(
         self,
         bc: InstallerBaseConfig,
@@ -65,7 +65,7 @@ class DownloadDummy:
         self.inst = make_installer(self.cfg)
 
 
-# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements disable=invalid-name
 def upgrade_package_test(
     bc: InstallerBaseConfig,
     bcs: InstallerBaseConfig,
@@ -187,7 +187,6 @@ def upgrade_package_test(
             print("launching test")
             results.append(
                 test_driver.run_test(
-                    "all",
                     params.base_cfg.starter_mode,
                     [packages[primary_version][props.directory_suffix].cfg.version],
                     props,

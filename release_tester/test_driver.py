@@ -75,7 +75,7 @@ class TestDriver:
         os.chdir(kwargs["test_data_dir"])
 
         self.sitecfg = SiteConfig("")
-        kwargs['is_instrumented'] = self.sitecfg.is_instrumented()
+        kwargs["is_instrumented"] = self.sitecfg.is_instrumented()
         kwargs["base_config"].is_instrumented = self.sitecfg.is_instrumented()
         self.use_monitoring = kwargs["monitoring"]
         if self.use_monitoring:
@@ -407,7 +407,6 @@ class TestDriver:
     # fmt: off
     # pylint: disable=too-many-arguments disable=too-many-locals
     def run_test(self,
-                 test_mode,
                  deployment_mode,
                  versions: list,
                  run_props: RunProperties):
@@ -415,9 +414,6 @@ class TestDriver:
         """ main """
         results = []
 
-        do_install = test_mode in ["all", "install"]
-        do_uninstall = test_mode in ["all", "uninstall"]
-        do_tests = test_mode in ["all", "tests"]
 
         installers = create_config_installer_set(
             versions,
@@ -428,10 +424,9 @@ class TestDriver:
         lh.section("configuration")
         print(
             """
-        mode: {mode}
         {cfg_repr}
         """.format(
-                **{"mode": str(test_mode), "cfg_repr": repr(installers[0][0])}
+                **{"cfg_repr": repr(installers[0][0])}
             )
         )
 
@@ -481,13 +476,6 @@ class TestDriver:
                         )
                         runner.cleanup()
                         continue
-                    # install on first run:
-                    runner.do_install = (count == 1) and do_install
-                    # only uninstall after the last test:
-                    must_uninstall_after_this_run = (count == len(
-                        STARTER_MODES[deployment_mode]))
-                    runner.do_uninstall = must_uninstall_after_this_run and do_uninstall
-                    runner.do_starter_test = do_tests
 
                     try:
                         runner.run()
@@ -513,12 +501,11 @@ class TestDriver:
                                                                        trace="".join(
                                                                            traceback.TracebackException.from_exception(
                                                                                ex).format()))
-                        if must_uninstall_after_this_run and do_uninstall:
-                            lh.section("uninstall on error")
-                            installers[0][1].un_install_debug_package()
-                            installers[0][1].un_install_server_package()
-                            installers[0][1].cleanup_system()
-                            lh.section("uninstall on error")
+                        lh.section("uninstall on error")
+                        installers[0][1].un_install_debug_package()
+                        installers[0][1].un_install_server_package()
+                        installers[0][1].cleanup_system()
+                        lh.section("uninstall on error")
                         if self.abort_on_error:
                             raise ex
                         traceback.print_exc()
