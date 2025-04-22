@@ -20,6 +20,7 @@ import psutil
 import requests
 from beautifultable import BeautifulTable
 from requests.auth import HTTPBasicAuth
+from siteconfig import detect_san_file
 from tools.asciiprint import print_progress as progress
 from tools.utils import COLUMN_CACHE_ARGUMENT, is_column_cache_supported
 
@@ -137,6 +138,7 @@ class Instance(ABC):
         self.logfiles = []
         self.jwt = jwt
         self.source_instance = False
+        self.name = ""
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
@@ -184,20 +186,38 @@ class Instance(ABC):
         """retrieve the pw to connect to this instance"""
         return self.passvoid
 
+    def detect_san_files(self):
+        """ check whether we have a SAN report from an instrumented run """
+        filename = detect_san_file(self.name, self.pid)
+        if filename:
+            attach.file(
+                filename,
+                "Log file(name: {name}, PID:{pid}, port: {port}, type: {type})".format(
+                    name=str(filename), pid=self.pid, port=self.port, type=self.type_str
+                ),
+                AttachmentType.TEXT,
+            )
+            raise Exception("SAN report found in " + str(filename))
+
+
     def detect_gone(self):
         """revalidate that the managed process is actualy dead"""
+        gone = False
         try:
             # we expect it to be dead anyways!
-            return self.instance.wait(3) is None
+            gone = self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            return False
+            gone = False
         except AttributeError:
             # logging.error("was supposed to be dead, but I don't have an instance? "
             #              + repr(self))
-            return True
+            gone = True
         except psutil.AccessDenied:
-            return True
-        return True
+            gone = True
+
+        if gone:
+            self.detect_san_files()
+        return gone
 
     @abstractmethod
     def get_essentials(self):
@@ -522,6 +542,7 @@ class ArangodInstance(Instance):
     ):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
         self.is_system = is_system
+        self.name = "arangod"
 
     def __repr__(self):
         # raise Exception("blarg")

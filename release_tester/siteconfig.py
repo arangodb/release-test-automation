@@ -12,6 +12,8 @@ import sys
 import psutil
 from tools.socket_counter import get_socket_count
 
+SITE_CFG = None
+
 IS_ARM = platform.processor() == "arm" or platform.processor() == "aarch64"
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_MAC = platform.mac_ver()[0] != ""
@@ -110,9 +112,11 @@ class SiteConfig:
     # pylint: disable=too-few-public-methods disable=too-many-instance-attributes
     # pylint: disable=unused-argument
     def __init__(self, definition_file):
-        # pylint: disable=too-many-statements disable=too-many-branches
+        # pylint: disable=too-many-statements disable=too-many-branches disable=global-statement
+        global SITE_CFG
         print_env()
         init_temp()
+        SITE_CFG = self
         self.basedir = Path.cwd()
         self.datetime_format = "%Y-%m-%dT%H%M%SZ"
         self.trace = False
@@ -159,6 +163,13 @@ class SiteConfig:
         self.is_asan = "SAN" in os.environ and os.environ["SAN"] == "On"
         self.is_aulsan = self.is_asan and os.environ["SAN_MODE"] == "AULSan"
         self.is_gcov = "COVERAGE" in os.environ and os.environ["COVERAGE"] == "On"
+        self.san_path = None
+        if self.is_asan:
+            for var in ['TSAN_OPTIONS', 'ASAN_OPTIONS', 'UBSAN_OPTIONS']:
+                if var in os.environ:
+                    for segment in var.split(':'):
+                        if segment.startswith('log_path'):
+                            self.san_path = segment.split('=')[1]
         san_gcov_msg = ""
         if self.is_asan or self.is_gcov:
             san_gcov_msg = " - SAN "
@@ -237,3 +248,10 @@ class SiteConfig:
         if load[0] > self.overload:
             return f"HIGH SYSTEM LOAD! {load[0]:9.2f} > {self.overload:9.2f} "
         return None
+
+def detect_san_file(binary_name, pid):
+    """ check whether a report exists """
+    file_path = Path(f"{SITE_CFG.san_path}.{binary_name}.{str(pid)}")
+    if file_path.exists():
+        return file_path
+    return None
