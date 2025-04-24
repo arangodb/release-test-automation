@@ -492,10 +492,9 @@ class Runner(ABC):
         if inst.cfg.have_system_service:
             sys_arangosh.self_test()
 
-        if self.cfg.do_system_test:
             sys_arangosh.js_version_check()
-            # TODO: here we should invoke Makedata for the system installation.
-            self.progress(True, "stop system service to make ports available for starter")
+        # TODO: here we should invoke Makedata for the system installation.
+        self.progress(True, "stop system service to make ports available for starter")
         inst.stop_service()
 
     def get_selenium_status(self):
