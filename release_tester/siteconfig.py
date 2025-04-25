@@ -252,6 +252,8 @@ class SiteConfig:
 def detect_san_file(binary_name, pid):
     """ check whether a report exists """
     file_path = Path(f"{SITE_CFG.san_path}.{binary_name}.{str(pid)}")
+    print(f"will look for: {str(file_path)}")
     if file_path.exists():
         return file_path
+    print("not there")
     return None

@@ -189,6 +189,7 @@ class Instance(ABC):
     def detect_san_files(self):
         """ check whether we have a SAN report from an instrumented run """
         filename = detect_san_file(self.name, self.pid)
+        print(f"detected filename: {filename}")
         if filename:
             attach.file(
                 filename,
