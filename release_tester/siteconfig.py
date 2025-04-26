@@ -16,7 +16,7 @@ SAN_PATH = ""
 for var in ['TSAN_OPTIONS', 'ASAN_OPTIONS', 'UBSAN_OPTIONS']:
     print(f"searching for {var}")
     if var in os.environ:
-        for segment in var.split(':'):
+        for segment in os.environ[var].split(':'):
             print(f"inspecting {segment}")
             if segment.startswith('log_path'):
                 SAN_PATH = segment.split('=')[1]
