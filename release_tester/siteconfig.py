@@ -14,10 +14,13 @@ from tools.socket_counter import get_socket_count
 
 SAN_PATH = ""
 for var in ['TSAN_OPTIONS', 'ASAN_OPTIONS', 'UBSAN_OPTIONS']:
+    print(f"searching for {var}")
     if var in os.environ:
         for segment in var.split(':'):
+            print(f"inspecting {segment}")
             if segment.startswith('log_path'):
                 SAN_PATH = segment.split('=')[1]
+                print(f"found {SAN_PATH}")
 
 IS_ARM = platform.processor() == "arm" or platform.processor() == "aarch64"
 IS_WINDOWS = platform.win32_ver()[0] != ""
