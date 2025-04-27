@@ -14,13 +14,10 @@ from tools.socket_counter import get_socket_count
 
 SAN_PATH = ""
 for var in ['TSAN_OPTIONS', 'ASAN_OPTIONS', 'UBSAN_OPTIONS']:
-    print(f"searching for {var}")
     if var in os.environ:
         for segment in os.environ[var].split(':'):
-            print(f"inspecting {segment}")
             if segment.startswith('log_path'):
                 SAN_PATH = segment.split('=')[1]
-                print(f"found {SAN_PATH}")
 
 IS_ARM = platform.processor() == "arm" or platform.processor() == "aarch64"
 IS_WINDOWS = platform.win32_ver()[0] != ""
@@ -252,8 +249,6 @@ class SiteConfig:
 def detect_san_file(binary_name, pid):
     """ check whether a report exists """
     file_path = Path(f"{SAN_PATH}.{binary_name}.{str(pid)}")
-    print(f"will look for: {str(file_path)}")
     if file_path.exists():
         return file_path
-    print("not there")
     return None
