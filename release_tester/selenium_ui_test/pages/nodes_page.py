@@ -17,12 +17,12 @@ from reporting.reporting_utils import attach_table
 class NodesPage(NavigationBarPage):
     """Class for Nodes page"""
 
-    def cluster_get_nodes_table(self, timeout=20):
+    def cluster_get_nodes_table(self, timeout=20, cluster_nodes=5):
         """
         extract the table of coordinators / dbservers from the 'nodes' page
         """
         while True:
-            table = self._get_nodes_table(timeout)
+            table = self._get_nodes_table(timeout, cluster_nodes)
             try:
                 return table
             except StaleElementReferenceException:
@@ -36,7 +36,7 @@ class NodesPage(NavigationBarPage):
             except TimeoutException as ex:
                 raise ex
 
-    def _get_nodes_table(self, timeout):
+    def _get_nodes_table(self, timeout, cluster_nodes):
         """repeatable inner func"""
         table_coord_elm = WebDriverWait(self.webdriver, timeout).until(
             EC.presence_of_element_located(
@@ -47,25 +47,28 @@ class NodesPage(NavigationBarPage):
         table_dbsrv_elm = self.by_class("pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body")
         column_names = ["name", "url", "version", "date", "state"]
         table = []
-        # TODO: why not use the for variable?
-        for _ in [table_coord_elm, table_dbsrv_elm]:
-            for table_row_num in [1, 2, 3]:
-                row = {}
-                table.append(row)
-                for table_column in [1, 2, 3, 4, 5]:
-                    table_cell_elm = None
-                    if table_column == 5:
-                        table_cell_elm = self.locator_finder_by_xpath(
-                            "div[%d]/div[%d]/i" % (table_row_num, table_column))
-                        try:
-                            row[column_names[table_column - 1]] = table_cell_elm.get_attribute("data-original-title")
-                        except NoSuchElementException:
-                            row[column_names[table_column - 1]] = None
-                        if row[column_names[table_column - 1]] is None:
-                            row[column_names[table_column - 1]] = table_cell_elm.get_property("title")
-                    else:
-                        table_cell_elm = self.locator_finder_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
-                        row[column_names[table_column - 1]] = table_cell_elm.text
+        try:
+            for elm in [table_coord_elm, table_dbsrv_elm]:
+                for table_row_num in [1, 2, 3]:
+                    row = {}
+                    table.append(row)
+                    for table_column in range(1, cluster_nodes):
+                        table_cell_elm = None
+                        if table_column == 5:
+                            table_cell_elm = elm.find_element_by_xpath(
+                                "div[%d]/div[%d]/i" % (table_row_num, table_column),
+                                timeout=timeout)
+                            try:
+                                row[column_names[table_column - 1]] = table_cell_elm.get_attribute("data-original-title")
+                            except NoSuchElementException:
+                                row[column_names[table_column - 1]] = None
+                            if row[column_names[table_column - 1]] is None:
+                                row[column_names[table_column - 1]] = table_cell_elm.get_property("title")
+                        else:
+                            table_cell_elm = elm.find_element_by_xpath("div[%d]/div[%d]" % (table_row_num, table_column))
+                            row[column_names[table_column - 1]] = table_cell_elm.text
+        except Exception as ex:
+            raise Exception(f"table incomplete, already got: {table}") from ex
         pretty_table = BeautifulTable(maxwidth=160)
         for row in table:
             pretty_table.rows.append([row["name"], row["url"], row["version"], row["date"], row["state"]])

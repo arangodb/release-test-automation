@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ Manage one instance of the arangodb hotbackup CLI tool """
 
-import logging
 import json
 import os
 import re
@@ -39,9 +38,12 @@ class HotBackupConfig:
     # values inside this list must be lower case
     SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
-    def __init__(self, basecfg, name, raw_install_prefix):
-        # pylint: disable=too-many-statements
-        self.hb_timeout = 20
+    def __init__(self, basecfg, name, raw_install_prefix, is_instrumented):
+        # pylint: disable=too-many-statements disable=global-statement
+        self.hb_timeout = 120 if is_instrumented else 20
+        if is_instrumented:
+            global DEFAULT_PROGRESSIVE_TIMEOUT
+            DEFAULT_PROGRESSIVE_TIMEOUT *= 4
         hbcfg = basecfg.hb_cli_cfg
         self.hb_provider_cfg = basecfg.hb_provider_cfg
 
@@ -167,8 +169,9 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=DEFAULT_PROGRESSIVE_TIMEOUT
     ):
         """run arangobackup"""
+        print(self.cfg)
         if not silent:
-            logging.info("running hot backup " + name)
+            print(f"running hot backup {name} - cwd: {str(self.cfg.sublaunch_pwd.resolve())}")
         run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]

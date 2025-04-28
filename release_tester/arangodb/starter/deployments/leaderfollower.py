@@ -332,11 +332,15 @@ process.exit(0);
         """run the replication fuzzing test"""
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
+        deadline=500000 if self.cfg.is_instrumented else 1000
+        progressive_timeout=1000 if self.cfg.is_instrumented else 100
         self.tcp_ping_all_nodes()
         ret = self.leader_starter_instance.arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
+            deadline=deadline,
+            progressive_timeout=progressive_timeout,
         )
         if not ret[0]:
             if not self.cfg.verbose:

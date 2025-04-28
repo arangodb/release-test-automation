@@ -334,13 +334,16 @@ deadline_signal: {0.deadline_signal}""".format(
             else:
                 deadline = datetime.now() + timedelta(seconds=deadline)
         final_deadline = deadline + timedelta(seconds=deadline_grace_period)
-        lh.log_cmd(run_cmd)
+        lh.log_cmd(run_cmd,
+                   progressive_timeout=progressive_timeout,
+                   deadline=deadline,
+                   cwd=self.cfg.sublaunch_pwd.resolve())
         with psutil.Popen(
             run_cmd,
             stdout=PIPE,
             stderr=PIPE,
             close_fds=ON_POSIX,
-            cwd=self.cfg.test_data_dir.resolve(),
+            cwd=self.cfg.sublaunch_pwd.resolve(),
         ) as process:
             queue = Queue()
             thread1 = Thread(

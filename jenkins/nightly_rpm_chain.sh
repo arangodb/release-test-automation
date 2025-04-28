@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
 DOCKER_SUFFIX=rpm
 . ./jenkins/common/default_variables.sh
 . ./jenkins/common/default_matrix.sh
@@ -15,7 +16,7 @@ DOCKER_SUFFIX=rpm
 
 . ./jenkins/common/register_cleanup_trap.sh
 
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        \
@@ -26,7 +27,7 @@ docker run \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec \
+$DOCKER exec \
        "${DOCKER_NAME}" \
        /home/release-test-automation/release_tester/run_chain_upgrade.py \
        --enterprise-magic ${ENTERPRISE_DOWNLOAD_KEY} \
@@ -37,7 +38,7 @@ docker exec \
        "${@}"
 result=$?
 
-docker stop "${DOCKER_NAME}"
+$DOCKER stop "${DOCKER_NAME}"
 
 
 . ./jenkins/common/cleanup_ownership.sh

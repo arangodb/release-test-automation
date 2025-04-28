@@ -89,7 +89,7 @@ def line(sym="-", length=get_term_width()):
     print(sym * int(length / len(sym)))
 
 
-def log_cmd(cmd, print_cmd=True):
+def log_cmd(cmd, print_cmd=True, progressive_timeout=0, deadline=0, cwd=""):
     """log string"""
     if isinstance(cmd, str):
         pass
@@ -100,7 +100,7 @@ def log_cmd(cmd, print_cmd=True):
     attach(cmd, "Command", attachment_type=AttachmentType.TEXT)
     if print_cmd:
         line("<")
-        print("executing: " + cmd)
+        print(f"executing: PWD {cwd} {cmd} progressive timeout: {progressive_timeout} deadline {deadline}")
         line("^")
 
 
