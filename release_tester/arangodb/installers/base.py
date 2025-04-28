@@ -341,7 +341,7 @@ class InstallerBase(ABC):
         print(f"tsan settings at version launch: {os.environ['TSAN_OPTIONS']}")
         return self.cli_executor.run_monitored(
             executeable=self.cfg.real_sbin_dir / "arangod",
-            args=["--version"],
+            args=["--version", "--temp.dumpenv", "true"],
             params=make_default_params(True, "arangod versioncheck"),
             deadline=10,
         )
@@ -607,7 +607,7 @@ class InstallerBase(ABC):
             # print(starter.group())
             # run_file_command(str(starter))
             starter_version_proc = psutil.Popen(
-                [str(starter), "--version", "--temp.dumpenv", "true"],
+                [str(starter), "--version"],
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
                 universal_newlines=True,
