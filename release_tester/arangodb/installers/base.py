@@ -607,7 +607,7 @@ class InstallerBase(ABC):
             # print(starter.group())
             # run_file_command(str(starter))
             starter_version_proc = psutil.Popen(
-                [str(starter), "--version"],
+                [str(starter), "--version", "--temp.dumpenv", "true"],
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
                 universal_newlines=True,
