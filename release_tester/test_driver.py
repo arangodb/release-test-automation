@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """test drivers"""
-import logging
 import os
 import platform
 import re
@@ -10,24 +9,36 @@ import time
 import traceback
 from pathlib import Path
 
-import semver
+import psutil
 from allure_commons._allure import attach
-from allure_commons.model2 import Status, StatusDetails
+from allure_commons.model2 import Status, StatusDetails, Label
+from allure_commons.types import LabelType
 
 import tools.loghelper as lh
 from arangodb.installers import create_config_installer_set, RunProperties
-from arangodb.starter.deployments.cluster_perf import ClusterPerf
-from arangodb.starter.deployments import (
+from arangodb.starter.deployments import make_runner
+from arangodb.installers.depvar import (
     RunnerType,
-    make_runner,
     runner_strings,
     STARTER_MODES,
 )
+from arangodb.starter.deployments.cluster_perf import ClusterPerf
+from debugger_tests.debugger_test_suite import DebuggerTestSuite
 from license_manager_tests.basic_test_suite import BasicLicenseManagerTestSuite
 from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManagerTestSuite
+from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
+from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
+from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
+from reporting.reporting_utils2 import generate_suite_name
+from siteconfig import SiteConfig
+from test_suites.misc.binary_test_suite import BinaryComplianceTestSuite
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
+HAVE_SAN = False
+for varname in ["TSAN_OPTIONS", "UBSAN_OPTIONS", "LSAN_OPTIONS", "ASAN_OPTIONS"]:
+    HAVE_SAN = HAVE_SAN or varname in os.environ and len(os.environ[varname]) != 0
 try:
     # pylint: disable=unused-import
     from tools.external_helpers.license_generator.license_generator import create_license
@@ -40,17 +51,22 @@ except ModuleNotFoundError as exc:
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_LINUX = sys.platform == "linux"
 
+FULL_TEST_SUITE_LIST = [
+    EnterprisePackageInstallationTestSuite,
+    CommunityPackageInstallationTestSuite,
+    BasicLicenseManagerTestSuite,
+    UpgradeLicenseManagerTestSuite,
+    DebuggerTestSuite,
+    BinaryComplianceTestSuite,
+]
+
 
 class TestDriver:
     """driver base class to run different tests"""
 
-    # pylint: disable=too-many-arguments disable=too-many-locals
+    # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-instance-attributes
     def __init__(self, **kwargs):
         self.launch_dir = Path.cwd()
-        if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
-            raise Exception("require PYTHONUTF8=1 in the environment")
-        if "WORKSPACE" in os.environ:
-            self.launch_dir = Path(os.environ["WORKSPACE"])
 
         if not kwargs["test_data_dir"].is_absolute():
             kwargs["test_data_dir"] = self.launch_dir / kwargs["test_data_dir"]
@@ -58,24 +74,65 @@ class TestDriver:
             kwargs["test_data_dir"].mkdir(parents=True, exist_ok=True)
         os.chdir(kwargs["test_data_dir"])
 
+        self.sitecfg = SiteConfig("")
+        kwargs["is_instrumented"] = self.sitecfg.is_instrumented()
+        kwargs["base_config"].is_instrumented = self.sitecfg.is_instrumented()
+        self.use_monitoring = kwargs["monitoring"]
+        if self.use_monitoring:
+            spawn_overload_watcher_thread(self.sitecfg)
+        if IS_WINDOWS and "PYTHONUTF8" not in os.environ:
+            raise Exception("require PYTHONUTF8=1 in the environment")
+        if "WORKSPACE" in os.environ:
+            self.launch_dir = Path(os.environ["WORKSPACE"])
+
         if not kwargs["package_dir"].is_absolute():
             kwargs["package_dir"] = (self.launch_dir / kwargs["package_dir"]).resolve()
         if not kwargs["package_dir"].exists():
             kwargs["package_dir"].mkdir(parents=True, exist_ok=True)
+        kwargs["base_config"].package_dir = kwargs["package_dir"]
 
         self.base_config = kwargs["base_config"]
+        self.arangods = []
+        self.base_config.arangods = self.arangods
+
         lh.configure_logging(kwargs["verbose"])
         self.abort_on_error = kwargs["abort_on_error"]
 
-        self.use_auto_certs = kwargs["use_auto_certs"]
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
+        self.selenium_include_suites = (
+            [] if "ui_include_test_suites" not in kwargs else kwargs["ui_include_test_suites"]
+        )
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
         self.installer_type = None
 
-    # pylint: disable=no-self-use
+        self.cli_test_suite_params = CliTestSuiteParameters.from_dict(**kwargs)
+        if HAVE_SAN:
+            symbolizer = Path("/work/ArangoDB/utils/llvm-symbolizer-server.py")
+            if not symbolizer.exists():
+                raise Exception(f"couldn't locate symbolizer {str(symbolizer)}")
+            print(f"launching symbolizer {str(symbolizer)}")
+            self.symbolizer = psutil.Popen(str(symbolizer), cwd=Path("/work/ArangoDB"))
+
+    def __del__(self):
+        self.destructor()
+
+    def destructor(self):
+        """shutdown this environment"""
+        self._stop_monitor()
+        if HAVE_SAN:
+            try:
+                self.symbolizer.kill()
+                self.symbolizer.wait()
+            except psutil.NoSuchProcess:
+                print(f"{self.symbolizer} already gone, ignoring.")
+
+    def _stop_monitor(self):
+        if self.use_monitoring:
+            shutdown_overload_watcher_thread()
+
     def set_r_limits(self):
         """on linux manipulate ulimit values"""
         # pylint: disable=import-outside-toplevel
@@ -86,6 +143,10 @@ class TestDriver:
 
     def copy_packages_to_result(self, installers):
         """copy packages in test to the report directory (including debug symbols)"""
+        if not installers[0][1].copy_for_result:
+            print("Skipping copy_packages_to_result for this installer")
+            return
+
         if not installers[0][1].find_crash(installers[0][0].base_test_dir):
             return
         for installer_set in installers:
@@ -113,7 +174,9 @@ class TestDriver:
         """get the [DEB|RPM|EXE|DMG|ZIP|targz] from the installer"""
         if self.installer_type:
             return self.installer_type
-        installers = create_config_installer_set(["3.3.3"], self.base_config, "all", RunProperties(False, False, False))
+        installers = create_config_installer_set(
+            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False)
+        )
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
 
@@ -129,9 +192,11 @@ class TestDriver:
             time.sleep(1)
 
     # pylint: disable=broad-except
-    def run_cleanup(self, run_properties: RunProperties):
+    def run_cleanup(self, run_properties: RunProperties, versions=None):
         """main"""
-        installer_set = create_config_installer_set(["3.3.3"], self.base_config, "all", run_properties)
+        if versions is None:
+            versions = ["3.3.3"]
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -141,6 +206,7 @@ class TestDriver:
         kill_all_processes()
         kill_all_processes()
         starter_mode = [
+            RunnerType.SINGLE,
             RunnerType.LEADER_FOLLOWER,
             RunnerType.ACTIVE_FAILOVER,
             RunnerType.CLUSTER,
@@ -148,7 +214,7 @@ class TestDriver:
         ]
         for runner_type in starter_mode:
             assert runner_type
-            runner = make_runner(runner_type, False, "none", [], installer_set, run_properties)
+            runner = make_runner(runner_type, False, "none", [], [], installer_set, run_properties)
             runner.cleanup()
         if inst.calc_config_file_name().is_file():
             try:
@@ -164,37 +230,32 @@ class TestDriver:
             print("Cannot uninstall package without config.yml!")
         inst.cleanup_system()
 
-    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
+    # pylint: disable=too-many-arguments disable=too-many-locals,
+    # pylint: disable=broad-except, disable=too-many-branches, disable=too-many-statements
     def run_upgrade(self, versions: list, run_props: RunProperties):
         """execute upgrade tests"""
         lh.section("startup")
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            installers = create_config_installer_set(
-                versions,
-                self.base_config,
-                "all",
-                run_props,
-            )
+            installers = create_config_installer_set(versions, self.base_config, "all", run_props)
+            # pylint: disable=unused-variable
             old_inst = installers[0][1]
             new_inst = installers[1][1]
 
+            parent_test_suite_name = generate_suite_name(
+                properties=run_props, versions=versions, runner_type=None, installer_type=new_inst.installer_type
+            )
+
             with AllureTestSuiteContext(
-                properties=run_props,
-                versions=versions,
-                parent_test_suite_name=None,
-                auto_generate_parent_test_suite_name=True,
+                parent_test_suite_name=parent_test_suite_name,
                 suite_name=runner_strings[runner_type],
-                runner_type=None,
-                installer_type=new_inst.installer_type,
+                labels=(
+                    [Label(name=LabelType.TAG, value=f"HB: {self.get_hb_provider()}")]
+                    if self.get_hb_provider() is not None
+                    else None
+                ),
             ):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
-                        testcase.context.status = Status.SKIPPED
-                        testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages."
-                        )
-                        continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
                         "testscenario": runner_strings[runner_type],
@@ -219,78 +280,99 @@ class TestDriver:
                                 }
                             )
                         )
-                        if runner_type:
-                            runner = make_runner(
-                                runner_type,
-                                self.abort_on_error,
-                                self.selenium,
-                                self.selenium_driver_args,
-                                installers,
-                                run_props,
-                                use_auto_certs=self.use_auto_certs,
-                            )
+                        runner = make_runner(
+                            runner_type,
+                            self.abort_on_error,
+                            self.selenium,
+                            self.selenium_driver_args,
+                            self.selenium_include_suites,
+                            installers,
+                            run_props,
+                        )
+                        if not runner or runner.runner_type == RunnerType.NONE:
+                            testcase.context.status = Status.SKIPPED
+                            one_result["message"] = f"Skipping {runner_type}"
                             if runner:
-                                try:
-                                    runner.run()
-                                    runner.cleanup()
-                                    testcase.context.status = Status.PASSED
-                                except Exception as ex:
-                                    one_result["success"] = False
-                                    one_result["messages"].append(str(ex))
-                                    one_result["progress"] += runner.get_progress()
-                                    runner.take_screenshot()
-                                    runner.agency_acquire_dump()
-                                    runner.search_for_warnings()
-                                    runner.quit_selenium()
-                                    kill_all_processes()
-                                    runner.zip_test_dir()
-                                    self.copy_packages_to_result(installers)
-                                    testcase.context.status = Status.FAILED
-                                    testcase.context.statusDetails = StatusDetails(
-                                        message=str(ex),
-                                        trace="".join(traceback.TracebackException.from_exception(ex).format()),
-                                    )
-                                    if self.abort_on_error:
-                                        raise ex
-                                    one_result["progress"] += str(ex) + "".join(
-                                        traceback.TracebackException.from_exception(ex).format()
-                                    )
-                                    traceback.print_exc()
-                                    lh.section("uninstall on error")
-                                    old_inst.un_install_debug_package()
-                                    old_inst.un_install_server_package()
-                                    old_inst.cleanup_system()
-                                    try:
-                                        runner.cleanup()
-                                    finally:
-                                        pass
-                                    results.append(one_result)
-                                    continue
-                                if runner.ui_tests_failed:
-                                    failed_test_names = [
-                                        f'"{row["Name"]}"'
-                                        for row in runner.ui_test_results_table
-                                        if not row["Result"] == "PASSED"
-                                    ]
-                                    one_result["success"] = False
-                                    one_result["messages"].append(
-                                        f'The following UI tests failed: {", ".join(failed_test_names)}.'
-                                        + "See allure report for details."
-                                    )
+                                one_result["message"] += runner.msg
+                            print(f"Skipping {runner_type}")
+                            continue
+                        if run_props.force_one_shard and not runner.props.force_one_shard:
+                            testcase.context.status = Status.SKIPPED
+                            testcase.context.statusDetails = StatusDetails(
+                                message=f"One shard is not supported for {runner.name}"
+                            )
+                            runner.cleanup()
+                            continue
+
+                        try:
+                            runner.run()
+                            if not runner.get_selenium_status():
+                                runner.zip_test_dir()
+                            runner.cleanup()
+                            testcase.context.status = Status.PASSED
+                        except Exception as ex:
+                            one_result["success"] = False
+                            one_result["messages"].append("\n" + str(ex))
+                            one_result["progress"] += runner.get_progress()
+                            runner.take_screenshot()
+                            if runner.agency:
+                                runner.agency.acquire_dump()
+                            runner.search_for_warnings()
+                            runner.quit_selenium()
+                            kill_all_processes()
+                            runner.zip_test_dir()
+                            self.copy_packages_to_result(installers)
+                            testcase.context.status = Status.FAILED
+                            testcase.context.statusDetails = StatusDetails(
+                                message=str(ex),
+                                trace="".join(traceback.TracebackException.from_exception(ex).format()),
+                            )
+                            if self.abort_on_error:
+                                raise ex
+                            one_result["progress"] += (
+                                "\n -> "
+                                + str(ex)
+                                + "\n"
+                                + "".join(traceback.TracebackException.from_exception(ex).format())
+                            )
+                            traceback.print_exc()
+                            lh.section("uninstall on error")
+                            # pylint: disable=consider-using-enumerate
+                            for i in range(len(installers)):
+                                installer = installers[i][1]
+                                installer.un_install_debug_package()
+                                installer.un_install_server_package()
+                                installer.cleanup_system()
+                            try:
+                                runner.cleanup()
+                            finally:
+                                pass
+                            results.append(one_result)
+                            continue
+                        if runner.ui_tests_failed:
+                            failed_test_names = [
+                                f'"{row["Name"]}"'
+                                for row in runner.ui_test_results_table
+                                if not row["Result"] == "PASSED"
+                            ]
+                            one_result["success"] = False
+                            one_result["messages"].append(
+                                f'The following UI tests failed: {", ".join(failed_test_names)}.'
+                                + "See allure report for details."
+                            )
                         lh.section("uninstall")
-                        new_inst.un_install_server_package()
-                        lh.section("check system")
-                        new_inst.check_uninstall_cleanup()
-                        lh.section("remove residuals")
-                        try:
-                            old_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring old cleanup error!")
-                        try:
-                            print("Ignoring new cleanup error!")
-                            new_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring general cleanup error!")
+                        # pylint: disable=consider-using-enumerate
+                        for i in range(len(installers)):
+                            installer = installers[i][1]
+                            installer.un_install_server_package()
+                            lh.section("check system")
+                            installer.check_uninstall_cleanup()
+                            try:
+                                lh.section("remove residuals")
+                                installer.cleanup_system()
+                            except Exception:
+                                print("Ignoring cleanup error!")
+
                     except Exception as ex:
                         print("Caught. " + str(ex))
                         one_result["success"] = False
@@ -310,18 +392,15 @@ class TestDriver:
                                 print("".join(traceback.TracebackException.from_exception(exception).format()))
                         try:
                             print("Cleaning up system after error:")
-                            old_inst.un_install_debug_package()
-                            old_inst.un_install_server_package()
-                            old_inst.cleanup_system()
+                            # pylint: disable=consider-using-enumerate
+                            for i in range(len(installers)):
+                                installer = installers[i][1]
+                                installer.un_install_debug_package()
+                                installer.un_install_server_package()
+                                installer.cleanup_system()
                         except Exception:
                             print("Ignoring old cleanup error!")
-                        try:
-                            print("Ignoring new cleanup error!")
-                            new_inst.un_install_debug_package()
-                            new_inst.un_install_server_package()
-                            new_inst.cleanup_system()
-                        except Exception:
-                            print("Ignoring new cleanup error!")
+
                     results.append(one_result)
         return results
 
@@ -335,8 +414,6 @@ class TestDriver:
         """ main """
         results = []
 
-        do_install = deployment_mode in ["all", "install"]
-        do_uninstall = deployment_mode in ["all", "uninstall"]
 
         installers = create_config_installer_set(
             versions,
@@ -347,28 +424,21 @@ class TestDriver:
         lh.section("configuration")
         print(
             """
-        mode: {mode}
         {cfg_repr}
         """.format(
-                **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
+                **{"cfg_repr": repr(installers[0][0])}
             )
         )
 
         count = 1
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            with AllureTestSuiteContext(properties=run_props,
-                                        versions=versions,
-                                        parent_test_suite_name=None,
-                                        auto_generate_parent_test_suite_name=True,
+            parent_test_suite_name = generate_suite_name(properties=run_props, versions=versions, runner_type=None,
+                                                         installer_type=installers[0][1].installer_type)
+            with AllureTestSuiteContext(parent_test_suite_name=parent_test_suite_name,
                                         suite_name=runner_strings[runner_type],
-                                        runner_type=None,
-                                        installer_type=installers[0][1].installer_type):
+                                        labels=[Label(name=LabelType.TAG, value=f"HB: {self.get_hb_provider()}")]
+                                        if self.get_hb_provider() is not None else None):
                 with RtaTestcase(runner_strings[runner_type] + " main flow") as testcase:
-                    if not run_props.supports_dc2dc() and runner_type == RunnerType.DC2DC:
-                        testcase.context.status = Status.SKIPPED
-                        testcase.context.statusDetails = StatusDetails(
-                            message="DC2DC is not applicable to Community packages.")
-                        continue
                     one_result = {
                         "testrun name": run_props.testrun_name,
                         "testscenario": runner_strings[runner_type],
@@ -381,17 +451,36 @@ class TestDriver:
                         self.abort_on_error,
                         self.selenium,
                         self.selenium_driver_args,
+                        self.selenium_include_suites,
                         installers,
-                        run_props,
-                        use_auto_certs=self.use_auto_certs,
+                        run_props
                     )
-                    # install on first run:
-                    runner.do_install = (count == 1) and do_install
-                    # only uninstall after the last test:
-                    runner.do_uninstall = (count == len(
-                        STARTER_MODES[deployment_mode])) and do_uninstall
+                    if not runner or runner.runner_type == RunnerType.NONE:
+                        testcase.context.status = Status.SKIPPED
+                        one_result["message"] = f"Skipping {runner_type}"
+                        if runner:
+                            one_result["message"] += runner.msg
+                        print(f"Skipping {runner_type}")
+                        continue
+                    if run_props.force_one_shard and not runner.props.force_one_shard:
+                        testcase.context.status = Status.SKIPPED
+                        testcase.context.statusDetails = StatusDetails(
+                        message=f"One shard is not supported for {runner.name}"
+                        )
+                        runner.cleanup()
+                        continue
+                    if run_props.replication2 and not runner.replication2:
+                        testcase.context.status = Status.SKIPPED
+                        testcase.context.statusDetails = StatusDetails(
+                        message=f"Replication v. 2 is not supported for {runner.name}, version {runner.versionstr}"
+                        )
+                        runner.cleanup()
+                        continue
+
                     try:
                         runner.run()
+                        if not runner.get_selenium_status():
+                            runner.zip_test_dir()
                         runner.cleanup()
                         testcase.context.status = Status.PASSED
                     # pylint: disable=broad-except
@@ -400,7 +489,8 @@ class TestDriver:
                         one_result["messages"].append(str(ex))
                         one_result["progress"] += runner.get_progress()
                         runner.take_screenshot()
-                        runner.agency_acquire_dump()
+                        if runner.agency:
+                            runner.agency.acquire_dump()
                         runner.search_for_warnings()
                         runner.quit_selenium()
                         kill_all_processes()
@@ -415,15 +505,17 @@ class TestDriver:
                         installers[0][1].un_install_debug_package()
                         installers[0][1].un_install_server_package()
                         installers[0][1].cleanup_system()
+                        lh.section("uninstall on error")
                         if self.abort_on_error:
                             raise ex
                         traceback.print_exc()
-                        lh.section("uninstall on error")
                         try:
                             runner.cleanup()
                         finally:
                             pass
                         results.append(one_result)
+                        kill_all_processes()
+                        count += 1
                         continue
 
                     if runner.ui_tests_failed:
@@ -435,22 +527,37 @@ class TestDriver:
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
-
+                    results.append(one_result)
                     kill_all_processes()
                     count += 1
+
+        lh.section("uninstall")
+        installers[0][1].un_install_server_package()
+        lh.section("check system")
+        installers[0][1].check_uninstall_cleanup()
+        lh.section("remove residuals")
+        try:
+            # pylint: disable=consider-using-enumerate
+            for i in range(len(installers)):
+                installer = installers[i][1]
+                installer.cleanup_system()
+        except Exception:
+            print("Ignoring cleanup error!")
 
         return results
 
     # fmt: off
     # pylint: disable=too-many-arguments disable=too-many-locals
     def run_perf_test(self,
-                 deployment_mode,
-                 versions: list,
-                 frontends,
-                 scenario,
-                 run_props: RunProperties):
-    # fmt: on
+                      deployment_mode,
+                      versions: list,
+                      frontends,
+                      scenario,
+                      include_suites,
+                      run_props: RunProperties):
+        # fmt: on
         """ main """
+        results = []
         do_install = deployment_mode in ["all", "install"]
         do_uninstall = deployment_mode in ["all", "uninstall"]
 
@@ -469,7 +576,7 @@ class TestDriver:
                 **{"mode": str(deployment_mode), "cfg_repr": repr(installers[0][0])}
             )
         )
-        inst=installers[0][1]
+        inst = installers[0][1]
 
         split_host = re.compile(r"([a-z]*)://([0-9.:]*):(\d*)")
 
@@ -478,103 +585,70 @@ class TestDriver:
                 print("remote")
                 host_parts = re.split(split_host, frontend)
                 inst.cfg.add_frontend(host_parts[1], host_parts[2], host_parts[3])
-        inst.cfg.scenario = Path(scenario)
+        inst.cfg.scenario = self.launch_dir / scenario
         runner = ClusterPerf(
             RunnerType.CLUSTER,
             self.abort_on_error,
             installers,
             self.selenium,
             self.selenium_driver_args,
-            "perf",
-            run_props,
-            use_auto_certs=self.use_auto_certs
+            include_suites,
+            run_props
         )
         runner.do_install = do_install
         runner.do_uninstall = do_uninstall
         failed = False
-        if not runner.run():
+        try:
+            if not runner.run():
+                failed = True
+                results.append({
+                    "testrun name": runner.testrun_name,
+                    "testscenario": runner_strings[RunnerType.CLUSTER],
+                    "success": not failed,
+                    "messages": [],
+                    "progress": "",
+                })
+        except Exception as ex:
             failed = True
-
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
+            results.append({
+                "testrun name": runner.testrun_name,
+                "testscenario": runner_strings[RunnerType.CLUSTER],
+                "success": False,
+                "messages": [str(ex)],
+                "trace": "".join(traceback.TracebackException.from_exception(ex).format()),
+                "progress": "",
+            })
         if len(frontends) == 0:
             kill_all_processes()
-        return failed
+        return results
 
-    # pylint: disable=too-many-arguments disable=too-many-locals, disable=broad-except, disable=too-many-branches, disable=too-many-statements
-    def run_conflict_tests(
-            self,
-            versions: list,
-            enterprise: bool
-    ):
-        """run package conflict tests"""
-        # pylint: disable=import-outside-toplevel
-        if enterprise:
-            from package_installation_tests.enterprise_package_installation_test_suite import \
-                EnterprisePackageInstallationTestSuite as testSuite
+    def run_test_suites(self, include_suites: tuple = (), exclude_suites: tuple = (),
+                        params: CliTestSuiteParameters = None):
+        """run a testsuite"""
+        if not params:
+            params = self.cli_test_suite_params
+        suite_classes=[]
+        if len(include_suites) == 0 and len(exclude_suites) == 0:
+            suite_classes.extend(FULL_TEST_SUITE_LIST)
+        if len(include_suites) > 0 and len(exclude_suites) == 0:
+            for suite_class in FULL_TEST_SUITE_LIST:
+                if suite_class.__name__ in include_suites:
+                    suite_classes.append(suite_class)
+        elif len(exclude_suites) > 0 and len(include_suites) == 0:
+            suite_classes.extend(FULL_TEST_SUITE_LIST)
+            for exclude_suite_class in exclude_suites:
+                for suite_class in suite_classes.copy():
+                    if suite_class.__name__ == exclude_suite_class:
+                        suite_classes.remove(suite_class)
+                        break
         else:
-            from package_installation_tests.community_package_installation_test_suite import \
-                CommunityPackageInstallationTestSuite as testSuite
-        suite = testSuite(
-            versions=versions,
-            base_config=self.base_config
-        )
-        suite.run()
-        result = {
-            "testrun name": suite.suite_name,
-            "testscenario": "",
-            "success": True,
-            "messages": [],
-            "progress": "",
-        }
-        if suite.there_are_failed_tests():
-            result["success"] = False
-            for one_result in suite.test_results:
-                result["messages"].append(one_result.message)
-        return [result]
+            raise Exception(
+                "Please specify one or none of the following parameters: --exclude-test-suite, --include-test-suite.")
 
-    def run_license_manager_tests(
-            self,
-            versions
-    ):
-        """run license manager tests"""
-        if len(versions)==1:
-            new_version=versions[0]
-        elif len(versions)>1:
-            old_version = versions[1]
-            new_version = versions[1]
-        if semver.VersionInfo.parse(new_version) < "3.9.0-nightly":
-            logging.info("License manager test suite is only applicable to versions 3.9 and newer.")
-            return [
-                {
-                    "testrun name": "License manager test suite is only applicable to versions 3.9 and newer.",
-                    "testscenario": "",
-                    "success": True,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
-        if not EXTERNAL_HELPERS_LOADED:
-            logging.info(
-                "License manager test suite cannot run, because external helpers are not present.")
-            return [
-                {
-                    "testrun name": "License manager test suite cannot run, because external helpers are not present.",
-                    "testscenario": "",
-                    "success": False,
-                    "messages": [],
-                    "progress": "",
-                }
-            ]
         results = []
-        suites_classes = []
-        suites_classes.append(BasicLicenseManagerTestSuite)
-        if (len(versions)>1 and
-            semver.VersionInfo.parse(old_version) > "3.9.0-nightly" and
-            semver.VersionInfo.parse(new_version) > "3.9.0-nightly"):
-            suites_classes.append(UpgradeLicenseManagerTestSuite)
-        args = (versions, self.base_config)
-
-        for suites_class in suites_classes:
-            suite = suites_class(*args)
+        for suite_class in suite_classes:
+            suite = suite_class(params)
             suite.run()
             result = {
                 "testrun name": suite.suite_name,
@@ -583,9 +657,18 @@ class TestDriver:
                 "messages": [],
                 "progress": "",
             }
-            if suite.there_are_failed_tests():
+            if suite.there_are_failed_tests() or suite.is_broken():
                 result["success"] = False
                 for one_result in suite.test_results:
                     result["messages"].append(one_result.message)
             results.append(result)
         return results
+
+    def get_hb_provider(self):
+        """ get HB provider value """
+        hb_provider = None
+        try:
+            hb_provider = self.base_config.hb_cli_cfg.hb_provider
+        except AttributeError:
+            pass
+        return hb_provider

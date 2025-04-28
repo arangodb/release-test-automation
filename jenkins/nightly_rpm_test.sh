@@ -1,112 +1,47 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
+DOCKER_SUFFIX=rpm
+. ./jenkins/common/default_variables.sh
 
-GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
-if test -z "$GIT_VERSION"; then
-    GIT_VERSION=$VERSION
-fi
-if test -z "$NEW_VERSION"; then
-    NEW_VERSION=3.10.0-nightly
-fi
-if test -z "${PACKAGE_CACHE}"; then
-    PACKAGE_CACHE="$(pwd)/package_cache/"
-fi
+. ./jenkins/common/setup_docker.sh
 
-force_arg=()
-if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
-  force_arg=(--force)
-fi
+. ./jenkins/common/set_max_map_count.sh
 
-if test -n "$SOURCE"; then
-    force_arg+=(--new-source "$SOURCE")
-else
-    force_arg+=(--remote-host "172.16.1.22")
-fi
+. ./jenkins/common/setup_selenium.sh
+. ./jenkins/common/evaluate_force.sh
+. ./jenkins/common/load_git_submodules.sh
 
-VERSION_TAR_NAME="${NEW_VERSION}_rpm_version.tar"
-mkdir -p "${PACKAGE_CACHE}"
-mkdir -p test_dir
-mkdir -p allure-results
+# . ./jenkins/common/launch_minio.sh
 
-ssh -o StrictHostKeyChecking=no -T git@github.com
-git clone git@github.com:arangodb/release-test-automation-helpers.git
-mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+. ./jenkins/common/register_cleanup_trap.sh
 
-DOCKER_RPM_NAME=release-test-automation-rpm
-
-DOCKER_RPM_TAG="${DOCKER_RPM_NAME}:$(cat containers/this_version.txt)"
-
-docker kill "${DOCKER_RPM_NAME}" || true
-docker rm "${DOCKER_RPM_NAME}" || true
-
-trap 'docker kill "${DOCKER_RPM_NAME}";
-      docker rm "${DOCKER_RPM_NAME}";
-     ' EXIT
-
-DOCKER_NAMESPACE="arangodb/"
-if docker pull "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}"; then
-    echo "using ready built container"
-else
-    docker build containers/docker_rpm -t "${DOCKER_RPM_TAG}" || exit
-    DOCKER_NAMESPACE=""
-fi
-
-docker run \
-       --ulimit core=-1 \
-       -v "$(pwd):/home/release-test-automation" \
-       -v "$(pwd)/test_dir:/home/test_dir" \
-       -v "$(pwd)/allure-results:/home/allure-results" \
-       -v "${PACKAGE_CACHE}:/home/release-test-automation/package_cache" \
-       -v /tmp/tmp:/tmp/ \
-       -v /dev/shm:/dev/shm \
+$DOCKER run \
+       "${DOCKER_ARGS[@]}" \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       --env="BUILD_NUMBER=${BUILD_NUMBER}" \
-       --env="PYTHONUNBUFFERED=1" \
-       --env="WORKSPACE=/home/release-test-automation/" \
-       --env="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
-       --env="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
-       --env="AWS_REGION=$AWS_REGION" \
-       --env="AWS_ACL=$AWS_ACL" \
-       \
-       --name="${DOCKER_RPM_NAME}" \
-       --rm \
        --privileged \
        -itd \
        \
-       "${DOCKER_NAMESPACE}${DOCKER_RPM_TAG}" \
+       "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec \
-          "${DOCKER_RPM_NAME}" \
-          /home/release-test-automation/release_tester/full_download_test.py \
-          --new-version "${NEW_VERSION}" \
-          --no-zip \
-          --verbose \
-          --alluredir /home/allure-results \
-          --git-version "${GIT_VERSION}" \
-          "${force_arg[@]}" \
-          "${@}"
+$DOCKER exec \
+       "${DOCKER_NAME}" \
+       /home/release-test-automation/release_tester/full_download_test.py \
+       --new-version "${NEW_VERSION}" \
+       --no-zip \
+       "${RTA_ARGS[@]}" \
+       "${@}"
 result=$?
 
-docker stop "${DOCKER_RPM_NAME}"
+$DOCKER stop "${DOCKER_NAME}"
 
-# Cleanup ownership:
-docker run \
-       -v "$(pwd)/test_dir:/home/test_dir" \
-       -v "$(pwd)/allure-results:/home/allure-results" \
-       --rm \
-       "${DOCKER_RPM_TAG}" \
-       chown -R "$(id -u):$(id -g)" /home/test_dir /home/allure-results
-
-docker run \
-       -v /tmp/tmp:/tmp/ \
-       --rm \
-       "${DOCKER_TAR_TAG}" \
-       rm -f /tmp/config.yml 
+. ./jenkins/common/cleanup_ownership.sh
+. ./jenkins/common/gather_coredumps.sh
 
 if test "${result}" -eq "0"; then
     echo "OK"
 else
-    echo "FAILED RPM!"
+    echo "FAILED ${DOCKER_SUFFIX}!"
     exit 1
 fi

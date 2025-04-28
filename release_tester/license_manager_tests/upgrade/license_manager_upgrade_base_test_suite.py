@@ -1,12 +1,13 @@
 """base class for license manager test suites that require upgrading arangodbs"""
 
 # pylint: disable=import-error
-from arangodb.installers import create_config_installer_set, RunProperties
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
-from selenium_ui_test.test_suites.base_test_suite import run_after_suite, run_before_suite
+from reporting.reporting_utils import step
+from test_suites_core.base_test_suite import run_after_suite, run_before_suite
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 try:
-    from tools.external_helpers.license_generator.license_generator import create_license
+    from tools.external_helpers.license_generator.license_generator import create_license as _
 
     EXTERNAL_HELPERS_LOADED = True
 except ModuleNotFoundError as exc:
@@ -17,33 +18,15 @@ except ModuleNotFoundError as exc:
 class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
     """base class for license manager test suites that require upgrading arangodb"""
 
-    # pylint: disable=too-many-instance-attributes disable=dangerous-default-value
-    def __init__(
-        self,
-        old_version,
-        new_version,
-        installer_base_config,
-        child_classes=[],
-    ):
-        package_type = ".tar.gz" if installer_base_config.zip_package else ".deb/.rpm/NSIS"
-        self.suite_name = f"Licence manager test suite: ArangoDB v. {str(new_version)} ({package_type})"
-        self.auto_generate_parent_test_suite_name = False
-        super().__init__(new_version, installer_base_config, child_classes)
-        self.old_version = old_version
-        run_props = RunProperties(
-            enterprise=True,
-            encryption_at_rest=False,
-            ssl=False,
-        )
-        versions = [self.old_version, self.new_version]
-        self.installer_set = create_config_installer_set(
-            versions=versions, base_config=self.base_cfg, deployment_mode="all", run_properties=run_props
-        )
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.suite_name = "License manager tests: Upgrade"
         self.old_installer = self.installer_set[0][1]
         self.new_installer = self.installer_set[1][1]
         self.installer = self.new_installer
 
-    # pylint: disable=no-self-use
+    # pylint: disable=useless-option-value
     def init_child_class(self, child_class):
         """initialise the child class"""
         return child_class(self.new_version, self.base_cfg, self.old_version)
@@ -62,3 +45,19 @@ class LicenseManagerUpgradeBaseTestSuite(LicenseManagerBaseTestSuite):
         """clean up the system before running the license manager test suites"""
         self.old_installer.install_server_package()
         self.old_installer.stop_service()
+
+    @step
+    def upgrade(self):
+        """upgrade a deployment"""
+        self.new_installer.calculate_package_names()
+        self.new_installer.upgrade_server_package(self.old_installer)
+        self.new_installer.output_arangod_version()
+        self.new_installer.stop_service()
+        self.runner.cfg.set_directories(self.new_installer.cfg)
+        self.runner.new_cfg.set_directories(self.new_installer.cfg)
+        self.runner.upgrade_arangod_version()  # make sure to pass new version
+        self.old_installer.un_install_server_package_for_upgrade()
+
+    def set_license(self, license_str):
+        """set new license"""
+        raise NotImplementedError(f"Setting license not implemented for {type(self)}")

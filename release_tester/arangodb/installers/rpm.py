@@ -16,7 +16,7 @@ from arangodb.installers.linux import InstallerLinux
 from arangodb.sh import ArangoshExecutor
 from reporting.reporting_utils import step
 from tools.asciiprint import ascii_print, print_progress as progress
-from tools.clihelper import run_cmd_and_log_stdout
+from tools.clihelper import run_cmd_and_log_stdout_async
 
 
 class InstallerRPM(InstallerLinux):
@@ -44,7 +44,7 @@ class InstallerRPM(InstallerLinux):
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
-        architecture = "x86_64"
+        architecture = "x86_64" if self.machine == "x86_64" else "aarch64"
 
         prerelease = self.cfg.semver.prerelease
         semdict = dict(self.cfg.semver.to_dict())
@@ -57,16 +57,16 @@ class InstallerRPM(InstallerLinux):
             semdict["prerelease"] = ""
         elif prerelease.startswith("alpha"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.101"
+            semdict["build"] = "0.10" + prerelease.replace("alpha.", "")
         elif prerelease.startswith("beta"):
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.201"
+            semdict["build"] = "0.20" + prerelease.replace("beta.", "")
         elif prerelease.startswith("rc"):
             # remove dots, but prepend one:
             semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
-            semdict["build"] = "0.501"
+            semdict["build"] = "0.50" + prerelease.replace("rc.", "")
         elif len(prerelease) > 0:
-            semdict["build"] = semdict["prerelease"]
+            semdict["build"] = "1." + semdict["prerelease"]
             semdict["prerelease"] = ""
             # remove dots, but prepend one:
             # once was: semdict["prerelease"] = "." + semdict["prerelease"].replace(".", "")
@@ -96,7 +96,7 @@ class InstallerRPM(InstallerLinux):
         logging.info("starting service")
         cmd = ["service", "arangodb3", "start"]
         lh.log_cmd(cmd)
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
         time.sleep(0.1)
         self.instance.detect_pid(1)  # should be owned by init
 
@@ -105,7 +105,7 @@ class InstallerRPM(InstallerLinux):
         logging.info("stopping service")
         cmd = ["service", "arangodb3", "stop"]
         lh.log_cmd(cmd)
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
         while self.check_service_up():
             time.sleep(1)
 
@@ -124,7 +124,7 @@ class InstallerRPM(InstallerLinux):
         # https://access.redhat.com/solutions/1189
         cmd = "rpm --upgrade " + str(self.cfg.package_dir / self.server_package)
         lh.log_cmd(cmd)
-        server_upgrade = pexpect.spawnu(cmd)
+        server_upgrade = pexpect.spawnu(cmd, timeout=60)
         server_upgrade.logfile = sys.stdout
 
         try:
@@ -135,14 +135,21 @@ class InstallerRPM(InstallerLinux):
             )
             print(server_upgrade.before)
         except pexpect.exceptions.EOF as exc:
-            lh.line("X")
+            lh.line("X EOF")
             ascii_print(server_upgrade.before)
             lh.line("X")
             print("exception : " + str(exc))
             lh.line("X")
             logging.error("Upgrade failed!")
             raise exc
-
+        except pexpect.exceptions.TIMEOUT as exc:
+            lh.line("X Timeout:")
+            ascii_print(server_upgrade.before)
+            lh.line("X")
+            print("exception : " + str(exc))
+            lh.line("X")
+            logging.error("Upgrade failed!")
+            raise exc
         logging.debug("found: upgrade message")
 
         logging.info("waiting for the upgrade to finish")
@@ -172,7 +179,7 @@ class InstallerRPM(InstallerLinux):
 
         cmd = "rpm " + "-i " + str(package)
         lh.log_cmd(cmd)
-        server_install = pexpect.spawnu(cmd)
+        server_install = pexpect.spawnu(cmd, timeout=60)
         server_install.logfile = sys.stdout
         reply = None
 
@@ -182,15 +189,27 @@ class InstallerRPM(InstallerLinux):
             server_install.expect(pexpect.EOF, timeout=60)
             reply = server_install.before
             ascii_print(reply)
-        except pexpect.exceptions.EOF as ex:
+        except pexpect.exceptions.EOF as exc:
+            lh.line("I EOF")
             ascii_print(server_install.before)
-            logging.info("Installation failed!")
-            raise ex
+            lh.line("I")
+            print("exception : " + str(exc))
+            lh.line("I")
+            logging.error("RPM install failed!")
+            raise exc
+        except pexpect.exceptions.TIMEOUT as exc:
+            lh.line("X Timeout:")
+            ascii_print(server_install.before)
+            lh.line("X")
+            print("exception : " + str(exc))
+            lh.line("X")
+            logging.error("RPM install failed!")
+            raise exc
 
         while server_install.isalive():
             progress(".")
             if server_install.exitstatus != 0:
-                raise Exception("server installation " "didn't finish successfully!")
+                raise Exception("server installation didn't finish successfully!")
 
         start = reply.find("'")
         end = reply.find("'", start + 1)
@@ -199,10 +218,10 @@ class InstallerRPM(InstallerLinux):
         self.start_service()
         self.instance.detect_pid(1)  # should be owned by init
 
-        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance)
+        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
         if not pwcheckarangosh.js_version_check():
             logging.error(
-                "Version Check failed -" "probably setting the default random password didn't work! %s",
+                "Version Check failed - probably setting the default random password didn't work! %s",
                 self.cfg.passvoid,
             )
 
@@ -212,7 +231,7 @@ class InstallerRPM(InstallerLinux):
 
         self.cfg.passvoid = "RPM_passvoid_%d" % os.getpid()
         lh.log_cmd("/usr/sbin/arango-secure-installation")
-        with pexpect.spawnu("/usr/sbin/arango-secure-installation") as etpw:
+        with pexpect.spawnu("/usr/sbin/arango-secure-installation", timeout=60) as etpw:
             etpw.logfile = sys.stdout
             result = None
             try:
@@ -258,11 +277,11 @@ class InstallerRPM(InstallerLinux):
 
     @step
     def un_install_server_package_impl(self):
-        """ uninstall the server package """
+        """uninstall the server package"""
         self.stop_service()
         cmd = ["rpm", "-e", "arangodb3" + ("e" if self.cfg.enterprise else "")]
         lh.log_cmd(cmd)
-        run_cmd_and_log_stdout(cmd)
+        run_cmd_and_log_stdout_async(self.cfg, cmd)
 
     @step
     def install_rpm_package(self, package: str, upgrade: bool = False):
@@ -274,7 +293,7 @@ class InstallerRPM(InstallerLinux):
             option = "--install"
         cmd = f"rpm {option} {package}"
         lh.log_cmd(cmd)
-        install = pexpect.spawnu(cmd)
+        install = pexpect.spawnu(cmd, timeout=60)
         install.logfile = sys.stdout
         try:
             logging.info("waiting for the installation to finish")
@@ -305,12 +324,11 @@ class InstallerRPM(InstallerLinux):
         self.cfg.debug_package_is_installed = ret
         return ret
 
-    # pylint: disable=no-self-use
     @step
     def un_install_package(self, package_name: str):
         """Uninstall package"""
         print('uninstalling rpm package "%s"' % package_name)
-        uninstall = pexpect.spawnu("rpm -e " + package_name)
+        uninstall = pexpect.spawnu("rpm -e " + package_name, timeout=60)
         uninstall.logfile = sys.stdout
         try:
             uninstall.expect(pexpect.EOF, timeout=30)

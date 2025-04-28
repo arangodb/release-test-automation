@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """enterprise package conflict checking suite"""
-from arangodb.installers import InstallerBaseConfig
 from package_installation_tests.base_package_installation_test_suite import BasePackageInstallationTestSuite
 from package_installation_tests.installation_steps import (
     check_if_server_packages_can_be_installed_consequentially,
@@ -11,21 +10,24 @@ from package_installation_tests.installation_steps import (
     check_if_client_package_can_be_installed,
     check_if_server_package_can_be_installed,
 )
-from selenium_ui_test.test_suites.base_test_suite import (
+from test_suites_core.base_test_suite import (
     testcase,
     disable_if_returns_true_at_runtime,
     disable_for_debian,
     disable_for_windows,
     disable_for_mac,
 )
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
+# pylint: disable=line-too-long
 
 class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
     """enterprise package conflict checking suite"""
 
-    # pylint: disable=too-many-arguments disable=line-too-long
-    def __init__(self, versions: list, base_config: InstallerBaseConfig):
-        super().__init__(versions=versions, base_config=base_config)
+    # pylint: disable=missing-function-docstring
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
+        self.suite_name = f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
 
     disable_for_zip_packages = disable_if_returns_true_at_runtime(
         BasePackageInstallationTestSuite.is_zip, "This test case is not applicable for .zip packages."
@@ -34,10 +36,6 @@ class EnterprisePackageInstallationTestSuite(BasePackageInstallationTestSuite):
         BasePackageInstallationTestSuite.client_package_is_not_present,
         "Test case is skipped because client package is not present for given installer type.",
     )
-
-    # pylint: disable=missing-function-docstring
-    def generate_custom_suite_name(self):
-        return f"Test package installation/uninstallation. New version: {self.new_version}. Old version: {self.old_version}. Package type: {str(self.new_inst_e.installer_type)}. Enterprise edition."
 
     @disable_for_windows
     @disable_for_mac

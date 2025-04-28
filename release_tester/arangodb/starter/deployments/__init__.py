@@ -1,64 +1,35 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
-from enum import Enum
 import logging
-
+import platform
 from typing import Optional
+
+import semver
+
 from arangodb.starter.deployments.runner import Runner
+from arangodb.installers.depvar import RunnerProperties, RunnerType
 from arangodb.installers.base import InstallerBase
 from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
 
-
-class RunnerType(Enum):
-    """dial which runner instance you want"""
-
-    NONE = 0
-    LEADER_FOLLOWER = 1
-    ACTIVE_FAILOVER = 2
-    CLUSTER = 3
-    DC2DC = 4
-    DC2DCENDURANCE = 5
-    TESTING = 6
+IS_WINDOWS = platform.win32_ver()[0] != ""
+IS_MAC = platform.mac_ver()[0] != ""
 
 
-runner_strings = {
-    RunnerType.NONE: "none",
-    RunnerType.LEADER_FOLLOWER: "Leader / Follower",
-    RunnerType.ACTIVE_FAILOVER: "Active Failover",
-    RunnerType.CLUSTER: "Cluster",
-    RunnerType.DC2DC: "DC 2 DC",
-    RunnerType.DC2DCENDURANCE: "DC 2 DC endurance",
-    RunnerType.TESTING: "Testing"
-}
 
-STARTER_MODES = {
-    "all": [
-        RunnerType.LEADER_FOLLOWER,
-        RunnerType.ACTIVE_FAILOVER,
-        RunnerType.CLUSTER,
-        RunnerType.DC2DC,
-    ],
-    "LF": [RunnerType.LEADER_FOLLOWER],
-    "AFO": [RunnerType.ACTIVE_FAILOVER],
-    "CL": [RunnerType.CLUSTER],
-    "DC": [RunnerType.DC2DC],
-    "DCendurance": [RunnerType.DC2DCENDURANCE],
-    "none": [RunnerType.NONE],
-}
-
-# pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args
+# pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args disable=too-many-branches
 @step
 def make_runner(
     runner_type: RunnerType,
     abort_on_error: bool,
     selenium_worker: str,
     selenium_driver_args: list,
+    selenium_include_suites: list,
     installer_set: list,
     runner_properties: RunProperties,
-    use_auto_certs: bool = True,
 ) -> Runner:
     """get an instance of the arangod runner - as you specify"""
+    # pylint: disable=too-many-return-statements
     assert runner_type, "no runner no cry?"
     assert len(installer_set) > 0, "no base config?"
     for one_installer_set in installer_set:
@@ -70,16 +41,41 @@ def make_runner(
         selenium_driver_args += ("ignore-certificate-errors",)
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
+    msg = ""
+    if runner_type == RunnerType.ACTIVE_FAILOVER and installer_set[len(installer_set) - 1][
+        1
+    ].cfg.semver > semver.VersionInfo.parse("3.11.99"):
+        runner_type = RunnerType.NONE
+        msg = "Active failover not supported for these versions"
+
+    if runner_type == RunnerType.DC2DC:
+        if not installer_set[len(installer_set) - 1][1].cfg.enterprise:
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment is not supported in community edition."
+        elif IS_WINDOWS:
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment is not supported on Windows."
+        elif IS_MAC:
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment is not supported on MacOS."
+        elif installer_set[len(installer_set) - 1][1].cfg.semver > semver.VersionInfo.parse("3.11.99"):
+            runner_type = RunnerType.NONE
+            msg = "DC2DC deployment not supported on version 3.12 and newer."
+
     args = (
         runner_type,
         abort_on_error,
         installer_set,
         selenium_worker,
         selenium_driver_args,
-        runner_properties.testrun_name,
-        runner_properties.ssl,
-        use_auto_certs,
+        selenium_include_suites,
+        runner_properties
     )
+
+    if runner_type == RunnerType.SINGLE:
+        from arangodb.starter.deployments.single import Single
+
+        return Single(*args)
 
     if runner_type == RunnerType.LEADER_FOLLOWER:
         from arangodb.starter.deployments.leaderfollower import LeaderFollower
@@ -109,6 +105,8 @@ def make_runner(
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter
 
-        return NoStarter(*args)
+        ret = NoStarter(*args)
+        ret.msg = msg
+        return ret
 
     raise Exception("unknown starter type")

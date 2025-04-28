@@ -6,8 +6,9 @@ import sys
 import os
 import click
 
-from arangodb.starter.deployments import STARTER_MODES
-from arangodb.installers import HB_MODES, HB_PROVIDERS
+from arangodb.hot_backup_cfg import HB_MODES, HB_PROVIDERS
+from arangodb.installers import EXECUTION_PLAN
+from arangodb.installers.depvar import STARTER_MODES
 
 CWD = Path.cwd()
 
@@ -44,9 +45,10 @@ def zip_common_options(function):
     )(function)
     return function
 
+
 def hotbackup_options():
-    """ all of these hot backup options
-        => arangodb.installers.HotBackupCliCfg """
+    """all of these hot backup options
+    => arangodb.installers.HotBackupCliCfg"""
     access_key_id = get_default_value("AWS_ACCESS_KEY_ID", "", "")
     secret_access_key = get_default_value("AWS_SECRET_ACCESS_KEY", "", "")
     region = get_default_value("AWS_REGION", "", "")
@@ -134,13 +136,55 @@ def hotbackup_options():
             help="Azure storage account access key.",
         )(function)
         return function
+
     return inner_func
 
 
+def test_suite_filtering_options():
+    """options for running arbitrary sets of test suites, test cases"""
+
+    def inner_func(function):
+        function = click.option(
+            "--include-test-suite",
+            "include_test_suites",
+            default=[],
+            type=click.STRING,
+            multiple=True,
+            help="List of test suite names to run. To define a list of suites, ",
+        )(function)
+        function = click.option(
+            "--exclude-test-suite",
+            "exclude_test_suites",
+            default=[],
+            type=click.STRING,
+            multiple=True,
+            help="Run all known test suites except these.",
+        )(function)
+        return function
+
+    return inner_func
+
+
+def ui_test_suite_filtering_options():
+    """options for filtering UI test suites"""
+
+    def inner_func(function):
+        function = click.option(
+            "--ui-include-test-suite",
+            "ui_include_test_suites",
+            default=[],
+            type=click.STRING,
+            multiple=True,
+            help="List of UI test suite names to run.",
+        )(function)
+        return function
+
+    return inner_func
+
 
 def very_common_options(support_multi_version=False):
-    """ These options are in all scripts
-        most => arangodb.installers.InstallerBaseConfig """
+    """These options are in all scripts
+    most => arangodb.installers.InstallerBaseConfig"""
     package_dir = Path("/home/package_cache/")
 
     if not package_dir.exists():
@@ -160,6 +204,18 @@ def very_common_options(support_multi_version=False):
             multiple=support_multi_version,
             help="ArangoDB version number.",
             default=defver,
+        )(function)
+        function = click.option(
+            "--checkdata/--no-checkdata",
+            is_flag=True,
+            default=True,
+            help="whether to run makedata/checkdata.",
+        )(function)
+        function = click.option(
+            "--check_locale/--no-check_locale",
+            is_flag=True,
+            default=True,
+            help="whether to skip the initial locale environment check.",
         )(function)
         function = click.option(
             "--verbose/--no-verbose",
@@ -189,9 +245,10 @@ def common_options(
     interactive=True,
     test_data_dir="/tmp/",
     support_multi_version=False,
+    test_suites_default_value=True,
 ):
-    """ these options are common to most scripts
-        most => arangodb.installers.InstallerBaseConfig """
+    """these options are common to most scripts
+    most => arangodb.installers.InstallerBaseConfig"""
 
     test_data_dir = get_default_path_value("WORKSPACE", "test_dir", test_data_dir)
     default_allure_dir = Path("/home/allure-results")
@@ -210,6 +267,16 @@ def common_options(
                 help="old ArangoDB version number.",
                 default=defver,
             )(function)
+        function = click.option(
+            "--test",
+            default="",
+            help="filter which makedata tests to run",
+        )(function)
+        function = click.option(
+            "--skip",
+            default="",
+            help="filter which makedata tests to not run",
+        )(function)
         function = click.option(
             "--test-data-dir",
             default=test_data_dir,
@@ -247,7 +314,13 @@ def common_options(
             default=True,
             help="if we should abort on first error",
         )(function)
-        function = click.option("--publicip", default="127.0.0.1", help="IP for the click to browser hints.")(function)
+        listen_ip = get_default_value("HOSTNAME", "", "127.0.0.1")
+        if listen_ip != "127.0.0.1":
+            # pylint: disable=import-outside-toplevel
+            import socket
+
+            listen_ip = socket.gethostbyname(listen_ip)
+        function = click.option("--publicip", default=listen_ip, help="IP for the click to browser hints.")(function)
         function = click.option(
             "--selenium",
             default="none",
@@ -277,6 +350,56 @@ def common_options(
             default=False,
             help="use self-signed SSL certs",
         )(function)
+        function = click.option(
+            "--cluster-nodes",
+            "cluster_nodes",
+            is_flag=False,
+            default=5,
+            help="Number of nodes to run clusters with",
+        )(function)
+        function = click.option(
+            "--force-oneshard/--do-not-force-oneshard",
+            "force_one_shard",
+            is_flag=True,
+            default=False,
+            help="force the OneShard mode for all collections/databases",
+        )(function)
+        function = click.option(
+            "--monitoring/--no-monitoring",
+            is_flag=True,
+            default=True,
+            help="enable hardware resources monitoring",
+        )(function)
+        function = click.option(
+            "--replication2/--no-replication2",
+            is_flag=True,
+            default=False,
+            help="use replication v.2 where applicable(only for clean installation tests of versions 3.12.0+)",
+        )(function)
+        function = click.option(
+            "--run-test-suites/--do-not-run-test-suites",
+            "run_test_suites",
+            is_flag=True,
+            default=test_suites_default_value,
+            help="Run test suites for each version pair.",
+        )(function)
+        function = click.option(
+            "--create-oneshard-db/--do-not-create-oneshard-db",
+            "create_oneshard_db",
+            is_flag=True,
+            default=False,
+            help='Create an extra database with sharding attribute set to "single" and run makedata tests in it '
+            "in addition to the _system database.",
+        )(function)
+        function = click.option(
+            "--tarball-limit",
+            "tarball_count_limit",
+            is_flag=False,
+            default=-1,
+            help="Limit number of tarballs created during test run. Default value: -1(unlimited). "
+            "This is intended for runs with large number of deployments/configurations to save disk space "
+            "in case all of the tests fail because of the same error.",
+        )(function)
         return function
 
     return inner_func
@@ -284,15 +407,37 @@ def common_options(
 
 def download_options(default_source="public", double_source=False, other_source=False):
     """these are options available in scripts downloading packages"""
-    download_sources = ["ftp:stage1", "http:stage1", "ftp:stage2", "http:stage2", "nightlypublic", "public", "local"]
+    download_sources = [
+        "ftp:stage1",
+        "ftp:stage2",
+        "http:stage2",
+        "http:stage2-rta",
+        "nightlypublic",
+        "public",
+        "local",
+    ]
 
     def inner_func(function):
+        default_local_httpuser = get_default_value("RTA_LOCAL_HTTPUSER", "", "")
         function = click.option("--enterprise-magic", default="", help="Enterprise or community?")(function)
         function = click.option(
             "--force/--no-force",
             is_flag=True,
             default=False,
             help="whether to overwrite existing target files or not.",
+        )(function)
+        function = click.option(
+            "--force-arch",
+            is_flag=False,
+            default="",
+            help="whether to download for a different architecture than the host.",
+        )(function)
+        function = click.option(
+            "--force-os",
+            is_flag=False,
+            default="",
+            type=click.Choice(["", "windows", "mac", "ubuntu", "debian", "centos", "redhat", "alpine"]),
+            help="whether to download for a os than the host. ",
         )(function)
         if double_source:
             function = click.option(
@@ -321,12 +466,41 @@ def download_options(default_source="public", double_source=False, other_source=
                 type=click.Choice(download_sources),
                 help="where to download the secondary package from",
             )(function)
-        function = click.option("--httpuser", default="", help="user for external http download")(function)
-        function = click.option("--httppassvoid", default="", help="passvoid for external http download")(function)
+        function = click.option("--httpuser", default=default_local_httpuser, help="user for external http download")(
+            function
+        )
         function = click.option("--remote-host", default="", help="remote host to acquire packages from")(function)
         return function
 
     return inner_func
+
+
+def matrix_options(test_default_value=True):
+    """these are options available in scripts running upgrade matrices"""
+
+    def func(function):
+        function = click.option(
+            "--upgrade-matrix",
+            default="",
+            help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'",
+        )(function)
+        function = click.option(
+            "--run-test/--no-run-test",
+            "run_test",
+            is_flag=True,
+            default=test_default_value,
+            help="Run clean installation test for primary version.",
+        )(function)
+        function = click.option(
+            "--run-upgrade/--no-run-upgrade",
+            "run_upgrade",
+            is_flag=True,
+            default=test_default_value,
+            help="Run upgrade matrix test for all versions.",
+        )(function)
+        return function
+
+    return func
 
 
 def full_common_options(function):
@@ -339,7 +513,7 @@ def full_common_options(function):
     function = click.option(
         "--edition",
         "editions",
-        default=["EE", "EP", "C"],
+        default=[props.directory_suffix for props in EXECUTION_PLAN],
         multiple=True,
         help="which editions to run EE => enterprise Encryption@rest, EP => enterprise, C => community",
     )(function)

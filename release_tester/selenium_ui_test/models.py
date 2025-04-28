@@ -11,12 +11,3 @@ class IndexType(Enum):
     GEO = "Geo"
     FULLTEXT = "Fulltext"
     TTL = "Ttl"
-
-
-class RtaTestResult:
-    """abstract a ui result"""
-    def __init__(self, name, success, message, traceback):
-        self.name = name
-        self.success = success
-        self.message = message
-        self.traceback = traceback

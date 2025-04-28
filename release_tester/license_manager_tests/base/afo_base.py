@@ -5,9 +5,10 @@ import requests
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
+from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import run_before_suite
+from test_suites_core.base_test_suite import run_before_suite, TestMustBeSkipped
 
 
 class LicenseManagerAfoBaseTestSuite(LicenseManagerBaseTestSuite):
@@ -31,14 +32,16 @@ class LicenseManagerAfoBaseTestSuite(LicenseManagerBaseTestSuite):
             abort_on_error=False,
             selenium_worker="none",
             selenium_driver_args=[],
+            selenium_include_suites=[],
             installer_set=self.installer_set,
             runner_properties=RunProperties(
                 enterprise=True,
                 encryption_at_rest=False,
                 ssl=False,
             ),
-            use_auto_certs=False,
         )
+        if isinstance(self.runner, NoStarter):
+            raise TestMustBeSkipped(self.runner.msg)
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
@@ -53,11 +56,10 @@ class LicenseManagerAfoBaseTestSuite(LicenseManagerBaseTestSuite):
         agent_ids.sort()
         return "".join(agent_ids)
 
-    # pylint: disable=redefined-builtin
-    def set_license(self, license):
+    def set_license(self, license_str):
         """set new license"""
-        body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
-        resp = self.runner.agency_get_leader_starter_instance().send_request(
+        body = """[[{"/arango/.license":{"op":"set","new": """ + license_str + """}}]]"""
+        resp = self.runner.agency.get_leader_starter_instance().send_request(
             InstanceType.AGENT,
             requests.post,
             "/_api/agency/write",

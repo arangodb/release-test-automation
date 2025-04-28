@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """ Manage one instance of the arangodb hotbackup CLI tool """
 
-import logging
 import json
+import os
 import re
 import time
 import copy
@@ -14,8 +14,10 @@ from reporting.reporting_utils import step
 from tools.asciiprint import ascii_convert_str, print_progress as progress
 import tools.loghelper as lh
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
-from arangodb.installers import HotBackupMode, HotBackupProviders
+from arangodb.hot_backup_cfg import HotBackupMode, HotBackupProviders
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
+
+from siteconfig import IS_MAC
 
 HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
@@ -25,14 +27,23 @@ HB_2_RCLONE_TYPE = {
     HotBackupMode.AZUREBLOBSTORAGE: "azureblob",
 }
 
+DEFAULT_PROGRESSIVE_TIMEOUT = 20
+if IS_MAC:
+    DEFAULT_PROGRESSIVE_TIMEOUT = 40
+
+
 class HotBackupConfig:
     """manage rclone setup"""
 
-    #values inside this list must be lower case
+    # values inside this list must be lower case
     SECRET_PARAMETERS = ["access_key_id", "secret_access_key", "service_account_credentials", "key"]
 
-    def __init__(self, basecfg, name, raw_install_prefix):
-        self.hb_timeout = 20
+    def __init__(self, basecfg, name, raw_install_prefix, is_instrumented):
+        # pylint: disable=too-many-statements disable=global-statement
+        self.hb_timeout = 120 if is_instrumented else 20
+        if is_instrumented:
+            global DEFAULT_PROGRESSIVE_TIMEOUT
+            DEFAULT_PROGRESSIVE_TIMEOUT *= 4
         hbcfg = basecfg.hb_cli_cfg
         self.hb_provider_cfg = basecfg.hb_provider_cfg
 
@@ -46,13 +57,16 @@ class HotBackupConfig:
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
             and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
         ):
+            endpoint = "http://minio1:9000"
+            if 'ENDPOINT' in os.environ:
+                endpoint = os.environ['ENDPOINT']
             self.name = "S3"
             config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
             config["provider"] = "minio"
             config["env_auth"] = "false"
             config["access_key_id"] = "minio"
             config["secret_access_key"] = "minio123"
-            config["endpoint"] = "http://minio1:9000"
+            config["endpoint"] = endpoint
             config["region"] = "us-east-1"
         elif (
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
@@ -81,8 +95,14 @@ class HotBackupConfig:
             elif hbcfg.hb_gce_service_account_file:
                 config["service_account_file"] = hbcfg.hb_gce_service_account_file
             else:
-                raise Exception("Either \"service_account_credentials\" or \"service_account_file\" parameter must be specified for Google Cloud Storage.")
-        elif self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE and self.hb_provider_cfg.provider == HotBackupProviders.AZURE:
+                raise Exception(
+                    'Either "service_account_credentials" or "service_account_file"'
+                    "parameter must be specified for Google Cloud Storage."
+                )
+        elif (
+            self.hb_provider_cfg.mode == HotBackupMode.AZUREBLOBSTORAGE
+            and self.hb_provider_cfg.provider == HotBackupProviders.AZURE
+        ):
             self.name = "azure"
             self.hb_timeout = 240
             config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
@@ -119,7 +139,7 @@ class HotBackupConfig:
         return filename
 
     def construct_remote_storage_path(self, postfix):
-        """ generate a working storage path from the config params """
+        """generate a working storage path from the config params"""
         result = f"{self.name}:/{self.hb_provider_cfg.path_prefix}/{postfix}"
         while "//" in result:
             result = result.replace("//", "/")
@@ -130,7 +150,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     # pylint: disable=too-many-instance-attributes
     """manages one arangobackup instance"""
 
-    def __init__(self, config, name, raw_install_prefix, connect_instance):
+    def __init__(self, config, name, raw_install_prefix, connect_instance, cfg):
         super().__init__(config, connect_instance)
 
         # directories
@@ -141,32 +161,43 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         self.backup_dir = self.install_prefix / "backup"
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
+        self.cfg = cfg
 
     # pylint: disable=too-many-arguments
     @step
-    def run_backup(self, arguments, name, silent=False, expect_to_fail=False, timeout=20):
+    def _run_backup(
+        self, arguments, name, silent=False, expect_to_fail=False, progressive_timeout=DEFAULT_PROGRESSIVE_TIMEOUT
+    ):
         """run arangobackup"""
+        print(self.cfg)
         if not silent:
-            logging.info("running hot backup " + name)
+            print(f"running hot backup {name} - cwd: {str(self.cfg.sublaunch_pwd.resolve())}")
         run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
         run_cmd += arguments
         lh.log_cmd(arguments, not silent)
 
-        def inspect_line_result(line):
-            strline = str(line)
-            if strline.find("ERROR") >= 0:
-                return True
+        def inspect_line_result(wait, line, params):
+            # pylint: disable=unused-argument
+            if isinstance(line, tuple):
+                strline = str(line[0])
+                if params["verbose"]:
+                    print("e: " + str(line[0], "utf-8").rstrip())
+                params["output"].append(line[0])
+
+                if strline.find("ERROR") >= 0:
+                    params["error"] += strline
+                    return True
             return False
 
         success, output, _, error_found = self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangobackup",
             run_cmd,
-            timeout,
-            inspect_line_result,
-            self.cfg.verbose and not silent,
-            expect_to_fail,
+            params=make_default_params(self.cfg.verbose and not silent, "arangobackup"),
+            progressive_timeout=progressive_timeout,
+            result_line_handler=inspect_line_result,
+            expect_to_fail=expect_to_fail,
         )
 
         if not success:
@@ -177,10 +208,10 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         return output
 
     @step
-    def create(self, backup_name):
+    def create(self, backup_name, progressive_timeout=120):
         """create a hot backup"""
         args = ["create", "--label", backup_name, "--max-wait-for-lock", "180"]
-        out = self.run_backup(args, backup_name)
+        out = self._run_backup(args, backup_name, progressive_timeout=progressive_timeout)
         for line in out.split("\n"):
             match = re.match(r".*identifier '(.*)'", str(line))
             if match:
@@ -190,7 +221,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def list(self):
         """list available hot backups"""
         args = ["list"]
-        out = self.run_backup(args, "list")
+        out = self._run_backup(args, "list")
         backups = []
         for line in out.split("\n"):
             match = re.match(r".* - (.*)$", line)
@@ -202,13 +233,13 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     def restore(self, backup_name):
         """restore an existing hot backup"""
         args = ["restore", "--identifier", backup_name]
-        self.run_backup(args, backup_name, timeout=120)
+        self._run_backup(args, backup_name, progressive_timeout=120)
 
     @step
     def delete(self, backup_name):
         """delete an existing hot backup"""
         args = ["delete", "--identifier", backup_name]
-        self.run_backup(args, backup_name)
+        self._run_backup(args, backup_name)
 
     @step
     def upload(self, backup_name, backup_config: HotBackupConfig, identifier):
@@ -223,7 +254,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         ]
         # fmt: on
 
-        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
+        out = self._run_backup(args, backup_name, progressive_timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup upload --status-id=(\d*)", str(line))
             if match:
@@ -239,9 +270,10 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             status_id,
         ]
         while True:
-            out = self.run_backup(args, backup_name, True)
+            out = self._run_backup(args, backup_name, True)
             progress(".")
             counts = {
+                "NEW": 0,
                 "ACK": 0,
                 "STARTED": 0,
                 "COMPLETED": 0,
@@ -280,37 +312,38 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             '--remote-path', backup_config.construct_remote_storage_path(str(self.backup_dir))
         ]
         # fmt: on
-        out = self.run_backup(args, backup_name, timeout=backup_config.hb_timeout)
+        out = self._run_backup(args, backup_name, progressive_timeout=backup_config.hb_timeout)
         for line in out.split("\n"):
             match = re.match(r".*arangobackup download --status-id=(\d*)", str(line))
             if match:
                 return match.group(1)
         raise Exception("couldn't locate name of the upload process!")
 
-    # pylint: disable=unused-argument disable=no-self-use
+    # pylint: disable=unused-argument
     def validate_local_backup(self, starter_basedir, backup_name):
-        """ validate backups in the local installation """
+        """validate backups in the local installation"""
         self.validate_backup(starter_basedir, backup_name)
 
     def validate_backup(self, directory, backup_name):
-        """ search on the disk whether crash files exist """
+        """search on the disk whether crash files exist"""
         backups_validated = 0
-        for meta_file in directory.glob( "**/*META"):
+        for meta_file in directory.glob("**/*META"):
             content = json.loads(meta_file.read_text())
             size = 0
             count = 0
-            for one_file in meta_file.parent.glob( "**/*"):
+            for one_file in meta_file.parent.glob("**/*"):
                 if one_file.is_dir() or one_file.name == "META":
                     continue
                 size += one_file.stat().st_size
                 count += 1
             backups_validated += 1
             try:
-                if content['countIncludesFilesOnly']:
-                    if size != content['sizeInBytes']:
-                        raise Exception("Backup has different size than its META indicated! " + str(size) +
-                                        " - " + str(content))
-                    if count != content['nrFiles']:
+                if content["countIncludesFilesOnly"]:
+                    if size != content["sizeInBytes"]:
+                        raise Exception(
+                            "Backup has different size than its META indicated! " + str(size) + " - " + str(content)
+                        )
+                    if count != content["nrFiles"]:
                         raise Exception("Backup count of files doesn't match! " + str(count) + " - " + str(content))
                     continue
             except KeyError:

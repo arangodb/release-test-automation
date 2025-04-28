@@ -1,4 +1,5 @@
-!!python/object:arangodb.starter.deployments.cluster_perf.testConfig
+!!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
+phase: jam
 collection_multiplier: 1
 data_multiplier: 4
 db_count: 100
@@ -10,3 +11,5 @@ parallelity: 3
 db_offset: 0
 progressive_timeout: 100
 single_shard: false
+hot_backup: true
+bench_todos: []

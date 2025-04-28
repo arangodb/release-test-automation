@@ -1,6 +1,5 @@
 """License manager tests: DC2DC"""
 import json
-import platform
 
 import requests
 
@@ -8,9 +7,10 @@ import requests
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner, RunnerType
+from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
 from reporting.reporting_utils import step
-from selenium_ui_test.test_suites.base_test_suite import run_before_suite
+from test_suites_core.base_test_suite import run_before_suite, TestMustBeSkipped
 
 
 class LicenseManagerDc2DcBaseTestSuite(LicenseManagerBaseTestSuite):
@@ -33,15 +33,17 @@ class LicenseManagerDc2DcBaseTestSuite(LicenseManagerBaseTestSuite):
             runner_type=RunnerType.DC2DC,
             abort_on_error=False,
             installer_set=self.installer_set,
-            use_auto_certs=False,
             selenium_worker="none",
             selenium_driver_args=[],
+            selenium_include_suites=[],
             runner_properties=RunProperties(
                 enterprise=True,
                 encryption_at_rest=False,
                 ssl=False,
             ),
         )
+        if isinstance(self.runner, NoStarter):
+            raise TestMustBeSkipped(self.runner.msg)
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
@@ -59,10 +61,9 @@ class LicenseManagerDc2DcBaseTestSuite(LicenseManagerBaseTestSuite):
         agent_list.sort()
         return "".join(agent_list)
 
-    # pylint: disable=redefined-builtin
-    def set_license(self, license):
+    def set_license(self, license_str):
         """set new license"""
-        body = """[[{"/arango/.license":{"op":"set","new": """ + license + """}}]]"""
+        body = """[[{"/arango/.license":{"op":"set","new": """ + license_str + """}}]]"""
         resps = self.starter.send_request(
             InstanceType.AGENT,
             requests.post,

@@ -16,12 +16,10 @@ import time
 from pathlib import Path
 import psutil
 import requests
+import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 
-from tools.asciiprint import print_progress as progress
-from tools.timestamp import timestamp
-import tools.loghelper as lh
 from arangodb.instance import (
     ArangodInstance,
     ArangodRemoteInstance,
@@ -34,17 +32,25 @@ from arangodb.backup import HotBackupConfig, HotBackupManager
 from arangodb.sh import ArangoshExecutor
 from arangodb.imp import ArangoImportExecutor
 from arangodb.restore import ArangoRestoreExecutor
+from arangodb.dump import ArangoDumpExecutor
 from arangodb.bench import ArangoBenchManager
 
+from tools.asciiprint import print_progress as progress
+from tools.timestamp import timestamp
+import tools.loghelper as lh
+from tools.killall import get_process_tree
+
+from tools.utils import ARANGOSEARCH_COLUMNS_CACHE_LIMIT
 from reporting.reporting_utils import attach_table, step, attach_http_request_to_report, attach_http_response_to_report
 
 IS_WINDOWS = sys.platform == "win32"
 
-# pylint: disable=too-many-lines
+
+# pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
     """manages one starter instance"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=dangerous-default-value disable=too-many-statements disable=too-many-public-methods disable=method-hidden disable=too-many-branches
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-public-methods disable=method-hidden disable=too-many-branches
     def __init__(
         self,
         basecfg,
@@ -54,25 +60,47 @@ class StarterManager:
         mode=None,
         port=None,
         jwt_str=None,
-        moreopts=[],
+        moreopts=None,
     ):
         self.expect_instances = expect_instances
         self.expect_instances.sort()
-        self.moreopts = basecfg.default_starter_args + moreopts
         self.cfg = copy.deepcopy(basecfg)
-        if self.cfg.verbose:
-            self.moreopts += ["--log.verbose=true"]
-            # self.moreopts += ['--all.log', 'startup=debug']
+        self.default_starter_args = self.cfg.default_starter_args.copy()
+        if moreopts is None:
+            self.moreopts = []
+        else:
+            self.moreopts = moreopts
+        # if self.cfg.verbose:
+        self.moreopts += ["--log.verbose=true"]
+        # self.moreopts += ['--all.log', 'startup=debug']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
-        # self.moreopts += ["--all.log.level=arangosearch=trace"]
-        # self.moreopts += ["--all.log.level=startup=trace"]
-        # self.moreopts += ["--all.log.level=engines=trace"]
+        # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
+        # if not IS_WINDOWS:
+        #   self.moreopts += ["--args.all.log.level=maintenance=trace"]
+        #  self.moreopts += ["--args.all.log.output=maintenance=file://@ARANGODB_SERVER_DIR@/arangod_maintainance.log"]
+        if IS_WINDOWS and mode == "cluster":
+            self.moreopts += ["--args.all.log.level=startup=trace"]
+        # self.moreopts += ["--args.all.log.level=engines=trace"]
         # self.moreopts += ["--all.log.escape-control-chars=true"]
         # self.moreopts += ["--all.log.escape-unicode-chars=true"]
-        if (basecfg.semver.major==3 and basecfg.semver.minor>=9) or (basecfg.semver.major>3):
-            self.moreopts += ["--args.all.database.extended-names-databases=true"]
+        # Split logmessages of facilities into several logfiles to reduce load on the main log:
+        # self.moreopts += ["--args.all.log.output=general=file://@ARANGODB_SERVER_DIR@/arangod.log"]
+        # self.moreopts += ["--args.all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
+        # self.moreopts += ["--starter.disable-ipv6=false"]
+        # self.moreopts += ["--starter.host=127.0.0.1"]
+        # self.moreopts += ["--args.all.temp.dumpenv=true"]
 
+        if self.cfg.hot_backup_supported and self.cfg.semver.prerelease is not None and self.cfg.semver.minor >= 9:
+            self.moreopts += [
+                "--all.rclone.argument=--log-level=DEBUG",
+                "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
+            ]
+        if self.cfg.semver > "3.12.4":
+            self.moreopts += [
+                "--all.experimental-vector-index=true",
+            ]
+        print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
         self.old_install_prefix = self.cfg.install_prefix
@@ -80,6 +108,7 @@ class StarterManager:
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
         self.basedir.mkdir(parents=True, exist_ok=True)
         self.log_file = self.basedir / "arangodb.log"
+        self.log_files = [self.log_file]
 
         # arg port - can be set - otherwise it is read from the log later
         self.starter_port = port
@@ -88,9 +117,9 @@ class StarterManager:
 
         self.hotbackup_args = []
         if self.cfg.hot_backup_supported:
-            self.moreopts += ["--all.log.level=backup=trace"]
+            self.moreopts += ["--args.all.log.level=backup=trace"]
             self.hotbackup_args = [
-                "--all.rclone.executable",
+                "--args.all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
 
@@ -143,6 +172,7 @@ class StarterManager:
         self.is_leader = False
         self.arangosh = None
         self.arango_importer = None
+        self.arango_dump = None
         self.arango_restore = None
         self.arangobench = None
         self.executor = None  # meaning?
@@ -154,14 +184,87 @@ class StarterManager:
 
         self.upgradeprocess = None
 
-        self.arguments = [
-            "--log.console=false",
-            "--log.file=true",
-            "--starter.data-dir={0.basedir}".format(self),
-        ] + self.moreopts
+        self.old_version = self.cfg.version
+        self.enterprise = self.cfg.enterprise
+        self.pid = None
+        self.ppid = None
+
+    def _get_arguments(self):
+        return (
+            [
+                "--log.console=false",
+                "--log.file=true",
+                "--starter.data-dir={0.basedir}".format(self),
+            ]
+            + self.moreopts
+            + self.get_version_specific_arguments(self.cfg.version)
+        )
+
+    arguments = property(fget=_get_arguments, doc="List of CLI arguments of the starter.")
 
     def __repr__(self):
         return str(get_instances_table(self.get_instance_essentials()))
+
+    def supports_extended_names(self):
+        """check whether current version supports the extended DB names feature"""
+        semversion = semver.VersionInfo.parse(self.cfg.version)
+        return (semversion.major == 3 and semversion.minor >= 9) or (semversion.major > 3)
+
+    def get_version_specific_arguments(self, version: str):
+        """list starter arguments that must be applied conditionally based on version"""
+        result = []
+        semversion = semver.VersionInfo.parse(version)
+
+        # Extended database names were introduced in 3.9.0
+        if self.supports_extended_names():
+            result += ["--args.all.database.extended-names-databases=true"]
+
+        # Telemetry was introduced in 3.11.0
+        if (semversion.major == 3 and semversion.minor >= 11) or (semversion.major > 3):
+            result += ["--args.all.server.telemetrics-api=false"]
+
+        # Column cache
+        if (
+            self.cfg.enterprise
+            and semver.compare(version, "3.9.5") >= 0
+            and semver.compare(version, "3.10.0") != 0
+            and semver.compare(version, "3.10.1") != 0
+        ):
+            result += [f"--args.all.arangosearch.columns-cache-limit={ARANGOSEARCH_COLUMNS_CACHE_LIMIT}"]
+
+        return result
+
+    def get_structure(self):
+        """serialize the instance info compatible with testing.js"""
+        instances = []
+        urls = []
+        leader_name = ""
+        if self.is_leader:
+            leader_name = self.name
+
+        for arangod in self.all_instances:
+            struct = arangod.get_structure()
+            struct["JWT_header"] = self.get_jwt_header()
+            urls.append(struct["url"])
+            instances.append(struct)
+        return {
+            "protocol": self.get_http_protocol(),
+            "options": "",
+            "addArgs": "",
+            "rootDir": str(self.basedir),
+            "leader": leader_name,
+            "agencyConfig": "",
+            "httpAuthOptions": "",
+            "urls": str(urls),
+            "arangods": instances,
+            "JWT_header": self.get_jwt_header(),
+            # 'url': self.url,
+            # 'endpoints': self.endpoints,
+            # 'endpoint': self.endpoint,
+            # 'restKeyFile': self.restKeyFile,
+            # 'tcpdump': self.tcpdump,
+            # 'cleanup': self.cleanup
+        }
 
     def name(self):
         """name of this starter"""
@@ -232,6 +335,15 @@ class StarterManager:
         print("NO S.B. ELSE")
         return False
 
+    def cleanup_hotbackup_in_instance(self):
+        """remove hotbackup from the database directory"""
+        for instance in self.all_instances:
+            # pylint: disable=broad-except
+            try:
+                instance.clean_hotbackup()
+            except Exception as ex:
+                print(f"ignoring error during cleaning hot backup: {ex}")
+
     def get_instance_essentials(self):
         """get the essentials of all instances controlled by this starter"""
         ret = []
@@ -253,12 +365,14 @@ class StarterManager:
     def run_starter(self, expect_to_fail=False):
         """launch the starter for this instance"""
         logging.info("running starter " + self.name)
-        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments
+        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
+
         lh.log_cmd(args)
         self.instance = psutil.Popen(args)
         logging.info("my starter has PID:" + str(self.instance.pid))
         if not expect_to_fail:
             self.wait_for_logfile()
+            self.wait_for_port_bind()
 
     @step
     def attach_running_starter(self):
@@ -327,6 +441,9 @@ class StarterManager:
             print("Provisioning passvoid " + passvoid)
             self.arangosh.js_set_passvoid("root", passvoid)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
+        else:
+            self.arangosh.cfg.passvoid = passvoid
+            self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
             if i.is_frontend():
@@ -338,24 +455,28 @@ class StarterManager:
         return self.passvoid
 
     @step
-    def send_request(self, instance_type, verb_method, url, data=None, headers={}, timeout=None):
+    def send_request(self, instance_type, verb_method, url, data=None, headers=None, timeout=None):
         """send an http request to the instance"""
+        if headers is None:
+            request_headers = {}
+        else:
+            request_headers = dict(headers)
         http_client.HTTPConnection.debuglevel = 1
 
         results = []
         for instance in self.all_instances:
             if instance.instance_type == instance_type:
-                if instance.detect_gone(verbose=False):
+                if instance.detect_gone():
                     print("Instance to send request to already gone: " + repr(instance))
                 else:
-                    headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
+                    request_headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
                     base_url = instance.get_public_plain_url()
                     full_url = self.get_http_protocol() + "://" + base_url + url
-                    attach_http_request_to_report(verb_method.__name__, full_url, headers, data)
+                    attach_http_request_to_report(verb_method.__name__, full_url, request_headers, data)
                     reply = verb_method(
                         full_url,
                         data=data,
-                        headers=headers,
+                        headers=request_headers,
                         allow_redirects=False,
                         timeout=timeout,
                         verify=False,
@@ -409,7 +530,22 @@ class StarterManager:
             time.sleep(1)
 
     @step
-    def wait_for_upgrade_done_in_log(self, timeout=120):
+    def wait_for_port_bind(self):
+        """wait for our instance to bind its TCP-ports"""
+        if self.starter_port is not None:
+            count = 0
+            while count < 20:
+                for socket in self.instance.connections():
+                    if socket.status == "LISTEN" and socket.laddr.port == self.starter_port:
+                        print("socket found!")
+                        return
+                count += 1
+                time.sleep(1)
+            raise Exception(f"starter didn't bind {self.starter_port} on time!")
+        print("dont know port")
+
+    @step
+    def wait_for_upgrade_done_in_starter_log(self, timeout=120):
         """in single server mode the 'upgrade' commander exits before
         the actual upgrade is finished. Hence we need to look into
         the logfile of the managing starter if it thinks its finished.
@@ -456,47 +592,62 @@ class StarterManager:
         """terminate the instance of this starter
         (it should kill all its managed services)"""
 
-        lh.subsubsection("terminating instances for: " + str(self.name))
-        logging.info("StarterManager: Terminating starter instance: %s", str(self.arguments))
+        lh.subsubsection(f"terminating instances {self.instance} for: {str(self.name)} ")
+        logging.info(
+            "StarterManager: Terminating starter instance: %s", str(self.default_starter_args + self.arguments)
+        )
 
         logging.info("This should terminate all child processes")
         self.instance.terminate()
-        logging.info("StarterManager: waiting for process to exit")
+        logging.info(f"StarterManager: waiting for process {self.instance.pid} to exit")
         exit_code = self.instance.wait()
         self.add_logfile_to_report()
-        # workaround BTS-815: starter exits 15 on the wintendo:
-        if IS_WINDOWS and exit_code == 15:
-            exit_code = 0
 
         if exit_code != 0:
             raise Exception("Starter %s exited with %d" % (self.basedir, exit_code))
+        number = len(self.log_files) + 1
+        logfile = str(self.log_file)
+        old_log = Path(logfile + ".old." + str(number))
+        msg = ""
+        if old_log.exists():
+            old_log.unlink()
+            msg = "removed old"
 
-        old_log = self.basedir / "arangodb.log.old"
         logging.info(
-            "StarterManager: done - moving logfile from %s to %s",
+            "StarterManager: done - moving logfile from %s to %s " + msg,
             str(self.log_file),
             str(old_log),
         )
-        if old_log.exists():
-            old_log.unlink()
         self.log_file.rename(old_log)
+        self.log_files.append(old_log)
 
         for instance in self.all_instances:
             instance.rename_logfile()
-            if not instance.detect_gone(verbose=False):
+            if not instance.detect_gone():
                 print("Manually terminating instance!")
                 instance.terminate_instance(False)
+
+        if keep_instances:
+            for i in self.all_instances:
+                i.pid = None
+                i.ppid = None
+            return False
         # Clear instances as they have been stopped and the logfiles
         # have been moved.
-        if not keep_instances:
-            self.is_leader = False
-            self.all_instances = []
+        ret = False
+        for instance in self.all_instances:
+            print("u" * 80)
+            if instance.search_for_warnings(True):
+                ret = True
+        self.is_leader = False
+        self.all_instances = []
+        return ret
 
     @step
     def kill_instance(self):
         """kill the instance of this starter
         (it won't kill its managed services)"""
-        logging.info("StarterManager: Killing: %s", str(self.arguments))
+        logging.info("StarterManager: Killing: %s", str(self.default_starter_args + self.arguments))
         self.instance.kill()
         try:
             logging.info(str(self.instance.wait(timeout=45)))
@@ -505,6 +656,7 @@ class StarterManager:
             raise Exception("Failed to KILL the starter instance? " + repr(self)) from ex
 
         logging.info("StarterManager: Instance now dead.")
+        self.instance = None
 
     def replace_binary_for_upgrade(self, new_install_cfg, relaunch=True):
         """
@@ -517,6 +669,9 @@ class StarterManager:
         """
         # On windows the install prefix may change,
         # since we can't overwrite open files:
+        old_version = self.cfg.version
+        self.default_starter_args = new_install_cfg.default_starter_args.copy()
+        self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
@@ -525,8 +680,20 @@ class StarterManager:
             self.detect_instance_pids_still_alive()
         if relaunch:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
-                self.respawn_instance()
+                self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
+        self.cfg = new_install_cfg
+        self.arangosh = None
+        self.detect_arangosh_instances(new_install_cfg, old_version)
+
+    @step
+    def kill_specific_instance(self, which_instances):
+        """kill specific instances of this starter
+        (it won't kill starter itself)"""
+        for instance_type in which_instances:
+            for instance in self.all_instances:
+                if instance.instance_type == instance_type:
+                    instance.terminate_instance()
 
     @step
     def manually_launch_instances(self, which_instances, moreargs, waitpid=True, kill_instance=False):
@@ -540,6 +707,8 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.cfg.version,
+                        self.enterprise,
                         moreargs,
                         waitpid,
                     )
@@ -556,6 +725,8 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.cfg.version,
+                        self.enterprise,
                         moreargs,
                         waitpid,
                     )
@@ -572,6 +743,8 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.cfg.version,
+                        self.enterprise,
                         moreargs,
                         True,
                     )
@@ -579,6 +752,8 @@ class StarterManager:
                         self.cfg.sbin_dir,
                         self.old_install_prefix,
                         self.cfg.install_prefix,
+                        self.cfg.version,
+                        self.enterprise,
                         [],
                         False,
                     )
@@ -599,15 +774,18 @@ class StarterManager:
         self.cfg.set_directories(new_install_cfg)
         if self.cfg.hot_backup_supported:
             self.hotbackup_args = [
-                "--all.rclone.executable",
+                "--args.all.rclone.executable",
                 self.cfg.real_sbin_dir / "rclone-arangodb",
             ]
 
     @step
-    def kill_sync_processes(self):
+    def kill_sync_processes(self, force, rev):
         """kill all arangosync instances we posses"""
         for i in self.all_instances:
             if i.is_sync_instance():
+                if not force and i.pid_file is not None and rev >= semver.VersionInfo.parse("0.15.0"):
+                    print("Skipping manual kill")
+                    return
                 logging.info("manually killing syncer: " + str(i.pid))
                 i.terminate_instance()
 
@@ -622,7 +800,8 @@ class StarterManager:
             "--starter.endpoint",
             self.get_http_protocol() + "://127.0.0.1:" + str(self.get_my_port()),
         ]
-        logging.info("StarterManager: Commanding upgrade %s", str(args))
+        logging.info("StarterManager: Commanding upgrade:")
+        lh.log_cmd(" ".join([str(arg) for arg in args]))
         self.upgradeprocess = psutil.Popen(
             args,
             # stdout=subprocess.PIPE,
@@ -635,8 +814,6 @@ class StarterManager:
     @step
     def wait_for_upgrade(self, timeout=60):
         """wait for the upgrade commanding starter to finish"""
-        # for line in self.upgradeprocess.stderr:
-        #    ascii_print(line)
         ret = None
         try:
             ret = self.upgradeprocess.wait(timeout=timeout)
@@ -668,7 +845,7 @@ class StarterManager:
                 node.detect_restore_restart()
 
     @step
-    def tcp_ping_nodes(self):
+    def tcp_ping_nodes(self, timeout=20.0):
         """
         tries to wait for the server to restart after the 'restore' command
         """
@@ -678,21 +855,29 @@ class StarterManager:
                 InstanceType.SINGLE,
                 InstanceType.DBSERVER,
             ]:
-                node.check_version_request(20.0)
+                node.check_version_request(timeout)
 
     @step
-    def respawn_instance(self, moreargs=[], wait_for_logfile=True):
+    def respawn_instance(self, version, moreargs=None, wait_for_logfile=True):
         """
         restart the starter instance after we killed it eventually,
         maybe command manual upgrade (and wait for exit)
         """
-        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.arguments + moreargs
+        assert version is not None
+        self.cfg.version = version
+        args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
+        if moreargs is not None:
+            args.extend(moreargs)
 
         logging.info("StarterManager: respawning instance %s", str(args))
+        lh.log_cmd(args)
         self.instance = psutil.Popen(args)
+        self.pid = self.instance.pid
+        self.ppid = self.instance.ppid()
         print("respawned with PID:" + str(self.instance.pid))
         if wait_for_logfile:
             self.wait_for_logfile()
+            self.wait_for_port_bind()
         else:
             print("Waiting for starter to exit")
             print("Starter exited %d" % self.instance.wait())
@@ -790,7 +975,9 @@ class StarterManager:
     @step
     def detect_instances(self):
         """see which arangods where spawned and inspect their logfiles"""
+        # pylint: disable=too-many-locals
         lh.subsection("Instance Detection for {0.name}".format(self))
+        jwt = self.get_jwt_header()
         self.all_instances = []
         logging.debug("waiting for frontend")
         logfiles = set()  # logfiles that can be used for debugging
@@ -838,6 +1025,9 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
+                            self.cfg.version,
+                            self.enterprise,
+                            jwt=jwt,
                         )
                         instance.wait_for_logfile(tries)
                         instance.detect_pid(
@@ -870,7 +1060,6 @@ class StarterManager:
             message = "if that does not help try to delete: " + str(self.basedir)
             logging.error(message)
             raise Exception(message)
-
         self.show_all_instances()
 
     @step
@@ -884,41 +1073,45 @@ class StarterManager:
             )
 
         self.show_all_instances()
-        self.detect_arangosh_instances()
+        self.detect_arangosh_instances(self.cfg, self.cfg.version)
 
     @step
     def detect_fatal_errors(self):
         """scan all instances for `FATAL` statements"""
         for instance in self.all_instances:
             instance.detect_fatal_errors()
+        if self.search_for_warnings():
+            raise Exception("Starter: Fatal error found!")
 
     @step
-    def detect_arangosh_instances(self):
+    def detect_arangosh_instances(self, config, old_version):
         """
         gets the arangosh instance to speak to the frontend of this starter
         """
         if self.arangosh is None:
-            self.cfg.port = self.get_frontend_port()
-
-            self.arangosh = ArangoshExecutor(self.cfg, self.get_frontend())
-            self.arango_importer = ArangoImportExecutor(self.cfg, self.get_frontend())
-            self.arango_restore = ArangoRestoreExecutor(self.cfg, self.get_frontend())
-            if self.cfg.hot_backup_supported:
-                self.cfg.passvoid = self.passvoid
+            config.port = self.get_frontend_port()
+            config.passvoid = self.passvoid
+            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
+            self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
+            self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
+            self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
+            if config.hot_backup_supported:
                 self.hb_instance = HotBackupManager(
-                    self.cfg,
+                    config,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir,
+                    config.base_test_dir / self.raw_basedir,
                     self.get_frontend(),
+                    self.cfg
                 )
                 self.hb_config = HotBackupConfig(
-                    self.cfg,
+                    config,
                     self.raw_basedir,
-                    self.cfg.base_test_dir / self.raw_basedir,
+                    config.base_test_dir / self.raw_basedir,
+                    self.cfg.is_instrumented,
                 )
 
     @step
-    def launch_arangobench(self, testacse_no, moreopts=[]):
+    def launch_arangobench(self, testacse_no, moreopts=None):
         """launch an arangobench instance to the frontend of this starter"""
         arangobench = ArangoBenchManager(self.cfg, self.get_frontend())
         arangobench.launch(testacse_no, moreopts)
@@ -937,9 +1130,10 @@ class StarterManager:
 
         if len(missing_instances) > 0:
             logging.error(
-                "Not all instances are alive. " "The following are not running: %s",
+                "Not all instances are alive. The following are not running: %s",
                 str(missing_instances),
             )
+            logging.error(get_process_tree())
             raise Exception("instances missing: " + str(missing_instances))
         instances_table = get_instances_table(self.get_instance_essentials())
         logging.info("All arangod instances still running: \n%s", str(instances_table))
@@ -979,12 +1173,12 @@ class StarterManager:
         lfs = self.read_db_logfile()
 
         became_leader = lfs.find("Became leader in") >= 0
-        took_over = lfs.find("Successful leadership takeover:" " All your base are belong to us") >= 0
+        took_over = lfs.find("Successful leadership takeover:" + " All your base are belong to us") >= 0
         self.is_leader = became_leader or took_over
         if self.is_leader:
             url = self.get_frontend().get_local_url("")
-            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth("root", self.passvoid))
-            print(str(reply))
+            reply = requests.get(url, auth=requests.auth.HTTPBasicAuth("root", self.passvoid), timeout=120)
+            print(f"{url} =>  {str(reply)}")
             if reply.status_code == 503:
                 self.is_leader = False
         return self.is_leader
@@ -1031,17 +1225,23 @@ class StarterManager:
     def search_for_warnings(self):
         """dump out instance args, and what could be fishy in my log"""
         log = str()
-        print(self.arguments)
-        if not self.log_file.exists():
-            print(str(self.log_file) + " not there. Skipping search")
-            return
-        print(str(self.log_file))
-        with self.log_file.open(errors="backslashreplace") as log_f:
-            for line in log_f.readline():
-                if "WARN" in line or "ERROR" in line:
-                    print(line.rstrip())
-                    log += line.rstrip()
-        attach(log, "WARN or ERROR lines from starter log")
+        fatal_found = False
+        print(f"{str(self)}: Scanning logfiles")
+        for log_file in self.log_files:
+            if not log_file.exists():
+                print(str(log_file) + " not there. Skipping search")
+                continue
+            print(str(log_file))
+            with log_file.open(errors="backslashreplace") as log_f:
+                for line in log_f:
+                    if "WARN" in line or "ERROR" in line:
+                        print(line.rstrip())
+                        log += line.rstrip()
+                    if "segmentation fault" in line:
+                        print(f"FATAL LINE FOUND: {line.rstrip()}")
+                        fatal_found = True
+                attach(log, "WARN or ERROR lines from starter log")
+        return fatal_found
 
     @step
     def add_logfile_to_report(self):
@@ -1084,7 +1284,7 @@ class StarterManager:
 class StarterNonManager(StarterManager):
     """this class is a dummy starter manager to work with similar interface"""
 
-    # pylint: disable=dangerous-default-value disable=too-many-arguments
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         basecfg,
@@ -1094,9 +1294,10 @@ class StarterNonManager(StarterManager):
         mode=None,
         port=None,
         jwt_str=None,
-        moreopts=[],
+        moreopts=None,
     ):
-
+        if moreopts is None:
+            moreopts = []
         super().__init__(
             basecfg,
             install_prefix,
@@ -1108,20 +1309,22 @@ class StarterNonManager(StarterManager):
             moreopts,
         )
 
-        if basecfg.index >= len(basecfg.frontends):
-            basecfg.index = 0
+        if self.cfg.index >= len(self.cfg.frontends):
+            self.cfg.index = 0
         inst = ArangodRemoteInstance(
             "coordinator",
-            basecfg.frontends[basecfg.index].port,
+            self.cfg.frontends[self.cfg.index].port,
             # self.cfg.localhost,
-            basecfg.frontends[basecfg.index].ip,
-            basecfg.frontends[basecfg.index].ip,
+            self.cfg.frontends[self.cfg.index].ip,
+            self.cfg.frontends[self.cfg.index].ip,
             Path("/"),
             self.cfg.passvoid,
             self.cfg.ssl,
+            self.cfg.enterpise,
+            self.cfg.version,
         )
         self.all_instances.append(inst)
-        basecfg.index += 1
+        self.cfg.index += 1
 
     @step
     def run_starter(self, expect_to_fail=False):
@@ -1129,7 +1332,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def detect_instances(self):
-        self.detect_arangosh_instances()
+        self.detect_arangosh_instances(self.cfg, self.cfg.version)
 
     @step
     def detect_instance_pids(self):

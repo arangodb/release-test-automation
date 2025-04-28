@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 
+from arangodb.starter.deployments import RunProperties
 from arangodb.starter.deployments.runner import Runner, RunnerProperties
 
 
 class NoStarter(Runner):
     """This runner does not use the starter"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes, disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -15,18 +16,20 @@ class NoStarter(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
-        testrun_name: str,
-        ssl: bool,
-        use_auto_certs: bool,
+        selenium_include_suites,
+        rp: RunProperties
     ):
+        self.msg = ""
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("none", 0, 0, False, ssl, use_auto_certs),
+            RunnerProperties(
+                rp, "none", 0, 1, False, 1
+            ),
             selenium,
             selenium_driver_args,
-            testrun_name,
+            selenium_include_suites,
         )
 
     def starter_prepare_env_impl(self):
@@ -55,6 +58,12 @@ class NoStarter(Runner):
 
     def before_backup_impl(self):
         """nothing to see here"""
+
+    def before_backup_create_impl(self):
+        """nothing to see here"""
+
+    def after_backup_create_impl(self):
+        """HotBackup has happened, prepare the SUT to continue testing"""
 
     def after_backup_impl(self):
         """nothing to see here"""

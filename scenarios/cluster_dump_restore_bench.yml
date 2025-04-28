@@ -1,0 +1,79 @@
+!!python/object:arangodb.starter.deployments.cluster_perf.TestConfig
+phase:
+  - dump
+collection_multiplier: 1
+data_multiplier: 4
+db_count: 2
+db_count_chunks: 5
+max_replication_factor: 3
+min_replication_factor: 2
+launch_delay: 1.3
+parallelity: 9
+db_offset: 0
+progressive_timeout: 1000
+single_shard: false
+hot_backup: true 
+system_makedata: false
+dump_jobs:
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg1
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg2
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg3
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg4
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg5
+restore_jobs:
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg1
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg2
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg3
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg4
+- args:
+    - --include-system-collections
+    - "true"
+    - --overwrite
+    - "true"
+  dir: blarg5
+bench_jobs:

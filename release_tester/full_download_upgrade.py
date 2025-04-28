@@ -1,31 +1,45 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -u
 """ fetch nightly packages, process upgrade """
-#pylint: disable=duplicate-code
-from pathlib import Path
 import sys
 
-import click
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
+# pylint: disable=duplicate-code
+from copy import deepcopy
+from pathlib import Path
+import traceback
 
-from beautifultable import BeautifulTable, ALIGN_LEFT
+import click
+import semver
 
 import tools.loghelper as lh
-from download import (
-    get_tar_file_path,
-    read_versions_tar,
-    write_version_tar,
-    touch_all_tars_in_dir,
-    Download,
-    DownloadOptions,
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN, InstallerBaseConfig
+from arangodb.instance import dump_instance_registry
+from common_options import (
+    very_common_options,
+    common_options,
+    download_options,
+    full_common_options,
+    hotbackup_options,
+    ui_test_suite_filtering_options,
 )
+from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
+from write_result_table import write_table
+import reporting.reporting_utils
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
-    dl_opts: DownloadOptions, new_version, old_version, new_dlstage, old_dlstage, git_version, editions, test_driver
+        dl_opts: DownloadOptions,
+        new_version,
+        old_version,
+        new_dlstage,
+        old_dlstage,
+        git_version,
+        editions,
+        test_driver,
+        kwargs
 ):
     """process fetch & tests"""
 
@@ -34,13 +48,7 @@ def upgrade_package_test(
     list_all_processes()
     test_dir = test_driver.base_config.test_data_dir
 
-    versions = {}
     fresh_versions = {}
-    version_state_tar = get_tar_file_path(
-        test_driver.launch_dir, [old_version, new_version], test_driver.get_packaging_shorthand()
-    )
-    read_versions_tar(version_state_tar, versions)
-    print(versions)
 
     results = []
     # do the actual work:
@@ -49,29 +57,35 @@ def upgrade_package_test(
         test_driver.run_cleanup(props)
     print("Cleanup done")
 
-    for props in EXECUTION_PLAN:
-        if props.directory_suffix not in editions:
+    versions = []
+    enterprise_packages_are_present = False
+    community_packages_are_present = False
+    count = 0
+    for _props in EXECUTION_PLAN:
+        if _props.directory_suffix not in editions:
             continue
+        props = deepcopy(_props)
+        props.set_kwargs(kwargs)
+
+        count += 1
         # pylint: disable=unused-variable
+        dl_opt = deepcopy(dl_opts)
+        dl_opt.force = dl_opts.force and props.force_dl
         dl_old = Download(
-            dl_opts,
-            test_driver.base_config.hb_cli_cfg,
+            test_driver.base_config,
+            dl_opt,
             old_version,
             props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
             old_dlstage,
             versions,
             fresh_versions,
             git_version,
         )
         dl_new = Download(
-            dl_opts,
-            test_driver.base_config.hb_cli_cfg,
+            test_driver.base_config,
+            dl_opt,
             new_version,
             props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
             new_dlstage,
             versions,
             fresh_versions,
@@ -80,68 +94,95 @@ def upgrade_package_test(
         if not dl_new.is_different() or not dl_old.is_different():
             print("we already tested this version. bye.")
             return 0
-        dl_old.get_packages(dl_old.is_different())
-        dl_new.get_packages(dl_new.is_different())
+        try:
+            dl_old.get_packages(dl_old.is_different())
+            dl_new.get_packages(dl_new.is_different())
 
-        this_test_dir = test_dir / props.directory_suffix
-        test_driver.reset_test_data_dir(this_test_dir)
-
-        results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
-
-    for use_enterprise in [True, False]:
+            this_test_dir = test_dir / props.directory_suffix
+            test_driver.reset_test_data_dir(this_test_dir)
+            skip = False
+            for version in [new_version, old_version]:
+                if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                    skip = True
+            if skip:
+                print(f"Skipping {str(props)}")
+                continue
+            results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+            versions.append([dl_new.cfg.version, dl_old.cfg.version])
+            if props.enterprise:
+                enterprise_packages_are_present = True
+            else:
+                community_packages_are_present = True
+        except PermissionError as ex:
+            enterprise_packages_are_present = False
+            community_packages_are_present = False
+            print(f"Failed to download file: {ex} ")
+            print("".join(traceback.TracebackException.from_exception(ex).format()))
+            results.append(
+                [
+                    {
+                        "messages": [f"Failed to download file: {ex} "],
+                        "error": True,
+                        "success": False,
+                        "testrun name": "",
+                        "progress": "",
+                        "testscenario": "",
+                    }
+                ]
+            )
+    if count == 0:
+        raise Exception("Unknown edition specified")
+    params = deepcopy(test_driver.cli_test_suite_params)
+    params.new_version = dl_new.cfg.version
+    params.old_version = dl_old.cfg.version
+    if enterprise_packages_are_present and community_packages_are_present:
+        params.enterprise = True
         results.append(
-            test_driver.run_conflict_tests(
-                [dl_old.cfg.version, dl_new.cfg.version],
-                enterprise=use_enterprise,
+            test_driver.run_test_suites(
+                include_suites=("EnterprisePackageInstallationTestSuite",),
+                params=params,
+            )
+        )
+        params.enterprise = False
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=("CommunityPackageInstallationTestSuite",),
+                params=params,
             )
         )
 
-    results.append(test_driver.run_license_manager_tests([dl_old.cfg.version, dl_new.cfg.version]))
+    if enterprise_packages_are_present:
+        params.enterprise = True
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=(
+                    "DebuggerTestSuite",
+                    "BasicLicenseManagerTestSuite",
+                    "UpgradeLicenseManagerTestSuite",
+                    "BinaryComplianceTestSuite",
+                ),
+                params=params,
+            )
+        )
+
+    if community_packages_are_present:
+        params.enterprise = False
+        results.append(
+            test_driver.run_test_suites(
+                include_suites=(
+                    "DebuggerTestSuite",
+                    "BinaryComplianceTestSuite",
+                ),
+                params=params,
+            )
+        )
 
     print("V" * 80)
-    status = True
-    table = BeautifulTable(maxwidth=140)
-    for one_suite_result in results:
-        if len(one_suite_result) > 0:
-            for one_result in one_suite_result:
-                if one_result["success"]:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]),
-                        ]
-                    )
-                else:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ]
-                    )
-                status = status and one_result["success"]
-    table.columns.header = [
-        "Testrun",
-        "Test Scenario",
-        # 'success', we also have this in message.
-        "Message + Progress",
-    ]
-    table.columns.alignment["Message + Progress"] = ALIGN_LEFT
-
-    tablestr = str(table)
-    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
-    if not status:
+    if not write_table(results):
         print("exiting with failure")
-        sys.exit(1)
-
-    if dl_opts.force:
-        touch_all_tars_in_dir(version_state_tar)
-    else:
-        write_version_tar(version_state_tar, fresh_versions)
-    print(tablestr)
+        dump_instance_registry("instances.txt")
+        return 1
+    dump_instance_registry("instances.txt")
 
     return 0
 
@@ -161,7 +202,8 @@ def upgrade_package_test(
     interactive=False,
     test_data_dir="/home/test_dir",
 )
-@download_options(default_source="ftp:stage2", double_source=True)
+@download_options(default_source="nightlypublic", double_source=True)
+@ui_test_suite_filtering_options()
 def main(**kwargs):
     """main"""
     kwargs["interactive"] = False
@@ -169,23 +211,32 @@ def main(**kwargs):
     kwargs["package_dir"] = Path(kwargs["package_dir"])
     kwargs["test_data_dir"] = Path(kwargs["test_data_dir"])
     kwargs["alluredir"] = Path(kwargs["alluredir"])
+    kwargs['is_instrumented'] = False
 
     kwargs["hb_cli_cfg"] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs["base_config"] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
-    test_driver = TestDriver(**kwargs)
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
 
-    return upgrade_package_test(
-        dl_opts,
-        kwargs["new_version"],
-        kwargs["old_version"],
-        kwargs["new_source"],
-        kwargs["old_source"],
-        kwargs["git_version"],
-        kwargs["editions"],
-        test_driver,
-    )
+    test_driver = None
+    ret = 1
+    try:
+        test_driver = TestDriver(**kwargs)
+        ret = upgrade_package_test(
+            dl_opts,
+            kwargs["new_version"],
+            kwargs["old_version"],
+            kwargs["new_source"],
+            kwargs["old_source"],
+            kwargs["git_version"],
+            kwargs["editions"],
+            test_driver,
+            kwargs
+        )
+    finally:
+        test_driver.destructor()
+    return ret
 
 
 if __name__ == "__main__":

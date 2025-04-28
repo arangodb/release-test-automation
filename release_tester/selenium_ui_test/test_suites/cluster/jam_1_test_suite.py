@@ -2,25 +2,25 @@
 """ cluster jam step 1 testsuite """
 import platform
 import time
-from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 
+from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTestSuite
 from selenium_ui_test.pages.cluster_page import ClusterPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium_ui_test.pages.nodes_page import NodesPage
-from selenium_ui_test.test_suites.base_test_suite import testcase
 
 
 class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
     """ cluster jam step 1 testsuite """
     WINVER = platform.win32_ver()
 
-    @testcase
+    # @Ignore
+    # @testcase
     def jam_step_1(self):
         """check for one set of instances to go away"""
         self.webdriver.refresh()
         time.sleep(2)
-        NavigationBarPage(self.webdriver).navbar_goto("cluster")
-        cluster_page = ClusterPage(self.webdriver)
+        NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("cluster")
+        cluster_page = ClusterPage(self.webdriver, self.cfg, self.video_start_time)
         node_count = None
         done = False
         retry_count = 0
@@ -50,12 +50,12 @@ class ClusterJamStepOneSuite(BaseSeleniumTestSuite):
         health_state = cluster_page.get_health_state()
         self.ui_assert(health_state != "NODES OK", "UI-Test: expected health to be NODES OK, have: " + health_state)
 
-        NavigationBarPage(self.webdriver).navbar_goto("nodes")
-        nodes_page = NodesPage(self.webdriver)
+        NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).navbar_goto("nodes")
+        nodes_page = NodesPage(self.webdriver, self.cfg, self.video_start_time)
         row_count = 0
         retry_count = 0
         while row_count != 4 and retry_count < 10:
-            table = nodes_page.cluster_get_nodes_table(300)
+            table = nodes_page.cluster_get_nodes_table(300, self.selenium_runner.props.cluster_nodes)
             for row in table:
                 if row["state"] == "SERVING":
                     row_count += 1

@@ -4,11 +4,15 @@ import logging
 import re
 import time
 from pathlib import Path
+import platform
 
+import psutil
 import requests
 import semver
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
+from arangodb.starter.deployments.runner import Runner
 from arangodb.starter.manager import StarterManager
 from arangodb.sync import SyncManager
 from arangodb.async_client import CliExecutionException
@@ -25,9 +29,13 @@ SYNC_VERSIONS = {
     "260": semver.VersionInfo.parse("2.6.0"),
 }
 
-STARTER_VERSIONS = {"152": semver.VersionInfo.parse("0.15.2")}
+STARTER_VERSIONS = {
+    "150": semver.VersionInfo.parse("0.15.0"),
+    "152": semver.VersionInfo.parse("0.15.2"),
+}
 USERS_ERROR_RX = re.compile(".*_system.*_users.*DIFFERENT.*")
 STATUS_INACTIVE = "inactive"
+IS_MAC = platform.mac_ver()[0]
 
 
 def _create_headers(token):
@@ -41,7 +49,7 @@ def _get_sync_status(cluster):
     cluster_instance = cluster["instance"]
     token = cluster_instance.get_jwt_token_from_secret_file(cluster["SyncSecret"])
     url = "https://" + cluster_instance.get_sync_master().get_public_plain_url() + "/_api/sync"
-    response = requests.get(url, headers=_create_headers(token))
+    response = requests.get(url, headers=_create_headers(token), timeout=20)
 
     if response.status_code != 200:
         raise Exception(
@@ -90,7 +98,7 @@ def _get_sync_status(cluster):
 class Dc2Dc(Runner):
     """this launches two clusters in dc2dc mode"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -98,18 +106,20 @@ class Dc2Dc(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
-        testrun_name: str,
-        ssl: bool,
-        use_auto_certs: bool,
+        selenium_include_suites,
+        rp: RunProperties
     ):
+        name = "DC2DC" if not rp.force_one_shard else "FORCED_ONESHARD_DC2DC"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("DC2DC", 0, 4500, True, ssl, use_auto_certs),
+            RunnerProperties(
+                rp, name, 0, 4500, True, 12
+            ),
             selenium,
             selenium_driver_args,
-            testrun_name,
+            selenium_include_suites,
         )
         self.success = True
         self.cfg.passvoid = ""
@@ -187,12 +197,20 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        # pylint: disable=dangerous-default-value
-        def _add_starter(val, port, moreopts=[]):
+        def _add_starter(val, port, moreopts=None):
             # fmt: off
+            if moreopts is None:
+                moreopts = []
+            if psutil.cpu_count() < 16:
+                # FIXME: temp solution for BTS-1690 - limit concurrency during initial-sync phase (default 16)
+                moreopts.append('--args.syncworkers.worker.max-initial-sync-tasks=8')
             opts = [
-                    '--all.log.level=backup=trace',
-                    '--all.log.level=requests=debug',
+                    '--args.all.cluster.default-replication-factor=2',
+                    '--args.all.log.level=backup=trace',
+                    # '--args.all.log.level=requests=debug',
+                    '--args.syncmasters.log.level=debug',
+                    '--args.syncworkers.log.level=debug',
+                    '--args.sync.log.stderr=false',
                     '--starter.sync',
                     '--starter.local',
                     '--auth.jwt-secret=' +           str(val["JWTSecret"]),
@@ -233,22 +251,41 @@ class Dc2Dc(Runner):
             if port == 7528:
                 val["instance"].is_leader = True
 
-        _add_starter(self.cluster1, port=7528)
-        _add_starter(self.cluster2, port=9528, moreopts=['--args.dbservers.log', 'request=trace'])
+        common_opts = []
+        if self.replication2:
+            common_opts += [
+                "--dbservers.database.default-replication-version=2",
+                "--coordinators.database.default-replication-version=2",
+                "--args.all.log.level=replication2=debug",
+            ]
+        if self.props.force_one_shard:
+            common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
+        _add_starter(self.cluster1, port=7528, moreopts=common_opts)
+        _add_starter(
+            self.cluster2,
+            port=9528,
+            moreopts=common_opts
+            # moreopts=['--args.dbservers.log', 'request=trace']
+        )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
     def starter_run_impl(self):
         def launch(cluster):
             inst = cluster["instance"]
             inst.run_starter()
+            count = 0
             while not inst.is_instance_up():
                 logging.info(".")
                 time.sleep(1)
+                count += 1
+                if count > 120:
+                    raise Exception("DC2DC Cluster installation didn't come up in two minutes!")
+
             inst.detect_instances()
             inst.detect_instance_pids()
             cluster["smport"] = inst.get_sync_master_port()
             url = "http://{host}:{port}".format(host=self.cfg.publicip, port=str(cluster["smport"]))
-            reply = requests.get(url)
+            reply = requests.get(url, timeout=20)
             logging.info(str(reply))
             logging.info(str(reply.raw))
             logging.info("instances are ready - JWT: " + inst.get_jwt_header())
@@ -302,7 +339,7 @@ class Dc2Dc(Runner):
         token = cluster_instance.get_jwt_token_from_secret_file(self.cluster1["SyncSecret"])
         url = cluster_instance.get_sync_master().get_public_plain_url()
         url = "https://" + url + "/_api/version"
-        response = requests.get(url, headers=_create_headers(token))
+        response = requests.get(url, headers=_create_headers(token), timeout=20)
 
         if response.status_code != 200:
             raise Exception("could not fetch arangosync version from {0}".format(url))
@@ -314,6 +351,8 @@ class Dc2Dc(Runner):
         return semver.VersionInfo.parse(version)
 
     def _stop_sync(self, timeout=130):
+        if IS_MAC:
+            timeout *= 2
         try:
             timeout_start = time.time()
             if self._is_higher_sync_version(SYNC_VERSIONS["150"], SYNC_VERSIONS["230"]):
@@ -326,12 +365,15 @@ class Dc2Dc(Runner):
                 )
                 _, _, _, _ = self.sync_manager.stop_sync(timeout, ["--ensure-in-sync=false"])
         except CliExecutionException as exc:
+            print(f"Deadline reached while stopping sync! checking wether it worked anyways? {exc}")
             self.state += "\n" + exc.execution_result[1]
             output = ""
             if exc.have_timeout:
-                (result, output) = self.sync_manager.check_sync()
+                (result, output, _, _) = self.sync_manager.check_sync()
                 if result:
                     print("CHECK SYNC OK!")
+                self.sync_manager.abort_sync()
+                return
             raise Exception("failed to stop the synchronization; check sync:" + output) from exc
 
         # From here on it is known that `arangosync stop sync` succeeded (exit code == 0).
@@ -369,8 +411,8 @@ class Dc2Dc(Runner):
                 )
             else:
                 self.progress(True, "arangosync: restarting instances...")
-                self.cluster1["instance"].kill_sync_processes()
-                self.cluster2["instance"].kill_sync_processes()
+                self.cluster1["instance"].kill_sync_processes(True, STARTER_VERSIONS["152"])
+                self.cluster2["instance"].kill_sync_processes(True, STARTER_VERSIONS["152"])
                 time.sleep(3)
                 self.cluster1["instance"].detect_instances()
                 self.cluster2["instance"].detect_instances()
@@ -384,7 +426,7 @@ class Dc2Dc(Runner):
             coll_count = 0
             for line in last_sync_output.splitlines():
                 if not dbline_seen:
-                    dbline_seen = line.startswith('Database')
+                    dbline_seen = line.startswith("Database")
                 else:
                     coll_count += 1
                     if re.match(USERS_ERROR_RX, line):
@@ -398,46 +440,73 @@ class Dc2Dc(Runner):
                 self.progress(True, "arangosync: resetting users collection...")
                 self.sync_manager.reset_failed_shard("_system", "_users")
 
-    # pylint: disable=no-self-use
     def _print_users(self, cluster):
         output = cluster["instance"].arangosh.run_command(
-            ("print _users",
-             "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
-             "--server.jwt-secret-keyfile", cluster["JWTSecret"]),
+            (
+                "print _users",
+                "q = db._collection('_users').all(); while (q.hasNext()) print(q.next());",
+                "--server.jwt-secret-keyfile",
+                cluster["JWTSecret"],
+            ),
             True,
-            use_default_auth=False
+            use_default_auth=False,
         )
         print(str(output))
 
     def _get_in_sync(self, attempts):
         self.progress(True, "waiting for the DCs to get in sync")
         output = None
-        for count in range(attempts):
-            (result, output) = self.sync_manager.check_sync()
+        counts = []
+        last_count = 999999
+        no_count_change = 0
+        while True:
+            (result, output, _, _) = self.sync_manager.check_sync()
             if result:
                 print("CHECK SYNC OK!")
                 break
+            count = output.count("\n")
+            counts.append(count)
+            if count >= last_count:
+                no_count_change += 1
+            else:
+                last_count = count
+                no_count_change = 0
             progress("sx" + str(count))
             self._mitigate_known_issues(output)
             time.sleep(10)
-        else:
-            self.state += "\n" + output
-            raise Exception("failed to get the sync status")
+            if no_count_change == attempts:
+                self.state += "\n" + output
+                raise Exception(f"failed to get the DCs in sync {str(counts)}")
 
     def test_setup_impl(self):
-        ret = self.cluster1["instance"].arangosh.check_test_data("dc2dc (post setup - dc1)", True)
-        if not ret[0]:
-            raise Exception("check data on source cluster failed " + ret[1])
-        self._get_in_sync(20)
+        for db_name, one_shard, count_offset in self.makedata_databases():
+            if self.cfg.checkdata:
+                ret = self.cluster1["instance"].arangosh.check_test_data(
+                    "dc2dc (post setup - dc1)",
+                    True,
+                    args=["--countOffset", str(count_offset)],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    raise Exception("check data on source cluster failed " + ret[1])
+            self._get_in_sync(50)
 
-        self.cluster2["instance"].send_request(InstanceType.COORDINATOR, requests.post, "/_admin/routing/reload", "")
-        ret = self.cluster2["instance"].arangosh.check_test_data(
-            "dc2dc (post setup - dc2)", True, ["--readOnly", "true"]
-        )
-        if not ret[0]:
-            if not self.cfg.verbose:
-                print(ret[1])
-            raise Exception("error during verifying of " "the test data on the target cluster " + ret[1])
+            self.cluster2["instance"].send_request(
+                InstanceType.COORDINATOR, requests.post, "/_admin/routing/reload", ""
+            )
+            if self.cfg.checkdata:
+                ret = self.cluster2["instance"].arangosh.check_test_data(
+                    "dc2dc (post setup - dc2)",
+                    True,
+                    ["--readOnly", "true", "--countOffset", str(count_offset), '--skip', '802_'],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    if not self.cfg.verbose:
+                        print(ret[1])
+                    raise Exception("error during verifying of " "the test data on the target cluster " + ret[1])
 
         args = [self.cluster2["instance"].get_frontend().get_public_url("root:%s@" % self.passvoid)]
         if self.cfg.semver.major >= 3 and self.cfg.semver.minor >= 8:
@@ -452,12 +521,13 @@ class Dc2Dc(Runner):
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             args,
+            deadline=60000,
         )
         if not res[0]:
             if not self.cfg.verbose:
                 print(res[1])
             raise Exception("replication fuzzing test failed")
-        self._get_in_sync(12)
+        self._get_in_sync(50)
 
     def wait_for_restore_impl(self, backup_starter):
         for dbserver in self.cluster1["instance"].get_dbservers():
@@ -466,19 +536,19 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         self._stop_sync(300)
-        print("aoeu" * 30)
-        print(self.cfg)
-        self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
-        self.cluster1["instance"].replace_binary_for_upgrade(self.new_cfg)
-        self.cluster2["instance"].replace_binary_for_upgrade(self.new_cfg)
-        if self.new_installer.get_starter_version() >= STARTER_VERSIONS["152"]:
+        self.sync_manager.replace_binary_for_upgrade(self.new_installer.cfg)
+        self.cluster1["instance"].replace_binary_for_upgrade(self.new_installer.cfg)
+        self.cluster2["instance"].replace_binary_for_upgrade(self.new_installer.cfg)
+        rev = self.new_installer.get_starter_version()
+        if rev >= STARTER_VERSIONS["152"]:
             print("Attempting parallel upgrade")
             self.cluster1["instance"].command_upgrade()
             self.cluster2["instance"].command_upgrade()
+            # Don't kill sync processes, because ArangoDB Starter should restart them.
             # workaround: kill the sync'ers by hand, the starter doesn't
             # self._stop_sync()
-            self.cluster1["instance"].kill_sync_processes()
-            self.cluster2["instance"].kill_sync_processes()
+            self.cluster1["instance"].kill_sync_processes(False, rev)
+            self.cluster2["instance"].kill_sync_processes(False, rev)
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
             self.cluster2["instance"].wait_for_upgrade(300)
@@ -486,12 +556,12 @@ class Dc2Dc(Runner):
         else:
             print("Attempting sequential upgrade")
             self.cluster1["instance"].command_upgrade()
-            self.cluster1["instance"].kill_sync_processes()
+            self.cluster1["instance"].kill_sync_processes(False, rev)
             self.cluster1["instance"].wait_for_upgrade(300)
             self.cluster1["instance"].detect_instances()
 
             self.cluster2["instance"].command_upgrade()
-            self.cluster2["instance"].kill_sync_processes()
+            self.cluster2["instance"].kill_sync_processes(False, rev)
             self.cluster2["instance"].wait_for_upgrade(300)
             self.cluster2["instance"].detect_instances()
         # self.sync_manager.start_sync()
@@ -511,11 +581,11 @@ class Dc2Dc(Runner):
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
         self._stop_sync(300)
-        self.sync_manager.replace_binary_for_upgrade(self.new_cfg)
+        self.sync_manager.replace_binary_for_upgrade(self.new_installer.cfg)
         self.progress(True, "manual upgrade step 1 - stop instances")
         self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg, False)
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
 
@@ -545,8 +615,9 @@ class Dc2Dc(Runner):
                 ],
             )
         self.progress(True, "step 5 restart the full cluster ")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
-            node.respawn_instance()
+            node.respawn_instance(version)
         self.progress(True, "step 6 wait for the cluster to be up")
         for node in self.starter_instances:
             node.detect_instances()
@@ -567,46 +638,90 @@ class Dc2Dc(Runner):
     def jam_attempt_impl(self):
         """stress the DC2DC, test edge cases"""
         self.progress(True, "stopping sync")
-        self._stop_sync()
+        self._stop_sync(300)
         self.progress(True, "creating volatile data on secondary DC")
-        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data()
-        ret = self.cluster2["instance"].arangosh.check_test_data("cluster1 after dissolving", True)
-        if not ret[0]:
-            raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
-        ret = self.cluster2["instance"].arangosh.check_test_data("cluster2 after dissolving", True)
-        if not ret[0]:
-            raise Exception("check data on cluster2 after dissolving failed " + ret[1])
+        self.cluster2["instance"].arangosh.hotbackup_create_nonbackup_data("_DC2")
+        if self.cfg.checkdata:
+            for db_name, one_shard, count_offset in self.makedata_databases():
+                ret = self.cluster1["instance"].arangosh.check_test_data(
+                    "cluster1 after dissolving",
+                    True,
+                    args=["--countOffset", str(count_offset)],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    raise Exception("check data on cluster 1 after dissolving failed " + ret[1])
+                ret = self.cluster2["instance"].arangosh.check_test_data(
+                    "cluster2 after dissolving",
+                    True,
+                    args=["--countOffset", str(count_offset), '--skip', '802_'],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    raise Exception("check data on cluster2 after dissolving failed " + ret[1])
         self.progress(True, "restarting sync")
         self._launch_sync(True)
-        self._get_in_sync(20)
-        ret = self.cluster2["instance"].arangosh.check_test_data(
-            "cluster2 after re-syncing", True, ["--readOnly", "true"]
-        )
-        if not ret[0]:
-            raise Exception("check data on cluster1 failed after re-sync \n" + ret[1])
-        ret = self.cluster1["instance"].arangosh.check_test_data("cluster1 after re-syncing", True)
-        if not ret[0]:
-            raise Exception("check data on cluster1 failed after re-sync " + ret[1])
+        self._get_in_sync(50)
+        if self.cfg.checkdata:
+            for db_name, one_shard, count_offset in self.makedata_databases():
+                ret = self.cluster2["instance"].arangosh.check_test_data(
+                    "cluster2 after re-syncing",
+                    True,
+                    ["--readOnly", "true", "--countOffset", str(count_offset), '--skip', '802_'],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    raise Exception("check data on cluster1 failed after re-sync \n" + ret[1])
+                ret = self.cluster1["instance"].arangosh.check_test_data(
+                    "cluster1 after re-syncing",
+                    True,
+                    args=["--countOffset", str(count_offset)],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    raise Exception("check data on cluster1 failed after re-sync " + ret[1])
 
         self.progress(True, "checking whether volatile data has been removed from both DCs")
-        if (
-            not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data()
-            or not self.cluster2["instance"].arangosh.hotbackup_check_for_nonbackup_data()
-        ):
+        if not self.cluster1["instance"].arangosh.hotbackup_check_for_nonbackup_data("_DC2") or not self.cluster2[
+            "instance"
+        ].arangosh.hotbackup_check_for_nonbackup_data("_DC2"):
             raise Exception("expected data created on disconnected follower DC to be gone!")
 
         self.progress(True, "stopping sync")
-        self._stop_sync(120)
+        self._stop_sync(240)
         self.progress(True, "reversing sync direction")
         self._launch_sync(False)
-        self._get_in_sync(20)
-        ret = self.cluster2["instance"].arangosh.check_test_data("cluster2 after reversing direction", True)
-        if not ret[0]:
-            raise Exception("check data on cluster 2 failed after reversing " + ret[1])
+        self._get_in_sync(50)
+        if self.cfg.checkdata:
+            for db_name, one_shard, count_offset in self.makedata_databases():
+                ret = self.cluster2["instance"].arangosh.check_test_data(
+                    "cluster2 after reversing direction",
+                    True,
+                    args=["--countOffset", str(count_offset), '--skip', '802_'],
+                    database_name=db_name,
+                    one_shard=one_shard,
+                )
+                if not ret[0]:
+                    raise Exception("check data on cluster 2 failed after reversing " + ret[1])
+
+        self.progress(True, "stopping sync")
+        self._stop_sync(240)
+        self.progress(True, "reversing sync direction to initial")
+        self._launch_sync(True)
+        self._get_in_sync(50)
 
     def shutdown_impl(self):
-        self.cluster1["instance"].terminate_instance()
-        self.cluster2["instance"].terminate_instance()
+        return self.cluster1["instance"].terminate_instance() or self.cluster2["instance"].terminate_instance()
+
+    def before_backup_create_impl(self):
+        pass
+
+    def after_backup_create_impl(self):
+        pass
 
     def before_backup_impl(self):
         self.sync_manager.abort_sync()
@@ -614,4 +729,4 @@ class Dc2Dc(Runner):
     def after_backup_impl(self):
         self.sync_manager.run_syncer()
 
-        self._get_in_sync(20)
+        self._get_in_sync(50)

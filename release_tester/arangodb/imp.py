@@ -2,7 +2,7 @@
 """ Run a javascript command by spawning an arangosh
     to the configured connection """
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, dummy_line_result
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, default_line_result
 
 
 def get_type_args(filename):
@@ -19,8 +19,6 @@ def get_type_args(filename):
 class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    # pylint: disable=dangerous-default-value
-
     def run_import_monitored(self, args, timeout, verbose=True, expect_to_fail=False):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
@@ -28,33 +26,39 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         a dynamic timeout that its got output
         (is still alive...)
         """
-        run_cmd = self.cfg.default_imp_args + [
-            "--log.level",
-            "debug",
-        ] + args
+        run_cmd = (
+            self.cfg.default_imp_args
+            + [
+                "--log.level",
+                "debug",
+            ]
+            + args
+        )
 
         return self.run_arango_tool_monitored(
             self.cfg.bin_dir / "arangoimport",
             run_cmd,
             timeout,
-            dummy_line_result,
+            default_line_result,
             verbose,
             expect_to_fail,
         )
 
-    def import_collection(self, collection_name, filename, more_args=[]):
+    def import_collection(self, collection_name, filename, more_args=None):
         """import into any collection"""
         # fmt: off
         args = [
             '--collection', collection_name,
             '--file', filename
-        ] + get_type_args(filename) + more_args
+        ] + get_type_args(filename)
+        if more_args is not None:
+            args.extend(more_args)
         # fmt: on
 
         ret = self.run_import_monitored(args, timeout=20, verbose=self.cfg.verbose)
         return ret
 
-    def import_smart_edge_collection(self, collection_name, filename, edge_relations, more_args=[]):
+    def import_smart_edge_collection(self, collection_name, filename, edge_relations, more_args=None):
         """import into smart edge collection"""
         if len(edge_relations) == 1:
             edge_relations.append(edge_relations[0])
@@ -62,7 +66,9 @@ class ArangoImportExecutor(ArangoCLIprogressiveTimeoutExecutor):
         args = [
             '--from-collection-prefix', edge_relations[0],
             '--to-collection-prefix', edge_relations[1]
-        ] + more_args
+        ]
+        if more_args is not None:
+            args.extend(more_args)
         # fmt: on
 
         ret = self.import_collection(collection_name, filename, more_args=args)

@@ -1,216 +1,45 @@
 #!/usr/bin/env python3
 """ run an installer for the detected operating system """
-import logging
-import re
-import os
+from abc import abstractmethod, ABC, ABCMeta
 import copy
-import subprocess
-import platform
-import shutil
-import time
+import logging
+import os
 from pathlib import Path
-from abc import abstractmethod, ABC
+import platform
+import re
+import shutil
+import subprocess
+import time
+
+import magic
 import semver
 import yaml
 import psutil
 
-from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor
+from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
+from arangodb.installers.binary_description import BinaryDescription, FILE_EXTENSION, FILE_PIDS
 from arangodb.installers import InstallerConfig
 from arangodb.instance import ArangodInstance
 from tools.asciiprint import print_progress as progress
 from allure_commons._allure import attach
 from reporting.reporting_utils import step
 
-FILE_PIDS = []
-
-
-@step
-def run_file_command(file_to_check):
-    """run `file file_to_check` and return the output"""
-    with subprocess.Popen(
-        ["file", file_to_check],
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    ) as proc:
-        line = proc.stdout.readline()
-        FILE_PIDS.append(str(proc.pid))
-        proc.wait()
-        print(line)
-        return line
-
-
 IS_WINDOWS = platform.win32_ver()[0]
-FILE_EXTENSION = ""
-if IS_WINDOWS:
-    FILE_EXTENSION = ".exe"
-
-IS_MAC = False
-if platform.mac_ver()[0]:
-    IS_MAC = True
-
-## helper classes
-class BinaryDescription:
-    """describe the availability of an arangodb binary and its properties"""
-
-    def __init__(self, path, name, enter, strip, vmin, vmax, sym, binary_type):
-        # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-        self.path = path / (name + FILE_EXTENSION)
-        self.enterprise = enter
-        self.stripped = strip
-        self.version_min = vmin
-        self.version_max = vmax
-        self.symlink = sym
-        self.binary_type = binary_type
-
-        for attribute in (
-            self.path,
-            self.enterprise,
-            self.stripped,
-            self.version_min,
-            self.version_max,
-            self.symlink,
-            self.binary_type,
-        ):
-            if attribute is None:
-                logging.error("one of the given args is null")
-                logging.error(str(self))
-                raise ValueError
-
-    def __repr__(self):
-        return """
-        path:        {0.path}
-        enterprise:  {0.enterprise}
-        stripped:    {0.stripped}
-        version_min: {0.version_min}
-        version_max: {0.version_max}
-        symlink:     {0.symlink}
-        binary_type: {0.binary_type}
-        """.format(
-            self
-        )
-
-    def _validate_notarization(self, enterprise):
-        """ check whether this binary is notarized """
-        if not enterprise and self.enterprise:
-            return
-        if IS_MAC:
-            cmd = ['codesign', '--verify', '--verbose', str(self.path)]
-            check_strings = [b'valid on disk', b'satisfies its Designated Requirement']
-            with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
-                (_, codesign_str) = proc.communicate()
-                if proc.returncode:
-                    raise Exception("codesign exited nonzero " + str(cmd) + "\n" + str(codesign_str))
-                if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
-                    raise Exception("codesign didn't find signature: " + str(codesign_str))
-
-    # pylint: disable=too-many-arguments
-    @step
-    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized):
-        """check all attributes of this file in reality"""
-        if check_notarized:
-            self._validate_notarization(enterprise)
-        attach(str(self), "file info")
-        if semver.compare(self.version_min, version) == 1:
-            self.check_path(enterprise, False)
-            return
-        self.check_path(enterprise)
-
-        if not enterprise and self.enterprise:
-            # checks do not need to continue in this case
-            return
-        if check_stripped:
-            self.check_stripped()
-        if check_symlink:
-            self.check_symlink()
-
-    def check_path(self, enterprise, in_version=True):
-        """check whether the file rightfully exists or not"""
-        is_there = self.path.is_file()
-        if enterprise and self.enterprise:
-            if not is_there and in_version:
-                raise Exception("Binary missing from enterprise package! "
-                                + str(self.path))
-        # file must not exist
-        if not enterprise and self.enterprise:
-            if is_there:
-                raise Exception("Enterprise binary found in community package! "
-                                + str(self.path))
-        elif not is_there:
-            raise Exception("binary was not found! " + str(self.path))
-
-    def check_stripped_mac(self):
-        """Checking stripped status of the arangod"""
-        time.sleep(1)
-        if self.binary_type == "c++":
-            # finding out the file size before stripped cmd invoked
-            befor_stripped_size = self.path.stat().st_size
-
-            to_file = Path("/tmp/test_whether_stripped")
-            shutil.copy(str(self.path), str(to_file))
-            # invoke the strip command on file_path
-            cmd = ["strip", str(to_file)]
-            with subprocess.Popen(cmd, bufsize=-1, stderr=subprocess.PIPE, stdin=subprocess.PIPE) as proc:
-                FILE_PIDS.append(str(proc.pid))
-                proc.communicate()
-                proc.wait()
-            # check the size of copied file after stripped
-            after_stripped_size = to_file.stat().st_size
-
-            # cleanup temporary file:
-            if to_file.is_file():
-                to_file.unlink(str(to_file))
-            else:
-                print("stripped file not found")
-
-            # checking both output size
-            return befor_stripped_size == after_stripped_size
-        # some go binaries are stripped, some not. We can't test it.
-        return self.stripped
-
-    def check_stripped_linux(self):
-        """check whether this file is stripped (or not)"""
-        output = run_file_command(self.path)
-        if output.find(", stripped") >= 0:
-            return True
-        if output.find(", not stripped") >= 0:
-            return False
-        raise Exception(
-            "Strip checking: parse error for 'file " + str(self.path) + "', unparseable output:  [" + output + "]"
-        )
-
-    @step
-    def check_stripped(self):
-        """check whether this file is stripped (or not)"""
-        is_stripped = True
-        if IS_MAC:
-            print("")
-            # is_stripped = self.check_stripped_mac()
-        else:
-            is_stripped = self.check_stripped_linux()
-            if not is_stripped and self.stripped:
-
-                raise Exception("expected " + str(self.path) + " to be stripped, but it is not stripped")
-
-            if is_stripped and not self.stripped:
-                raise Exception("expected " + str(self.path) + " not to be stripped, but it is stripped")
-
-    @step
-    def check_symlink(self):
-        """check whether the file exists and is a symlink (if)"""
-        for link in self.symlink:
-            if not link.is_symlink():
-                Exception("{0} is not a symlink".format(str(link)))
-
 
 ### main class
 # pylint: disable=attribute-defined-outside-init disable=too-many-public-methods disable=too-many-instance-attributes
 class InstallerBase(ABC):
     """this is the prototype for the operation system agnostic installers"""
 
+    hot_backup: bool
+    basedir: Path
+    installer_type: str
+
     def __init__(self, cfg: InstallerConfig):
+        self.arangods = cfg.arangods
+        self.machine = platform.machine()
         self.arango_binaries = []
+        self.backup_arangod_name = None
         self.cfg = copy.deepcopy(cfg)
         self.calculate_package_names()
 
@@ -226,12 +55,15 @@ class InstallerBase(ABC):
         self.client_package = ""
         self.instance = None
         self.starter_versions = {}
+        self.syncer_versions = {}
+        self.rclone_versions = {}
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
+        self.copy_for_result = True
 
     def reset_version(self, version):
         """re-configure the version we work with"""
-        if version.find('nightly') >=0:
+        if version.find("nightly") >= 0:
             version = version.split("~")[0]
             version = ".".join(version.split(".")[:3])
         self.semver = semver.VersionInfo.parse(version)
@@ -245,8 +77,30 @@ class InstallerBase(ABC):
         self.calculate_file_locations()
 
     @step
+    def copy_binaries(self):
+        """store arangod binary for probable later analysis"""
+        eps = "E_" if self.cfg.enterprise else ""
+        self.backup_arangod_name = self.cfg.base_test_dir / f"arangod_{eps}_{self.cfg.version}{FILE_EXTENSION}"
+        arangod_src = self.cfg.real_sbin_dir / f"arangod{FILE_EXTENSION}"
+        if not str(self.backup_arangod_name) in self.arangods and arangod_src.exists():
+            self.arangods.append(self.backup_arangod_name)
+            print("copying " + str(arangod_src) + " to " + str(self.backup_arangod_name))
+            shutil.copy(str(arangod_src), str(self.backup_arangod_name))
+
+    @step
+    def get_arangod_binary(self, target_dir):
+        """adding arangod binary to report tarball"""
+        if self.backup_arangod_name is None:
+            self.copy_binaries()
+        if self.backup_arangod_name.exists():
+            print(f"copying {self.backup_arangod_name} => {target_dir}")
+            shutil.copy(str(self.backup_arangod_name), target_dir)
+        else:
+            print(f"{str(self.backup_arangod_name)} is not there")
+
+    @step
     def un_install_server_package(self):
-        """ uninstall the server package """
+        """uninstall the server package"""
         if self.cfg.debug_package_is_installed:
             self.un_install_debug_package()
         self.un_install_server_package_impl()
@@ -281,24 +135,23 @@ class InstallerBase(ABC):
 
     @step
     def un_install_server_package_for_upgrade(self):
-        """ if we need to do something to the old installation on upgrade, do it here. """
+        """if we need to do something to the old installation on upgrade, do it here."""
 
-    # pylint: disable=no-self-use
     def install_debug_package_impl(self):
-        """ install the debug package """
+        """install the debug package"""
         return False
 
-    # pylint: disable=no-self-use
     def un_install_debug_package_impl(self):
-        """ uninstall the debug package """
+        """uninstall the debug package"""
         return False
 
     def __repr__(self):
-        return ("Installer type: {0.installer_type}\n"+
-                "Server package: {0.server_package}\n"+
-                "Debug package: {0.debug_package}\n"+
-                "Client package: {0.client_package}").format(
-                    self)
+        return (
+            "Installer type: {0.installer_type}\n"
+            + "Server package: {0.server_package}\n"
+            + "Debug package: {0.debug_package}\n"
+            + "Client package: {0.client_package}"
+        ).format(self)
 
     @abstractmethod
     def calculate_package_names(self):
@@ -349,15 +202,15 @@ class InstallerBase(ABC):
 
     @abstractmethod
     def un_install_server_package_impl(self):
-        """ installer specific server uninstall function """
+        """installer specific server uninstall function"""
 
     @abstractmethod
     def install_client_package_impl(self):
-        """ installer specific client uninstall function """
+        """installer specific client uninstall function"""
 
     @abstractmethod
     def un_install_client_package_impl(self):
-        """ installer specific client uninstall function """
+        """installer specific client uninstall function"""
 
     @abstractmethod
     def cleanup_system(self):
@@ -372,8 +225,8 @@ class InstallerBase(ABC):
         there may be execptions."""
         return semver.compare(self.cfg.version, "3.5.1") >= 0
 
-    # pylint: disable=:no-self-use
-    def calc_config_file_name(self):
+    @staticmethod
+    def calc_config_file_name():
         """store our config to disk - so we can be invoked partly"""
         cfg_file = Path()
         if IS_WINDOWS:
@@ -399,8 +252,18 @@ class InstallerBase(ABC):
                 self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
                 print("Ignoring non deleteable " + str(cfg_file))
                 return
-        cfg_file.write_text(yaml.dump(self.cfg), encoding='utf8')
+        cfg_file.write_text(yaml.dump(self.cfg), encoding="utf8")
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
+
+    @staticmethod
+    def load_config_from_file(filename=None):
+        """find config file on disk"""
+        if not filename:
+            filename = InstallerBase.calc_config_file_name()
+        with open(filename, encoding="utf8") as fileh:
+            print("loading " + str(filename))
+            cfg = yaml.load(fileh, Loader=yaml.Loader)
+            return cfg
 
     @step
     def load_config(self):
@@ -408,17 +271,14 @@ class InstallerBase(ABC):
         # pylint: disable=broad-except
         verbose = self.cfg.verbose
         try:
-            with open(self.calc_config_file_name(), encoding='utf8') as fileh:
-                print("loading " + str(self.calc_config_file_name()))
-                cfg = yaml.load(fileh, Loader=yaml.Loader)
-                test_cfg = copy.deepcopy(self.cfg)
-                test_cfg.set_from(cfg)
-                self.cfg.set_from(test_cfg)
+            ext_cfg = InstallerBase.load_config_from_file()
+            test_cfg = copy.deepcopy(self.cfg)
+            test_cfg.set_from(ext_cfg)
+            self.cfg.set_from(test_cfg)
         except Exception as ex:
             print("failed to load saved config - skiping " + str(ex))
             return
         self.cfg.semver = semver.VersionInfo.parse(self.cfg.version)
-
         self.instance = ArangodInstance(
             "single",
             self.cfg.port,
@@ -427,6 +287,8 @@ class InstallerBase(ABC):
             self.cfg.log_dir,
             self.cfg.passvoid,
             True,
+            self.cfg.version,
+            self.cfg.enterprise,
         )
         self.calculate_package_names()
         self.cfg.verbose = verbose
@@ -477,7 +339,10 @@ class InstallerBase(ABC):
     def output_arangod_version(self):
         """document the output of arangod --version"""
         return self.cli_executor.run_monitored(
-            executeable=self.cfg.sbin_dir / "arangod", args=["--version"], timeout=10, verbose=True
+            executeable=self.cfg.real_sbin_dir / "arangod",
+            args=["--version"],
+            params=make_default_params(True, "arangod versioncheck"),
+            deadline=10,
         )
 
     @step
@@ -487,12 +352,11 @@ class InstallerBase(ABC):
         self.calculate_package_names()
         self.arango_binaries = []
         if self.cfg.client_package_is_installed or self.cfg.server_package_is_installed:
-            stripped_arangod = semver.compare(self.cfg.version, "3.7.999") < 0
-
             self.arango_binaries.append(
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangosh",
+                    "arangosh - commandline client",
                     False,
                     True,
                     "1.0.0",
@@ -503,22 +367,24 @@ class InstallerBase(ABC):
             )
 
             self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangoexport",
-                    False,
-                    True,
-                    "1.0.0",
-                    "4.0.0",
-                    [],
-                    "c++",
-                )
+               BinaryDescription(
+                   self.cfg.real_bin_dir,
+                   "arangoexport",
+                   "arangoexport - data exporter",
+                   False,
+                   True,
+                   "1.0.0",
+                   "4.0.0",
+                   [],
+                   "c++",
+               )
             )
 
             self.arango_binaries.append(
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangoimport",
+                    "arangoimport - data importer",
                     False,
                     True,
                     "1.0.0",
@@ -529,35 +395,38 @@ class InstallerBase(ABC):
             )
 
             self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangodump",
-                    False,
-                    True,
-                    "1.0.0",
-                    "4.0.0",
-                    [],
-                    "c++",
-                )
-            )
+               BinaryDescription(
+                   self.cfg.real_bin_dir,
+                   "arangodump",
+                   "arangodump - data and configuration dumping tool",
+                   False,
+                   True,
+                   "1.0.0",
+                   "4.0.0",
+                   [],
+                   "c++",
+               )
+           )
 
             self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangorestore",
-                    False,
-                    True,
-                    "1.0.0",
-                    "4.0.0",
-                    [],
-                    "c++",
-                )
-            )
+               BinaryDescription(
+                   self.cfg.real_bin_dir,
+                   "arangorestore",
+                   "arangrestore - data and configuration restoration tool",
+                   False,
+                   True,
+                   "1.0.0",
+                   "4.0.0",
+                   [],
+                   "c++",
+               )
+           )
 
             self.arango_binaries.append(
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangobench",
+                    "arangobench.*",  #  - stress test tool",
                     False,
                     True,
                     "1.0.0",
@@ -571,6 +440,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangovpack",
+                    "arangovpack - VelocyPack formatter",
                     False,
                     True,
                     "1.0.0",
@@ -585,6 +455,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangobackup",
+                    "arangobackup - hot backup tool",
                     True,
                     True,
                     "3.5.1",
@@ -600,8 +471,9 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangod",
+                    "ArangoDB - the native multi-model NoSQL database",
                     False,
-                    stripped_arangod,
+                    False,
                     "1.0.0",
                     "4.0.0",
                     [
@@ -617,8 +489,9 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangod",
+                    "ArangoDB - the native multi-model NoSQL database",
                     False,
-                    stripped_arangod,
+                    True,
                     "1.0.0",
                     "3.6.0",
                     [self.cfg.real_bin_dir / ("arango-dfdb" + FILE_EXTENSION)],
@@ -631,6 +504,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_bin_dir,
                     "arangodb",
+                    "",
                     False,
                     False,
                     "1.0.0",
@@ -645,10 +519,11 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "arangosync",
+                    "",
                     True,
                     False,
                     "1.0.0",
-                    "4.0.0",
+                    "3.11.99",
                     [self.cfg.real_bin_dir / ("arangosync" + FILE_EXTENSION)],
                     "go",
                 )
@@ -658,6 +533,7 @@ class InstallerBase(ABC):
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
                     "rclone-arangodb",
+                    "",
                     True,
                     True,
                     "3.5.1",
@@ -675,11 +551,7 @@ class InstallerBase(ABC):
         for binary in self.arango_binaries:
             progress("S" if binary.stripped else "s")
             binary.check_installed(
-                self.cfg.version,
-                self.cfg.enterprise,
-                self.check_stripped,
-                self.check_symlink,
-                self.check_notarized
+                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized, False
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []
@@ -702,6 +574,10 @@ class InstallerBase(ABC):
                 success = False
         return success
 
+    def get_log_dir(self):
+        """get the directory the installer will create logs in"""
+        return self.cfg.install_prefix / self.cfg.log_dir
+
     def set_system_instance(self):
         """
         set an instance representing the system service launched by packages
@@ -711,9 +587,11 @@ class InstallerBase(ABC):
             port="8529",
             localhost=self.cfg.localhost,
             publicip=self.cfg.publicip,
-            basedir=(self.cfg.install_prefix / self.cfg.log_dir),
+            basedir=(self.get_log_dir()),
             passvoid=self.cfg.passvoid,
             ssl=False,
+            version=self.cfg.version,
+            enterprise=self.cfg.enterprise,
         )
 
     def get_starter_version(self):
@@ -731,7 +609,6 @@ class InstallerBase(ABC):
                 [str(starter), "--version"],
                 stdout=subprocess.PIPE,
                 stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 universal_newlines=True,
             )
             line = starter_version_proc.stdout.readline()
@@ -743,18 +620,209 @@ class InstallerBase(ABC):
                 print("Starter version: " + str(self.starter_versions))
         return semver.VersionInfo.parse(self.starter_versions["Version"])
 
+    def get_rclone_version(self):
+        """find out the version of the starter in this package"""
+        if not self.cfg.enterprise:
+            return semver.VersionInfo.parse("0.0.0")
+        if not self.rclone_versions:
+            rclone = self.cfg.real_sbin_dir / ("rclone-arangodb" + FILE_EXTENSION)
+            if not rclone.is_file():
+                print("rclone not found where we searched it? " + str(rclone))
+                return semver.VersionInfo.parse("0.0.0")
+            print(rclone.stat())
+            # print(rclone.owner())
+            # print(rclone.group())
+            print(magic.from_file(str(rclone)))
+            rclone_version_proc = psutil.Popen(
+                [str(rclone), "--version"],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            line = rclone_version_proc.stdout.readline()
+            rclone_version_proc.wait()
+            print(line)
+            string_array = line.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.rclone_versions[splitted[0]] = splitted[1].rstrip()[1:]
+                print("rclone version: " + str(self.rclone_versions))
+        return semver.VersionInfo.parse(self.rclone_versions["rclone"])
+
+    def get_sync_version(self):
+        """find out the version of the starter in this package"""
+        if not self.cfg.enterprise or self.semver > semver.VersionInfo.parse("3.11.99"):
+            return semver.VersionInfo.parse("0.0.0")
+        if not self.syncer_versions:
+            syncer = self.cfg.real_sbin_dir / ("arangosync" + FILE_EXTENSION)
+            if not syncer.is_file():
+                print("syncer not found where we searched it? " + str(syncer))
+                return semver.VersionInfo.parse("0.0.0")
+            syncer_version_proc = psutil.Popen(
+                [str(syncer), "--version"],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                universal_newlines=True,
+            )
+            line = syncer_version_proc.stdout.readline()
+            syncer_version_proc.wait()
+            print(line)
+            string_array = line.split(", ")
+            for one_str in string_array:
+                splitted = one_str.split(" ")
+                self.syncer_versions[splitted[0]] = splitted[1]
+                print("ArangoSync version: " + str(self.syncer_versions))
+        return semver.VersionInfo.parse(self.syncer_versions["Version"])
+
     def check_backup_is_created(self):
         """Check that backup was created after package upgrade"""
 
-    # pylint: disable=:no-self-use
     def supports_backup(self):
         """Does this installer support automatic backup during minor upgrade?"""
         return False
 
     def find_crash(self, base_path):
-        """ search on the disk whether crash files exist """
+        """search on the disk whether crash files exist"""
         for i in base_path.glob(self.core_glob):
-            if str(i).find('node_modules') == -1:
+            if str(i).find("node_modules") == -1 and str(i).find("boost") == -1:
                 print("Found coredump! " + str(i))
                 return True
         return False
+
+
+class InstallerArchive(InstallerBase, metaclass=ABCMeta):
+    """base class for archive packages that need to be installed manually, e.g. .tar.gz for Linux, .zip for Windows"""
+
+    def __init__(self, cfg):
+        cfg.have_system_service = False
+        cfg.install_prefix = self.basedir
+        cfg.bin_dir = None
+        cfg.sbin_dir = None
+        cfg.real_bin_dir = None
+        cfg.real_sbin_dir = None
+
+        cfg.log_dir = Path()
+        cfg.dbdir = None
+        cfg.appdir = None
+        cfg.cfgdir = None
+
+        self.cfg = cfg
+        self.cfg.install_prefix = self.basedir
+        self.cfg.client_install_prefix = self.basedir
+        self.cfg.server_install_prefix = self.basedir
+        self.cfg.debug_install_prefix = self.basedir
+        self.server_package = None
+        self.client_package = None
+        self.debug_package = None
+        self.log_examiner = None
+        self.instance = None
+        super().__init__(cfg)
+
+    def supports_hot_backup(self):
+        """no hot backup support on the wintendo."""
+        if not self.hot_backup:
+            return False
+        return super().supports_hot_backup()
+
+    def check_service_up(self):
+        """nothing to see here"""
+
+    def start_service(self):
+        """nothing to see here"""
+
+    def stop_service(self):
+        """nothing to see here"""
+
+    @step
+    def upgrade_server_package(self, old_installer):
+        """Tar installer is the same way we did for installing."""
+        self.install_server_package()
+        self.calculate_installation_dirs()
+
+    @abstractmethod
+    def calculate_installation_dirs(self):
+        """calculate installation directories"""
+
+    @step
+    def install_server_package_impl(self):
+        logging.info("installing Arangodb " + self.installer_type + " server package")
+        logging.debug("package dir: {0.cfg.package_dir}- " "server_package: {0.server_package}".format(self))
+        if self.cfg.install_prefix.exists():
+            print("Flushing pre-existing installation directory: " + str(self.cfg.install_prefix))
+            shutil.rmtree(self.cfg.install_prefix)
+            while self.cfg.install_prefix.exists():
+                print(".")
+                time.sleep(1)
+        else:
+            self.cfg.install_prefix.mkdir(parents=True)
+
+        extract_to = self.cfg.install_prefix / ".."
+        extract_to = extract_to.resolve()
+
+        print("extracting: " + str(self.cfg.package_dir / self.server_package) + " to " + str(extract_to))
+        shutil.unpack_archive(
+            str(self.cfg.package_dir / self.server_package),
+            str(extract_to),
+        )
+        logging.info("Installation successfull")
+        self.cfg.server_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.server_install_prefix
+        self.calculate_installation_dirs()
+        self.calculate_file_locations()
+
+    @step
+    def install_client_package_impl(self):
+        """install the client tar file"""
+        logging.info("installing Arangodb " + self.installer_type + "client package")
+        logging.debug("package dir: {0.cfg.package_dir}- " "client_package: {0.client_package}".format(self))
+        if not self.cfg.install_prefix.exists():
+            self.cfg.install_prefix.mkdir(parents=True)
+        print(
+            "extracting: "
+            + str(self.cfg.package_dir / self.client_package)
+            + " to "
+            + str(self.cfg.install_prefix / "..")
+        )
+        shutil.unpack_archive(
+            str(self.cfg.package_dir / self.client_package),
+            str(self.cfg.install_prefix / ".."),
+        )
+        logging.info("Installation successfull")
+        self.cfg.client_package_is_installed = True
+        self.cfg.install_prefix = self.cfg.client_install_prefix
+        self.calculate_installation_dirs()
+        self.calculate_file_locations()
+
+    @step
+    def un_install_server_package_impl(self):
+        """remove server package"""
+        self.purge_install_dir()
+
+    @step
+    def un_install_client_package_impl(self):
+        """purge client package"""
+        self.purge_install_dir()
+
+    @step
+    def uninstall_everything_impl(self):
+        """uninstall all arango packages present in the system(including those installed outside this installer)"""
+        self.purge_install_dir()
+        if self.cfg.debug_package_is_installed:
+            shutil.rmtree(self.cfg.debug_install_prefix)
+
+    def purge_install_dir(self):
+        """remove the install directory"""
+        if self.cfg.install_prefix.exists():
+            shutil.rmtree(self.cfg.install_prefix)
+
+    def broadcast_bind(self):
+        """nothing to see here"""
+
+    def check_engine_file(self):
+        """nothing to see here"""
+
+    def check_installed_paths(self):
+        """nothing to see here"""
+
+    def cleanup_system(self):
+        """nothing to see here"""

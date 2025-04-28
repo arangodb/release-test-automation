@@ -5,29 +5,34 @@ import logging
 import re
 import time
 
+from arangodb.starter.deployments.runner import RunnerProperties
+from arangodb.starter.deployments.selenium_deployments.selenoid_swiper import cleanup_temp_files
+from arangodb.starter.deployments.selenium_deployments.selenium_session_spawner import spawn_selenium_session
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from reporting.reporting_utils import step
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSessionIdException
 
 FNRX = re.compile("[\n@]*")
 
 
+
+
 class SeleniumRunner(ABC):
     "abstract base class for selenium UI testing"
     # pylint: disable=line-too-long disable=too-many-public-methods disable=too-many-instance-attributes disable=too-many-arguments
-    def __init__(self, webdriver, is_headless: bool, testrun_name: str, ssl: bool):
+    def __init__(self,
+                 selenium_args,
+                 properties: RunnerProperties,
+                 testrun_name: str,
+                 ssl: bool,
+                 selenium_include_suites: list[str]):
         """hi"""
         self.ssl = ssl
-        self.is_headless = is_headless
         self.testrun_name = testrun_name
-        self.webdriver = webdriver
-        self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
-        self.original_window_handle = None
         self.state = ""
-        time.sleep(3)
-        self.webdriver.set_window_size(1600, 900)
-        time.sleep(3)
+        self.success = True
         self.importer = None
         self.restorer = None
         self.ui_entrypoint_instance = None
@@ -39,6 +44,23 @@ class SeleniumRunner(ABC):
         self.after_install_test_suite_list = []
         self.jam_step_2_test_suite_list = []
         self.wait_for_upgrade_test_suite_list = []
+        self.selenium_include_suites = selenium_include_suites
+        self.props = properties
+        self.video_name = f"{properties.short_name}_{testrun_name}.mp4".replace( '\n', '_').replace('@', '_')
+        mylist = list(
+            selenium_args['selenium_driver_args'])
+        mylist.append(f"selenoid:options=videoName={self.video_name}")
+        selenium_args['selenium_driver_args'] = mylist
+        (self.is_headless, self.webdriver, self.video_start_time) = spawn_selenium_session(**selenium_args)
+        self.supports_console_flush = self.webdriver.capabilities["browserName"] == "chrome"
+        self.original_window_handle = None
+        time.sleep(3)
+        self.webdriver.maximize_window()
+        time.sleep(3)
+        print(f"Video filename will be: {self.video_name}")
+
+    def _cleanup_temp_files(self):
+        cleanup_temp_files(self.is_headless)
 
     def set_instances(self, cfg, importer, restorer, ui_entrypoint_instance, new_cfg=None):
         """change the used frontend instance"""
@@ -50,9 +72,16 @@ class SeleniumRunner(ABC):
 
     def quit(self):
         """terminate the web driver"""
+        print("Quitting Selenium")
         if self.webdriver is not None:
-            self.webdriver.quit()
+            print("stopping")
+            try:
+                self.webdriver.quit()
+            except InvalidSessionIdException as ex:
+                print(f"Selenium connection seems to be already gone:  {str(ex)}")
             self.webdriver = None
+            self._cleanup_temp_files()
+            print(f"Video filename {self.video_name} written")
 
     def progress(self, msg):
         """add something to the state..."""
@@ -112,27 +141,35 @@ class SeleniumRunner(ABC):
     @step
     def take_screenshot(self, filename=None):
         """*snap*"""
+        self.success = False
         if filename is None:
             filename = "%s_%s_exception_screenshot.png" % (
                 FNRX.sub("", self.testrun_name),
                 self.__class__.__name__,
             )
 
-        self.progress("Taking screenshot from: %s " % self.webdriver.current_url)
+        self.progress("Taking screenshot")
+
         # pylint: disable=broad-except
         try:
-            if self.is_headless:
-                self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name("body")
-                screenshot = elmnt.screenshot_as_png()
+            if self.webdriver is not None:
+                if self.is_headless:
+                    self.progress("taking full screenshot")
+                    elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
+                    screenshot = elmnt.screenshot_as_png()
+                else:
+                    self.progress("taking screenshot")
+                    screenshot = self.webdriver.get_screenshot_as_png()
             else:
-                self.progress("taking screenshot")
-                screenshot = self.webdriver.get_screenshot_as_png()
+                self.progress("webdriver is None. Cannot take a screenshot.")
+                return
         except InvalidSessionIdException:
             self.progress("Fatal: webdriver not connected!")
+            return
         except Exception as ex:
             self.progress("falling back to taking partial screenshot " + str(ex))
             screenshot = self.webdriver.get_screenshot_as_png()
+
         self.get_browser_log_entries()
         self.progress("Saving screenshot to file: %s" % filename)
         with open(filename, "wb") as file:

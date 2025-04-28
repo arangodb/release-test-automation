@@ -7,9 +7,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementNotInteractableException
 
 from selenium_ui_test.pages.base_page import BasePage
-
 # can't circumvent long lines..
 # pylint: disable=line-too-long
 
@@ -17,9 +17,9 @@ from selenium_ui_test.pages.base_page import BasePage
 class LoginPage(BasePage):
     """Login class for selenium UI testing"""
 
-    def __init__(self, driver, cfg):
+    def __init__(self, driver, cfg, video_start_time):
         """Login page initialization"""
-        super().__init__(driver, cfg)
+        super().__init__(driver, cfg, video_start_time)
         self.username_textbox_id = "loginUsername"
         self.password_textbox_id = "loginPassword"
         self.login_button_id = "submitLogin"
@@ -50,26 +50,37 @@ class LoginPage(BasePage):
                     break
         return True
 
-    def _login_fill_username(self, user):
-        """fill in the username column"""
-        logname = WebDriverWait(self.webdriver, 10).until(
-            EC.element_to_be_clickable((By.ID, "loginUsername")),
-            message="UI-Test: loginUsername didn't become clickeable on time. 10s",
-        )
-        logname.click()
-        logname.clear()
-        logname.send_keys(user)
-        if logname is None:
-            self.progress("locator loginUsername has not found.")
-            return False
-        return True
+    def _login_fill_username(self, user, max_retries=3):
+        """Fill in the username column with improved resilience."""
+        for attempt in range(max_retries):
+            try:
+                self.webdriver.refresh()
+                logname = self.locator_finder_by_id("loginUsername", 10, 2, benchmark=True)
+
+                logname.click()
+                logname.clear()
+                logname.send_keys(user)
+
+                # Verify if the input was successful
+                if logname.get_attribute("value") == user:
+                    return True
+                self.progress(f"Attempt {attempt + 1}: Username not set correctly, retrying...")
+            except (TimeoutException, NoSuchElementException, ElementNotInteractableException) as e:
+                self.progress(f"Attempt {attempt + 1}: Exception occurred - {e}, retrying...")
+
+            # Wait a bit before retrying
+            time.sleep(2)
+
+        # If all attempts fail
+        self.progress("Failed to fill in the username after multiple attempts.")
+        return False
 
     def _login_fill_passvoid(self, passvoid):
         """fill the passvoid and click login"""
         while True:
-            passvoid_elm = self.webdriver.find_element_by_id("loginPassword")
+            passvoid_elm = self.locator_finder_by_id("loginPassword")
             txt = passvoid_elm.text
-            print("UI-Test: xxxx [" + txt + "]")
+            self.tprint("UI-Test: xxxx [" + txt + "]")
             if len(txt) > 0:
                 self.progress("something was in the passvoid field. retrying. " + txt)
                 time.sleep(2)
@@ -88,28 +99,70 @@ class LoginPage(BasePage):
         select.select_by_visible_text(database_name)
         return True
 
-    def login_webif(self, user, passvoid, database="_system", recurse=0):
-        """log into an arangodb webinterface"""
-        print("Logging %s into %s with passvoid %s" % (user, database, passvoid))
-        if recurse > 10:
-            raise Exception("UI-Test: 10 successless login attempts")
-        self._login_wait_for_screen()
-        if not self._login_fill_username(user):
-            return False
-        if not self._login_fill_passvoid(passvoid):
-            return False
-        if not self._login_choose_database(database):
-            return False
-        self.webdriver.find_element_by_id(self.select_db_btn_id).click()
-        self.progress("we're in!")
-        self.wait_for_ajax()
+    def login_webif(self, user, passvoid, database="_system"):
+        """Log into an ArangoDB web interface."""
+        self.tprint(f"Logging {user} into {database} with passvoid {passvoid}")
 
-        assert "No results found." not in self.webdriver.page_source, "no results found?"
-        return False
+        max_retries = 10
+        for attempt in range(1, max_retries + 1):
+            self.tprint(f"Attempt {attempt} of {max_retries}")
+
+            try:
+                self._login_wait_for_screen()
+            except Exception as e:
+                self.tprint(f"Error waiting for login screen: {e}")
+                continue
+
+            try:
+                if not self._login_fill_username(user):
+                    self.tprint(f"Failed to fill username: {user}")
+                    continue
+            except Exception as e:
+                self.tprint(f"Error filling username: {e}")
+                continue
+
+            try:
+                if not self._login_fill_passvoid(passvoid):
+                    self.tprint(f"Failed to fill password for user: {user}")
+                    continue
+            except Exception as e:
+                self.tprint(f"Error filling password: {e}")
+                continue
+
+            try:
+                if not self._login_choose_database(database):
+                    self.tprint(f"Failed to choose database: {database}")
+                    continue
+            except Exception as e:
+                self.tprint(f"Error choosing database: {e}")
+                continue
+
+            try:
+                self.locator_finder_by_id(self.select_db_btn_id).click()
+            except Exception as e:
+                self.tprint(f"Error clicking select database button: {e}")
+                continue
+
+            self.progress("We're in!")
+
+            try:
+                self.wait_for_ajax()
+            except Exception as e:
+                self.tprint(f"Error waiting for AJAX: {e}")
+                continue
+
+            if "No results found." in self.webdriver.page_source:
+                self.tprint("Login failed: No results found.")
+                continue
+
+            self.tprint("Login successful!")
+            return True
+
+        raise Exception("UI-Test: 10 unsuccessful login attempts")
 
     def log_out(self):
         """click log out icon on the user bar and wait for"""
-        logout_button_sitem = self.locator_finder_by_id(self.logout_button_id)
+        logout_button_sitem = self.locator_finder_by_id(self.logout_button_id, benchmark=True)
         logout_button_sitem.click()
-        print("Logout from the current user\n")
+        self.tprint("Logout from the current user\n")
         self.wait_for_ajax()

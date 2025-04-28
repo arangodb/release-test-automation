@@ -21,6 +21,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 class InstallerDeb(InstallerLinux):
     """install .deb's on debian or ubuntu hosts"""
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, cfg):
         self.server_package = None
         self.client_package = None
@@ -48,7 +49,7 @@ class InstallerDeb(InstallerLinux):
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
         package_version = "1"
-        architecture = "amd64"
+        architecture = "amd64" if self.machine == "x86_64" else "arm64"
 
         semdict = dict(self.cfg.semver.to_dict())
 
@@ -60,7 +61,7 @@ class InstallerDeb(InstallerLinux):
             elif semdict["prerelease"].startswith("beta"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
             elif semdict["prerelease"].startswith("rc"):
-                semdict["prerelease"] = "~{prerelease}".format(**semdict)
+                semdict["prerelease"] = "~" + semdict["prerelease"].replace("rc", "rc.").replace("..", ".")
             elif re.match(r"\d{1,2}", semdict["prerelease"]):
                 semdict["prerelease"] = ".{prerelease}".format(**semdict)
             elif len(semdict["prerelease"]) > 0:
@@ -89,7 +90,7 @@ class InstallerDeb(InstallerLinux):
         while startserver.isalive():
             progress(".")
             if startserver.exitstatus != 0:
-                raise Exception("server service start didn't" "finish successfully!")
+                raise Exception("server service start didn't finish successfully!")
         time.sleep(0.1)
         self.instance.detect_pid(1)  # should be owned by init
 
@@ -100,7 +101,7 @@ class InstallerDeb(InstallerLinux):
         while stopserver.isalive():
             progress(".")
             if stopserver.exitstatus != 0:
-                raise Exception("server service stop didn't" "finish successfully!")
+                raise Exception("server service stop didn't finish successfully!")
 
     @step
     def upgrade_server_package(self, old_installer):
@@ -222,13 +223,13 @@ class InstallerDeb(InstallerLinux):
         logging.info("Installation successfull")
         self.set_system_instance()
         if server_not_started:
-            logging.info("Environment did not start arango service," "doing this now!")
+            logging.info("Environment did not start arango service, doing this now!")
             self.start_service()
         self.instance.detect_pid(1)  # should be owned by init
 
     @step
     def un_install_server_package_impl(self):
-        """ uninstall server package """
+        """uninstall server package"""
         cmd = "dpkg --purge " + "arangodb3" + ("e" if self.cfg.enterprise else "")
         lh.log_cmd(cmd)
         uninstall = pexpect.spawnu(cmd)
@@ -240,7 +241,8 @@ class InstallerDeb(InstallerLinux):
         except pexpect.exceptions.EOF as ex:
             ascii_print(uninstall.before)
             raise ex
-        self.instance.search_for_warnings()
+        if self.instance:
+            self.instance.search_for_warnings()
 
     @step
     def install_debug_package_impl(self):
@@ -306,7 +308,6 @@ class InstallerDeb(InstallerLinux):
         package_name = "arangodb3" + ("e-client" if self.cfg.enterprise else "-client")
         self.uninstall_package(package_name)
 
-    # pylint: disable=no-self-use
     @step
     def uninstall_package(self, package_name, force=False):
         """uninstall package"""

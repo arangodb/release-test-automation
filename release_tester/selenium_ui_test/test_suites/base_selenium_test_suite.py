@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
 """ base class for all selenium testsuites """
-import logging
 from datetime import datetime
-
-from beautifultable import BeautifulTable
 
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
+from beautifultable import BeautifulTable
 from selenium.common.exceptions import InvalidSessionIdException
+from selenium.webdriver.common.by import By
 from semver import VersionInfo
 
+from reporting.reporting_utils import attach_table, AllureTestSuiteContext, step
 from selenium_ui_test.pages.base_page import BasePage
 from selenium_ui_test.pages.login_page import LoginPage
 from selenium_ui_test.pages.navbar import NavigationBarPage
-from selenium_ui_test.test_suites.base_test_suite import BaseTestSuite, run_before_suite, \
-    run_after_suite, run_after_each_testcase, collect_crash_data
-from reporting.reporting_utils import attach_table
+from test_suites_core.base_test_suite import (
+    BaseTestSuite,
+    run_before_suite,
+    run_after_suite,
+    run_after_each_testcase,
+    collect_crash_data,
+)
 
 
 class BaseSeleniumTestSuite(BaseTestSuite):
-    """ base class for all selenium testsuites """
-    # pylint: disable=dangerous-default-value disable=too-many-instance-attributes
-    def __init__(self, selenium_runner, child_classes=[]):
+    """base class for all selenium testsuites"""
+
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, selenium_runner):
         self.selenium_runner = selenium_runner
-        super().__init__(child_classes)
+        super().__init__()
+        self.exception = False
+        self.error = ""
+        self.video_start_time = selenium_runner.video_start_time
         self.webdriver = selenium_runner.webdriver
         self.frontend = selenium_runner.ui_entrypoint_instance
         self.root_passvoid = self.frontend.get_passvoid()
@@ -32,9 +40,25 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         self.cfg = selenium_runner.cfg
         self.importer = selenium_runner.importer
         self.restore = selenium_runner.restorer
-        self.test_data_dir = selenium_runner.cfg.test_data_dir.resolve()
+        self.ui_data_dir = selenium_runner.cfg.ui_data_dir.resolve()
         self.is_enterprise = selenium_runner.cfg.enterprise
         self.is_headless = selenium_runner.is_headless
+        self.include_test_suites = selenium_runner.selenium_include_suites
+        self.sub_suite_name = self.__doc__ or self.__class__.__name__
+        if len(self.include_test_suites) > 0 and self.__class__.__name__ not in self.include_test_suites:
+            self.run_own_test_cases = False
+
+    def tprint(self, string):
+        """print including timestamp relative to video start"""
+        msg = f" {str(datetime.now() - self.video_start_time)} - {string}"
+        print(msg)
+        with step(msg):
+            pass
+
+    def _init_allure(self):
+        self.test_suite_context = AllureTestSuiteContext(
+            sub_suite_name=self.sub_suite_name, inherit_test_suite_name=True, inherit_parent_test_suite_name=True
+        )
 
     def init_child_class(self, child_class):
         return child_class(self.selenium_runner)
@@ -42,58 +66,59 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     def ui_assert(self, conditionstate, message):
         """python assert sucks. fuckit."""
         if not conditionstate:
-            logging.error(message)
+            # pylint: disable=no-member
+            self.tprint(message)
             self.save_page_source()
             self.take_screenshot()
             assert False, message
 
-#    def connect_server_new_tab(self, cfg):
-#        """login..."""
-#        self.progress("Opening page")
-#        print(frontend_instance[0].get_public_plain_url())
-#        self.original_window_handle = self.webdriver.current_window_handle
-#
-#        # Open a new window
-#        self.webdriver.execute_script("window.open('');")
-#        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
-#        self.webdriver.get(
-#            self.get_protocol()
-#            + "://"
-#            + self.frontend.get_public_plain_url()
-#            + "/_db/_system/_admin/aardvark/index.html"
-#        )
-#        login_page = LoginPage(self.webdriver, self.cfg)
-#        login_page.login_webif("root", frontend_instance[0].get_passvoid())
-#
-#    def close_tab_again(self):
-#        """close a tab, and return to main window"""
-#        self.webdriver.close()  # Switch back to the first tab with URL A
-#        # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
-#        # print("Current Page Title is : %s" %self.webdriver.title)
-#        # self.webdriver.close()
-#        self.webdriver.switch_to.window(self.original_window_handle)
-#        self.original_window_handle = None
-#
-#    def connect_server(self, frontend_instance, database, cfg):
-#        """login..."""
-#        self.progress("Opening page")
-#        print(frontend_instance[0].get_public_plain_url())
-#        self.webdriver.get(
-#            self.get_protocol()
-#            + "://"
-#            + frontend_instance[0].get_public_plain_url()
-#            + "/_db/_system/_admin/aardvark/index.html"
-#        )
-#        login_page = LoginPage(self.webdriver, self.cfg)
-#        login_page.login_webif("root", frontend_instance[0].get_passvoid())
+    #    def connect_server_new_tab(self, cfg):
+    #        """login..."""
+    #        self.progress("Opening page")
+    #        self.tprint(frontend_instance[0].get_public_plain_url())
+    #        self.original_window_handle = self.webdriver.current_window_handle
+    #
+    #        # Open a new window
+    #        self.webdriver.execute_script("window.open('');")
+    #        self.webdriver.switch_to.window(self.webdriver.window_handles[1])
+    #        self.webdriver.get(
+    #            self.get_protocol()
+    #            + "://"
+    #            + self.frontend.get_public_plain_url()
+    #            + "/_db/_system/_admin/aardvark/index.html"
+    #        )
+    #        login_page = LoginPage(self.webdriver, self.cfg, self.video_start_time)
+    #        login_page.login_webif("root", frontend_instance[0].get_passvoid())
+    #
+    #    def close_tab_again(self):
+    #        """close a tab, and return to main window"""
+    #        self.webdriver.close()  # Switch back to the first tab with URL A
+    #        # self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+    #        # self.tprint("Current Page Title is : %s" %self.webdriver.title)
+    #        # self.webdriver.close()
+    #        self.webdriver.switch_to.window(self.original_window_handle)
+    #        self.original_window_handle = None
+    #
+    #    def connect_server(self, frontend_instance, database, cfg):
+    #        """login..."""
+    #        self.progress("Opening page")
+    #        self.tprint(frontend_instance[0].get_public_plain_url())
+    #        self.webdriver.get(
+    #            self.get_protocol()
+    #            + "://"
+    #            + frontend_instance[0].get_public_plain_url()
+    #            + "/_db/_system/_admin/aardvark/index.html"
+    #        )
+    #        login_page = LoginPage(self.webdriver, self.cfg, self.video_start_time)
+    #        login_page.login_webif("root", frontend_instance[0].get_passvoid())
 
     def go_to_index_page(self):
         """Open index.html"""
-        self.progress("Open index.html")
+        self.tprint("Open index.html")
         path = "/_db/_system/_admin/aardvark/index.html"
         self.goto_url_and_wait_until_loaded(path)
         if "#login" in self.webdriver.current_url:
-            login_page = LoginPage(self.webdriver, self.cfg)
+            login_page = LoginPage(self.webdriver, self.cfg, self.video_start_time)
             login_page.login_webif("root", self.root_passvoid, "_system")
             self.goto_url_and_wait_until_loaded(path)
 
@@ -102,14 +127,14 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         path = "/_db/_system/_admin/aardvark/index.html#dashboard"
         self.webdriver.get(self.url + path)
         if not path in self.webdriver.current_url:
-            login_page = LoginPage(self.webdriver, self.cfg)
+            login_page = LoginPage(self.webdriver, self.cfg, self.video_start_time)
             login_page.login_webif(username, self.root_passvoid, database_name)
             self.webdriver.get(self.url + path)
 
     def goto_url_and_wait_until_loaded(self, path):
         """goto & wait for loaded"""
         self.webdriver.get(self.url + path)
-        BasePage(self.webdriver, self.cfg).wait_for_ajax()
+        BasePage(self.webdriver, self.cfg, self.video_start_time).wait_for_ajax()
 
     @run_before_suite
     def prepare_to_run_tests(self):
@@ -126,10 +151,9 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         """clean up after test case"""
         self.truncate_browser_log()
 
-    # pylint: disable=no-self-use
     def progress(self, arg):
         """state print todo"""
-        print(arg)
+        self.tprint(arg)
 
     @collect_crash_data
     def save_browser_data(self):
@@ -169,7 +193,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
         try:
             if self.is_headless:
                 self.progress("taking full screenshot")
-                elmnt = self.webdriver.find_element_by_tag_name("body")
+                elmnt = self.webdriver.find_element(By.TAG_NAME, "body")
                 screenshot = elmnt.screenshot_as_png()
             else:
                 self.progress("taking screenshot")
@@ -184,7 +208,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def check_version(self, expected_version: VersionInfo, is_enterprise: bool):
         """validate the version displayed in the UI"""
-        ver = NavigationBarPage(self.webdriver, self.cfg).detect_version()
+        ver = NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).detect_version()
         self.progress(" %s ~= %s?" % (ver["version"].lower(), str(expected_version).lower()))
         assert ver["version"].lower().lower().startswith(str(expected_version)), (
             "UI-Test: wrong version: '" + str(ver["version"]).lower() + "' vs '" + str(expected_version).lower() + "'"

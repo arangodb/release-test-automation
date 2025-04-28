@@ -1,21 +1,32 @@
 #!/usr/bin/python3
 """ fetch nightly packages, process upgrade """
-#pylint: disable=duplicate-code
-from pathlib import Path
-from copy import copy
 import sys
+from copy import deepcopy
+
+# pylint: disable=duplicate-code
+from pathlib import Path
 
 import click
-from common_options import very_common_options, common_options, download_options, full_common_options, hotbackup_options
-
-from beautifultable import BeautifulTable, ALIGN_LEFT
+import semver
 
 import tools.loghelper as lh
+from arangodb.hot_backup_cfg import HotBackupCliCfg
+from arangodb.installers import EXECUTION_PLAN, InstallerBaseConfig
+from common_options import (
+    very_common_options,
+    common_options,
+    download_options,
+    full_common_options,
+    hotbackup_options,
+    matrix_options,
+    ui_test_suite_filtering_options,
+)
 from download import Download, DownloadOptions
 from test_driver import TestDriver
 from tools.killall import list_all_processes
+from write_result_table import write_table
+import reporting.reporting_utils
 
-from arangodb.installers import EXECUTION_PLAN, HotBackupCliCfg, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def upgrade_package_test(
@@ -26,7 +37,10 @@ def upgrade_package_test(
     other_source,
     git_version,
     editions,
+    run_test,
+    run_test_suites,
     test_driver,
+    kwargs,
 ):
     """process fetch & tests"""
 
@@ -40,159 +54,195 @@ def upgrade_package_test(
     fresh_versions = {}
 
     results = []
-    new_versions = []
-    old_versions = []
-    old_dlstages = []
-    new_dlstages = []
 
-    for version_pair in upgrade_matrix.split(";"):
-        print("Adding: '" + version_pair + "'")
-        old, new = version_pair.split(":")
-        old_versions.append(old)
-        new_versions.append(new)
-        if old == primary_version:
-            old_dlstages.append(primary_dlstage)
-            new_dlstages.append(other_source)
-        else:
-            old_dlstages.append(other_source)
-            new_dlstages.append(primary_dlstage)
+    upgrade_scenarios = []
+    packages = {}
 
-    for default_props in EXECUTION_PLAN:
-        props = copy(default_props)
-        props.testrun_name = "test_" + props.testrun_name
-        props.directory_suffix = props.directory_suffix + "_t"
-
-        test_driver.run_cleanup(props)
-        print("Cleanup done")
-        if props.directory_suffix not in editions:
-            continue
-        # pylint: disable=unused-variable
-        dl_new = Download(
-            dl_opts,
-            test_driver.base_config.hb_cli_cfg,
-            primary_version,
-            props.enterprise,
-            test_driver.base_config.zip_package,
-            test_driver.base_config.src_testing,
-            primary_dlstage,
-            versions,
-            fresh_versions,
-            git_version,
-        )
-        dl_new.get_packages(dl_opts.force)
-
-        this_test_dir = test_dir / props.directory_suffix
-        test_driver.reset_test_data_dir(this_test_dir)
-
-        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
-
-    # pylint: disable=consider-using-enumerate
-    for j in range(len(new_versions)):
-        for props in EXECUTION_PLAN:
-            print("Cleaning up" + props.testrun_name)
-            test_driver.run_cleanup(props)
-        print("Cleanup done now running upgrade: " + str(old_versions[j]) + " -> " + new_versions[j])
-
-        # Configure Chrome to accept self-signed SSL certs and certs signed by unknown CA.
-        # FIXME: Add custom CA to Chrome to properly validate server cert.
-        # if props.ssl:
-        #    selenium_driver_args += ("ignore-certificate-errors",)
-
-        for props in EXECUTION_PLAN:
-            if props.directory_suffix not in editions:
-                print("skipping " + props.directory_suffix)
+    # STEP 1: Prepare. Download all required packages for current launch
+    enterprise_packages_are_present = False
+    community_packages_are_present = False
+    for v_sequence in upgrade_matrix.split(";"):
+        versions_list = v_sequence.split(":")
+        upgrade_scenarios.append(versions_list)
+        for version_name in versions_list:
+            print(version_name)
+            if version_name in packages:
                 continue
-            # pylint: disable=unused-variable
-            dl_old = Download(
-                dl_opts,
-                test_driver.base_config.hb_cli_cfg,
-                old_versions[j],
-                props.enterprise,
-                test_driver.base_config.zip_package,
-                test_driver.base_config.src_testing,
-                old_dlstages[j],
-                versions,
-                fresh_versions,
-                git_version,
-            )
-            dl_new = Download(
-                dl_opts,
-                test_driver.base_config.hb_cli_cfg,
-                new_versions[j],
-                props.enterprise,
-                test_driver.base_config.zip_package,
-                test_driver.base_config.src_testing,
-                new_dlstages[j],
-                versions,
-                fresh_versions,
-                git_version,
-            )
-            dl_old.get_packages(dl_opts.force)
-            dl_new.get_packages(dl_opts.force)
+            packages[version_name] = {}
+            for default_props in EXECUTION_PLAN:
+                props = deepcopy(default_props)
+                if props.directory_suffix not in editions:
+                    continue
+                props.set_kwargs(kwargs)
+                dl_opt = deepcopy(dl_opts)
+                dl_opt.force = dl_opts.force and props.force_dl
+                props.testrun_name = "test_" + props.testrun_name
+                # Verify that all required packages are exist or can be downloaded
+                source = primary_dlstage if primary_version == version_name else other_source
+                res = Download(
+                    test_driver.base_config,
+                    dl_opt,
+                    version_name,
+                    props.enterprise,
+                    source,
+                    versions,
+                    fresh_versions,
+                    git_version,
+                )
+                packages[version_name][props.directory_suffix] = res
+                res.get_packages(dl_opts.force)
+                if props.enterprise:
+                    enterprise_packages_are_present = True
+                else:
+                    community_packages_are_present = True
+                # No server package, no install/upgrade tests for these:
+                if res.inst.server_package is None:
+                    print("skipping server package tests")
+                    run_test = False
+                    upgrade_scenarios = []
+
+    params = deepcopy(test_driver.cli_test_suite_params)
+
+    # STEP 2: Run test for primary version
+    if run_test:
+        for default_props in EXECUTION_PLAN:
+            if default_props.directory_suffix not in editions:
+                continue
+            props = deepcopy(default_props)
+            props.set_kwargs(kwargs)
+            if props.directory_suffix not in editions:
+                continue
+
+            if packages[primary_version][props.directory_suffix].cfg.semver < props.minimum_supported_version:
+                continue
+
+            props.testrun_name = "test_" + props.testrun_name
+
+            test_driver.run_cleanup(props)
+            print("Cleanup done")
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
+            results.append(
+                [
+                    {
+                        "messages": [str(packages[primary_version][props.directory_suffix].cfg.version)],
+                        "testrun name": "",
+                        "progress": "",
+                        "success": True,
+                        "testscenario": "",
+                    }
+                ]
+            )
+            results.append(
+                test_driver.run_test(
+                    params.base_cfg.starter_mode,
+                    [packages[primary_version][props.directory_suffix].cfg.version],
+                    props,
+                )
+            )
 
-            results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
+    # STEP 3: Run upgrade tests
+    for scenario in upgrade_scenarios:
 
-            for use_enterprise in [True, False]:
+        for default_props in EXECUTION_PLAN:
+            props = deepcopy(default_props)
+            props.set_kwargs(kwargs)
+
+            if props.directory_suffix not in editions:
+                continue
+
+            skip = False
+            for version in scenario:
+                if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                    skip = True
+            if skip:
+                print(f"Skipping {str(props)}")
+                continue
+            this_test_dir = test_dir / props.directory_suffix
+            print("Cleaning up" + props.testrun_name)
+            test_driver.run_cleanup(props)
+            test_driver.reset_test_data_dir(this_test_dir)
+            print("Cleanup done")
+            results.append(
+                [
+                    {
+                        "messages": [" => ".join([str(ver) for ver in scenario])],
+                        "testrun name": "",
+                        "progress": "",
+                        "success": True,
+                        "testscenario": "",
+                    }
+                ]
+            )
+            results.append(test_driver.run_upgrade(scenario, props))
+
+    upgrade_pairs = []
+    for scenario in upgrade_scenarios:
+        for i in range(len(scenario) - 1):
+            old_version = scenario[i]
+            new_version = scenario[i + 1]
+            pair = [new_version, old_version]
+            if pair not in upgrade_pairs:
+                upgrade_pairs.append(pair)
+
+    # STEP 4: Run other test suites
+    if run_test_suites:
+        for pair in upgrade_pairs:
+            params.new_version = pair[0]
+            params.old_version = pair[1]
+
+            if enterprise_packages_are_present and community_packages_are_present:
+                params.enterprise = True
                 results.append(
-                    test_driver.run_conflict_tests(
-                        [dl_old.cfg.version, dl_new.cfg.version],
-                        enterprise=use_enterprise,
+                    test_driver.run_test_suites(
+                        include_suites=("EnterprisePackageInstallationTestSuite",),
+                        params=params,
+                    )
+                )
+                params.enterprise = False
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=("CommunityPackageInstallationTestSuite",), params=params
                     )
                 )
 
-            results.append(test_driver.run_license_manager_tests([dl_old.cfg.version, dl_new.cfg.version]))
+            if enterprise_packages_are_present:
+                params.enterprise = True
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=(
+                            "DebuggerTestSuite",
+                            "BasicLicenseManagerTestSuite",
+                            "UpgradeLicenseManagerTestSuite",
+                            "BinaryComplianceTestSuite",
+                        ),
+                        params=params,
+                    )
+                )
+
+            if community_packages_are_present:
+                params.enterprise = False
+                results.append(
+                    test_driver.run_test_suites(
+                        include_suites=(
+                            "DebuggerTestSuite",
+                            "BinaryComplianceTestSuite",
+                        ),
+                        params=params,
+                    )
+                )
 
     print("V" * 80)
-    status = True
-    table = BeautifulTable(maxwidth=140)
-    for one_suite_result in results:
-        if len(one_suite_result) > 0:
-            for one_result in one_suite_result:
-                if one_result["success"]:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]),
-                        ]
-                    )
-                else:
-                    table.rows.append(
-                        [
-                            one_result["testrun name"],
-                            one_result["testscenario"],
-                            # one_result['success'],
-                            "\n".join(one_result["messages"]) + "\n" + "H" * 40 + "\n" + one_result["progress"],
-                        ]
-                    )
-                status = status and one_result["success"]
-    table.columns.header = [
-        "Testrun",
-        "Test Scenario",
-        # 'success', we also have this in message.
-        "Message + Progress",
-    ]
-    table.columns.alignment["Message + Progress"] = ALIGN_LEFT
-
-    tablestr = str(table)
-    Path("testfailures.txt").write_text(tablestr, encoding="utf8")
-    if not status:
+    if not write_table(results):
         print("exiting with failure")
-        sys.exit(1)
-    print(tablestr)
-
+        return 1
     return 0
 
 
 @click.command()
 @full_common_options
-@click.option(
-    "--upgrade-matrix", default="", help="list of upgrade operations ala '3.6.15:3.7.15;3.7.14:3.7.15;3.7.15:3.8.1'"
-)
+@matrix_options()
 @very_common_options()
 @hotbackup_options()
 @common_options(
@@ -201,7 +251,8 @@ def upgrade_package_test(
     interactive=False,
     test_data_dir="/home/test_dir",
 )
-@download_options(default_source="ftp:stage2", other_source=True)
+@download_options(default_source="nightlypublic", other_source=True)
+@ui_test_suite_filtering_options()
 # fmt: off
 # pylint: disable=too-many-arguments, disable=unused-argument
 def main(**kwargs):
@@ -212,23 +263,32 @@ def main(**kwargs):
     kwargs['package_dir'] = Path(kwargs['package_dir'])
     kwargs['test_data_dir'] = Path(kwargs['test_data_dir'])
     kwargs['alluredir'] = Path(kwargs['alluredir'])
+    kwargs['is_instrumented'] = False
 
     kwargs['hb_cli_cfg'] = HotBackupCliCfg.from_dict(**kwargs)
     kwargs['base_config'] = InstallerBaseConfig.from_dict(**kwargs)
     dl_opts = DownloadOptions.from_dict(**kwargs)
 
+    reporting.reporting_utils.init_archive_count_limit(int(kwargs["tarball_count_limit"]))
+
     test_driver = TestDriver(**kwargs)
 
-    return upgrade_package_test(
-        dl_opts,
-        kwargs['new_version'],
-        kwargs['source'],
-        kwargs['upgrade_matrix'],
-        kwargs['other_source'],
-        kwargs['git_version'],
-        kwargs['editions'],
-        test_driver
-    )
+    try:
+        return upgrade_package_test(
+            dl_opts,
+            kwargs['new_version'],
+            kwargs['source'],
+            kwargs['upgrade_matrix'],
+            kwargs['other_source'],
+            kwargs['git_version'],
+            kwargs['editions'],
+            kwargs['run_test'],
+            kwargs['run_test_suites'],
+            test_driver,
+            kwargs
+        )
+    finally:
+        test_driver.destructor()
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter # fix clickiness.

@@ -1,44 +1,39 @@
 #!/usr/bin/env python3
 """base class for package conflict checking"""
 import shutil
+import py7zr
 
 from allure_commons._allure import attach
 
-from arangodb.installers import create_config_installer_set, RunProperties, InstallerBaseConfig
-from selenium_ui_test.test_suites.base_test_suite import (
-    BaseTestSuite,
+from arangodb.installers import create_config_installer_set, RunProperties
+from test_suites_core.base_test_suite import (
     run_before_suite,
     run_after_suite,
     run_after_each_testcase,
     collect_crash_data,
 )
+from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
+
+shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
 
 
-class BasePackageInstallationTestSuite(BaseTestSuite):
+class BasePackageInstallationTestSuite(CliStartedTestSuite):
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """base class for package conflict checking"""
 
-    def __init__(self, versions: list, base_config: InstallerBaseConfig):
-        self.new_version = versions[1]
-        self.old_version = versions[0]
-        self.zip_package = base_config.zip_package
-        self.enc_at_rest = None
-        self.parent_test_suite_name = None
-        self.auto_generate_parent_test_suite_name = False
-        self.suite_name = None
-        self.runner_type = None
-        self.installer_type = None
-        self.use_subsuite = False
+    def __init__(self, params: CliTestSuiteParameters):
+        super().__init__(params)
         self.installers = {}
+        versions = [self.old_version, self.new_version]
         self.installers["community"] = create_config_installer_set(
             versions=versions,
-            base_config=base_config,
+            base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=False, encryption_at_rest=False, ssl=False),
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=versions,
-            base_config=base_config,
+            base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=True, encryption_at_rest=False, ssl=False),
         )
@@ -46,7 +41,6 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         self.new_inst_e = self.installers["enterprise"][1][1]
         self.old_inst_c = self.installers["community"][0][1]
         self.new_inst_c = self.installers["community"][1][1]
-        super().__init__()
 
     # pylint: disable=missing-function-docstring
     def is_zip(self):
@@ -87,13 +81,13 @@ class BasePackageInstallationTestSuite(BaseTestSuite):
         """upload a logfile into the report."""
         inst = self.installers["enterprise"][0][1]
         if inst.instance and inst.instance.logfile.exists():
-            with open(inst.instance.logfile, "r", encoding="utf8").read() as log:
-                attach(log, "Log file " + str(inst.instance.logfile))
+            with open(inst.instance.logfile, "r", encoding="utf8") as log:
+                attach(log.read(), "Log file " + str(inst.instance.logfile))
 
     def save_data_dir(self):
         """upload a system database directory into the report"""
         inst = self.installers["enterprise"][0][1]
         data_dir = inst.cfg.dbdir
         if data_dir.exists():
-            with shutil.make_archive("datadir", "bztar", data_dir, data_dir) as archive:
-                attach.file(archive, "data directory archive", "application/x-bzip2", "tar.bz2")
+            archive = shutil.make_archive("datadir", "7zip", data_dir, data_dir)
+            attach.file(archive, "data directory archive", "application/x-7z-compressed", "7z")

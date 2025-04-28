@@ -4,11 +4,14 @@ import time
 import logging
 from pathlib import Path
 
+# pylint: disable=R0801
 from tools.interact import prompt_user
 from tools.killall import get_all_processes
 from arangodb.starter.manager import StarterManager
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
+from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
@@ -18,7 +21,7 @@ from reporting.reporting_utils import step
 class LeaderFollower(Runner):
     """this runs a leader / Follower setup with synchronisation"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
     def __init__(
         self,
         runner_type,
@@ -26,28 +29,33 @@ class LeaderFollower(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
-        testrun_name: str,
-        ssl: bool,
-        use_auto_certs: bool,
+        selenium_include_suites,
+        rp: RunProperties
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("LeaderFollower", 400, 500, False, ssl, use_auto_certs),
+            RunnerProperties(
+                rp, "LeaderFollower", 400, 500, False, 2
+            ),
             selenium,
             selenium_driver_args,
-            testrun_name,
+            selenium_include_suites,
         )
 
         self.leader_starter_instance = None
         self.follower_starter_instance = None
-
+        self.passvoid = "leader"
+        # pylint: disable=line-too-long
         self.success = False
+        ssl = "ssl://" if self.cfg.ssl else "tcp://"
+        passvoid = self.passvoid
         self.checks = {
             "beforeReplJS": (
                 "saving document before",
                 """
+print(process.env);
 db._create("testCollectionBefore");
 db.testCollectionBefore.save({"hello": "world"})
 """,
@@ -75,6 +83,54 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
   throw new Error("after not yet there?");
 }
 """,
+            ),
+            "waitForReplState": (
+                "Checking sync status",
+                f"""
+var internal = require("internal");
+var replication = require("@arangodb/replication");
+let compareTicks = replication.compareTicks;
+var connectToLeader = function() {{
+  arango.reconnect("{ssl}127.0.0.1:1235", "_system", "root", "{passvoid}");
+  db._flushCache();
+}};
+
+var connectToFollower = function() {{
+  arango.reconnect("{ssl}127.0.0.1:2346", "_system", "root", "{passvoid}");
+  db._flushCache();
+}};
+
+let state = {{}};
+var printed = false;
+state.lastLogTick = replication.logger.state().state.lastUncommittedLogTick;
+
+connectToFollower();
+while (true) {{
+  let followerState = replication.globalApplier.state();
+
+  if (followerState.state.lastError.errorNum > 0) {{
+    print("follower has errored:", JSON.stringify(followerState.state.lastError));
+    throw new Error(JSON.stringify(followerState.state.lastError));
+  }}
+
+  if (!followerState.state.running) {{
+    print("follower is not running");
+    break;
+  }}
+
+  if (compareTicks(followerState.state.lastAppliedContinuousTick, state.lastLogTick) >= 0 ||
+      compareTicks(followerState.state.lastProcessedContinuousTick, state.lastLogTick) >= 0) {{ // ||
+    print("follower has caught up. state.lastLogTick:", state.lastLogTick, "followerState.lastAppliedContinuousTick:", followerState.state.lastAppliedContinuousTick, "followerState.lastProcessedContinuousTick:", followerState.state.lastProcessedContinuousTick);
+    break;
+  }}
+
+  if (!printed) {{
+    print("waiting for follower to catch up");
+    printed = true;
+  }}
+  internal.wait(0.5, false);
+}}
+            """,
             ),
         }
 
@@ -111,7 +167,7 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
             follower_opts.append(f"--ssl.keyfile={follower_tls_keyfile}")
 
         self.leader_starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "leader",
             mode="single",
@@ -123,7 +179,7 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
-            self.basecfg,
+            self.cfg,
             self.basedir,
             "follower",
             mode="single",
@@ -132,6 +188,14 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
             jwt_str="follower",
             moreopts=follower_opts,
         )
+
+    @step
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+        """we want to see stuff is in sync!"""
+        print("Checking whether the follower has caught up")
+        if not self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"]):
+            raise Exception("the follower would not catch up in time!")
+        super().check_data_impl_sh(arangosh, supports_foxx_tests)
 
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()
@@ -143,7 +207,6 @@ if (!(db.testCollectionAfter.toArray()[0]["hello"] === "world")) {
         self.leader_starter_instance.detect_instance_pids()
         self.follower_starter_instance.detect_instance_pids()
 
-        self.passvoid = "leader"
         self.leader_starter_instance.set_passvoid(self.passvoid)
         # the replication will overwrite this passvoid anyways:
         self.follower_starter_instance.set_passvoid(self.passvoid)
@@ -221,7 +284,7 @@ process.exit(0);
         self.follower_starter_instance.supports_foxx_tests = False
         logging.info("Leader follower testing makedata on follower")
         self.makedata_instances.append(self.follower_starter_instance)
-        self.make_data()
+        # self.make_data()
         if self.selenium:
             self.selenium.test_setup()
 
@@ -231,13 +294,11 @@ process.exit(0);
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
         for node in [self.leader_starter_instance, self.follower_starter_instance]:
             node.command_upgrade()
             node.wait_for_upgrade()
-            node.wait_for_upgrade_done_in_log()
-
-        for node in [self.leader_starter_instance, self.follower_starter_instance]:
+            node.wait_for_upgrade_done_in_starter_log()
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
@@ -246,29 +307,22 @@ process.exit(0);
     @step
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
-        self.progress(True, "step 1 - shut down instances")
+        self.progress(True, "shut down instances")
         instances = [self.leader_starter_instance, self.follower_starter_instance]
         for node in instances:
             node.replace_binary_setup_for_upgrade(self.new_cfg)
             node.terminate_instance(True)
-        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in instances:
-            print("launch")
+            self.progress(True, f"launch instances with the upgrade options set ({node.name})")
             node.manually_launch_instances(
                 [InstanceType.SINGLE],
-                [
-                    "--database.auto-upgrade",
-                    "true",
-                    "--javascript.copy-installation",
-                    "true",
-                ],
+                ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
             )
-        self.progress(True, "step 3 - launch instances again")
-        for node in instances:
-            node.respawn_instance()
-        self.progress(True, "step 4 - detect system state")
-        for node in instances:
+            self.progress(True, f"launch instances again ({node.name})")
+            node.respawn_instance(version)
             node.detect_instances()
+            node.detect_instance_pids()
             node.wait_for_version_reply()
         if self.selenium:
             self.selenium.test_after_install()
@@ -278,35 +332,46 @@ process.exit(0);
         """run the replication fuzzing test"""
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
+        deadline=500000 if self.cfg.is_instrumented else 1000
+        progressive_timeout=1000 if self.cfg.is_instrumented else 100
         self.tcp_ping_all_nodes()
         ret = self.leader_starter_instance.arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
             [],
             [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
+            deadline=deadline,
+            progressive_timeout=progressive_timeout,
         )
         if not ret[0]:
             if not self.cfg.verbose:
                 print(ret[1])
             raise Exception("replication fuzzing test failed")
 
-        prompt_user(self.basecfg, "please test the installation.")
+        prompt_user(self.cfg, "please test the installation.")
         if self.selenium:
             self.selenium.test_jam_attempt()
 
+    # pylint: disable=R0801
     @step
     def shutdown_impl(self):
-        self.leader_starter_instance.terminate_instance()
-        self.follower_starter_instance.terminate_instance()
+        ret = self.leader_starter_instance.terminate_instance() or self.follower_starter_instance.terminate_instance()
         pslist = get_all_processes(False)
         if len(pslist) > 0:
             raise Exception("Not all processes terminated! [%s]" % str(pslist))
         logging.info("test ended")
+        return ret
 
     def before_backup_impl(self):
-        """nothing to see here"""
+        pass
 
     def after_backup_impl(self):
-        """nothing to see here"""
+        pass
+
+    def before_backup_create_impl(self):
+        pass
+
+    def after_backup_create_impl(self):
+        pass
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""

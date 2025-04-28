@@ -1,43 +1,41 @@
 #!/usr/bin/env python3
 """License manager test suite(clean installation)"""
 import platform
+from copy import deepcopy
 
 from license_manager_tests.afo import LicenseManagerAfoTestSuite
-from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite
+from license_manager_tests.base.license_manager_base_test_suite import (
+    LicenseManagerBaseTestSuite,
+    EXTERNAL_HELPERS_LOADED,
+)
 from license_manager_tests.cluster import LicenseManagerClusterTestSuite
 from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
 from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
-from selenium_ui_test.test_suites.base_test_suite import run_before_suite, run_after_suite
+from test_suites_core.base_test_suite import run_before_suite, run_after_suite, disable_if_false
+from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
 
+@disable_if_false(EXTERNAL_HELPERS_LOADED, "External helpers not found. License manager tests will not run.")
 class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
-    """License manager test suite(clean installation)"""
+    """License manager test suite: Clean installation"""
 
-    def __init__(
-            self,
-            versions,
-            installer_base_config,
-    ):
-        if len(versions) > 1:
-            new_version = versions[1]
-        else:
-            new_version = versions[0]
-        child_classes = [
-            LicenseManagerSingleServerTestSuite,
-            LicenseManagerLeaderFollowerTestSuite,
-            LicenseManagerAfoTestSuite,
-            LicenseManagerClusterTestSuite,
-        ]
-        if not IS_WINDOWS:
-            child_classes.append(LicenseManagerDc2DcTestSuite)
-        super().__init__(
-            new_version,
-            installer_base_config,
-            child_classes=child_classes,
-        )
+    child_test_suites = [
+        LicenseManagerSingleServerTestSuite,
+        LicenseManagerLeaderFollowerTestSuite,
+        LicenseManagerAfoTestSuite,
+        LicenseManagerClusterTestSuite,
+        LicenseManagerDc2DcTestSuite,
+    ]
+
+    def __init__(self, params: CliTestSuiteParameters):
+        # This test suite is intended to test clean installation.
+        # If both old_ version and new_version are set, we must ignore old version.
+        local_params = deepcopy(params)
+        local_params.old_version = None
+        super().__init__(local_params)
 
     @run_after_suite
     def uninstall_package(self):
@@ -53,3 +51,7 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
 
     def teardown_suite(self):
         """mute parent method"""
+
+    def set_license(self, license_str):
+        """set new license"""
+        raise NotImplementedError(f"Setting license not implemented for {type(self)}")

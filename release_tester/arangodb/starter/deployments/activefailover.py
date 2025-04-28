@@ -6,10 +6,13 @@ import time
 from pathlib import Path
 
 import requests
+import semver
 from requests.auth import HTTPBasicAuth
 
 from arangodb.instance import InstanceType
-from arangodb.starter.deployments.runner import Runner, RunnerProperties
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
+from arangodb.starter.deployments.runner import Runner
 from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
@@ -19,6 +22,7 @@ class ActiveFailover(Runner):
     """This launches an active failover setup"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=unused-argument disable=too-many-branches
     def __init__(
         self,
         runner_type,
@@ -26,36 +30,36 @@ class ActiveFailover(Runner):
         installer_set,
         selenium,
         selenium_driver_args,
-        testrun_name: str,
-        ssl: bool,
-        use_auto_certs: bool,
+        selenium_include_suites,
+        rp: RunProperties
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties("ActiveFailOver", 500, 600, True, ssl, use_auto_certs),
+            RunnerProperties(
+                rp, "ActiveFailOver", 500, 600, True, 3
+            ),
             selenium,
             selenium_driver_args,
-            testrun_name,
+            selenium_include_suites,
         )
         self.starter_instances = []
         self.follower_nodes = None
         self.leader = None
-        self.first_leader = None
-        self.new_leader = None
         self.success = True
         self.backup_instance_count = 1
 
-    def _detect_leader(self):
+    def detect_leader(self):
         """find out the leader node"""
         self.leader = None
         while self.leader is None:
             for node in self.starter_instances:
                 if node.detect_leader():
                     self.leader = node
-                    self.first_leader = node
-        self.first_leader.wait_for_version_reply()
+            time.sleep(0.5)
+            print(".")
+        self.leader.wait_for_version_reply()
         self.follower_nodes = []
         for node in self.starter_instances:
             node.detect_instance_pids()
@@ -65,16 +69,16 @@ class ActiveFailover(Runner):
 
     def starter_prepare_env_impl(self):
         # fmt: off
-        node1_opts = ['--all.log.level=replication=debug']
-        node2_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
-        node3_opts = ['--all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node1_opts = ['--args.all.log.level=replication=debug']
+        node2_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
+        node3_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
         # fmt: on
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             node1_tls_keyfile = self.cert_dir / Path("node1") / "tls.keyfile"
             node2_tls_keyfile = self.cert_dir / Path("node2") / "tls.keyfile"
             node3_tls_keyfile = self.cert_dir / Path("node3") / "tls.keyfile"
-
+            # pylint: disable=R0801
             self.cert_op(
                 [
                     "tls",
@@ -115,7 +119,7 @@ class ActiveFailover(Runner):
         def add_starter(name, port, opts):
             self.starter_instances.append(
                 StarterManager(
-                    self.basecfg,
+                    self.cfg,
                     self.basedir,
                     name,
                     mode="activefailover",
@@ -140,6 +144,7 @@ class ActiveFailover(Runner):
             node.run_starter()
 
         logging.info("waiting for the starters to become alive")
+        count = 0
         while (
             not self.starter_instances[0].is_instance_up()
             and not self.starter_instances[1].is_instance_up()
@@ -147,6 +152,9 @@ class ActiveFailover(Runner):
         ):
             sys.stdout.write(".")
             time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Active failover installation didn't come up in two minutes!")
 
         logging.info("waiting for the cluster instances to become alive")
         for node in self.starter_instances:
@@ -155,7 +163,7 @@ class ActiveFailover(Runner):
 
     def finish_setup_impl(self):
         logging.info("instances are ready, detecting leader. JWT: " + self.starter_instances[0].get_jwt_header())
-        self._detect_leader()
+        self.detect_leader()
         if self.selenium:
             self.set_selenium_instances()
 
@@ -172,29 +180,16 @@ class ActiveFailover(Runner):
     def test_setup_impl(self):
         self.success = True
         replies = []
-        url = self.leader.get_frontend().get_local_url("")
-        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
-        logging.info(str(reply))
-        replies.append(reply)
-        if reply.status_code != 200:
+        # pylint: disable=consider-using-enumerate
+        for i in range(len(self.follower_nodes)):
+            url = self.follower_nodes[i].get_frontend().get_local_url("")
+            reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid), timeout=180)
+            logging.info(str(reply))
             logging.info(reply.text)
-            self.success = False
+            replies.append(reply)
+            if reply.status_code != 503 or "not a leader" not in reply.text:
+                self.success = False
 
-        url = self.follower_nodes[0].get_frontend().get_local_url("")
-        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
-        logging.info(str(reply))
-        logging.info(reply.text)
-        replies.append(reply)
-        if reply.status_code != 503:
-            self.success = False
-
-        url = self.follower_nodes[1].get_frontend().get_local_url("")
-        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
-        logging.info(str(reply))
-        logging.info(reply.text)
-        replies.append(reply)
-        if reply.status_code != 503:
-            self.success = False
         logging.info("success" if self.success else "fail")
         if not self.success:
             raise Exception("leader/follower instances didn't reply as expected 200/503/503 " + str(replies))
@@ -202,11 +197,12 @@ class ActiveFailover(Runner):
             "leader can be reached at: %s",
             self.leader.get_frontend().get_public_url(""),
         )
-        ret = self.leader.arangosh.check_test_data(
-            "checking active failover follower node", True, ["--readOnly", "false"]
-        )
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        if self.cfg.checkdata:
+            ret = self.leader.arangosh.check_test_data(
+                "checking active failover follower node", True, ["--readOnly", "false"]
+            )
+            if not ret[0]:
+                raise Exception("check data failed " + ret[1])
         if self.selenium:
             self.set_selenium_instances()
             self.selenium.test_setup()
@@ -239,7 +235,7 @@ class ActiveFailover(Runner):
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
         self.starter_instances[1].command_upgrade()
@@ -255,7 +251,7 @@ class ActiveFailover(Runner):
         self.progress(True, "manual upgrade step 1 - stop system")
         self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_cfg)
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
             node.terminate_instance(True)
         self.progress(True, "step 2 - upgrade database directories")
         for node in self.starter_instances:
@@ -270,13 +266,14 @@ class ActiveFailover(Runner):
                 ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
             )
         self.progress(True, "step 3 - launch instances again")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
         for node in self.starter_instances:
-            node.respawn_instance()
+            node.respawn_instance(version)
         self.progress(True, "step 4 - check alive status")
         for node in self.starter_instances:
             node.detect_instances()
             node.wait_for_version_reply()
-        self._detect_leader()
+        self.detect_leader()
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
         self.print_all_instances_table()
         if self.selenium:
@@ -284,27 +281,27 @@ class ActiveFailover(Runner):
 
     def jam_attempt_impl(self):
         # pylint: disable=too-many-statements
-        agency_leader = self.agency_get_leader()
-        if self.first_leader.have_this_instance(agency_leader):
+        agency_leader = self.agency.get_leader()
+        if self.leader.have_this_instance(agency_leader):
             print("AFO-Leader and agency leader are attached by the same starter!")
-            self.agency_trigger_leader_relection(agency_leader)
+            self.agency.trigger_leader_relection(agency_leader)
 
-        self.first_leader.terminate_instance(keep_instances=True)
+        self.leader.terminate_instance(keep_instances=True)
+
         logging.info("relaunching agent!")
-        self.first_leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
+        self.leader.manually_launch_instances([InstanceType.AGENT], [], False, False)
 
         logging.info("waiting for new leader...")
-        self.new_leader = None
+        curr_leader = None
 
         count = 0
-        while self.new_leader is None:
+        while curr_leader is None:
             for node in self.follower_nodes:
                 node.detect_instance_pids_still_alive()
                 node.detect_leader()
                 if node.is_leader:
                     logging.info("have a new leader: %s", str(node.arguments))
-                    self.new_leader = node
-                    self.leader = node
+                    curr_leader = node
                     break
                 progress(".")
             time.sleep(1)
@@ -315,16 +312,25 @@ class ActiveFailover(Runner):
                 raise TimeoutError("Timeout waiting for new leader!")
             count += 1
 
-        print()
-        ret = self.new_leader.arangosh.check_test_data("checking active failover new leader node", True)
-        if not ret[0]:
-            raise Exception("check data failed " + ret[1])
+        if self.cfg.checkdata:
+            args = []
+            if self.old_installer.semver <= semver.VersionInfo.parse("3.11.11"):
+                # we know AFO 3.11.11 and older is broken here:
+                args = ['--skip', '802_']
+                self.checkdata_args = args
+            ret = curr_leader.arangosh.check_test_data(
+                "checking active failover new leader node",
+                True,
+                 args,
+                log_debug=True)
+            if not ret[0]:
+                raise Exception("check data failed " + ret[1])
 
-        logging.info("\n" + str(self.new_leader))
+        logging.info("\n" + str(curr_leader))
         url = "{host}/_db/_system/_admin/aardvark/index.html#replication".format(
-            host=self.new_leader.get_frontend().get_local_url("")
+            host=curr_leader.get_frontend().get_local_url("")
         )
-        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth("root", curr_leader.passvoid), timeout=180)
         logging.info(str(reply))
         if reply.status_code != 200:
             logging.info(reply.text)
@@ -337,21 +343,25 @@ class ActiveFailover(Runner):
             self.selenium.test_jam_attempt()
 
         prompt_user(
-            self.basecfg,
+            self.cfg,
             """The leader failover has happened.
 please revalidate the UI states on the new leader; you should see *one* follower.""",
         )
-        self.first_leader.respawn_instance()
-        self.first_leader.detect_instances()
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
+        self.leader.kill_specific_instance([InstanceType.AGENT])
+
+        self.leader.respawn_instance(version)
+
+        self.leader.detect_instances()
         logging.info("waiting for old leader to show up as follower")
-        while not self.first_leader.active_failover_detect_host_now_follower():
+
+        while not self.leader.active_failover_detect_host_now_follower():
             progress(".")
             time.sleep(1)
-        print()
 
-        url = self.first_leader.get_frontend().get_local_url("")
+        url = self.leader.get_frontend().get_local_url("")
 
-        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid))
+        reply = requests.get(url, auth=HTTPBasicAuth("root", self.leader.passvoid), timeout=180)
         logging.info(str(reply))
         logging.info(str(reply.text))
 
@@ -359,10 +369,12 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.success = False
 
         prompt_user(
-            self.basecfg,
+            self.cfg,
             "The old leader has been respawned as follower (%s),"
-            " so there should be two followers again." % self.first_leader.get_frontend().get_public_url("root@"),
+            " so there should be two followers again." % self.leader.get_frontend().get_public_url("root@"),
         )
+        self.detect_leader()
+        self.makedata_instances[0] = self.leader
 
         logging.info("state of this test is: %s", "Success" if self.success else "Failed")
         if self.selenium:
@@ -371,14 +383,21 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.selenium.test_wait_for_upgrade()
 
     def shutdown_impl(self):
+        ret = False
         for node in self.starter_instances:
-            node.terminate_instance()
-
+            ret = ret or node.terminate_instance()
         logging.info("test ended")
+        return ret
+
+    def before_backup_create_impl(self):
+        pass
+
+    def after_backup_create_impl(self):
+        pass
 
     def before_backup_impl(self):
         """put into maintainance mode according to
-        https://www.arangodb.com/docs/3.7/programs-arangobackup-limitations.html#active-failover-special-limitations
+        https://www.arangodb.com/docs/3.10/programs-arangobackup-limitations.html#active-failover-special-limitations
         """
         self.leader.maintainance(True, InstanceType.RESILIENT_SINGLE)
 

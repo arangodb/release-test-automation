@@ -19,7 +19,7 @@ class InstallerLinux(InstallerBase):
         super().__init__(cfg)
 
     @step
-    def gdb_test(self):
+    def debugger_test(self):
         """
         check that debug symbols for arangod binary are present
         """

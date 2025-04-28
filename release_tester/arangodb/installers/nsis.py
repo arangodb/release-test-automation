@@ -6,27 +6,34 @@ from pathlib import Path, PureWindowsPath
 import shutil
 import subprocess
 import time
-
-# pylint: disable=import-error
-import winreg
 import os
 import re
+
+import platform
 
 import semver
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
-from mss import mss
-import psutil
-from reporting.reporting_utils import step
 
-from arangodb.installers.base import InstallerBase
+from arangodb.installers.windows import InstallerWin
+from reporting.reporting_utils import step
+from tools.killall import get_process_tree
+
+import psutil
 
 # pylint: disable=unused-import
 # this will patch psutil for us:
 import tools.monkeypatch_psutil
 
+# pylint: disable=import-error, disable=possibly-used-before-assignment
+IS_WINDOWS = platform.win32_ver()[0] != ""
+if IS_WINDOWS:
+    from mss import mss
+    import winreg
+    import win32api
 
-class InstallerW(InstallerBase):
+
+class InstallerNsis(InstallerWin):
     """install the windows NSIS package"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
@@ -50,9 +57,13 @@ class InstallerW(InstallerBase):
         cfg.sbin_dir = cfg.install_prefix / "usr" / "bin"
         cfg.real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
-
+        if cfg.semver > semver.VersionInfo.parse("3.9.99"):
+            self.arch = "_amd64"
+            self.arch = ""
+        else:
+            self.arch = ""
+        self.operating_system = "win64"
         super().__init__(cfg)
-        self.check_stripped = False
         self.check_symlink = False
         self.core_glob = "**/*.dmp"
 
@@ -76,10 +87,12 @@ class InstallerW(InstallerBase):
 
     def calculate_package_names(self):
         enterprise = "e" if self.cfg.enterprise else ""
-        architecture = "win64"
         semdict = dict(self.cfg.semver.to_dict())
         if semdict["prerelease"]:
-            semdict["prerelease"] = "-{prerelease}".format(**semdict)
+            if semdict["prerelease"].startswith("rc"):
+                semdict["prerelease"] = "-" + semdict["prerelease"].replace("rc", "rc.").replace("..", ".")
+            else:
+                semdict["prerelease"] = "-{prerelease}".format(**semdict)
         else:
             semdict["prerelease"] = ""
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
@@ -87,22 +100,15 @@ class InstallerW(InstallerBase):
         self.desc = {
             "ep": enterprise,
             "ver": version,
-            "arch": architecture,
+            "os": self.operating_system,
+            "arch": self.arch,
             "ext": self.extension,
         }
 
-        self.server_package = "ArangoDB3%s-%s_%s.exe" % (
-            enterprise,
-            version,
-            architecture,
-        )
+        self.server_package = "ArangoDB3{ep}-{ver}_{os}{arch}.exe".format(**self.desc)
         if self.cfg.semver >= semver.VersionInfo.parse("3.7.15"):
-            self.client_package = "ArangoDB3%s-client-%s_%s.exe" % (
-                enterprise,
-                version,
-                architecture,
-            )
-            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{arch}_{ver}".format(
+            self.client_package = "ArangoDB3{ep}-client-{ver}_{os}{arch}.exe".format(**self.desc)
+            self.cfg.client_install_prefix = self.cfg.base_test_dir / "arangodb3{ep}-client-{os}_{ver}{arch}".format(
                 **self.desc
             )
         self.debug_package = "ArangoDB3{ep}-{ver}.pdb.zip".format(**self.desc)
@@ -133,10 +139,16 @@ class InstallerW(InstallerBase):
             install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("upgrading timed out, taking screenshot, re-raising!")
+            print("shaking mouse.")
+            win32api.SetCursorPos((10, 10))
+            time.sleep(1)
+            win32api.SetCursorPos((50, 50))
+            time.sleep(5)
+            print("taking screenshot")
             filename = "windows_upgrade_screenshot.png"
             with mss() as sct:
                 sct.shot(output=filename)
-                attach(
+                attach.file(
                     filename,
                     name="Screenshot ({fn})".format(fn=filename),
                     attachment_type=AttachmentType.PNG,
@@ -144,7 +156,7 @@ class InstallerW(InstallerBase):
             install.kill()
             raise Exception("Upgrade install failed to complete on time") from exc
 
-        self.service = psutil.win_service_get("ArangoDB")
+        self.get_service()
         while not self.check_service_up():
             logging.info("starting...")
             time.sleep(1)
@@ -182,17 +194,23 @@ class InstallerW(InstallerBase):
             install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("installing timed out, taking screenshot, re-raising!")
+            print("shaking mouse.")
+            win32api.SetCursorPos((10, 10))
+            time.sleep(1)
+            win32api.SetCursorPos((50, 50))
+            time.sleep(5)
+            print("taking screenshot")
             filename = "windows_upgrade_screenshot.png"
             with mss() as sct:
                 sct.shot(output=filename)
-                attach(
+                attach.file(
                     filename,
                     name="Screenshot ({fn})".format(fn=filename),
                     attachment_type=AttachmentType.PNG,
                 )
             install.kill()
             raise Exception("Installing failed to complete on time") from exc
-        self.service = psutil.win_service_get("ArangoDB")
+        self.get_service()
         while not self.check_service_up():
             logging.info("starting...")
             time.sleep(1)
@@ -227,10 +245,16 @@ class InstallerW(InstallerBase):
             install.wait(600)
         except psutil.TimeoutExpired as exc:
             print("installing timed out, taking screenshot, re-raising!")
+            print("shaking mouse.")
+            win32api.SetCursorPos((10, 10))
+            time.sleep(1)
+            win32api.SetCursorPos((50, 50))
+            time.sleep(5)
+            print("taking screenshot")
             filename = "windows_install_client_package.png"
             with mss() as sct:
                 sct.shot(output=filename)
-                attach(
+                attach.file(
                     filename,
                     name="Screenshot ({fn})".format(fn=filename),
                     attachment_type=AttachmentType.PNG,
@@ -245,7 +269,9 @@ class InstallerW(InstallerBase):
             return
         # pylint: disable=broad-except
         try:
+            logging.info("getting service")
             self.service = psutil.win_service_get("ArangoDB")
+            logging.info("getting service done")
         except Exception as exc:
             logging.error("failed to get service! - %s", str(exc))
             return
@@ -276,14 +302,21 @@ class InstallerW(InstallerBase):
                 uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("upgrade uninstall timed out, taking screenshot, re-raising!")
+                print("shaking mouse.")
+                win32api.SetCursorPos((10, 10))
+                time.sleep(1)
+                win32api.SetCursorPos((50, 50))
+                time.sleep(5)
+                print("taking screenshot")
                 filename = "windows_upgrade_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
-                    attach(
+                    attach.file(
                         filename,
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("upgrade uninstall failed to complete on time") from exc
 
@@ -313,14 +346,21 @@ class InstallerW(InstallerBase):
                 uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("uninstall timed out, taking screenshot, re-raising!")
+                print("shaking mouse.")
+                win32api.SetCursorPos((10, 10))
+                time.sleep(1)
+                win32api.SetCursorPos((50, 50))
+                time.sleep(5)
+                print("taking screenshot")
                 filename = "windows_upgrade_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
-                    attach(
+                    attach.file(
                         filename,
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
@@ -333,7 +373,6 @@ class InstallerW(InstallerBase):
         time.sleep(30 / multiprocessing.cpu_count())
         # pylint: disable=broad-except, disable=unnecessary-pass
         try:
-            logging.info(psutil.win_service_get("ArangoDB"))
             self.get_service()
             if self.service and self.service.status() != "stopped":
                 logging.info("service shouldn't exist anymore!")
@@ -363,14 +402,21 @@ class InstallerW(InstallerBase):
                 uninstall.wait(600)
             except psutil.TimeoutExpired as exc:
                 print("uninstall timed out, taking screenshot, re-raising!")
+                print("shaking mouse.")
+                win32api.SetCursorPos((10, 10))
+                time.sleep(1)
+                win32api.SetCursorPos((50, 50))
+                time.sleep(5)
+                print("taking screenshot")
                 filename = "windows_uninstall_client_package_screenshot.png"
                 with mss() as sct:
                     sct.shot(output=filename)
-                    attach(
+                    attach.file(
                         filename,
                         name="Screenshot ({fn})".format(fn=filename),
                         attachment_type=AttachmentType.PNG,
                     )
+                print(get_process_tree())
                 uninstall.kill()
                 raise Exception("uninstall failed to complete on time") from exc
         if self.cfg.log_dir.exists():
@@ -400,7 +446,7 @@ class InstallerW(InstallerBase):
             logging.info(self.service.status())
             time.sleep(1)
             if self.service.status() == "stopped":
-                raise Exception("arangod service stopped again on its own!" "Configuration / Port problem?")
+                raise Exception("arangod service stopped again on its own! Configuration / Port problem?")
         # should be owned by init TODO wintendo what do you do here?
         self.instance.detect_pid(1)
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+. ./jenkins/common/detect_podman.sh
 
 VERSION=$(cat VERSION.json)
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
@@ -22,6 +23,8 @@ fi
 
 if test -n "$SOURCE"; then
     force_arg+=(--old-source "$SOURCE" --new-source "$SOURCE")
+else
+    force_arg+=(--remote-host 172.17.4.0)
 fi
 
 VERSION_TAR_NAME="${OLD_VERSION}_${NEW_VERSION}_tar_version.tar"
@@ -31,12 +34,16 @@ mkdir -p test_dir
 mkdir -p allure-results
 
 ssh -o StrictHostKeyChecking=no -T git@github.com
-git clone git@github.com:arangodb/release-test-automation-helpers.git
-mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+if test ! -d $(pwd)/release_tester/tools/external_helpers; then
+  git clone git@github.com:arangodb/release-test-automation-helpers.git
+  mv $(pwd)/release-test-automation-helpers $(pwd)/release_tester/tools/external_helpers
+fi
+git submodule init
+git submodule update
 
 ulimit -n 65535
 
-$(pwd)/release_tester/full_download_upgrade.py \
+python3 $(pwd)/release_tester/full_download_upgrade.py \
       --version-state-tar "${WORKSPACE}/${VERSION_TAR_NAME}" \
       --package-dir "${PACKAGE_CACHE}" \
       --old-version "${OLD_VERSION}" \

@@ -1,0 +1,45 @@
+#!/bin/bash
+. ./jenkins/common/detect_podman.sh
+DOCKER_SUFFIX=tar
+. ./jenkins/common/default_variables.sh
+. ./jenkins/common/default_matrix.sh
+. ./jenkins/common/setup_docker.sh
+
+. ./jenkins/common/set_max_map_count.sh
+
+. ./jenkins/common/setup_selenium.sh
+. ./jenkins/common/evaluate_force.sh
+. ./jenkins/common/load_git_submodules.sh
+
+. ./jenkins/common/launch_minio.sh
+
+. ./jenkins/common/register_cleanup_trap.sh
+
+# we need --init since our upgrade leans on zombies not happening:
+$DOCKER run \
+       "${DOCKER_ARGS[@]}" \
+       --pid=host \
+       --init \
+       \
+       "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
+       \
+       /home/release-test-automation/release_tester/run_chain_upgrade.py \
+       --enterprise-magic ${ENTERPRISE_DOWNLOAD_KEY} \
+       --release-tracker-username ${RELEASE_TRACKER_USERNAME} \
+       --release-tracker-password ${RELEASE_TRACKER_PASSWORD} \
+       --zip \
+       "${RTA_ARGS[@]}" \
+       "${@}"
+result=$?
+
+# don't need docker stop $DOCKER_TAR_NAME
+
+. ./jenkins/common/cleanup_ownership.sh
+. ./jenkins/common/gather_coredumps.sh
+
+if test "${result}" -eq "0"; then
+    echo "OK"
+else
+    echo "FAILED ${DOCKER_SUFFIX}!"
+    exit 1
+fi

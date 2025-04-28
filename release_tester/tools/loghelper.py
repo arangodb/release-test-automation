@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """ invoke subprocesses and timestamped print their output """
-# import subprocess
+# pylint: disable=no-member,no-name-in-module
 import logging
 from logging import StreamHandler, Handler
 import sys
 
 from allure_commons._allure import attach
+from allure_commons.types import AttachmentType
 
 
 class StdOutHandler(StreamHandler):
     """stdout handler adapter"""
+
     # pylint: disable=super-init-not-called disable=non-parent-init-called
     def __init__(self):
         Handler.__init__(self)
@@ -72,7 +74,7 @@ def configure_logging(verbose):
     for handler in logger.handlers:
         logger.removeHandler(handler)
     handler = StdOutHandler()
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s')
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(filename)s:%(lineno)d - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -87,14 +89,18 @@ def line(sym="-", length=get_term_width()):
     print(sym * int(length / len(sym)))
 
 
-def log_cmd(cmd, print_cmd=True):
+def log_cmd(cmd, print_cmd=True, progressive_timeout=0, deadline=0, cwd=""):
     """log string"""
-    if not isinstance(cmd, str):
+    if isinstance(cmd, str):
+        pass
+    elif isinstance(cmd, list):
         cmd = str(" ".join([str(x) for x in cmd]))
-    attach(cmd, "Command")
+    else:
+        cmd = str(cmd)
+    attach(cmd, "Command", attachment_type=AttachmentType.TEXT)
     if print_cmd:
         line("<")
-        print("executing: " + cmd)
+        print(f"executing: PWD {cwd} {cmd} progressive timeout: {progressive_timeout} deadline {deadline}")
         line("^")
 
 

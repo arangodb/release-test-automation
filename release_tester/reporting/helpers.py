@@ -1,4 +1,5 @@
 """ classes for allure integration """
+
 import sys
 
 import allure_commons
@@ -8,41 +9,48 @@ from allure_commons.model2 import (
     TestResult,
     Status,
     Label,
-    StatusDetails, TestResultContainer, TestBeforeResult, TestAfterResult,
+    StatusDetails,
+    TestResultContainer,
+    TestBeforeResult,
+    TestAfterResult,
 )
 from allure_commons.reporter import AllureReporter
 from allure_commons.types import LabelType, AttachmentType
 from allure_commons.utils import now, format_traceback, format_exception, uuid4
+
 # pylint: disable=import-error
 from reporting.logging import IoDuplicator
 
 
-# pylint: disable=too-few-public-methods
-class StepData:
-    """a class to store step context"""
-
-    system_stdout = sys.stdout
-    system_stderr = sys.stderr
-
-    def __init__(self):
-        self.prev_stdout = sys.stdout
-        self.prev_stderr = sys.stderr
-        sys.stdout = IoDuplicator(StepData.system_stdout)
-        sys.stderr = IoDuplicator(StepData.system_stderr)
-
-
+# pylint: disable=too-many-instance-attributes
 class AllureListener:
     """allure plugin implementation"""
 
-    def __init__(self, default_test_suite_name=None, default_parent_test_suite_name=None, default_sub_suite_name=None):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+    stdout_duplicator = IoDuplicator(sys.stdout)
+    stderr_duplicator = IoDuplicator(sys.stderr)
+    sys.stdout = stdout_duplicator
+    sys.stderr = stderr_duplicator
+
+    def __init__(
+        self,
+        default_test_suite_name=None,
+        default_parent_test_suite_name=None,
+        default_sub_suite_name=None,
+        default_labels=None,
+    ):
+        if default_labels is None:
+            default_labels = []
         self.allure_logger = AllureReporter()
         self._cache = ItemCache()
         self.default_test_suite_name = default_test_suite_name
         self.default_parent_test_suite_name = default_parent_test_suite_name
         self.default_sub_suite_name = default_sub_suite_name
-        self.container_uuid=str(uuid4())
+        self.container_uuid = str(uuid4())
         self.current_testcase_container_uuid = None
         self.parent_test_listener = None
+        self.default_labels = default_labels
 
     @allure_commons.hookimpl
     def attach_data(self, body, name, attachment_type, extension):
@@ -83,8 +91,8 @@ class AllureListener:
     @allure_commons.hookimpl
     def start_step(self, uuid, title, params):
         """start step"""
-        step_data = StepData()
-        self._cache.push(step_data, uuid)
+        AllureListener.stdout_duplicator.grow_stack()
+        AllureListener.stderr_duplicator.grow_stack()
         parameters = [Parameter(name=name, value=value) for name, value in params.items()]
         step = TestStepResult(name=title, start=now(), parameters=parameters)
         self.allure_logger.start_step(None, uuid, step)
@@ -92,17 +100,12 @@ class AllureListener:
     @allure_commons.hookimpl
     def stop_step(self, uuid, exc_type, exc_val, exc_tb):
         """stop step"""
-        step_data = self._cache.get(uuid)
-        out = sys.stdout.getvalue()
-        sys.stdout.close()
+        out = AllureListener.stdout_duplicator.pop_stack()
         if len(out) != 0:
             self.attach_data(out, "STDOUT", AttachmentType.TEXT, "txt")
-        sys.stdout = step_data.prev_stdout
-        err = sys.stderr.getvalue()
-        sys.stderr.close()
+        err = AllureListener.stderr_duplicator.pop_stack()
         if len(err) != 0:
             self.attach_data(err, "STDERR", AttachmentType.TEXT, "txt")
-        sys.stderr = step_data.prev_stderr
         self.allure_logger.stop_step(
             uuid,
             stop=now(),
@@ -124,7 +127,7 @@ class AllureListener:
         test_result.labels.append(Label(name=LabelType.FRAMEWORK, value="ArangoDB Release Test Automation"))
         self.allure_logger.schedule_test(uuid, test_result)
         self._cache.push(test_result, uuid)
-        for label in context.labels:
+        for label in self.default_labels + context.labels:
             test_result.labels.append(label)
         self.allure_logger.update_group(self.container_uuid, children=uuid)
         parent = self.parent_test_listener
@@ -137,7 +140,6 @@ class AllureListener:
         self.allure_logger.start_group(self.current_testcase_container_uuid, container)
         self.allure_logger.update_group(self.current_testcase_container_uuid, start=now())
         self.allure_logger.update_group(self.current_testcase_container_uuid, children=uuid)
-
 
     # pylint: disable=too-many-arguments
     @allure_commons.hookimpl
@@ -176,29 +178,38 @@ class AllureListener:
 
     def start_before_fixture(self, uuid, name):
         """start a fixture that is ran before a test case or test suite"""
-        container_uuid = self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        container_uuid = (
+            self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        )
         fixture = TestBeforeResult(name=name, start=now(), parameters={})
         self.allure_logger.start_before_fixture(container_uuid, uuid, fixture)
 
     def stop_before_fixture(self, uuid, exc_type, exc_val, exc_tb):
         """stop a fixture that is ran before a test case or test suite"""
-        self.allure_logger.stop_before_fixture(uuid=uuid,
-                                        stop=now(),
-                                        status=get_status(exc_val),
-                                        statusDetails=get_status_details(exc_type, exc_val, exc_tb))
+        self.allure_logger.stop_before_fixture(
+            uuid=uuid,
+            stop=now(),
+            status=get_status(exc_val),
+            statusDetails=get_status_details(exc_type, exc_val, exc_tb),
+        )
 
     def start_after_fixture(self, uuid, name):
         """start a fixture that is ran after a test case or test suite"""
-        container_uuid = self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        container_uuid = (
+            self.current_testcase_container_uuid if self.current_testcase_container_uuid else self.container_uuid
+        )
         fixture = TestAfterResult(name=name, start=now(), parameters={})
         self.allure_logger.start_after_fixture(container_uuid, uuid, fixture)
 
     def stop_after_fixture(self, uuid, exc_type, exc_val, exc_tb):
         """stop a fixture that is ran after a test case or test suite"""
-        self.allure_logger.stop_after_fixture(uuid=uuid,
-                                        stop=now(),
-                                        status=get_status(exc_val),
-                                        statusDetails=get_status_details(exc_type, exc_val, exc_tb))
+        self.allure_logger.stop_after_fixture(
+            uuid=uuid,
+            stop=now(),
+            status=get_status(exc_val),
+            statusDetails=get_status_details(exc_type, exc_val, exc_tb),
+        )
+
 
 class ItemCache:
     """a class to store allure report objects before writing to output"""
