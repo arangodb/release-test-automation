@@ -338,6 +338,7 @@ class InstallerBase(ABC):
     @step
     def output_arangod_version(self):
         """document the output of arangod --version"""
+        print(f"tsan settings at version launch: {os.environ['TSAN_OPTIONS']}")
         return self.cli_executor.run_monitored(
             executeable=self.cfg.real_sbin_dir / "arangod",
             args=["--version"],
