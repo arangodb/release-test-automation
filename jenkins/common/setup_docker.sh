@@ -1,18 +1,24 @@
-DOCKER_NETWORK_NAME=rta-bridge
+if test -z "$DOCKER_NETWORK_NAME"; then
+    DOCKER_NETWORK_NAME=rta-bridge
+fi
+
 DOCKER_NAME="release-test-automation-${DOCKER_SUFFIX}"
 
 DOCKER_TAG="${DOCKER_NAME}:$(cat containers/this_version.txt)${ARCH}"
 DOCKER_NAMESPACE="arangodb/"
-if ${DOCKER} pull "${REGISTRY_URL}${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
-    echo "using ready built container"
-else
-    ${DOCKER} build "containers/${DOCKER}_$(echo "${DOCKER_SUFFIX}"|sed "s;-;_;g")${ARCH}"  -t "${DOCKER_TAG}" || exit
-    DOCKER_NAMESPACE=""
+if test "${MODE}" != "native"; then
+  if ${DOCKER} pull "${REGISTRY_URL}${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
+      echo "using ready built container"
+  else
+      ${DOCKER} build "containers/${DOCKER}_$(echo "${DOCKER_SUFFIX}"|sed "s;-;_;g")${ARCH}"  -t "${DOCKER_TAG}" || exit
+      DOCKER_NAMESPACE=""
+  fi
 fi
-
 . ./jenkins/common/pre_cleanup_docker.sh
 
-${DOCKER} network create $DOCKER_NETWORK_NAME
+if test "$DOCKER_NETWORK_NAME" != "host"; then
+    ${DOCKER} network create $DOCKER_NETWORK_NAME
+fi
 DOCKER_ARGS=(
     --env="BUILD_NUMBER=${BUILD_NUMBER}" \
          --env="PYTHONUNBUFFERED=1" \
@@ -34,8 +40,13 @@ DOCKER_ARGS=(
          -v /dev/shm:/dev/shm \
         )
 
-TRAP_CLEANUP=(
-    "${DOCKER} kill ${DOCKER_NAME}"
+TRAP_CLEANUP=()
+if test "${MODE}" != "native"; then
+    TRAP_CLEANUP+=(
+        "${DOCKER} kill ${DOCKER_NAME}"
+    )
+fi
+TRAP_CLEANUP+=(
     "${DOCKER} rm ${DOCKER_NAME}"
     "${TRAP_CLEANUP[@]}"
 )

@@ -89,6 +89,7 @@ class StarterManager:
         # self.moreopts += ["--args.all.log.output=startup=file://@ARANGODB_SERVER_DIR@/arangod_startup.log"]
         # self.moreopts += ["--starter.disable-ipv6=false"]
         # self.moreopts += ["--starter.host=127.0.0.1"]
+        # self.moreopts += ["--args.all.temp.dumpenv=true"]
 
         if self.cfg.hot_backup_supported and self.cfg.semver.prerelease is not None and self.cfg.semver.minor >= 9:
             self.moreopts += [
@@ -681,6 +682,7 @@ class StarterManager:
             with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
+        self.cfg = new_install_cfg
         self.arangosh = None
         self.detect_arangosh_instances(new_install_cfg, old_version)
 
@@ -1105,6 +1107,7 @@ class StarterManager:
                     config,
                     self.raw_basedir,
                     config.base_test_dir / self.raw_basedir,
+                    self.cfg.is_instrumented,
                 )
 
     @step

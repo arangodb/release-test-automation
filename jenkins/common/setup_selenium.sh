@@ -2,17 +2,18 @@ argv=$@
 if [[ ${argv[@]} =~ "--selenium" ]]; then
     sed -e "s;@RTAROOT@;$(pwd);g" < "$(pwd)/selenoid_config/browsers.json.in" > "$(pwd)/selenoid_config/browsers.json"
     cat "$(pwd)/selenoid_config/browsers.json"
-    ${DOCKER} pull aerokube/selenoid
-    ${DOCKER} pull selenoid/chrome
-    ${DOCKER} pull selenoid/video-recorder:latest-release
+    ${DOCKER} pull "${REGISTRY_URL}aerokube/selenoid"
+    ${DOCKER} pull "${REGISTRY_URL}selenoid/chrome"
+    ${DOCKER} pull "${REGISTRY_URL}selenoid/video-recorder:latest-release"
     mkdir -p "$(pwd)/test_dir/selenoid_video"
-    SELENOID=$(${DOCKER} run -d --name selenoid -p 4444:4444 \
+    SELENOID=$(docker run -d --name selenoid -p 4444:4444 \
+                      -e DOCKER_API_VERSION=1.45 \
                       --network="${DOCKER_NETWORK_NAME}" \
                       -v "$(pwd)/test_dir/selenoid_video:/opt/selenoid/video" \
                       --env="OVERRIDE_VIDEO_OUTPUT_DIR=$(pwd)/test_dir/selenoid_video" \
-                      -v /var/run/${DOCKER}.sock:/var/run/${DOCKER}.sock\
+                      -v "${MOUNT_DOCKER_SOCKET}" \
                       -v "$(pwd)/selenoid_config/:/etc/selenoid/:ro" \
-                      aerokube/selenoid:latest-release -timeout 60m -container-network "${DOCKER_NETWORK_NAME}" )
+                      "aerokube/selenoid:latest-release" -timeout 60m -container-network "${DOCKER_NETWORK_NAME}" )
     SELENOID_IP=$(${DOCKER} inspect \
                          -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${SELENOID})
     echo "Selenoid IP: ${SELENOID_IP}"

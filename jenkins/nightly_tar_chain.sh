@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=docker
+. ./jenkins/common/detect_podman.sh
 DOCKER_SUFFIX=tar
 . ./jenkins/common/default_variables.sh
 . ./jenkins/common/default_matrix.sh
@@ -16,7 +16,7 @@ DOCKER_SUFFIX=tar
 . ./jenkins/common/register_cleanup_trap.sh
 
 # we need --init since our upgrade leans on zombies not happening:
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        --pid=host \
        --init \

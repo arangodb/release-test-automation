@@ -43,6 +43,7 @@ FNRX = re.compile("[\n@ ]*")
 WINVER = platform.win32_ver()
 shutil.register_archive_format("7zip", py7zr.pack_7zarchive, description="7zip archive")
 
+
 class Runner(ABC):
     """abstract starter deployment runner"""
 
@@ -217,7 +218,7 @@ class Runner(ABC):
     def run(self):
         """run the full lifecycle flow of this deployment"""
         # pylint: disable=too-many-statements disable=too-many-branches
-        if self.cfg.do_starter_test and not self.remote:
+        if not self.remote:
             detect_file_ulimit()
             if self.cfg.check_locale:
                 detect_locale()
@@ -240,7 +241,7 @@ class Runner(ABC):
 
             self.progress(False, "Runner of type {0}".format(str(self.name)), "<3")
 
-            if i == 0 and self.cfg.do_install:
+            if i == 0:
                 self.progress(
                     False,
                     "INSTALLATION for {0}".format(str(self.name)),
@@ -249,59 +250,57 @@ class Runner(ABC):
             else:
                 self.cfg.set_directories(self.old_installer.cfg)
 
-            if self.cfg.do_starter_test:
-                self.progress(
-                    False,
-                    "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
-                )
-                if i == 0:
-                    self.starter_prepare_env()
-                    self.starter_run()
-                    self.finish_setup()
-                self.progress(True, "self test after installation")
-                self.makedata_instances[0].arangosh.self_test()
-                if self.props.create_oneshard_db:
-                    self.custom_databases.append(["system_oneshard_makedata", True, 1])
-                self.make_data()
-                self.after_makedata_check()
+            self.progress(
+                False,
+                "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
+            )
+            if i == 0:
+                self.starter_prepare_env()
+                self.starter_run()
+                self.finish_setup()
+            self.progress(True, "self test after installation")
+            self.makedata_instances[0].arangosh.self_test()
+            if self.props.create_oneshard_db:
+                self.custom_databases.append(["system_oneshard_makedata", True, 1])
+            self.make_data()
+            self.after_makedata_check()
+            self.check_data_impl()
+            if self.selenium:
+                self.set_selenium_instances()
+                self.selenium.test_empty_ui()
+            ti.prompt_user(
+                self.cfg,
+                "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
+            )
+            if self.hot_backup:
+                self.progress(False, "TESTING HOTBACKUP")
+                self.backup_name = self.create_backup("thy_name_is_" + self.name)
+                self.validate_local_backup(self.backup_name)
+                self.tcp_ping_all_nodes()
+                self.create_non_backup_data()
+                taken_backups = self.list_backup()
+                backup_no = len(taken_backups) - 1
+                self.upload_backup(taken_backups[backup_no])
+                self.tcp_ping_all_nodes()
+                self.delete_backup(taken_backups[backup_no])
+                self.tcp_ping_all_nodes()
+                backups = self.list_backup()
+                if len(backups) != len(taken_backups) - 1:
+                    raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                self.download_backup(self.backup_name)
+                self.validate_local_backup(self.backup_name)
+                self.tcp_ping_all_nodes()
+                backups = self.list_backup()
+                if backups[len(backups) - 1] != self.backup_name:
+                    raise Exception("downloaded backup has different name? " + str(backups))
+                self.before_backup()
+                self.restore_backup(backups[len(backups) - 1])
+                self.tcp_ping_all_nodes()
+                self.after_backup()
+                time.sleep(20)  # TODO fix
                 self.check_data_impl()
-
-                if self.selenium:
-                    self.set_selenium_instances()
-                    self.selenium.test_empty_ui()
-                ti.prompt_user(
-                    self.cfg,
-                    "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
-                )
-                if self.hot_backup:
-                    self.progress(False, "TESTING HOTBACKUP")
-                    self.backup_name = self.create_backup("thy_name_is_" + self.name)
-                    self.validate_local_backup(self.backup_name)
-                    self.tcp_ping_all_nodes()
-                    self.create_non_backup_data()
-                    taken_backups = self.list_backup()
-                    backup_no = len(taken_backups) - 1
-                    self.upload_backup(taken_backups[backup_no])
-                    self.tcp_ping_all_nodes()
-                    self.delete_backup(taken_backups[backup_no])
-                    self.tcp_ping_all_nodes()
-                    backups = self.list_backup()
-                    if len(backups) != len(taken_backups) - 1:
-                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-                    self.download_backup(self.backup_name)
-                    self.validate_local_backup(self.backup_name)
-                    self.tcp_ping_all_nodes()
-                    backups = self.list_backup()
-                    if backups[len(backups) - 1] != self.backup_name:
-                        raise Exception("downloaded backup has different name? " + str(backups))
-                    self.before_backup()
-                    self.restore_backup(backups[len(backups) - 1])
-                    self.tcp_ping_all_nodes()
-                    self.after_backup()
-                    time.sleep(20)  # TODO fix
-                    self.check_data_impl()
-                    if not self.check_non_backup_data():
-                        raise Exception("data created after backup is still there??")
+                if not self.check_non_backup_data():
+                    raise Exception("data created after backup is still there??")
 
             if self.new_installer:
                 if self.hot_backup:
@@ -368,19 +367,18 @@ class Runner(ABC):
                 logging.info("skipping upgrade step no new version given")
 
             try:
-                if self.cfg.do_starter_test:
-                    self.progress(
-                        False,
-                        "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
-                    )
-                    self.test_setup()
-                    self.jam_attempt()
-                    self.check_data_impl()
-                    if not is_keep_db_dir:
-                        self.starter_shutdown()
-                        for starter in self.starter_instances:
-                            starter.detect_fatal_errors()
-                if self.cfg.do_uninstall and is_uninstall_now:
+                self.progress(
+                    False,
+                    "{0} TESTS FOR {1}".format(self.testrun_name, str(self.name)),
+                )
+                self.test_setup()
+                self.jam_attempt()
+                self.check_data_impl()
+                if not is_keep_db_dir:
+                    self.starter_shutdown()
+                    for starter in self.starter_instances:
+                        starter.detect_fatal_errors()
+                if is_uninstall_now:
                     self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
             finally:
                 if self.selenium:
@@ -407,20 +405,19 @@ class Runner(ABC):
         self.old_installer.load_config()
         self.old_installer.calculate_file_locations()
         self.cfg.set_directories(self.old_installer.cfg)
-        if self.cfg.do_starter_test:
-            self.progress(
-                False,
-                "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
-            )
-            self.starter_prepare_env()
-            self.finish_setup()  # create the instances...
-            for starter in self.starter_instances:
-                # attach the PID of the starter instance:
-                starter.attach_running_starter()
-                # find out about its processes:
-                starter.detect_instances()
-            print(self.starter_instances)
-            self.selenium.test_after_install()
+        self.progress(
+            False,
+            "PREPARING DEPLOYMENT of {0}".format(str(self.name)),
+        )
+        self.starter_prepare_env()
+        self.finish_setup()  # create the instances...
+        for starter in self.starter_instances:
+            # attach the PID of the starter instance:
+            starter.attach_running_starter()
+            # find out about its processes:
+            starter.detect_instances()
+        print(self.starter_instances)
+        self.selenium.test_after_install()
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
@@ -430,14 +427,13 @@ class Runner(ABC):
             )
             self.new_cfg.set_directories(self.new_installer.cfg)
 
-        if self.cfg.do_starter_test:
-            self.progress(
-                False,
-                "TESTS FOR {0}".format(str(self.name)),
-            )
-            self.test_setup()
-            self.jam_attempt()
-            self.starter_shutdown()
+        self.progress(
+            False,
+            "TESTS FOR {0}".format(str(self.name)),
+        )
+        self.test_setup()
+        self.jam_attempt()
+        self.starter_shutdown()
         if self.selenium:
             self.selenium.disconnect()
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
@@ -448,39 +444,34 @@ class Runner(ABC):
         self.progress(True, "{0} - install package".format(str(self.name)))
 
         kill_all_processes(False)
-        if self.cfg.do_install:
-            lh.subsubsection("installing server package")
-            try:
-                inst.install_server_package()
-            finally:
-                inst.copy_binaries()
-            self.cfg.set_directories(inst.cfg)
-            lh.subsubsection("checking files")
-            inst.check_installed_files()
-            lh.subsubsection("saving config")
-            inst.save_config()
+        lh.subsubsection("installing server package")
+        try:
+            inst.install_server_package()
+        finally:
+            inst.copy_binaries()
+        self.cfg.set_directories(inst.cfg)
+        lh.subsubsection("checking files")
+        inst.check_installed_files()
+        lh.subsubsection("saving config")
+        inst.save_config()
+        lh.subsubsection("checking if service is up")
+        if inst.check_service_up():
+            lh.subsubsection("stopping service")
+            inst.stop_service()
+        inst.broadcast_bind()
+        lh.subsubsection("outputting version")
+        inst.output_arangod_version()
+        inst.get_starter_version()
+        inst.get_sync_version()
+        inst.get_rclone_version()
+        lh.subsubsection("starting service")
+        inst.start_service()
+        inst.check_installed_paths()
+        inst.check_engine_file()
 
-            lh.subsubsection("checking if service is up")
-            if inst.check_service_up():
-                lh.subsubsection("stopping service")
-                inst.stop_service()
-            inst.broadcast_bind()
-            lh.subsubsection("outputting version")
-            inst.output_arangod_version()
-            inst.get_starter_version()
-            inst.get_sync_version()
-            inst.get_rclone_version()
-
-            lh.subsubsection("starting service")
-
-            inst.start_service()
-
-            inst.check_installed_paths()
-            inst.check_engine_file()
-
-            if not self.new_installer:
-                # only install debug package for new package.
-                self.progress(True, "installing debug package:")
+        if not self.new_installer:
+            # only install debug package for new package.
+            self.progress(True, "installing debug package:")
 
         # start / stop
         if inst.check_service_up():
@@ -492,15 +483,14 @@ class Runner(ABC):
         if inst.cfg.have_system_service:
             sys_arangosh.self_test()
 
-        if self.cfg.do_system_test:
-            sys_arangosh.js_version_check(self.cfg.is_instrumented)
-            # TODO: here we should invoke Makedata for the system installation.
+            sys_arangosh.js_version_check()
+        # TODO: here we should invoke Makedata for the system installation.
+        self.progress(True, "stop system service to make ports available for starter")
 
-            self.progress(True, "stop system service to make ports available for starter")
         inst.stop_service()
 
     def get_selenium_status(self):
-        """ see whether we have a selenium success """
+        """see whether we have a selenium success"""
         if not self.selenium:
             return True
         return self.selenium.success
@@ -724,7 +714,7 @@ class Runner(ABC):
                             one_shard=one_shard,
                             database_name=db_name,
                             deadline=deadline,
-                            progressive_timeout=progressive_timeout
+                            progressive_timeout=progressive_timeout,
                         )
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
@@ -754,7 +744,7 @@ class Runner(ABC):
                         database_name=db_name,
                         one_shard=one_shard,
                         deadline=deadline,
-                        progressive_timeout=progressive_timeout
+                        progressive_timeout=progressive_timeout,
                     )
                 except CliExecutionException as exc:
                     if not self.cfg.verbose:

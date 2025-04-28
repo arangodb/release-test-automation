@@ -1,5 +1,5 @@
 #!/bin/bash
-export DOCKER=docker
+. ./jenkins/common/detect_podman.sh
 
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
@@ -17,7 +17,7 @@ DOCKER_SUFFIX=deb
 
 . ./jenkins/common/register_cleanup_trap.sh
 
-docker run \
+$DOCKER run \
        "${DOCKER_ARGS[@]}" \
        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
        \
@@ -28,7 +28,7 @@ docker run \
        \
        /lib/systemd/systemd --system --unit=multiuser.target 
 
-docker exec \
+$DOCKER exec \
           "${DOCKER_NAME}" \
           /home/release-test-automation/release_tester/run_chain_upgrade.py \
           --enterprise-magic ${ENTERPRISE_DOWNLOAD_KEY} \
@@ -39,7 +39,7 @@ docker exec \
           "${@}"
 result=$?
 
-docker stop "${DOCKER_TAR_NAME}"
+$DOCKER stop "${DOCKER_TAR_NAME}"
 
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh

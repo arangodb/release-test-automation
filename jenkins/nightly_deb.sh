@@ -1,6 +1,5 @@
 #!/bin/bash
-export DOCKER=podman
-export REGISTRY_URL='docker.io/'
+. ./jenkins/common/detect_podman.sh
 DOCKER_SUFFIX=deb
 . ./jenkins/common/default_variables.sh
 
@@ -39,7 +38,7 @@ ${DOCKER} exec \
        "${@}"
 result=$?
 
-docker stop "${DOCKER_NAME}"
+$DOCKER stop "${DOCKER_NAME}"
 
 . ./jenkins/common/cleanup_ownership.sh
 . ./jenkins/common/gather_coredumps.sh
