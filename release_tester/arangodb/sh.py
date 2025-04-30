@@ -440,10 +440,24 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def clear_test_data(self, testname, args=None, result_line_handler=default_line_result):
+    def clear_test_data(
+            self,
+            testname,
+            supports_foxx_tests,
+            args=None,
+            one_shard: bool = False,
+            database_name: str = "_system",
+            result_line_handler=default_line_result,
+            log_debug=False,
+            deadline=900,
+            progressive_timeout=25
+    ):
         """flush the testdata from the instance again"""
         if args is None:
             args = []
+        args = [database_name] + args
+        if one_shard:
+            args += ["--singleShard", "true"]
         if testname:
             logging.info("removing test data for {0}".format(testname))
         else:
@@ -452,15 +466,22 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter += ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=[
                 "cleaning up test data",
                 self.cfg.test_data_dir.resolve() / "cleardata.js",
-            ]
-            + test_filter,
-            args=args + ["--progress", "true"],
-            progressive_timeout=5,
+            ],
+            args=args + [
+                "--progress", "true",
+                '--testFoxx', 'true' if supports_foxx_tests else 'false',
+            ] + test_filter,
+            progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
+            verbose=self.cfg.verbose or log_debug,
+            log_debug=log_debug,
+            deadline=deadline,
         )
 
         return ret
