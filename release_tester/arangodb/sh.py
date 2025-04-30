@@ -458,16 +458,20 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             self,
             testname,
             supports_foxx_tests,
-            supports_vector_index,
             args=None,
-            progressive_timeout=100,
-            deadline=900,
             one_shard: bool = False,
             database_name: str = "_system",
-            result_line_handler=default_line_result):
+            result_line_handler=default_line_result,
+            log_debug=False,
+            deadline=900,
+            progressive_timeout=25
+    ):
         """flush the testdata from the instance again"""
         if args is None:
             args = []
+        args = [database_name] + args
+        if one_shard:
+            args += ["--singleShard", "true"]
         if testname:
             logging.info("removing test data for {0}".format(testname))
         else:
@@ -476,21 +480,21 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         test_filter = []
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter += ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=[
                 "cleaning up test data",
                 self.cfg.test_data_dir.resolve() / "cleardata.js",
             ],
             args=args + [
-                '--progress', 'true',
-                '--oldVersion', self.old_version,
-                "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
+                "--progress", "true",
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
-                '--testVector', 'true' if supports_vector_index else 'false',
-                '--passvoid', self.cfg.passvoid
             ] + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
+            verbose=self.cfg.verbose or log_debug,
+            log_debug=log_debug,
             deadline=deadline,
         )
 
