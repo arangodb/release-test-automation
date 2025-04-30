@@ -445,7 +445,8 @@ class StarterManager:
             self.arangosh.js_set_passvoid("root", passvoid)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         else:
-            self.arangosh.cfg.passvoid = passvoid
+            if self.arangosh:
+                self.arangosh.cfg.passvoid = passvoid
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:

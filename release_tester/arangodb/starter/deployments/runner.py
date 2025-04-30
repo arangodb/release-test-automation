@@ -277,8 +277,6 @@ class Runner(ABC):
                 self.test_hotbackup()
 
             if self.new_installer:
-                if self.hot_backup:
-                    self.create_non_backup_data()
                 self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
                 self.upgrade_counter += 1
@@ -307,34 +305,7 @@ class Runner(ABC):
                 if self.is_minor_upgrade() and self.new_installer.supports_backup():
                     self.new_installer.check_backup_is_created()
                 if self.hot_backup:
-                    self.check_data_impl()
-                    self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
-                    backups = self.list_backup()
-                    self.upload_backup(backups[0])
-                    self.tcp_ping_all_nodes()
-                    self.delete_backup(backups[0])
-                    self.tcp_ping_all_nodes()
-                    backups = self.list_backup()
-                    if len(backups) != 0:
-                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-                    self.download_backup(self.backup_name)
-                    self.validate_local_backup(self.backup_name)
-                    self.tcp_ping_all_nodes()
-                    backups = self.list_backup()
-                    if backups[0] != self.backup_name:
-                        raise Exception("downloaded backup has different name? " + str(backups))
-                    time.sleep(20)  # TODO fix
-                    self.before_backup()
-                    self.restore_backup(backups[0])
-                    self.tcp_ping_all_nodes()
-                    self.after_backup()
-                    if not self.check_non_backup_data():
-                        raise Exception("data created after backup is still there??")
-                    self.delete_backup(backups[0])
-                    self.tcp_ping_all_nodes()
-                    backups = self.list_backup()
-                    if len(backups) != 0:
-                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                    self.test_hotbackup_after_upgrade()
                 self.check_data_impl()
                 self.versionstr = "OLD[" + self.new_cfg.version + "] "
             else:
@@ -376,9 +347,13 @@ class Runner(ABC):
         self.progress(False, "TESTING HOTBACKUP")
         self.test_hotbackup_impl()
 
+    def test_hotbackup_after_upgrade(self):
+        self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
+        self.test_hotbackup_after_upgrade_impl()
+
     @step
     def test_hotbackup_impl(self):
-        """ test hotbackup feature: general implementation """
+        """test hotbackup feature: general implementation"""
         self.backup_name = self.create_backup("thy_name_is_" + self.name)
         self.validate_local_backup(self.backup_name)
         self.tcp_ping_all_nodes()
@@ -406,6 +381,37 @@ class Runner(ABC):
         self.check_data_impl()
         if not self.check_non_backup_data():
             raise Exception("data created after backup is still there??")
+
+    @step
+    def test_hotbackup_after_upgrade_impl(self):
+        """test hotbackup after upgrade: general"""
+        self.check_data_impl()
+        backups = self.list_backup()
+        self.upload_backup(backups[0])
+        self.tcp_ping_all_nodes()
+        self.delete_backup(backups[0])
+        self.tcp_ping_all_nodes()
+        backups = self.list_backup()
+        if len(backups) != 0:
+            raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+        self.download_backup(self.backup_name)
+        self.validate_local_backup(self.backup_name)
+        self.tcp_ping_all_nodes()
+        backups = self.list_backup()
+        if backups[0] != self.backup_name:
+            raise Exception("downloaded backup has different name? " + str(backups))
+        time.sleep(20)  # TODO fix
+        self.before_backup()
+        self.restore_backup(backups[0])
+        self.tcp_ping_all_nodes()
+        self.after_backup()
+        if not self.check_non_backup_data():
+            raise Exception("data created after backup is still there??")
+        self.delete_backup(backups[0])
+        self.tcp_ping_all_nodes()
+        backups = self.list_backup()
+        if len(backups) != 0:
+            raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
 
     def run_selenium(self):
         """fake to run the full lifecycle flow of this deployment"""
@@ -870,6 +876,12 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
+    @step
+    def delete_all_backups(self):
+        """delete all locally-stored backups"""
+        for backup in self.list_backup():
+            self.delete_backup(backup)
+
     def wait_for_restore_impl(self, backup_starter):
         """wait for all restores to be finished"""
         backup_starter.wait_for_restore()
@@ -918,7 +930,7 @@ class Runner(ABC):
             starter.hb_instance.validate_local_backup(starter.basedir, name)
 
     @step
-    def create_backup_and_upload(self, backup_name):
+    def create_backup_and_upload(self, backup_name, delete_local=True):
         """create a hotbackup, then upload and delete it"""
         self.backup_name = self.create_backup(backup_name)
         self.validate_local_backup(self.backup_name)
@@ -927,11 +939,12 @@ class Runner(ABC):
         backup_no = len(taken_backups) - 1
         self.upload_backup(taken_backups[backup_no])
         self.tcp_ping_all_nodes()
-        self.delete_backup(taken_backups[backup_no])
-        self.tcp_ping_all_nodes()
-        backups = self.list_backup()
-        if len(backups) != len(taken_backups) - 1:
-            raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+        if delete_local:
+            self.delete_backup(taken_backups[backup_no])
+            self.tcp_ping_all_nodes()
+            backups = self.list_backup()
+            if len(backups) != len(taken_backups) - 1:
+                raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
 
     @step
     def search_for_warnings(self, print_lines=True):

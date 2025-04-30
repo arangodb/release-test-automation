@@ -187,7 +187,12 @@ db.testCollection.save({test: "document"})
         for node in self.get_running_starters():
             node.set_passvoid("cluster", count == 0)
             count += 1
+        for node in self.get_not_running_starters():
+            node.set_passvoid("cluster", False)
         self.passvoid = "cluster"
+        self.cfg.passvoid = self.passvoid
+        if self.new_cfg:
+            self.new_cfg.passvoid = self.passvoid
 
     def finish_setup_impl(self):
         self.makedata_instances = self.get_running_starters()
@@ -228,7 +233,7 @@ db.testCollection.save({test: "document"})
             bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
             bench_instances.append(self.starter_instances[1].launch_arangobench("cluster_upgrade_scenario_2"))
         for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_installer.cfg)
+            node.replace_binary_for_upgrade(self.new_cfg)
 
         for node in self.starter_instances:
             node.detect_instance_pids_still_alive()
@@ -533,42 +538,38 @@ db.testCollection.save({test: "document"})
     def test_hotbackup_impl(self):
         """ test hotbackup feature: Cluster """
         with step("step 1: create a backup"):
-            self.create_backup_and_upload("thy_name_is_" + self.name)
-            backup_from_step_1 = self.uploaded_backups[-1]
+            backup_step_1 = "thy_name_is_" + self.name
+            self.create_backup_and_upload(backup_step_1)
 
-        with step("step 2: create non-backup data"):
+        with step("step 2: add new db server"):
+            old_servers = self.get_running_starters()
+            new_starter = self.get_not_running_starters()[-1]
+            self.run_starter_and_wait(new_starter)
+            self.backup_instance_count += 1
+            self.makedata_instances = self.get_running_starters()
+
+        with step("step 3: create a backup"):
+            backup_step_3 = "thy_name_is_" + self.name + "_plus1_server"
+            self.create_backup_and_upload(backup_step_3)
+
+        with step("step 4: remove old db server"):
+            self.remove_starter_dbserver(old_servers[0])
+
+        with step("step 5: create another backup"):
+            backup_step_5 = "thy_name_is_" + self.name + "_plus1_server_minus1_server"
+            self.create_backup_and_upload(backup_step_5, False)
+            
+        with step("step 6: create non-backup data"):
             self.create_non_backup_data()
             self.tcp_ping_all_nodes()
 
-        with step("step 3: add new db server"):
-            new_starter = self.get_not_running_starters()[0]
-            self.run_starter_and_wait(new_starter)
-            self.backup_instance_count += 1
-
-        with step("step 4: create a backup"):
-            self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server")
-            backup_from_step_4 = self.uploaded_backups[-1]
-
-        with step("step 5: remove old db server"):
-            if not self.starter_instances[1].have_this_instance(self.agency.get_leader()):
-                terminate_instance = self.starter_instances[1]
-            else:
-                terminate_instance = self.starter_instances[2]
-            terminated_dbserver_uuid = terminate_instance.get_dbserver().get_uuid()
-            terminate_instance.stop_dbserver()
-            self.remove_server_from_agency(terminated_dbserver_uuid)
-            self.backup_instance_count -= 1
-
-        with step("step 6: create another backup"):
-            self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server")
-
         with step("step 7: download and restore backup from step 1"):
-            self.download_backup(backup_from_step_1)
-            self.validate_local_backup(backup_from_step_1)
+            self.download_backup(backup_step_1)
+            self.validate_local_backup(backup_step_1)
             backups = self.list_backup()
-            if backups[-1] != backup_from_step_1:
+            if backup_step_1 not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_from_step_1)
+            self.restore_backup(backup_step_1)
             self.tcp_ping_all_nodes()
 
         with step("step 8: check data"):
@@ -577,21 +578,60 @@ db.testCollection.save({test: "document"})
                 raise Exception("data created after backup is still there??")
 
         with step("step 9: add new db server"):
-            new_starter2 = self.get_not_running_starters()[0]
+            new_starter2 = self.get_not_running_starters()[-1]
             self.run_starter_and_wait(new_starter2)
             self.backup_instance_count += 1
+            self.makedata_instances = self.get_running_starters()
 
-        with step("step 10: download and restore backup from step 4"):
-            self.download_backup(backup_from_step_4)
-            self.validate_local_backup(backup_from_step_4)
-            backups = self.list_backup()
-            if backups[-1] != backup_from_step_4:
-                raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_from_step_4)
+        with step("step 10: create non-backup data"):
+            self.create_non_backup_data()
             self.tcp_ping_all_nodes()
 
-        with step("step 11: check data"):
+        with step("step 11: download and restore backup from step 3"):
+            self.download_backup(backup_step_3)
+            self.validate_local_backup(backup_step_3)
+            backups = self.list_backup()
+            if backup_step_3 not in backups:
+                raise Exception("downloaded backup has different name? " + str(backups))
+            self.restore_backup(backup_step_3)
+            self.tcp_ping_all_nodes()
+
+        with step("step 12: check data"):
             self.check_data_impl()
+
+        with step("step 13: remove old db server"):
+            self.remove_starter_dbserver(old_servers[1])
+
+        with step("step 14: create non-backup data"):
+            self.create_non_backup_data()
+            self.tcp_ping_all_nodes()
+
+    @step
+    def remove_starter_dbserver(self, starter):
+        """remove dbserver managed by given starter from cluster"""
+        terminated_dbserver_uuid = starter.get_dbserver().get_uuid()
+        starter.stop_dbserver()
+        self.remove_server_from_agency(terminated_dbserver_uuid)
+        self.backup_instance_count -= 1
+        self.makedata_instances = self.get_running_starters()
+
+    @step
+    def test_hotbackup_after_upgrade_impl(self):
+        """test hotbackup after upgrade: cluster"""
+        with step("step 1: check data"):
+            self.check_data_impl()
+        with step("step 2: download backup"):
+            latest_backup = self.uploaded_backups[-1]
+            self.download_backup(latest_backup)
+            backups = self.list_backup()
+            if latest_backup not in backups:
+                raise Exception("downloaded backup has different name? " + str(backups))
+        with step("step 3: restore backup"):
+            self.restore_backup(latest_backup)
+            self.tcp_ping_all_nodes()
+        # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
+        with step("step 4: delete backups"):
+            self.delete_all_backups()
 
     @staticmethod
     def run_starter_and_wait(starter):
