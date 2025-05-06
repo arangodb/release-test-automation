@@ -78,7 +78,8 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
 
     def click_slack_link(self):
         """Clicking on twitter link on dashboard"""
-        click_slack_link_id_sitem = self.dash.locator_finder_by_xpath(self.dash.get_slack_link_id)
+        click_slack_link_id_sitem = self.dash.locator_finder_by_xpath(
+            self.dash.get_slack_link_id())
         def check_title(title):
             expected_title = "Join ArangoDB Community on Slack!"
             self.ui_assert(
