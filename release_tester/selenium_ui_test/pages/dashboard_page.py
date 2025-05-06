@@ -3,6 +3,7 @@
 import time
 from selenium.common.exceptions import TimeoutException
 from selenium_ui_test.pages.navbar import NavigationBarPage
+import semver
 
 # can't circumvent long lines.. nAttr nLines
 # pylint: disable=line-too-long disable=too-many-instance-attributes disable=too-many-statements
@@ -143,3 +144,27 @@ class DashboardPage(NavigationBarPage):
                 # self.clear_download_bar()
         else:
             self.tprint("Metrics Tab not supported for the current package \n")
+
+    def get_twitter_link_id(self):
+        """Clicking on twitter link on dashboard"""
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            return '//*[@id="navigationBar"]/div/p[1]/a'
+        return "//*[@id='navigationBar']/div[2]/p[1]/a"
+
+    def get_slack_link_id(self):
+        """Clicking on twitter link on dashboard"""
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            return '//*[@id="navigationBar"]/div/p[2]/a'
+        return "//*[@id='navigationBar']/div[2]/p[2]/a"
+
+    def get_stackoverflow_link_id(self):
+        """Clicking on stack overflow link on dashboard"""
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            return '//*[@id="navigationBar"]/div/p[3]/a'
+        return "//*[@id='navigationBar']/div[2]/p[3]/a"
+
+    def get_google_group_link_id(self):
+        """Clicking on Google group link on dashboard"""
+        if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
+            return '//*[@id="navigationBar"]/div/p[4]/a'
+        return "//*[@id='navigationBar']/div[2]/p[4]/a"
