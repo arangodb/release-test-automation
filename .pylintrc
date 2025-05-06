@@ -63,7 +63,8 @@ confidence=
 disable=logging-format-interpolation,
         logging-not-lazy,
         consider-using-f-string,
-        fixme
+        fixme,
+        too-many-positional-arguments
 #        print-statement,
 #        parameter-unpacking,
 #        unpacking-in-except,
