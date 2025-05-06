@@ -73,6 +73,7 @@ class NavigationBarPage(UserBarPage):
         click_stackoverflow_link_id_sitem = self.locator_finder_by_xpath(
             click_stackoverflow_link_id
         )
+        time.sleep(5)
         title = self.switch_tab(click_stackoverflow_link_id_sitem)
         expected_title = "Newest 'arangodb' Questions - Stack Overflow"
         assert (
