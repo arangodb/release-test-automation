@@ -13,7 +13,6 @@ from package_installation_tests.installation_steps import (
 from test_suites_core.base_test_suite import (
     testcase,
     disable_if_returns_true_at_runtime,
-    disable_for_debian,
     disable_for_windows,
     disable_for_mac,
 )
