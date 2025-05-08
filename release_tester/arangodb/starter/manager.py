@@ -189,6 +189,8 @@ class StarterManager:
         self.pid = None
         self.ppid = None
 
+        self.is_running = False
+
     def _get_arguments(self):
         return (
             [
@@ -373,6 +375,7 @@ class StarterManager:
         if not expect_to_fail:
             self.wait_for_logfile()
             self.wait_for_port_bind()
+        self.is_running = True
 
     @step
     def attach_running_starter(self):
@@ -442,7 +445,8 @@ class StarterManager:
             self.arangosh.js_set_passvoid("root", passvoid)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         else:
-            self.arangosh.cfg.passvoid = passvoid
+            if self.arangosh:
+                self.arangosh.cfg.passvoid = passvoid
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
@@ -1279,6 +1283,15 @@ class StarterManager:
         """count occurrences of a substring in the starter log"""
         number_of_occurances = self.get_log_file().count(substring)
         return number_of_occurances
+
+    def stop_dbserver(self):
+        """stop db server managed by this starter"""
+        dbserver = self.get_dbserver()
+        self.kill_instance()
+        dbserver.terminate_instance()
+        self.all_instances.remove(dbserver)
+        self.moreopts.append("--cluster.start-dbserver=false")
+        self.run_starter()
 
 
 class StarterNonManager(StarterManager):
