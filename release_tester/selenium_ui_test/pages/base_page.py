@@ -321,8 +321,12 @@ class BasePage:
             raise Exception("UI-Test: ", locator, " locator was not found.")
         return self.locator
 
-    def switch_tab(self, locator):
-        """This method will change tab and close it and finally return to origin tab"""
+    def switch_tab_check(self, locator, check_title):
+        """
+        This method will change tab,
+        call check_title,
+        close it and
+        finally return to origin tab"""
         self.tprint("switching tab method \n")
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL, Keys.RETURN)  # this will open new tab on top of current
@@ -330,10 +334,20 @@ class BasePage:
         time.sleep(8)
         title = self.webdriver.title
         self.tprint(f"Current page title: {title}\n")
-        time.sleep(10)
-        self.webdriver.close()  # closes the browser active window
-        self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+        try:
+            check_title(title)
+            time.sleep(10)
+        finally:
+            self.webdriver.close()  # closes the browser active window
+            self.webdriver.switch_to.window(self.webdriver.window_handles[0])
         return title
+
+    def switch_tab(self, locator):
+        """This method will change tab and close it and finally return to origin tab"""
+        # pylint: disable=unused-argument
+        def dummy(title):
+            pass
+        return self.switch_tab_check(locator, dummy)
 
     def check_version_is_newer(self, compare_version):
         """check whether the version in the ui is the expected"""
