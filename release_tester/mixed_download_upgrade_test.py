@@ -118,6 +118,7 @@ def upgrade_package_test(
                     continue
                 enterprise_set.append(props.enterprise)
                 props.testrun_name = "test_" + props.testrun_name
+                print(f" primary  {primary_version} == {version_name}")
                 if version_name == primary_version:
                     print(f"skipping source package download for {version_name}")
                     ver[props.directory_suffix] = DownloadDummy(
