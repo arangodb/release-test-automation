@@ -932,7 +932,8 @@ class Runner(ABC):
     @step
     def create_backup_and_upload(self, backup_name, delete_local=True):
         """create a hotbackup, then upload and delete it"""
-        self.backup_name = self.create_backup(backup_name)
+        backup_name = self.create_backup(backup_name)
+        self.backup_name = backup_name
         self.validate_local_backup(self.backup_name)
         self.tcp_ping_all_nodes()
         taken_backups = self.list_backup()
@@ -945,6 +946,7 @@ class Runner(ABC):
             backups = self.list_backup()
             if len(backups) != len(taken_backups) - 1:
                 raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+        return backup_name
 
     @step
     def search_for_warnings(self, print_lines=True):

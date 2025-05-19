@@ -538,8 +538,7 @@ db.testCollection.save({test: "document"})
     def test_hotbackup_impl(self):
         """ test hotbackup feature: Cluster """
         with step("step 1: create a backup"):
-            backup_step_1 = "thy_name_is_" + self.name
-            self.create_backup_and_upload(backup_step_1)
+            backup_step_1 = self.create_backup_and_upload("thy_name_is_" + self.name)
 
         with step("step 2: add new db server"):
             old_servers = self.get_running_starters()
@@ -549,15 +548,13 @@ db.testCollection.save({test: "document"})
             self.makedata_instances = self.get_running_starters()
 
         with step("step 3: create a backup"):
-            backup_step_3 = "thy_name_is_" + self.name + "_plus1_server"
-            self.create_backup_and_upload(backup_step_3)
+            backup_step_3 = self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server")
 
         with step("step 4: remove old db server"):
             self.remove_starter_dbserver(old_servers[0])
 
         with step("step 5: create another backup"):
-            backup_step_5 = "thy_name_is_" + self.name + "_plus1_server_minus1_server"
-            self.create_backup_and_upload(backup_step_5, False)
+            backup_step_5 = self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server", False)
             
         with step("step 6: create non-backup data"):
             self.create_non_backup_data()
