@@ -344,10 +344,12 @@ class Runner(ABC):
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
     def test_hotbackup(self):
+        """test hotbackup"""
         self.progress(False, "TESTING HOTBACKUP")
         self.test_hotbackup_impl()
 
     def test_hotbackup_after_upgrade(self):
+        """test hotbackup after upgrade"""
         self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
         self.test_hotbackup_after_upgrade_impl()
 
@@ -1064,7 +1066,9 @@ class Runner(ABC):
     @step
     def get_collection_list(self):
         """get a list of collections and their shards"""
-        reply = self.get_running_starters()[0].send_request(InstanceType.COORDINATOR, requests.get, "/_api/collection", None)
+        reply = self.get_running_starters()[0].send_request(
+            InstanceType.COORDINATOR, requests.get, "/_api/collection", None
+        )
         if reply[0].status_code != 200:
             raise Exception(
                 "get Collections: Unsupported return code" + str(reply[0].status_code) + " - " + str(reply[0].body)
@@ -1213,7 +1217,9 @@ class Runner(ABC):
         return [["_system", self.props.force_one_shard, 0]] + self.custom_databases.copy()
 
     def get_running_starters(self):
+        """get list of running starters"""
         return [starter for starter in self.starter_instances if starter.is_running]
 
     def get_not_running_starters(self):
+        """get list of not running starters"""
         return [starter for starter in self.starter_instances if not starter.is_running]

@@ -26,9 +26,10 @@ arangoversions = {
 }
 
 more_nodes_supported_starter = [
-    [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
-    [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
+    [semver.VersionInfo.parse("3.11.8-99"), semver.VersionInfo.parse("3.11.99")],
+    [semver.VersionInfo.parse("3.11.99"), semver.VersionInfo.parse("3.12.99")],
 ]
+
 
 def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
@@ -47,6 +48,7 @@ def remove_node_x_from_json(starter_dir):
     with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
         json.dump(content, setup_file)
 
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
@@ -59,7 +61,7 @@ class Cluster(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         name = "CLUSTER" if not rp.force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
@@ -131,8 +133,8 @@ db.testCollection.save({test: "document"})
             common_opts += [
                 "--coordinators.cluster.force-one-shard=true",
                 "--dbservers.cluster.force-one-shard=true",
-                #"--coordinators.log.level=requests=trace",
-                #"--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
+                # "--coordinators.log.level=requests=trace",
+                # "--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
             ]
         else:
             common_opts += ["--args.all.cluster.default-replication-factor=2"]
@@ -141,7 +143,7 @@ db.testCollection.save({test: "document"})
             self.create_tls_ca_cert()
         port = 9528
         count = 0
-        full_node_count = self.props.cluster_nodes + 2 # we need 2 additional nodes for hotbackup testing
+        full_node_count = self.props.cluster_nodes + 2  # we need 2 additional nodes for hotbackup testing
         for this_node in list(range(1, full_node_count + 1)):
             node = []
             node_opts.append(node)
@@ -159,7 +161,7 @@ db.testCollection.save({test: "document"})
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
-        for manager in self.starter_instances[:self.props.cluster_nodes]:
+        for manager in self.starter_instances[: self.props.cluster_nodes]:
             logging.info("Spawning instance")
             manager.run_starter()
 
@@ -205,7 +207,7 @@ db.testCollection.save({test: "document"})
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
             ["true"],
-            log_debug=True
+            log_debug=True,
         )
         if not retval:
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
@@ -408,7 +410,7 @@ db.testCollection.save({test: "document"})
                         db_name,
                         log_debug=True,
                         deadline=deadline,
-                        progressive_timeout=progressive_timeout
+                        progressive_timeout=progressive_timeout,
                     )
                     if not ret[0]:
                         raise Exception("check data failed in database %s :\n" % db_name + ret[1])
@@ -534,16 +536,17 @@ db.testCollection.save({test: "document"})
             ]
         )
 
+    # pylint: disable=too-many-statements
     @step
     def test_hotbackup_impl(self):
-        """ test hotbackup feature: Cluster """
+        """test hotbackup feature: Cluster"""
         with step("step 1: create a backup"):
             backup_step_1 = self.create_backup_and_upload("thy_name_is_" + self.name)
 
         with step("step 2: add new db server"):
             old_servers = self.get_running_starters()
             new_starter = self.get_not_running_starters()[-1]
-            self.run_starter_and_wait(new_starter)
+            new_starter.run_starter_and_wait()
             self.backup_instance_count += 1
             self.makedata_instances = self.get_running_starters()
 
@@ -554,8 +557,8 @@ db.testCollection.save({test: "document"})
             self.remove_starter_dbserver(old_servers[0])
 
         with step("step 5: create another backup"):
-            backup_step_5 = self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server", False)
-            
+            self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server", False)
+
         with step("step 6: create non-backup data"):
             self.create_non_backup_data()
             self.tcp_ping_all_nodes()
@@ -576,7 +579,7 @@ db.testCollection.save({test: "document"})
 
         with step("step 9: add new db server"):
             new_starter2 = self.get_not_running_starters()[-1]
-            self.run_starter_and_wait(new_starter2)
+            new_starter2.run_starter_and_wait()
             self.backup_instance_count += 1
             self.makedata_instances = self.get_running_starters()
 
@@ -629,18 +632,3 @@ db.testCollection.save({test: "document"})
         # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
         with step("step 4: delete backups"):
             self.delete_all_backups()
-
-    @staticmethod
-    def run_starter_and_wait(starter):
-        starter.run_starter()
-        count = 0
-        while not starter.is_instance_up():
-            logging.debug("waiting for mananger with logfile:" + str(starter.log_file))
-            progress(".")
-            time.sleep(1)
-            count += 1
-            if count > 120:
-                raise Exception("Starter manager installation didn't come up in two minutes!")
-        starter.detect_instances()
-        starter.detect_instance_pids()
-

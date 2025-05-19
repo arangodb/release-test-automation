@@ -378,6 +378,21 @@ class StarterManager:
         self.is_running = True
 
     @step
+    def run_starter_and_wait(self):
+        """launch the starter and wait for all arnagod instances to come up"""
+        self.run_starter()
+        count = 0
+        while not self.is_instance_up():
+            logging.debug("waiting for mananger with logfile:" + str(self.log_file))
+            progress(".")
+            time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Starter manager installation didn't come up in two minutes!")
+        self.detect_instances()
+        self.detect_instance_pids()
+
+    @step
     def attach_running_starter(self):
         """somebody else is running the party, but we also want to have a look"""
         # pylint disable=broad-except
@@ -1101,11 +1116,7 @@ class StarterManager:
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
                 self.hb_instance = HotBackupManager(
-                    config,
-                    self.raw_basedir,
-                    config.base_test_dir / self.raw_basedir,
-                    self.get_frontend(),
-                    self.cfg
+                    config, self.raw_basedir, config.base_test_dir / self.raw_basedir, self.get_frontend(), self.cfg
                 )
                 self.hb_config = HotBackupConfig(
                     config,
