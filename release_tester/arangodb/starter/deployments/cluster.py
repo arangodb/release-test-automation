@@ -88,6 +88,7 @@ class Cluster(Runner):
             if ver_found < len(versions):
                 print("One deployment doesn't support starters with more nodes!")
                 self.props.cluster_nodes = 3
+        self.backup_instance_count = self.props.cluster_nodes
 
     def starter_prepare_env_impl(self, sm=None):
         # pylint: disable=invalid-name
