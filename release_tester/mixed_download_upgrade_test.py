@@ -118,6 +118,7 @@ def upgrade_package_test(
                     continue
                 enterprise_set.append(props.enterprise)
                 props.testrun_name = "test_" + props.testrun_name
+                print(f" primary  {primary_version} == {version_name}")
                 if version_name == primary_version:
                     print(f"skipping source package download for {version_name}")
                     ver[props.directory_suffix] = DownloadDummy(
@@ -195,6 +196,7 @@ def upgrade_package_test(
 
     # STEP 3: Run upgrade tests
     if run_upgrade:
+        print("running upgrade tests")
         for scenario in upgrade_scenarios:
             for props in EXECUTION_PLAN:
                 if props.directory_suffix not in editions:
@@ -234,6 +236,7 @@ def upgrade_package_test(
 
     # STEP 4: Run other test suites
     if run_test_suites:
+        print("running test suites")
         for pair in upgrade_pairs:
             params.new_version = pair[0]
             params.old_version = pair[1]

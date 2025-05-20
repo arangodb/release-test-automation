@@ -297,7 +297,7 @@ class Download:
                "dir": directory.replace('//','/').replace('//', '/'),
                "pkg": package}
         )
-        self._acquire_live(url, package, local_dir, force)
+        self._acquire_live(url, package, local_dir, force, "LIVE")
 
     def acquire_live_rta(self, directory, package, local_dir, force):
         """download live files via http"""
@@ -306,41 +306,42 @@ class Download:
                "dir": directory.replace('//','/').replace('//', '/'),
                "pkg": package}
         )
-        self._acquire_live(url, package, local_dir, force)
+        self._acquire_live(url, package, local_dir, force, "RTA-LIVE")
 
-    def _acquire_live(self, url, package, local_dir, force):
+    def _acquire_live(self, url, package, local_dir, force, which):
         out = local_dir / package
         exists = out.exists()
         if exists and not force:
-            print("LIVE: not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
+            print(f"{which}: not overwriting {str(out)} since not forced to overwrite!")
             return
-        print("LIVE: downloading " + str(url))
+        print(f"{which}: downloading {str(url)}")
         retry = 0
         while retry < 99:
             try:
                 res = requests.get(url, timeout=120)
                 retry = 100
             except requests.exceptions.ConnectionError as ex:
-                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                print(f"{which}: failed to download {url} try {retry} - {ex} - retrying.")
                 retry += 1
             except requests.exceptions.ChunkedEncodingError as ex:
-                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                print(f"{which}: failed to download {url} try {retry} - {ex} - retrying.")
                 retry += 1
         if res.status_code == 200:
             print(
-                "LIVE: writing {size} kbytes to {existing}{file}".format(
+                "{which}: writing {size} kbytes to {existing}{file}".format(
                     **{
                         "size": str(len(res.content) / 1024),
                         "file": str(out),
                         "existing": "existing " if exists else "",
+                        "which": which,
                     }
                 )
             )
             out.write_bytes(res.content)
         else:
             raise Exception(
-                "LIVE: failed to download {url} - {error} - {msg}".format(
-                    **{"url": url, "error": res.status_code, "msg": res.text}
+                "{which}: failed to download {url} - {error} - {msg}".format(
+                    **{"url": url, "error": res.status_code, "msg": res.text, "which": which}
                 )
             )
 
