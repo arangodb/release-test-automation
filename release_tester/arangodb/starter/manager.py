@@ -45,6 +45,7 @@ from reporting.reporting_utils import attach_table, step, attach_http_request_to
 
 IS_WINDOWS = sys.platform == "win32"
 
+DEFAULT_ENCRYPTION_AT_REST_KEY="defaultencatrestkey_32chars_xxxx"
 
 # pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
@@ -126,7 +127,7 @@ class StarterManager:
         if self.cfg.encryption_at_rest:
             self.keyfile = self.basedir / "key.txt"
             # generate pseudo random key of length 32:
-            self.keyfile.write_text((str(datetime.datetime.now()) * 5)[0:32])
+            self.keyfile.write_text(DEFAULT_ENCRYPTION_AT_REST_KEY)
             self.moreopts += ["--rocksdb.encryption-keyfile", str(self.keyfile)]
         self.hb_instance = None
         self.hb_config = None
