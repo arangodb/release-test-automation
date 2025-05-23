@@ -200,6 +200,7 @@ db.testCollection.save({test: "document"})
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
             ["true"],
+            verbose=True,
             log_debug=True
         )
         if not retval:
