@@ -311,6 +311,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         result_line_handler=default_line_result,
         deadline=1000,
         progressive_timeout=100,
+        verbose=False,
         log_debug=False,
     ):
         """mimic runInArangosh testing.js behaviour"""
@@ -344,7 +345,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 progressive_timeout=progressive_timeout,
                 result_line_handler=result_line_handler,
                 process_control=True,
-                verbose=self.cfg.verbose,
+                verbose=self.cfg.verbose or verbose,
                 deadline=deadline,
                 log_debug=log_debug,
             )

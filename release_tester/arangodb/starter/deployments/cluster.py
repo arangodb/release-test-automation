@@ -208,7 +208,8 @@ db.testCollection.save({test: "document"})
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
             ["true"],
-            log_debug=True,
+            verbose=True,
+            log_debug=True
         )
         if not retval:
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))

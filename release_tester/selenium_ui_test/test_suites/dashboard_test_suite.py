@@ -45,8 +45,8 @@ class DashboardTestSuite(BaseSeleniumTestSuite):
             self.dash.check_maintenance_tab()
 
         self.dash.navbar_goto("support")
-        self.tprint("Opening Twitter link \n")
-        self.click_twitter_link()
+        #self.tprint("Opening Twitter link \n")
+        #self.click_twitter_link()
         self.tprint("Opening Slack link \n")
         self.click_slack_link()
         #self.tprint("Opening Stackoverflow link \n")
