@@ -76,7 +76,7 @@ def spawn_selenium_session(selenium_worker: str, selenium_driver_args: list):
             driver = driver_func(**kwargs)
             video_start_time = datetime.now()
         except NoSuchDriverException as ex:
-            browser_driver = {"chrome": f"{selenium_worker}driver", "firefox": "geckodriver"}[selenium_worker]
+            browser_driver = {"chrome": "chromedriver", "firefox": "geckodriver"}[selenium_worker]
             print(f"'{type(ex).__name__}' caught - we are on arm64/linux, path to '{browser_driver}' has to be set...")
             browser_driver_path = shutil.which(browser_driver)
             service_func = get_options_service_func(webdriver, selenium_worker, func_type="service")
