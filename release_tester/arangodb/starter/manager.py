@@ -100,7 +100,7 @@ class StarterManager:
             self.moreopts += [
                 "--all.experimental-vector-index=true",
             ]
-        if self.cfg.isEnterprise:
+        if self.cfg.enterprise:
             self.moreopts += [
                 "--args.all.server.license-disk-usage-update-interval=2", # 2 sec
                 "--args.all.server.license-disk-usage-limit=1048576",
