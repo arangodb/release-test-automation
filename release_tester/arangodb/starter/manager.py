@@ -100,6 +100,13 @@ class StarterManager:
             self.moreopts += [
                 "--all.experimental-vector-index=true",
             ]
+        if self.cfg.enterprise:
+            self.moreopts += [
+                "--args.all.server.license-disk-usage-update-interval=2", # 2 sec
+                "--args.all.server.license-disk-usage-limit=1048576",
+                "--args.all.server.license-check-interval=1" # 1 sec
+            ]
+
         print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
