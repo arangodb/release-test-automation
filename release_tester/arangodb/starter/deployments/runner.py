@@ -113,6 +113,8 @@ class Runner(ABC):
         self.hot_backup = (
             cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
         )
+        self.hot_backup = False # TODO!!!
+        self.dump_restore = True
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -301,6 +303,10 @@ class Runner(ABC):
                 self.check_data_impl()
                 if not self.check_non_backup_data():
                     raise Exception("data created after backup is still there??")
+            if self.dump_restore:
+                self.dump_everything("dump_this_" + self.name)
+                print(self.backup_name)
+                self.restore_everything(self.backup_name)
 
             if self.new_installer:
                 if self.hot_backup:
@@ -361,6 +367,10 @@ class Runner(ABC):
                     backups = self.list_backup()
                     if len(backups) != 0:
                         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                if self.dump_restore:
+                    print(self.backup_name)
+                    self.restore_everything(self.backup_name)
+
                 self.check_data_impl()
                 self.versionstr = "OLD[" + self.new_cfg.version + "] "
             else:
@@ -773,6 +783,76 @@ class Runner(ABC):
             self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
         if not frontend_found:
             raise Exception("no frontend found.")
+
+    @step
+    def dump_everything(self, name):
+        """create a dump of the installation"""
+        progressive_timeout = 1600 if self.cfg.is_instrumented else 100
+        # self.before_backup_create_impl()
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arango_dump, "dump everything: this starter doesn't have an dump instance!"
+            print('abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+            print(self.cfg.base_test_dir)
+            print(type(self.cfg.base_test_dir))
+            print(type(self.cfg.base_test_dir.resolve()))
+            print(self.basedir)
+            print(type(self.basedir))
+            self.backup_name = self.cfg.base_test_dir.resolve()  / self.basedir / name
+            print(self.backup_name)
+            print(self.cfg)
+            args = [
+                '--include-system-collections',
+                'true',
+                '--overwrite',
+                'true',
+                '--use-experimental-dump',
+                'true',
+                '--all-databases',
+                'true',
+                '--local-writer-threads',
+                '5',
+                '--local-network-threads',
+                '10',
+                '--dbserver-prefetch-batches',
+                '20',
+                '--split-files',
+                'true'
+            ]
+            ret = starter.arango_dump.run_dump_monitored(
+                self.backup_name,
+                args,
+                progressive_timeout=progressive_timeout)
+            #self.after_backup_create_impl()
+            return ret
+        raise Exception("no frontend found.")
+
+    @step
+    def restore_everything(self, path):
+        """restore a dump to the installation"""
+        progressive_timeout = 1600 if self.cfg.is_instrumented else 100
+        # self.before_backup_create_impl()
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arango_restore, "restore everything: this starter doesn't have an restore instance!"
+            print(path)
+            args = [
+                '--include-system-collections',
+                'true',
+                '--overwrite',
+                'true',
+                '--all-databases',
+                'true',
+            ]
+            ret = starter.arango_restore.run_restore_monitored(
+                str(path),
+                args,
+                progressive_timeout=progressive_timeout)
+            #self.after_backup_create_impl()
+            return ret
+        raise Exception("no frontend found.")
 
     @step
     def create_non_backup_data(self):
