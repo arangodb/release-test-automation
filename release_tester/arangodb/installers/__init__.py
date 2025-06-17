@@ -355,6 +355,7 @@ class RunProperties:
     def __init__(
         self,
         enterprise: bool,
+        mixed: bool = False,
         force_dl: bool = True,
         encryption_at_rest: bool = False,
         ssl: bool = False,
@@ -371,6 +372,7 @@ class RunProperties:
         if (create_oneshard_db or force_one_shard) and not enterprise:
             raise Exception("--create-oneshard-db and --force-oneshard options are not supported in Community edition")
         self.enterprise = enterprise
+        self.mixed = mixed
         self.force_dl = force_dl
         self.encryption_at_rest = encryption_at_rest
         self.use_auto_certs = use_auto_certs
@@ -402,12 +404,13 @@ directory_suffix: {0.directory_suffix}""".format(
 
 # pylint: disable=too-many-function-args disable=line-too-long
 EXECUTION_PLAN = [
-    RunProperties(True, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
-    # RunProperties(True, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
-    RunProperties(True, False, False, False, False, False, True, "Enterprise", "EP"),
-    # RunProperties(True, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
-    RunProperties(False, True, False, False, False, False, False, "Community", "C"),
+    RunProperties(True, False, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
+    # RunProperties(True, False, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
+    RunProperties(True, False, False, False, False, False, False, True, "Enterprise", "EP"),
+    # RunProperties(True, False, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
+    RunProperties(False, False, True, False, False, False, False, False, "Community", "C"),
+    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE"),
     # RunProperties(False, True, False, False, True, False, False, "Community\nreplication v.2", "Cr2", "3.11.999"),
 ]
 
@@ -423,6 +426,7 @@ def create_config_installer_set(
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     res = []
 
+    ep = run_properties.enterprise
     for one_version in versions:
         one_cfg = copy.deepcopy(base_config)
         if str(one_version).find("src") >= 0:
@@ -430,7 +434,7 @@ def create_config_installer_set(
             one_cfg.src_testing = True
         install_config = InstallerConfig(
             str(one_version),
-            run_properties.enterprise,
+            ep,
             run_properties.encryption_at_rest,
             one_cfg,
             deployment_mode,
@@ -442,4 +446,6 @@ def create_config_installer_set(
         installer = make_installer(install_config)
         installer.calculate_package_names()
         res.append([install_config, installer])
+        if run_properties.mixed:
+            ep = True
     return res

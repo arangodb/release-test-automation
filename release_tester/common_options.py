@@ -230,6 +230,12 @@ def very_common_options(support_multi_version=False):
             help="Enterprise or community?",
         )(function)
         function = click.option(
+            "--mixed/--no-mixed",
+            is_flag=True,
+            default=False,
+            help="community to Enterprise mixed upgrade path?",
+        )(function)
+        function = click.option(
             "--package-dir",
             default=package_dir,
             help="directory to down/load the packages from/to.",
