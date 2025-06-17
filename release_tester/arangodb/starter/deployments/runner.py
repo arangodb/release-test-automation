@@ -850,6 +850,25 @@ class Runner(ABC):
                 str(path),
                 args,
                 progressive_timeout=progressive_timeout)
+            testFoxxRoutingReady = ("wait for self heal", """
+    waitForSelfHeal = function () {
+      for (let i = 0; i < 20; i++) {
+        try {
+          let reply = arango.GET_RAW('/this_route_is_not_here', true);
+          if (reply.code === 404) {
+            print("selfHeal was already executed - Foxx is ready!");
+            return 0;
+          }
+          print(" Not yet ready, retrying: " + reply.parsedBody);
+        } catch (e) {
+          print(" Caught - need to retry. " + JSON.stringify(e));
+        }
+        require('internal').sleep(3);
+      }
+      throw new Error("foxx routeing not ready on time!");
+    }; waitForSelfHeal();
+            """)
+            starter.arangosh.run_command(testFoxxRoutingReady)
             #self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
