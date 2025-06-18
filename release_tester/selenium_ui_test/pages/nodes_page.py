@@ -47,8 +47,6 @@ class NodesPage(NavigationBarPage):
         short_wait = 5
         try:
             for elm in [table_coord_elm_css, table_dbsrv_elm_css]:
-                current_table = "Coordinators" if "coord" in elm else "DBServers"
-                print(f"Reading data from {current_table} table...")
                 for table_row_num in [1, 2, 3]:
                     row = {}
                     table.append(row)
