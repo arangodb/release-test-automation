@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """ cluster upgrade monitoring testsuite """
 import time
@@ -24,13 +23,13 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         self.tprint(old_ver)
         self.tprint(new_ver)
         upgrade_done = False
+        time.sleep(180)  # give 3 minutes for upgrade to finish - to avoid WebDriver exceptions when getting nodes data
         while not upgrade_done:
             table = []
             try:
-                table = NodesPage(self.webdriver,
-                                  self.cfg,
-                                  self.video_start_time).cluster_get_nodes_table(
-                                      500, self.selenium_runner.props.cluster_nodes)
+                table = NodesPage(self.webdriver, self.cfg, self.video_start_time).cluster_get_nodes_table(
+                    500, self.selenium_runner.props.cluster_nodes
+                )
             except StaleElementReferenceException:
                 self.progress(" skip once")
                 continue
@@ -41,7 +40,8 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
                 self.tprint(row["version"])
                 if row["version"].lower().startswith(old_ver):
                     old_count += 1
-                elif row["version"].lower().startswith(new_ver):
+                # elif row["version"].lower().startswith(new_ver):
+                elif row["version"].lower().startswith(new_ver.split("-")[0]):
                     new_count += 1
                 else:
                     self.progress(" can't count this row on new or old: %s" % (str(row)))
@@ -56,5 +56,5 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         self.webdriver.refresh()
         ver = NavigationBarPage(self.webdriver, self.cfg, self.video_start_time).detect_version()
         self.progress(" ver %s is %s?" % (str(ver), new_ver))
-        self.ui_assert(ver["version"].lower().startswith(new_ver), "UI-Test: wrong version after upgrade")
+        self.ui_assert(ver["version"].lower().startswith(new_ver.split("-")[0]), "UI-Test: wrong version after upgrade")
         # TODO self.check_full_ui(new_cfg)
