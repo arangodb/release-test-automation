@@ -50,7 +50,7 @@ class NodesPage(NavigationBarPage):
                 for table_row_num in [1, 2, 3]:
                     row = {}
                     table.append(row)
-                    for table_column in range(1, 6):  # for table_column in range(1, cluster_nodes):
+                    for table_column in range(1, cluster_nodes):
                         table_cell_elm = None
                         if table_column == 5:
                             time.sleep(short_wait)
