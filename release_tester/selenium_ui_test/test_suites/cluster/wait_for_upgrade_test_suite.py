@@ -23,14 +23,13 @@ class ClusterWaitForUpgradeTestSuite(BaseSeleniumTestSuite):
         self.tprint(old_ver)
         self.tprint(new_ver)
         upgrade_done = False
-        number_of_cluster_nodes = 6 # self.selenium_runner.props.cluster_nodes may misreport the actual number of nodes
         time.sleep(180)  # give 3 minutes for upgrade to finish - to avoid WebDriver exceptions when getting nodes data
         while not upgrade_done:
             table = []
             try:
                 table = NodesPage(self.webdriver, self.cfg, self.video_start_time).cluster_get_nodes_table(
-                    500, number_of_cluster_nodes)
-                #self.selenium_runner.props.cluster_nodes
+                    500, self.selenium_runner.props.cluster_nodes
+                )
             except StaleElementReferenceException:
                 self.progress(" skip once")
                 continue

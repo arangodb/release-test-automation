@@ -38,19 +38,18 @@ class NodesPage(NavigationBarPage):
 
     def _get_nodes_table(self, timeout, cluster_nodes):
         """repeatable inner func"""
-        # table_coord_elm_css = '.pure-g.cluster-nodes.coords-nodes.pure-table.pure-table-body'
-        # table_dbsrv_elm_css = '.pure-g.cluster-nodes.dbs-nodes.pure-table.pure-table-body'
         table_coord_elm_css = "#nodesContent>div>div:first-child>div:last-child"
         table_dbsrv_elm_css = "#nodesContent>div>div:first-child+div>div:last-child"
         column_names = ["name", "url", "version", "date", "state"]
         table = []
         short_wait = 5
+
         try:
             for elm in [table_coord_elm_css, table_dbsrv_elm_css]:
-                for table_row_num in [1, 2, 3]:
+                for table_row_num in range(1, cluster_nodes + 1):
                     row = {}
                     table.append(row)
-                    for table_column in range(1, cluster_nodes):
+                    for table_column in range(1, len(column_names) + 1):
                         table_cell_elm = None
                         if table_column == 5:
                             time.sleep(short_wait)
