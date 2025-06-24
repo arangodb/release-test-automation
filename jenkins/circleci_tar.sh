@@ -94,6 +94,7 @@ $DOCKER run \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
+       --env="OPENBLAS_NUM_THREADS=${OPENBLAS_NUM_THREADS}" \
        --env="OMP_TOOL_LIBRARIES=/usr/lib/llvm-19/lib/libarcher.so" \
        --env='ARCHER_OPTIONS="verbose=1"' \
        \

@@ -694,8 +694,11 @@ class StarterManager:
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
-            logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
-            self.kill_instance()
+            if self.instance is None:
+                logging.error("StarterManager: don't have an instance!!")
+            else:
+                logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
+                self.kill_instance()
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:

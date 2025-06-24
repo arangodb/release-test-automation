@@ -7,8 +7,10 @@ from selenium.common.exceptions import TimeoutException
 # wtf navbar?
 # pylint: disable=blacklisted-name
 
+
 class NavigationBarPage(UserBarPage):
     """Page object representing the navigation bar"""
+
     # click_twitter_link_id = "//*[@id='navigationBar']/div[2]/p[1]/a"
     # click_slack_link_id = "//*[@id='navigationBar']/div[2]/p[2]/a"
     # click_stackoverflow_link_id = "//*[@id='navigationBar']/div[2]/p[3]/a"
@@ -40,7 +42,7 @@ class NavigationBarPage(UserBarPage):
                 self.progress("retry version.")
                 time.sleep(1)
                 if count > 200:
-                    raise TimeoutException("canot detect version, found: %s " % str(ret))
+                    raise TimeoutException("cannot detect version, found: %s " % str(ret))
                 count += 1
             except TimeoutException as ex:
                 raise ex
