@@ -113,6 +113,7 @@ class Runner(ABC):
         self.hot_backup = (
             cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
         )
+        self.hot_backup = False
         self.dump_restore = not self.hot_backup
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
@@ -306,6 +307,7 @@ class Runner(ABC):
                 self.dump_everything("dump_this_" + self.name)
                 print(self.backup_name)
                 self.restore_everything(self.backup_name)
+                self.check_data_impl()
 
             if self.new_installer:
                 if self.hot_backup:
@@ -849,26 +851,6 @@ class Runner(ABC):
                 str(path),
                 args,
                 progressive_timeout=progressive_timeout)
-            testFoxxRoutingReady = ("wait for self heal", """
-    waitForSelfHeal = function () {
-      for (let i = 0; i < 20; i++) {
-        try {
-          let reply = arango.GET_RAW('/this_route_is_not_here', true);
-          if (reply.code === 404) {
-            print("selfHeal was already executed - Foxx is ready!");
-            return 0;
-          }
-          print(" Not yet ready, retrying: " + reply.parsedBody);
-        } catch (e) {
-          print(" Caught - need to retry. " + JSON.stringify(e));
-        }
-        require('internal').sleep(3);
-      }
-      throw new Error("foxx routeing not ready on time!");
-    }; waitForSelfHeal();
-            """)
-            starter.arangosh.run_command(testFoxxRoutingReady)
-            #self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
 
