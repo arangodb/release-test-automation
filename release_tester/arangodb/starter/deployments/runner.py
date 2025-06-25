@@ -1058,6 +1058,7 @@ class Runner(ABC):
     @step
     def cleanup(self, reset_tmp=True):
         """remove all directories created by this test"""
+        return
         testdir = self.cfg.base_test_dir / self.basedir
         print("cleaning up " + str(testdir))
         try:
