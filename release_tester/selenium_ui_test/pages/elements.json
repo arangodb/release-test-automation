@@ -1,0 +1,7 @@
+{
+  "Analyzers" : [
+    {"btnCreateAnalyzer" : "#createAnalyzer"},
+    {"txtAnalyzerName" : "[name = 'properties.name']"},
+    {"txtAnalyzerType" : "[name = 'properties.type']"}
+  ]
+}
