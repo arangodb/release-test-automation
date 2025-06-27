@@ -87,11 +87,11 @@ class BasePage:
 
         # Calculate performance metrics
         metrics = {
-            'load_time': navigation_timing['loadEventEnd'] - navigation_timing['navigationStart'],
-            'dom_content_loaded': navigation_timing['domContentLoadedEventEnd'] - navigation_timing['navigationStart'],
-            'response_time': navigation_timing['responseEnd'] - navigation_timing['requestStart'],
-            'connect_time': navigation_timing['connectEnd'] - navigation_timing['connectStart'],
-            'dom_interactive': navigation_timing['domInteractive'] - navigation_timing['navigationStart'],
+            "load_time": navigation_timing["loadEventEnd"] - navigation_timing["navigationStart"],
+            "dom_content_loaded": navigation_timing["domContentLoadedEventEnd"] - navigation_timing["navigationStart"],
+            "response_time": navigation_timing["responseEnd"] - navigation_timing["requestStart"],
+            "connect_time": navigation_timing["connectEnd"] - navigation_timing["connectStart"],
+            "dom_interactive": navigation_timing["domInteractive"] - navigation_timing["navigationStart"],
         }
 
         return metrics
@@ -99,20 +99,20 @@ class BasePage:
     def evaluate_performance_metrics(self, metrics):
         """Evaluate performance metrics against thresholds in milliseconds"""
         thresholds = {
-            'load_time': 2000,
-            'dom_content_loaded': 1000,
-            'response_time': 200,
-            'connect_time': 100,
-            'dom_interactive': 1000
+            "load_time": 2000,
+            "dom_content_loaded": 1000,
+            "response_time": 200,
+            "connect_time": 100,
+            "dom_interactive": 1000,
         }
 
         evaluations = {}
         for key, threshold in thresholds.items():
             value = metrics.get(key, None)
             if value is None:
-                evaluations[key] = 'Metric not available'
+                evaluations[key] = "Metric not available"
             else:
-                evaluations[key] = 'Good' if value < threshold else 'Poor'
+                evaluations[key] = "Good" if value < threshold else "Poor"
 
         return evaluations
 
@@ -126,7 +126,9 @@ class BasePage:
         # Iterate over each key (metric name) in the first collected metrics dictionary
         for key in self.collected_metrics[0]:
             # Calculate the average value for each metric
-            aggregated_metrics[key] = sum(metrics[key] for metrics in self.collected_metrics) / len(self.collected_metrics)
+            aggregated_metrics[key] = sum(metrics[key] for metrics in self.collected_metrics) / len(
+                self.collected_metrics
+            )
 
         # Return the dictionary containing aggregated (average) metrics
         return aggregated_metrics
@@ -166,7 +168,7 @@ class BasePage:
         # pylint: disable=consider-using-dict-items
         for key in aggregated_metrics:
             value = aggregated_metrics[key]
-            result = aggregated_evaluations.get(key, 'Metric not available')
+            result = aggregated_evaluations.get(key, "Metric not available")
             status_circle = self.get_status_circle(value, 2000)  # Example threshold
             combined_html += f"""
             <tr>
@@ -182,9 +184,7 @@ class BasePage:
         # Add results to Allure report
         with allure.step("Combined Performance Results"):
             allure.attach(
-                combined_html,
-                name="Combined Performance Results",
-                attachment_type=allure.attachment_type.HTML
+                combined_html, name="Combined Performance Results", attachment_type=allure.attachment_type.HTML
             )
 
     def clear_all_text(self, locator=None):
@@ -347,6 +347,7 @@ class BasePage:
         # pylint: disable=unused-argument
         def dummy(title):
             pass
+
         return self.switch_tab_check(locator, dummy)
 
     def check_version_is_newer(self, compare_version):
@@ -413,7 +414,9 @@ class BasePage:
         return self.locator
 
     # pylint: disable=too-many-arguments
-    def locator_finder_by_id(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False):
+    def locator_finder_by_id(
+        self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False
+    ):
         """This method finds locators by their ID using Fluent Wait with retry."""
         if benchmark:
             # Get performance metrics before finding the locator
@@ -456,7 +459,9 @@ class BasePage:
         raise Exception(f"UI-Test: {locator_name} locator was not found after {max_retries + 1} attempts.")
 
     # pylint: disable=too-many-arguments
-    def locator_finder_by_xpath(self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False):
+    def locator_finder_by_xpath(
+        self, locator_name, timeout=20, poll_frequency=1, max_retries=1, expec_fail=False, benchmark=False
+    ):
         """This method finds locators by their xpath using Fluent Wait with retry."""
         if benchmark:
             metrics_before = self.get_performance_metrics(self.webdriver)
@@ -562,6 +567,16 @@ class BasePage:
             message="UI-Test: " + locator_name + " locator was not found.",
         )
         self.locator = self.locator.text
+        if self.locator is None:
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        return self.locator
+
+    def locator_finder_by_css_selector(self, locator_name, timeout=10):
+        """This method finds an element by its CSS Selector"""
+        self.locator = WebDriverWait(self.webdriver, timeout).until(
+            EC.presence_of_element_located((BY.CSS_SELECTOR, locator_name)),
+            message="UI-Test: UI element with '" + locator_name + "' css selector was not found.",
+        )
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator

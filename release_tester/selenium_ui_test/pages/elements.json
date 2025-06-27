@@ -1,0 +1,7 @@
+{
+  "analyzers" : [
+    ["txtDelimiter", "input[name='properties.delimiter']"],
+    ["txtAnalyzerName", "[name = 'properties.name']"],
+    ["txtAnalyzerType", "[name = 'properties.type']"]
+  ]
+}
