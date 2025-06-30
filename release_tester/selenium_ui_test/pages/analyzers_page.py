@@ -13,8 +13,7 @@ from selenium.common.exceptions import TimeoutException
 
 # pylint: disable=line-too-long disable=too-many-lines disable=too-many-branches
 class AnalyzerPage(NavigationBarPage):
-    """analyzer page object"""
-
+    """ analyzer page object """
     # pylint: disable=too-many-instance-attributes disable=too-many-public-methods
     def __init__(self, webdriver, cfg, video_start_time):
         super().__init__(webdriver, cfg, video_start_time)
@@ -22,19 +21,18 @@ class AnalyzerPage(NavigationBarPage):
         self.in_built_analyzer = "icon_arangodb_settings2"
         self.add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
 
-        self.close_analyzer_btn = (
-            "//button[text()='Close' and not(ancestor::div[contains(@style,'display:none')]) "
-            "and not(ancestor::div[contains(@style,'display: none')])] "
-        )
+        self.close_analyzer_btn = "//button[text()='Close' and not(ancestor::div[contains(@style,'display:none')]) " \
+                                  "and not(ancestor::div[contains(@style,'display: none')])] "
         self.index = 0
         self.package_version = self.current_package_version()
         # external page elements
-        elements_json_path = f"{pathlib.Path(__file__).parent.resolve()}/elements.json"
-        print(f"UI elements JSON file path - {elements_json_path}")
+        ui_version = 'new_ui' if self.version_is_newer_than('3.11.99') else 'old_ui'
+        elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
+        print(f'UI elements JSON file path - {elements_json_path}')
         elements_data = {}
-        with open(elements_json_path, "r") as file:
+        with open(elements_json_path, 'r') as file:
             elements_data = json.load(file)
-        elements_dict = dict(elements_data[self.analyzers_page])
+        elements_dict = dict(elements_data[self.analyzers_page][ui_version])
         Elements = namedtuple("Elements", list(elements_dict.keys()))
         self.elements = Elements(*list(elements_dict.values()))
 
@@ -49,7 +47,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def select_help_filter_btn(self):
         """Selecting help button"""
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than('3.11.99'):
             self.tprint("select_help_filter_btn test skipped \n")
         else:
             self.webdriver.refresh()
@@ -84,36 +82,34 @@ class AnalyzerPage(NavigationBarPage):
         show_built_in_analyzers_sitem.click()
         time.sleep(2)
 
+
     def select_analyzer_to_check(self, analyzer_name, locators):
         """Checking in-built analyzers one by one"""
         self.tprint(f"Checking {analyzer_name} analyzer\n")
 
-        self.tprint("Selecting analyzer from the in-built analyzers list \n")
+        self.tprint('Selecting analyzer from the in-built analyzers list \n')
         self.locator_finder_by_xpath(locators).click()
         time.sleep(2)
 
         def switch_view_template_str(id_name):
             return f"//div[@id='modal-content-view-{id_name}']/child::div//div/div[2]/button"
-
         # this will create all the built-in switch view to {code/form} locators as needed
-        switch_view_id_list = [
-            switch_view_template_str("identity"),
-            switch_view_template_str("text_de"),
-            switch_view_template_str("text_en"),
-            switch_view_template_str("text_es"),
-            switch_view_template_str("text_fi"),
-            switch_view_template_str("text_fr"),
-            switch_view_template_str("text_it"),
-            switch_view_template_str("text_nl"),
-            switch_view_template_str("text_no"),
-            switch_view_template_str("text_pt"),
-            switch_view_template_str("text_ru"),
-            switch_view_template_str("text_sv"),
-            switch_view_template_str("text_zh"),
-        ]
+        switch_view_id_list = [switch_view_template_str('identity'),
+                               switch_view_template_str('text_de'),
+                               switch_view_template_str('text_en'),
+                               switch_view_template_str('text_es'),
+                               switch_view_template_str('text_fi'),
+                               switch_view_template_str('text_fr'),
+                               switch_view_template_str('text_it'),
+                               switch_view_template_str('text_nl'),
+                               switch_view_template_str('text_no'),
+                               switch_view_template_str('text_pt'),
+                               switch_view_template_str('text_ru'),
+                               switch_view_template_str('text_sv'),
+                               switch_view_template_str('text_zh')]
 
         # assigning all the switch view locators for finding the element
-        self.tprint("Switch to Code view \n")
+        self.tprint('Switch to Code view \n')
         if analyzer_name == "identity":
             switch_view = switch_view_id_list[0]
         elif analyzer_name == "text_de":
@@ -144,7 +140,7 @@ class AnalyzerPage(NavigationBarPage):
         self.locator_finder_by_xpath(switch_view).click()
         time.sleep(2)
 
-        self.tprint("Closing the analyzer \n")
+        self.tprint('Closing the analyzer \n')
         close_sitem = self.locator_finder_by_xpath(self.close_analyzer_btn)
         close_sitem.click()
         time.sleep(2)
@@ -159,7 +155,7 @@ class AnalyzerPage(NavigationBarPage):
         # Click the search icon from the search/filter box if it takes
         # to the collection page then it's an error.
 
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than('3.11.99'):
             self.tprint("checking_analyzer_page_transition test skipped \n")
         else:
             self.navbar_goto("analyzers")
@@ -188,15 +184,16 @@ class AnalyzerPage(NavigationBarPage):
 
             create_btn = "//*[text()='Create']"
             create_btn_sitem = self.locator_finder_by_xpath(create_btn).text
-            expected_text = "Create"
-            assert create_btn_sitem == expected_text, f"Expected text {expected_text} " f"but got {create_btn_sitem}"
+            expected_text = 'Create'
+            assert create_btn_sitem == expected_text, f"Expected text {expected_text} " \
+                                                                f"but got {create_btn_sitem}"
 
             self.webdriver.refresh()
             # going back to analyzer page for the rest of the tests
             self.navbar_goto("analyzers")
 
     def checking_all_built_in_analyzer(self):
-        """check the built in analyzers"""
+        """ check the built in analyzers """
         built_in_analyzers = [
             "identity",
             "text_de",
@@ -210,25 +207,25 @@ class AnalyzerPage(NavigationBarPage):
             "text_pt",
             "text_ru",
             "text_sv",
-            "text_zh",
+            "text_zh"
         ]
 
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than('3.11.99'):
             self.tprint("select_help_filter_btn test skipped \n")
         else:
-            self.tprint("Showing in-built Analyzers list \n")
+            self.tprint('Showing in-built Analyzers list \n')
             self.select_built_in_analyzers_open()
 
             for analyzer in built_in_analyzers:
-                self.tprint(f"Checking in-built {analyzer} analyzer \n")
+                self.tprint(f'Checking in-built {analyzer} analyzer \n')
                 xpath = f'//tr/td[text()="{analyzer}"]/following-sibling::td[2]/button'
                 self.select_analyzer_to_check(analyzer, xpath)
 
-            self.tprint("Hiding in-built Analyzers list \n")
+            self.tprint('Hiding in-built Analyzers list \n')
             self.select_built_in_analyzers_close()
 
     def get_analyzer_index(self, name):
-        """get the number of the analyzer"""
+        """ get the number of the analyzer """
         analyzer_lookup = {
             "My_Identity_Analyzer": 0,
             "My_Delimiter_Analyzer": 1,
@@ -240,17 +237,18 @@ class AnalyzerPage(NavigationBarPage):
             "My_Stopwords_Analyzer": 7,
             "My_Collation_Analyzer": 8,
             "My_Segmentation_Alpha_Analyzer": 9,
-            "My_Nearest_Neighbor_Analyzer": 10 if self.version_is_newer_than("3.9.99") else 9,
-            "My_Classification_Analyzer": 11 if self.version_is_newer_than("3.9.99") else 9,
-            "My_Pipeline_Analyzer": 12 if self.version_is_newer_than("3.9.99") else 10,
-            "My_GeoJSON_Analyzer": 13 if self.version_is_newer_than("3.9.99") else 11,
-            "My_GeoPoint_Analyzer": 14 if self.version_is_newer_than("3.9.99") else 12,
-            "My_GeoS2_Analyzer": 15 if self.version_is_newer_than("3.9.99") else 13,
-            "My_Minhash_Analyzer": 16 if self.version_is_newer_than("3.9.99") else 14,
-            "My_MultiDelimiter_Analyzer": 17 if self.version_is_newer_than("3.9.99") else 15,
-            "My_WildCard_Analyzer": 18 if self.version_is_newer_than("3.9.99") else 16,
+            "My_Nearest_Neighbor_Analyzer": 10 if self.version_is_newer_than('3.9.99') else 9,
+            "My_Classification_Analyzer": 11 if self.version_is_newer_than('3.9.99') else 9,
+            "My_Pipeline_Analyzer": 12 if self.version_is_newer_than('3.9.99') else 10,
+            "My_GeoJSON_Analyzer": 13 if self.version_is_newer_than('3.9.99') else 11,
+            "My_GeoPoint_Analyzer": 14 if self.version_is_newer_than('3.9.99') else 12,
+            "My_GeoS2_Analyzer": 15 if self.version_is_newer_than('3.9.99') else 13,
+            "My_Minhash_Analyzer": 16 if self.version_is_newer_than('3.9.99') else 14,
+            "My_MultiDelimiter_Analyzer": 17 if self.version_is_newer_than('3.9.99') else 15,
+            "My_WildCard_Analyzer": 18 if self.version_is_newer_than('3.9.99') else 16
         }
         return analyzer_lookup.get(name, -1)  # Return -1 if the analyzer name is not found
+
 
     def add_new_analyzer(self, name, ui_data_dir=None):
         """Adding analyzer type delimiter with necessary features"""
@@ -264,48 +262,40 @@ class AnalyzerPage(NavigationBarPage):
         self.webdriver.refresh()
         self.wait_for_ajax()
 
-        if self.version_is_newer_than("3.11.99"):
-            print("Version is newer than 3.11.99")
-            add_new_analyzer_btn = "(//button[normalize-space()='Add analyzer'])[1]"
-        else:
-            add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
-
-        # time.sleep(300) # debug
-        add_analyzer_sitem = self.locator_finder_by_xpath(add_new_analyzer_btn, benchmark=True)
+        add_analyzer_sitem = self.locator_finder_by_xpath(self.elements.btn_add_new_analyzer, benchmark=True)
         add_analyzer_sitem.click()
         time.sleep(2)
 
-        self.tprint(f"Creating {name} started \n")
+        self.tprint(f'Creating {name} started \n')
         # common attributes for all the analyzer
-        if self.version_is_newer_than("3.11.99"):
-            print("Version is newer than 3.11.99")
-            analyzer_name = "(//input[@id='name'])[1]"
-            # analyzer_type = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
-            analyzer_type = "(//input[@id='type'])[1]"
-            frequency = "(//label[normalize-space()='Frequency'])[1]"
-            norm = "(//label[normalize-space()='Norm'])[1]"
-            position = "(//label[normalize-space()='Position'])[1]"
-            local_placeholder = "(//input[@id='properties.locale'])[1]"
-            case_placeholder = "(//label[normalize-space()='Case'])[1]"
-        else:
-            analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
-            analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
-            frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
-            norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
-            position = '//div[label[text()="Position"]]/input[not(@disabled)]'
-            local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
-            case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
+        # if self.version_is_newer_than('3.11.99'):
+        #     print('Version is newer than 3.11.99')
+        #     analyzer_name = "(//input[@id='name'])[1]"
+        #     analyzer_type = "(//input[@id='type'])[1]"
+        #     frequency = "(//label[normalize-space()='Frequency'])[1]"
+        #     norm = "(//label[normalize-space()='Norm'])[1]"
+        #     position = "(//label[normalize-space()='Position'])[1]"
+        #     local_placeholder = "(//input[@id='properties.locale'])[1]"
+        #     case_placeholder = "(//label[normalize-space()='Case'])[1]"
+        # else:
+        #     analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
+        #     analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
+        #     frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
+        #     norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
+        #     position = '//div[label[text()="Position"]]/input[not(@disabled)]'
+        #     local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
+        #     case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
 
-        time.sleep(5)  # debug
-        analyzer_name_sitem = self.locator_finder_by_xpath(analyzer_name)
+        time.sleep(5) # debug
+        analyzer_name_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_analyzer_name)
         analyzer_name_sitem.click()
         analyzer_name_sitem.clear()
         analyzer_name_sitem.send_keys(name)
         time.sleep(2)
 
-        self.tprint("Selecting analyzer type \n")
-        if self.version_is_newer_than("3.11.99"):
-            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type, benchmark=True)
+        self.tprint('Selecting analyzer type \n')
+        if self.version_is_newer_than('3.11.99'):
+            analyzer_type_sitem = self.locator_finder_by_xpath(self.elements.txt_analyzer_type, benchmark=True)
             analyzer_type_sitem.click()
             time.sleep(2)
             # this will simulate down arrow key according to its index position
@@ -315,21 +305,21 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
             time.sleep(1)
         else:
-            self.locator_finder_by_select_using_xpath(analyzer_type, index)
+            self.locator_finder_by_xpath_or_css_selector(self.elements.txt_analyzer_type, index)
             time.sleep(2)
 
         self.tprint(f"selecting frequency for {name} \n")
-        frequency_sitem = self.locator_finder_by_xpath(frequency)
+        frequency_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_frequency)
         frequency_sitem.click()
         time.sleep(2)
 
         self.tprint(f"selecting norm for {name}\n")
-        norm_sitem = self.locator_finder_by_xpath(norm)
+        norm_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_norm)
         norm_sitem.click()
         time.sleep(2)
 
         self.tprint(f"selecting position for {name} \n")
-        position_sitem = self.locator_finder_by_xpath(position)
+        position_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_position)
         position_sitem.click()
         time.sleep(2)
 
@@ -337,123 +327,100 @@ class AnalyzerPage(NavigationBarPage):
         self.tprint(f"selecting value for the placeholder for {name} \n")
         # for delimiter
         if name == "My_Delimiter_Analyzer":
-            # delimiter = '//div[label[text()="Delimiter (characters to split on)"]]//input[not(@disabled)]'
-            # delimiter_sitem = self.locator_finder_by_xpath(delimiter)
-            # delimiter_css = 'input[name="properties.delimiter"]'
-            delimiter_sitem = self.locator_finder_by_css_selector(self.elements.txtDelimiter)
+            delimiter_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_delimiter)
             delimiter_sitem.click()
             delimiter_sitem.clear()
             value = "_"
             delimiter_sitem.send_keys(value)
         # for stem
         elif name == "My_Stem_Analyzer":
-            value = "en_US.utf-8"
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            value = 'en_US.utf-8'
+            locale_sitem = self.locator_finder_by_xpath(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
         # for norm
         elif name == "My_Norm_Analyzer":
-            value = "en_US.utf-8"
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            value = 'en_US.utf-8'
+            locale_sitem = self.locator_finder_by_xpath(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
 
-            self.tprint("Selecting case for norm analyzer using index value \n")
-            if self.version_is_newer_than("3.11.99"):
-                case_sitem = self.locator_finder_by_xpath(case_placeholder)
+            self.tprint('Selecting case for norm analyzer using index value \n')
+            if self.version_is_newer_than('3.11.99'):
+                case_sitem = self.locator_finder_by_xpath(self.elements.select_case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                self.locator_finder_by_select_using_xpath(case_placeholder, 0)
+                self.locator_finder_by_select_using_xpath(self.elements.select_case, 0)
 
-            self.tprint("Selecting accent for norm analyzer \n")
-            if self.version_is_newer_than("3.11.99"):
+            self.tprint('Selecting accent for norm analyzer \n')
+            if self.version_is_newer_than('3.11.99'):
                 self.tprint("Accent properties skipped \n")
-                # accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
             else:
-                accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-                accent_sitem = self.locator_finder_by_xpath(accent)
+                accent_sitem = self.locator_finder_by_xpath(self.elements.txt_accent)
                 accent_sitem.click()
                 time.sleep(2)
 
         # for N-Gram
         elif name == "My_N-Gram_Analyzer":
-            self.tprint(f"Adding minimum n-gram length for {name} \n")
-            # min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            min_length_css = 'input[name="properties.min"]'
-            min_length_sitem = self.locator_finder_by_css_selector(min_length_css)
+            self.tprint(f'Adding minimum n-gram length for {name} \n')
+            min_length_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_min_length)
             min_length_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.clear_textfield()
             else:
                 min_length_sitem.clear()
-            min_length_sitem.send_keys("3")
+            min_length_sitem.send_keys('3')
             time.sleep(2)
 
-            self.tprint(f"Adding maximum n-gram length for {name} \n")
-            # max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            # max_length_sitem = self.locator_finder_by_xpath(max_length)
-            max_length_css = 'input[name="properties.max"]'
-            max_length_sitem = self.locator_finder_by_css_selector(max_length_css)
+            self.tprint(f'Adding maximum n-gram length for {name} \n')
+            max_length_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_max_length)
             max_length_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.clear_textfield()
             else:
                 max_length_sitem.clear()
-            max_length_sitem.send_keys("3")
+            max_length_sitem.send_keys('3')
             time.sleep(2)
 
-            self.tprint(f"Preserve original value for {name}\n")
-            if self.version_is_newer_than("3.11.99"):
-                # preserve = '(//label[text()="Preserve Original"])'
-                preserve_css = '[name="properties.preserveOriginal"]+span'
-                preserve_sitem = self.locator_finder_by_css_selector(preserve_css)
-            else:
-                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-                preserve_sitem = self.locator_finder_by_xpath(preserve)
-
+            self.tprint(f'Preserve original value for {name}\n')
+            preserve_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_preserve)
             preserve_sitem.click()
             time.sleep(2)
 
-            self.tprint(f"Start marker value {name}\n")
-            # start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-            start_marker_css = 'input[name="properties.startMarker"]'
-            start_marker_sitem = self.locator_finder_by_css_selector(start_marker_css)
+            self.tprint(f'Start marker value {name}\n')
+            start_marker_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_start_marker)
             start_marker_sitem.click()
             start_marker_sitem.clear()
-            start_marker_sitem.send_keys("^")
+            start_marker_sitem.send_keys('^')
             time.sleep(2)
 
-            self.tprint(f"End marker value for {name} \n")
-            # end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-            end_marker_css = 'input[name="properties.endMarker"]'
-            end_marker_sitem = self.locator_finder_by_css_selector(end_marker_css)
+            self.tprint(f'End marker value for {name} \n')
+            end_marker_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_end_marker)
             end_marker_sitem.click()
             end_marker_sitem.clear()
-            end_marker_sitem.send_keys("$")
+            end_marker_sitem.send_keys('$')
             time.sleep(2)
 
-            self.tprint(f"Stream type selection using index value for {name}\n")
-            if self.version_is_newer_than("3.11.99"):
-                stream_type = "(//label[normalize-space()='Stream Type'])[1]"
-                stream_type_sitem = self.locator_finder_by_xpath(stream_type)
+            self.tprint(f'Stream type selection using index value for {name}\n')
+            if self.version_is_newer_than('3.11.99'):
+                stream_type_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_stream_type)
                 stream_type_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(stream_type, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_stream_type, 1)
             time.sleep(2)
         # for text
         elif name == "My_Text_Analyzer":
-            value = "en_US.utf-8"
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            value = 'en_US.utf-8'
+            locale_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -467,281 +434,216 @@ class AnalyzerPage(NavigationBarPage):
             # stopwords_path_sitem.clear()
             # stopwords_path_sitem.send_keys('/home/username/Desktop/')
 
-            self.tprint(f"Selecting stopwords for the {name} \n")
-            if self.version_is_newer_than("3.11.99"):
+            self.tprint(f'Selecting stopwords for the {name} \n')
+            if self.version_is_newer_than('3.11.99'):
                 self.tprint("skipped! \n")
             else:
-                stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
+                stopwords_sitem = self.locator_finder_by_xpath(self.elements.txt_stop_words)
                 stopwords_sitem.clear()
-                stopwords_sitem.send_keys("dog")
+                stopwords_sitem.send_keys('dog')
                 stopwords_sitem.send_keys(Keys.ENTER)
-                stopwords_sitem.send_keys("human")
+                stopwords_sitem.send_keys('human')
                 stopwords_sitem.send_keys(Keys.ENTER)
-                stopwords_sitem.send_keys("tree")
+                stopwords_sitem.send_keys('tree')
                 stopwords_sitem.send_keys(Keys.ENTER)
-                stopwords_sitem.send_keys("of")
+                stopwords_sitem.send_keys('of')
                 stopwords_sitem.send_keys(Keys.ENTER)
-                stopwords_sitem.send_keys("the")
+                stopwords_sitem.send_keys('the')
 
-            self.tprint(f"Selecting case for the analyzer from the dropdown menu for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                case = "(//label[normalize-space()='Case'])[1]"
-                case_sitem = self.locator_finder_by_xpath(case)
+            self.tprint(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
+            if self.version_is_newer_than('3.11.99'):
+                case_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.TAB)
             else:
-                self.locator_finder_by_select_using_xpath(case_placeholder, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_case, 1)
 
-            self.tprint("Selecting stem for the analyzer \n")
+            self.tprint('Selecting stem for the analyzer \n')
             # stemming is already toggled in this version 3.12.2 nightly, thus keep it as it is
-            if self.version_is_older_than("3.11.99"):
-                stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
-                stem_sitem = self.locator_finder_by_xpath(stem)
+            if self.version_is_older_than('3.11.99'):
+                stem_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_stem)
                 stem_sitem.click()
                 time.sleep(2)
 
-            self.tprint("Selecting accent for the analyzer \n")
-            if self.version_is_newer_than("3.11.99"):
-                accent = '(//label[text()="Accent"])'
-            else:
-                accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-            accent_sitem = self.locator_finder_by_xpath(accent)
+            self.tprint('Selecting accent for the analyzer \n')
+            accent_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_accent)
             accent_sitem.click()
             time.sleep(2)
 
-            self.tprint(f"Selecting minimum N-Gram length for {name} \n")
-            # ngram_length_min = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            # ngram_length_min_sitem = self.locator_finder_by_xpath(ngram_length_min)
-            ngram_length_min_css = 'input[name="properties.edgeNgram.min"]'
-            ngram_length_min_sitem = self.locator_finder_by_css_selector(ngram_length_min_css)
+            self.tprint(f'Selecting minimum N-Gram length for {name} \n')
+            ngram_length_min_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_ngram_min_length)
             ngram_length_min_sitem.click()
-            ngram_length_min_sitem.send_keys("3")
+            ngram_length_min_sitem.send_keys('3')
             time.sleep(2)
 
-            self.tprint(f"Selecting maximum N-Gram length for {name} \n")
-            # ngram_length_max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            # ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
-            ngram_length_max_length_css = 'input[name="properties.edgeNgram.max"]'
-            ngram_length_max_length_sitem = self.locator_finder_by_css_selector(ngram_length_max_length_css)
+            self.tprint(f'Selecting maximum N-Gram length for {name} \n')
+            ngram_length_max_length_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_ngram_max_length)
             ngram_length_max_length_sitem.click()
-            ngram_length_max_length_sitem.send_keys("8")
+            ngram_length_max_length_sitem.send_keys('8')
             time.sleep(2)
 
-            self.tprint(f"Selecting preserve original for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                print("My Text analyzer - in edge N-Gram version detection...")
-                # preserve = "(//label[normalize-space()='Preserve Original'])[1]"
-                preserve_css = '[name="properties.edgeNgram.preserveOriginal"]+span'
-                preserve_sitem = self.locator_finder_by_css_selector(preserve_css)
-            else:
-                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-                preserve_sitem = self.locator_finder_by_xpath(preserve)
+            self.tprint(f'Selecting preserve original for {name} \n')
+            preserve_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_preserve_original)
             preserve_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.tprint("skipped")
             else:
-                preserve_sitem.send_keys("3")
+                preserve_sitem.send_keys('3')
             time.sleep(2)
         # for AQL analyzer
         elif name == "My_AQL_Analyzer":
-            self.tprint(f"Selecting query string for {name} \n")
-            # query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
-            # query_string_sitem = self.locator_finder_by_xpath(query_string)
-            query_string_css = '[name="properties.queryString"]'
-            query_string_sitem = self.locator_finder_by_css_selector(query_string_css)
-            query_string_sitem.send_keys("RETURN SOUNDEX(@param)")
+            self.tprint(f'Selecting query string for {name} \n')
+            query_string_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_query_string)
+            query_string_sitem.send_keys('RETURN SOUNDEX(@param)')
             time.sleep(2)
 
-            self.tprint(f"Selecting batch size for {name} \n")
-            # batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
-            # batch_size_sitem = self.locator_finder_by_xpath(batch_size)
-            batch_size_css = '[name="properties.batchSize"]'
-            batch_size_sitem = self.locator_finder_by_css_selector(batch_size_css)
+            self.tprint(f'Selecting batch size for {name} \n')
+            batch_size_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_batch_size)
             batch_size_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse("3.11.99"):
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
                 self.clear_textfield()
             else:
                 batch_size_sitem.clear()
 
-            batch_size_sitem.send_keys("10")
+            batch_size_sitem.send_keys('10')
             time.sleep(2)
 
-            self.tprint(f"Selecting memory limit for {name} \n")
-            # memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
-            # memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
-            memory_limit_css = '[name="properties.memoryLimit"]'
-            memory_limit_sitem = self.locator_finder_by_css_selector(memory_limit_css)
+            self.tprint(f'Selecting memory limit for {name} \n')
+            memory_limit_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_memory_limit)
             memory_limit_sitem.click()
-            if self.package_version >= semver.VersionInfo.parse("3.11.99"):
+            if self.package_version >= semver.VersionInfo.parse('3.11.99'):
                 self.clear_textfield()
             else:
                 memory_limit_sitem.clear()
 
-            memory_limit_sitem.send_keys("1048576")
+            memory_limit_sitem.send_keys('1048576')
             time.sleep(2)
 
-            self.tprint(f"Selecting collapse position for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                collapse = "(//label[normalize-space()='Collapse Positions'])[1]"
-            else:
-                collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
-            collapse_sitem = self.locator_finder_by_xpath(collapse)
+            self.tprint(f'Selecting collapse position for {name} \n')
+            collapse_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_collapse)
             collapse_sitem.click()
             time.sleep(2)
 
-            self.tprint(f"Selecting keep null for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                self.tprint("Skipped \n")
+            self.tprint(f'Selecting keep null for {name} \n')
+            if self.version_is_newer_than('3.11.99'):
+                self.tprint('Skipped \n')
             else:
-                keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
-                keep_null_sitem = self.locator_finder_by_xpath(keep_null)
+                keep_null_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_keep_null)
                 keep_null_sitem.click()
             time.sleep(2)
 
-            self.tprint(f"Selecting Return type for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                return_type = "(//label[normalize-space()='Return Type'])[1]"
-                return_type_sitem = self.locator_finder_by_xpath(return_type)
+            self.tprint(f'Selecting Return type for {name} \n')
+            if self.version_is_newer_than('3.11.99'):
+                return_type_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_return_type)
                 return_type_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
 
             else:
-                return_type = '//div[label[text()="Return Type"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(return_type, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_return_type, 1)
             time.sleep(2)
         # for stopwords
         elif name == "My_Stopwords_Analyzer":
-            self.tprint(f"Selecting stopwords for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                stopwords = "(//label[normalize-space()='Stopwords'])[1]"
-                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
+            self.tprint(f'Selecting stopwords for {name} \n')
+            stopwords_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_stop_words)
+            if self.version_is_newer_than('3.11.99'):
                 stopwords_sitem.click()
-                self.send_key_action("616e64")
+                self.send_key_action('616e64')
                 self.send_key_action(Keys.ENTER)
                 time.sleep(1)
-                self.send_key_action("746865")
+                self.send_key_action('746865')
                 self.send_key_action(Keys.ENTER)
             else:
-                stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
                 stopwords_sitem.click()
                 stopwords_sitem.clear()
-                stopwords_sitem.send_keys("616e64")
+                stopwords_sitem.send_keys('616e64')
                 stopwords_sitem.send_keys(Keys.ENTER)
                 time.sleep(1)
-                stopwords_sitem.send_keys("746865")
+                stopwords_sitem.send_keys('746865')
                 stopwords_sitem.send_keys(Keys.ENTER)
                 time.sleep(1)
 
-            self.tprint(f"Selecting hex value for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                hex_value = "(//label[normalize-space()='Hex'])[1]"
-            else:
-                hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
-            hex_sitem = self.locator_finder_by_xpath(hex_value)
+            self.tprint(f'Selecting hex value for {name} \n')
+            hex_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_hex_value)
             hex_sitem.click()
             time.sleep(2)
 
         # Collation
         elif name == "My_Collation_Analyzer":
-            self.tprint(f"Selecting locale for {name} \n")
-            value = "en_US.utf-8"
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            self.tprint(f'Selecting locale for {name} \n')
+            value = 'en_US.utf-8'
+            locale_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
         # Segmentation alpha
         elif name == "My_Segmentation_Alpha_Analyzer":
-            self.tprint(f"Selecting segmentation break as alpha for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                alpha_break = "(//label[normalize-space()='Break'])[1]"
-                alpha_break_sitem = self.locator_finder_by_xpath(alpha_break)
+            self.tprint(f'Selecting segmentation break as alpha for {name} \n')
+            if self.version_is_newer_than('3.11.99'):
+                alpha_break_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_alpha_break)
                 alpha_break_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                alpha_break = '//div[label[text()="Break"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(alpha_break, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_alpha_break, 1)
             time.sleep(2)
 
-            self.tprint(f"Selecting segmentation case as lower for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                case_lower = "(//label[normalize-space()='Case'])[1]"
-                case_lower_sitem = self.locator_finder_by_xpath(case_lower)
+            self.tprint(f'Selecting segmentation case as lower for {name} \n')
+            if self.version_is_newer_than('3.11.99'):
+                case_lower_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_lower_case)
                 case_lower_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                case_lower = '//div[label[text()="Case"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(case_lower, 0)
+                self.locator_finder_by_select_using_xpath(self.elements.select_lower_case, 0)
             time.sleep(2)
 
         # for nearest neighbor analyzer introduced on 3.10.x
         elif name == "My_Nearest_Neighbor_Analyzer":
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-            self.tprint(f"Selecting model location for {name} \n")
-            # model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
-            # model_location_sitem = self.locator_finder_by_xpath(model_location)
-            model_location_css = '[name="properties.model_location"]'
-            model_location_sitem = self.locator_finder_by_css_selector(model_location_css)
+            self.tprint(f'Selecting model location for {name} \n')
+            model_location_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_model_location)
             model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
-            self.tprint(f"Selecting Top K value for {name}\n")
-            # top_k = '//div[label[text()="Top K"]]//input[not(@disabled)]'
-            # top_k_sitem = self.locator_finder_by_xpath(top_k)
-            top_k_css = '[name="properties.top_k"]'
-            top_k_sitem = self.locator_finder_by_css_selector(top_k_css)
-            top_k_sitem.send_keys("2")
+            self.tprint(f'Selecting Top K value for {name}\n')
+            top_k_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_top_k_val)
+            top_k_sitem.send_keys('2')
             time.sleep(2)
 
         # for classification analyzer introduced on 3.10.x
         elif name == "My_Classification_Analyzer":
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-            self.tprint(f"Selecting model location for {name} \n")
-            # model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
-            # model_location_sitem = self.locator_finder_by_xpath(model_location)
-            model_location_css = '[name="properties.model_location"]'
-            model_location_sitem = self.locator_finder_by_css_selector(model_location_css)
+            self.tprint(f'Selecting model location for {name} \n')
+            model_location_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_model_location)
             model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
-            self.tprint(f"Selecting Top K value for {name}\n")
-            # top_k = '//div[label[text()="Top K"]]//input[not(@disabled)]'
-            # top_k_sitem = self.locator_finder_by_xpath(top_k)
-            top_k_css = '[name="properties.top_k"]'
-            top_k_sitem = self.locator_finder_by_css_selector(top_k_css)
-            top_k_sitem.send_keys("2")
+            self.tprint(f'Selecting Top K value for {name}\n')
+            top_k_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_top_k_val)
+            top_k_sitem.send_keys('2')
             time.sleep(2)
 
-            self.tprint(f"Selecting threshold for {name} \n")
-            # threshold = '//div[label[text()="Threshold"]]//input[not(@disabled)]'
-            # threshold_sitem = self.locator_finder_by_xpath(threshold)
-            threshold_css = '[name="properties.threshold"]'
-            threshold_sitem = self.locator_finder_by_css_selector(threshold_css)
+            self.tprint(f'Selecting threshold for {name} \n')
+            threshold_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_threshold)
             # threshold_sitem.send_keys('.80')
             threshold_sitem.clear()
-            threshold_sitem.send_keys("1")
+            threshold_sitem.send_keys('1')
 
         # Pipeline
         elif name == "My_Pipeline_Analyzer":
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
-            self.tprint(f"Selecting add analyzer button for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                add_analyzer01 = '(//button[text()="Add analyzer"])[2]'
-            else:
-                add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
-            add_analyzer01_sitem = self.locator_finder_by_xpath(add_analyzer01)
+            self.tprint(f'Selecting add analyzer button for {name} \n')
+            add_analyzer01_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.btn_add_pipeline_analyzer)
             add_analyzer01_sitem.click()
             time.sleep(1)
 
-            self.tprint(f"Selecting first pipeline analyzer as Norm for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                norm = '(//*[text()="Type"])[3]'
-                norm_sitem = self.locator_finder_by_xpath(norm)
+            self.tprint(f'Selecting first pipeline analyzer as Norm for {name} \n')
+            if self.version_is_newer_than('3.11.99'):
+                norm_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_pipeline_analyzer_type)
                 norm_sitem.click()
 
                 # selecting norm analyzer
@@ -751,97 +653,85 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(1)
 
                 # selecting locale value
-                select_locale = "(//input[@id='properties.pipeline.0.properties.locale'])[1]"
-                select_locale_sitem = self.locator_finder_by_xpath(select_locale)
+                select_locale_sitem = self.locator_finder_by_xpath_or_css_selector(
+                    self.elements.txt_pipeline_analyzer_locale)
                 select_locale_sitem.click()
                 select_locale_sitem.send_keys("en_US.utf-8")
                 time.sleep(1)
 
                 # selecting case for norm analyzer
-                case = "(//label[normalize-space()='Case'])[1]"
-                case_sitem = self.locator_finder_by_xpath(case)
+                case_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
                 time.sleep(1)
 
                 # selecting accent
-                accent = "(//label[normalize-space()='Accent'])[1]"
-                accent_sitem = self.locator_finder_by_xpath(accent)
+                accent_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_accent)
                 accent_sitem.click()
                 time.sleep(1)
             else:
-                norm = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[2]'
-                self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop-down list
+                self.locator_finder_by_select_using_xpath(self.elements.select_pipeline_analyzer_type, 2)  # 2 for norm from the drop-down list
                 time.sleep(2)
-                self.tprint(f"Selecting locale value for Norm analyzer of {name} \n")
-                value = "en_US.utf-8"
-                locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+                self.tprint(f'Selecting locale value for Norm analyzer of {name} \n')
+                value = 'en_US.utf-8'
+                locale_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_local_placeholder)
                 locale_sitem.click()
                 locale_sitem.send_keys(value)
                 time.sleep(2)
 
-                self.tprint(f"Selecting case value to upper for Norm analyzer of {name} \n")
-                self.locator_finder_by_select_using_xpath(case_placeholder, 1)  # 1 represents upper from the dropdown
+                self.tprint(f'Selecting case value to upper for Norm analyzer of {name} \n')
+                self.locator_finder_by_select_using_xpath(self.elements.select_case,1)  # 1 represents upper from the dropdown
                 time.sleep(2)
                 # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
-                self.tprint(f"Selecting add analyzer button for {name} \n")
-                new_analyzer = '(//button[@class="button-warning"][not(@disabled)])[3]'
-                new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
+                self.tprint(f'Selecting add analyzer button for {name} \n')
+                new_analyzer_sitem = self.locator_finder_by_xpath(self.elements.btn_add_second_pipeline_analyzer)
                 new_analyzer_sitem.click()
                 time.sleep(2)
 
-                self.tprint(f"Selecting second pipeline analyzer as N-Gram for {name} \n")
-                ngram = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[3]'
-                self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
+                self.tprint(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
+                self.locator_finder_by_select_using_xpath(self.elements.select_second_pipeline_analyzer_type, 3)  # 3 represents N-Gram from the dropdown
                 time.sleep(2)
 
-                self.tprint(f"Selecting N-Gram minimum length for {name} \n")
-                min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-                min_length_sitem = self.locator_finder_by_xpath(min_length)
+                self.tprint(f'Selecting N-Gram minimum length for {name} \n')
+                min_length_sitem = self.locator_finder_by_xpath(self.elements.txt_ngram_min_length)
                 min_length_sitem.click()
                 min_length_sitem.clear()
                 min_length_sitem.send_keys(3)
                 time.sleep(2)
 
-                self.tprint(f"Selecting N-Gram maximum length for {name} \n")
-                max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-                max_length_sitem = self.locator_finder_by_xpath(max_length)
+                self.tprint(f'Selecting N-Gram maximum length for {name} \n')
+                max_length_sitem = self.locator_finder_by_xpath(self.elements.txt_ngram_max_length)
                 max_length_sitem.click()
                 max_length_sitem.clear()
                 max_length_sitem.send_keys(3)
 
-                self.tprint(f"Selecting Preserve original value for {name}\n")
-                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-                preserve_sitem = self.locator_finder_by_xpath(preserve)
+                self.tprint(f'Selecting Preserve original value for {name}\n')
+                preserve_sitem = self.locator_finder_by_xpath(self.elements.txt_preserve_original)
                 preserve_sitem.click()
                 time.sleep(2)
 
-                self.tprint(f"Start marker value {name}\n")
-                start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-                start_marker_sitem = self.locator_finder_by_xpath(start_marker)
+                self.tprint(f'Start marker value {name}\n')
+                start_marker_sitem = self.locator_finder_by_xpath(self.elements.txt_start_marker)
                 start_marker_sitem.click()
                 start_marker_sitem.clear()
-                start_marker_sitem.send_keys("^")
+                start_marker_sitem.send_keys('^')
                 time.sleep(2)
 
-                self.tprint(f"End marker value for {name} \n")
-                end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-                end_marker_sitem = self.locator_finder_by_xpath(end_marker)
+                self.tprint(f'End marker value for {name} \n')
+                end_marker_sitem = self.locator_finder_by_xpath(self.elements.txt_end_marker)
                 end_marker_sitem.click()
                 end_marker_sitem.clear()
-                end_marker_sitem.send_keys("$")
+                end_marker_sitem.send_keys('$')
                 time.sleep(2)
 
-                self.tprint(f"Stream type selection using name value for {name}\n")
-                stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(stream_type, 1)
+                self.tprint(f'Stream type selection using name value for {name}\n')
+                self.locator_finder_by_select_using_xpath(self.elements.select_stream_type, 1)
                 time.sleep(2)
         # GeoJson
         elif name == "My_GeoJSON_Analyzer":
-            if self.version_is_newer_than("3.11.99"):
-                types = '(//*[text()="Type"])[3]'
-                types_sitem = self.locator_finder_by_xpath(types)
+            types_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_geo_json_type)
+            if self.version_is_newer_than('3.11.99'):
                 types_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -849,189 +739,142 @@ class AnalyzerPage(NavigationBarPage):
                 self.send_key_action(Keys.ENTER)
 
             else:
-                types = '//div[label[text()="Type"]]//select[not(@disabled)]'
-                types_sitem = self.locator_finder_by_xpath(types)
                 types_sitem.click()
             time.sleep(2)
 
-            self.tprint(f"Selecting max S2 cells value for {name} \n")
-            if self.version_is_newer_than("3.11.99"):
-                max_s2_cells = '//*[@id="properties.options.maxCells"]'
-            else:
-                max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-
-            max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
+            self.tprint(f'Selecting max S2 cells value for {name} \n')
+            max_s2_cells_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_max_s2_cells)
             max_s2_cells_sitem.click()
 
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             else:
                 max_s2_cells_sitem.clear()
 
-            max_s2_cells_sitem.send_keys("20")
+            max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
-            self.tprint(f"Selecting least precise S2 levels for {name} \n")
-            # least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            # least_precise_sitem = self.locator_finder_by_xpath(least_precise)
-            least_precise_css = '[name="properties.options.minLevel"]'
-            least_precise_sitem = self.locator_finder_by_css_selector(least_precise_css)
+            self.tprint(f'Selecting least precise S2 levels for {name} \n')
+            least_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_least_precise_s2_level)
             least_precise_sitem.click()
 
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             else:
                 least_precise_sitem.clear()
 
-            least_precise_sitem.send_keys("10")
+            least_precise_sitem.send_keys('10')
             time.sleep(2)
 
-            self.tprint(f"Selecting most precise S2 levels for {name} \n")
-            # most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            # most_precise_sitem = self.locator_finder_by_xpath(most_precise)
-            most_precise_css = '[name="properties.options.maxLevel"]'
-            most_precise_sitem = self.locator_finder_by_css_selector(most_precise_css)
+            self.tprint(f'Selecting most precise S2 levels for {name} \n')
+            most_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_most_precise_s2_level)
             most_precise_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
 
-            most_precise_sitem.send_keys("30")
+            most_precise_sitem.send_keys('30')
             time.sleep(2)
         # GeoPoint
         elif name == "My_GeoPoint_Analyzer":
-            self.tprint(f"Selecting Latitude Path for {name} \n")
-            # latitude_paths = '//div[label[text()="Latitude Path"]]//input[not(@disabled)]'
-            # latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
-            latitude_paths_css = 'input[id="properties.latitude"]'
-            latitude_paths_sitem = self.locator_finder_by_css_selector(latitude_paths_css)
+            self.tprint(f'Selecting Latitude Path for {name} \n')
+            latitude_paths_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_latitude)
             latitude_paths_sitem.click()
-            latitude_paths_sitem.send_keys("40.78")
-            if self.version_is_newer_than("3.11.99"):
+            latitude_paths_sitem.send_keys('40.78')
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
-            self.tprint(f"Selecting Longitude Path for {name} \n")
-            # longitude_paths = '//div[label[text()="Longitude Path"]]//input[not(@disabled)]'
-            # longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
-            longitude_paths_css = 'input[id="properties.longitude"]'
-            longitude_paths_sitem = self.locator_finder_by_css_selector(longitude_paths_css)
+            self.tprint(f'Selecting Longitude Path for {name} \n')
+            longitude_paths_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_longitude)
             longitude_paths_sitem.click()
-            longitude_paths_sitem.send_keys("-73.97")
-            if self.version_is_newer_than("3.11.99"):
+            longitude_paths_sitem.send_keys('-73.97')
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.ENTER)
             time.sleep(2)
 
-            self.tprint(f"Selecting max S2 cells value for {name} \n")
-            # max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-            # max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
-            max_s2_cells_css = '[name="properties.options.maxCells"]'
-            max_s2_cells_sitem = self.locator_finder_by_css_selector(max_s2_cells_css)
+            self.tprint(f'Selecting max S2 cells value for {name} \n')
+            max_s2_cells_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_geo_point_max_s2_cells)
             max_s2_cells_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
-            max_s2_cells_sitem.send_keys("20")
+            max_s2_cells_sitem.send_keys('20')
             time.sleep(2)
 
-            self.tprint(f"Selecting least precise S2 levels for {name} \n")
-            # least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            # least_precise_sitem = self.locator_finder_by_xpath(least_precise)
-            least_precise_css = '[name="properties.options.minLevel"]'
-            least_precise_sitem = self.locator_finder_by_css_selector(least_precise_css)
+            self.tprint(f'Selecting least precise S2 levels for {name} \n')
+            least_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_least_precise_s2_level)
             least_precise_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
-            least_precise_sitem.send_keys("4")
+            least_precise_sitem.send_keys('4')
             time.sleep(2)
 
-            self.tprint(f"Selecting most precise S2 levels for {name} \n")
-            # most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            # most_precise_sitem = self.locator_finder_by_xpath(most_precise)
-            most_precise_css = '[name="properties.options.maxLevel"]'
-            most_precise_sitem = self.locator_finder_by_css_selector(most_precise_css)
+            self.tprint(f'Selecting most precise S2 levels for {name} \n')
+            most_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_most_precise_s2_level)
             most_precise_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
-            most_precise_sitem.send_keys("23")
+            most_precise_sitem.send_keys('23')
             time.sleep(2)
         # GeoS2
-        elif name == "My_GeoS2_Analyzer":
+        elif name == 'My_GeoS2_Analyzer':
             self.tprint("Selecting type of geos2 analyzer")
-            if self.version_is_newer_than("3.11.99"):
-                types = '(//*[text()="Type"])[3]'
-            else:
-                types = "(//label[normalize-space()='Type'])[1]"
-
-            if self.version_is_older_than("3.10.99"):
+            if self.version_is_older_than('3.10.99'):
                 self.tprint("Type and Formate selection skipped for this version below 3.10 \n")
             else:
-                type_sitem = self.locator_finder_by_xpath(types)
+                type_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_geo_s2_analyzer_type)
                 type_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
 
-                if self.version_is_newer_than("3.11.99"):
+                if self.version_is_newer_than('3.11.99'):
                     self.send_key_action(Keys.ENTER)
 
                 self.tprint("Selecting format of geos2 analyzer")
-                if self.version_is_newer_than("3.11.99"):
-                    formats = "(//label[normalize-space()='format'])[1]"
-                else:
-                    formats = "(//label[normalize-space()='Format'])[1]"
 
-                format_sitem = self.locator_finder_by_xpath(formats)
+                format_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_geo_s2_analyzer_format)
                 format_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
-                if self.version_is_newer_than("3.11.99"):
+                if self.version_is_newer_than('3.11.99'):
                     self.send_key_action(Keys.ENTER)
 
             self.tprint(f"Selecting max s2 for {name} \n")
-            if self.version_is_older_than("3.10.99"):
-                max_s2_cell = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-            else:
-                max_s2_cell = "//*[text()='Max S2 Cells']"
 
-            max_s2_cell_sitem = self.locator_finder_by_xpath(max_s2_cell)
+            max_s2_cell_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_geo_s2_max_s2_cells)
             max_s2_cell_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             self.send_key_action("20")
             time.sleep(2)
 
-            self.tprint(f"Selecting least precise for {name} \n")
-            if self.version_is_older_than("3.10.99"):
-                least_precise_s2_level = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            else:
-                least_precise_s2_level = "//*[text()='Least Precise S2 Level']"
-            least_precise_s2_level_sitem = self.locator_finder_by_xpath(least_precise_s2_level)
+            self.tprint(f'Selecting least precise for {name} \n')
+            least_precise_s2_level_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_geo_s2_least_precise_s2_level)
             least_precise_s2_level_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
             self.send_key_action("4")
             time.sleep(2)
 
-            self.tprint(f"Selecting most precise S2 level for {name} \n")
-            if self.version_is_older_than("3.10.99"):
-                most_precise_s2_level = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            else:
-                most_precise_s2_level = "//*[text()='Most Precise S2 Level']"
-            most_precise_s2_level_sitem = self.locator_finder_by_xpath(most_precise_s2_level)
+            self.tprint(f'Selecting most precise S2 level for {name} \n')
+            most_precise_s2_level_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_geo_s2_most_precise_s2_level)
             most_precise_s2_level_sitem.click()
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
                 self.send_key_action(Keys.BACKSPACE)
             self.send_key_action("23")
             time.sleep(2)
         # Minhash
-        elif name == "My_Minhash_Analyzer":
+        elif name == 'My_Minhash_Analyzer':
             self.tprint("Selecting type of minhash analyzer")
-            analyzer_type = '(//*[text()="Analyzer type"])[2]'
-            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
+            analyzer_type_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.select_minhash_analyzer_type)
             analyzer_type_sitem.click()
             # selecting minhash for delimiter analyzer
             self.send_key_action(Keys.ARROW_DOWN)
@@ -1040,22 +883,19 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint("adding minhash for delimiter analyzer")
-            delimiter_value = '//*[@id="properties.analyzer.properties.delimiter"]'
-            delimiter_value_sitem = self.locator_finder_by_xpath(delimiter_value)
+            delimiter_value_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_delimiter_value)
             delimiter_value_sitem.click()
             delimiter_value_sitem.send_keys("#")
             time.sleep(1)
 
-            numhashes = "(//input[@id='properties.numHashes'])[1]"
-            numhashes_sitem = self.locator_finder_by_xpath(numhashes)
+            numhashes_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_num_of_hashes)
             numhashes_sitem.click()
             numhashes_sitem.send_keys("10")
             time.sleep(1)
         # MultiDelimiter
         elif name == "My_MultiDelimiter_Analyzer":
             self.tprint("Selecting type of MultiDelimiter analyzer")
-            delimiters = "(//label[normalize-space()='Delimiters'])[1]"
-            delimiters_sitem = self.locator_finder_by_xpath(delimiters)
+            delimiters_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_delimiters)
             delimiters_sitem.click()
 
             # selecting values for MultiDelimiter analyzer
@@ -1086,16 +926,15 @@ class AnalyzerPage(NavigationBarPage):
         # WildCard
         elif name == "My_WildCard_Analyzer":
             self.tprint("Selecting type of WildCard analyzer\n")
-            ngram = "//input[@id='properties.ngramSize']"
-            ngram_sitem = self.locator_finder_by_xpath(ngram)
+            ngram_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_ngram_size)
             ngram_sitem.click()
             self.send_key_action(Keys.BACKSPACE)
-            ngram_sitem.send_keys("4")
+            ngram_sitem.send_keys('4')
             time.sleep(2)
 
             self.tprint("Selecting delimiter analyzer\n")
-            delimiter = '(//*[text()="Analyzer type"])[2]'
-            delimiter_sitem = self.locator_finder_by_xpath(delimiter)
+            delimiter_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.select_delimiter_analyzer_type)
             delimiter_sitem.click()
             time.sleep(1)
 
@@ -1109,8 +948,8 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
 
             self.tprint("Selecting Multi Delimiters \n")
-            delimiter_properties = '//*[text()="Delimiters"]'
-            delimiter_properties_sitem = self.locator_finder_by_xpath(delimiter_properties)
+            delimiter_properties_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_multi_delimiters)
             delimiter_properties_sitem.click()
 
             self.send_key_action(",")
@@ -1136,39 +975,39 @@ class AnalyzerPage(NavigationBarPage):
 
             time.sleep(2)
 
-        # todo need to fix this one for 3.11.x
-        if self.version_is_newer_than("3.11.0"):
+        #todo need to fix this one for 3.11.x
+        if self.version_is_newer_than('3.11.0'):
             self.tprint("skiped switching view for code view\n")
         else:
-            self.tprint(f"Switching current view to form view for {name}\n")
+            self.tprint(f'Switching current view to form view for {name}\n')
             switch_view_btn = '//*[@id="modal-content-add-analyzer"]/div[1]/div/div[2]/div/div[2]/button'
             code_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
             code_view_sitem.click()
             time.sleep(3)
 
-            self.tprint(f"Switching current view to code view for {name}\n")
+            self.tprint(f'Switching current view to code view for {name}\n')
             form_view_sitem = self.locator_finder_by_xpath(switch_view_btn)
             form_view_sitem.click()
             time.sleep(3)
 
         self.tprint(f"Selecting the create button for the {name} \n")
-        self.tprint(f"Selecting the create button for the {name} \n")
-        if self.version_is_newer_than("3.11.0"):
-            if self.version_is_newer_than("3.11.99"):
-                create = "(//button[normalize-space()='Create'])[1]"
-            else:
-                create = '//*[@id="chakra-modal-2"]/footer/button[2]'
-        else:
-            create = "//*[text()='Create']"
+        # self.tprint(f'Selecting the create button for the {name} \n')
+        # if self.version_is_newer_than('3.11.0'):
+        #     if self.version_is_newer_than('3.11.99'):
+        #         create = "(//button[normalize-space()='Create'])[1]"
+        #     else:
+        #         create = '//*[@id="chakra-modal-2"]/footer/button[2]'
+        # else:
+        #     create = "//*[text()='Create']"
 
-        create_btn_sitem = self.locator_finder_by_xpath(create)
+        create_btn_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.btn_create_analyzer)
         create_btn_sitem.click()
         time.sleep(2)
 
         # checking the creation of the analyzer using the green notification bar appears at the bottom
         try:
             self.tprint(f"Checking successful creation of the {name} \n")
-            if self.version_is_newer_than("3.11.99"):
+            if self.version_is_newer_than('3.11.99'):
                 success_message = "/html//div[@id='chakra-toast-manager-bottom']"
                 success_message_sitem = self.locator_finder_by_xpath(success_message).text
                 self.tprint(f"Notification: {success_message_sitem}\n")
@@ -1185,19 +1024,17 @@ class AnalyzerPage(NavigationBarPage):
         self.tprint(f"Creating {name} completed successfully \n")
 
         # --------------------here we are checking the properties of the created analyzer----------------------
-        if self.version_is_older_than("3.11.99"):
+        if self.version_is_older_than('3.11.99'):
             # primariliy enable the test for the version below 3.11.99
             if name in ["My_Nearest_Neighbor_Analyzer", "My_Classification_Analyzer"]:
-                self.tprint(
-                    f"Skipping the properties check for {name} \n"
-                )  # todo: need to fix this for 3.11.x, location porperties has changed due to the dynamic selenoid depoloyment
+                self.tprint(f"Skipping the properties check for {name} \n") #todo: need to fix this for 3.11.x, location porperties has changed due to the dynamic selenoid depoloyment
             else:
                 try:
                     self.wait_for_ajax()
                     self.tprint(f"Checking analyzer properties for {name} \n")
-                    if self.version_is_newer_than("3.10.99"):
+                    if self.version_is_newer_than('3.10.99'):
                         # Finding the analyzer to check its properties
-                        if self.version_is_newer_than("3.11.99"):
+                        if self.version_is_newer_than('3.11.99'):
                             analyzer_xpath = f"//*[text()='_system::{name}']"
                             analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
                         else:
@@ -1211,28 +1048,24 @@ class AnalyzerPage(NavigationBarPage):
                             time.sleep(2)
 
                             # then click on the analyzer to view its properties
-                            analyzer_xpath = (
-                                f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
-                            )
+                            analyzer_xpath = f"//td[text()='_system::{name}']/following-sibling::td/button[@class='pure-button'][1]"
                             analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
 
                         if analyzer_sitem is None:
-                            self.tprint(f"This {analyzer_name} has never been created \n")
+                            self.tprint(f'This {analyzer_name} has never been created \n')
                         else:
                             analyzer_sitem.click()
                             time.sleep(3)
 
-                        if self.version_is_older_than("3.11.99"):
+                        if self.version_is_older_than('3.11.99'):
                             self.tprint(f"Switching to code view for {name} \n")
                             switch_to_code = "(//button[normalize-space()='Switch to code view'])[1]"
                             switch_to_code_sitem = self.locator_finder_by_xpath(switch_to_code)
                             switch_to_code_sitem.click()
 
                         # Find all elements matching the XPath from the ace editor
-                        if self.version_is_newer_than("3.11.99"):
-                            ace_text_area = (
-                                "//div[contains(@class, 'ace_text-layer')]//div[contains(@class, 'ace_line_group')]"
-                            )
+                        if self.version_is_newer_than('3.11.99'):
+                            ace_text_area = "//div[contains(@class, 'ace_text-layer')]//div[contains(@class, 'ace_line_group')]"
                             ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
                             # Initialize an empty list to store text
                             text_list = []
@@ -1242,76 +1075,67 @@ class AnalyzerPage(NavigationBarPage):
                                 time.sleep(3)
 
                             # Join the text from all elements into a single string
-                            final_text = "".join(text_list)  # Join the text without splitting
-                            actual_properties = "".join(str(final_text).split())
+                            final_text = ''.join(text_list)  # Join the text without splitting
+                            actual_properties = ''.join(str(final_text).split())
                         else:
                             # Find the textarea element using XPath based on its class
                             # Define the class name of the textarea element
                             class_name = "sc-EHOje"  # Replace with the actual class name
 
                             # Execute JavaScript code to retrieve the text content of the textarea
-                            analyzer_properties = self.webdriver.execute_script(
-                                f"""
+                            analyzer_properties = self.webdriver.execute_script(f'''
                                 var className = "{class_name}";
                                 var textareaElement = document.querySelector("textarea." + className);
                                 return textareaElement.value;
-                            """
-                            )
-                            actual_properties = "".join(str(analyzer_properties).split())
+                            ''')
+                            actual_properties = ''.join(str(analyzer_properties).split())
 
                         # Get expected properties based on analyzer name
                         if self.version_is_newer_than("3.11.99"):
-                            expected_properties = "".join(
-                                str(self.generate_expected_properties_312(name, ui_data_dir)).split()
-                            )
+                            expected_properties = ''.join(str(self.generate_expected_properties_312(name, ui_data_dir)).split())
                         else:
-                            expected_properties = "".join(
-                                str(self.generate_expected_properties_311(name, ui_data_dir)).split()
-                            )
+                            expected_properties = ''.join(str(self.generate_expected_properties_311(name, ui_data_dir)).split())
                         # Assert that the copied text matches the expected text
                         try:
                             assert actual_properties == expected_properties, "Text does not match the expected text \n"
-                            self.tprint(
-                                f"Actual porperties: {actual_properties} \nexpected properties: {expected_properties} \nfound for {name} \n"
-                            )
+                            self.tprint(f"Actual porperties: {actual_properties} \nexpected properties: {expected_properties} \nfound for {name} \n")
                         except AssertionError as ex:
                             self.tprint(f"actual_properties: {actual_properties} \n")
                             self.tprint(f"expected_properties: {expected_properties} \n")
                             raise AssertionError(
-                                f"Actual properties didn't matches the expected properties for {name}"
-                            ) from ex
+                                f"Actual properties didn't matches the expected properties for {name}") from ex
                         self.tprint(f"Actual properties matches the expected properties for {name}. \n")
 
                 except TimeoutException as ex:
-                    self.tprint(f"Failed to parse properties from the {name} and the error is: {ex} \n")
+                    self.tprint(f'Failed to parse properties from the {name} and the error is: {ex} \n')
 
                 # -------------------- Running a query for each analyzer's after creation----------------------
                 try:
                     self.tprint(f"Checking analyzer query for {name} \n")
-                    if self.version_is_older_than("3.11.99"):
-                        self.tprint(f"Running query for {name} started \n")
+                    if self.version_is_older_than('3.11.99'):
+                        self.tprint(f'Running query for {name} started \n')
                         # Goto query tab
                         self.tprint("Selecting query tab \n")
-                        if self.version_is_newer_than("3.11.99"):
-                            self.locator_finder_by_id("queries").click()
+                        if self.version_is_newer_than('3.11.99'):
+                            self.locator_finder_by_id('queries').click()
                         else:
                             self.webdriver.refresh()
-                            self.locator_finder_by_id("queries").click()
+                            self.locator_finder_by_id('queries').click()
                         time.sleep(3)
-                        self.tprint("Selecting query execution area \n")
+                        self.tprint('Selecting query execution area \n')
                         self.select_query_execution_area()
 
-                        self.tprint(f"Running query for {name} analyzer started\n")
+                        self.tprint(f'Running query for {name} analyzer started\n')
                         # Get query and expected output based on analyzer name
-                        if self.version_is_newer_than("3.11.99"):
+                        if self.version_is_newer_than('3.11.99'):
                             analyzer_query = self.get_analyzer_query_312(name)
                         else:
                             analyzer_query = self.get_analyzer_query_311(name)
 
                         if analyzer_query is None:
                             self.tprint(f"Analyzer '{name}' not found. Skipping test.")
-                            return  # Skip this test and move to the next one
-                        if self.version_is_newer_than("3.11.99"):
+                            return # Skip this test and move to the next one
+                        if self.version_is_newer_than('3.11.99'):
                             self.send_key_action(analyzer_query)
                         else:
                             self.clear_textfield()
@@ -1321,10 +1145,8 @@ class AnalyzerPage(NavigationBarPage):
                         self.scroll(1)
 
                         # Find all elements matching the XPath from the ace editor
-                        if self.version_is_older_than("3.11.99"):
-                            ace_text_area = (
-                                '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
-                            )
+                        if self.version_is_older_than('3.11.99'):
+                            ace_text_area = '//div[@id="outputEditor0"]//div[contains(@class, "ace_layer ace_text-layer")]'
                             ace_line_groups = self.webdriver.find_elements(By.XPATH, ace_text_area)
                             # Initialize an empty list to store text
                             text_list = []
@@ -1334,95 +1156,72 @@ class AnalyzerPage(NavigationBarPage):
                                 time.sleep(1)
 
                             # Join the text from all elements into a single string
-                            final_text = "".join(text_list)  # Join the text without splitting
-                            query_actual_output = "".join(str(final_text).split())
+                            final_text = ''.join(text_list)  # Join the text without splitting
+                            query_actual_output = ''.join(str(final_text).split())
                             self.tprint(f"query_actual_output: {query_actual_output} \n")
 
-                        if self.version_is_newer_than("3.11.99"):
+                        if self.version_is_newer_than('3.11.99'):
                             query_expected_output = self.get_analyzer_expected_output_312(name)
                         else:
                             query_expected_output = self.get_analyzer_expected_output_311(name)
 
                         if query_expected_output is None:
                             self.tprint(f"Analyzer '{name}' not found. Skipping test.")
-                            return  # Skip this test and move to the next one
+                            return # Skip this test and move to the next one
                         # Assert that the copied text matches the expected text
-                        if query_actual_output != "".join(str(query_expected_output).split()):
+                        if query_actual_output != ''.join(str(query_expected_output).split()):
                             self.tprint(f"query_actual_output: {query_actual_output} \n")
                             self.tprint(f"query_expected_output: {query_expected_output} \n")
                             raise Exception(
-                                f"Actual query output didn't matches the expected query output for {name}\n"
-                            )
+                                f"Actual query output didn't matches the expected query output for {name}\n")
                         self.tprint(f"Actual query output matches the expected query output for {name}\n")
                 except TimeoutException as ex:
-                    raise Exception(
-                        f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}"
-                    ) from ex
+                    raise Exception(f"TimeoutException occurred during running the query for '{name}' analyzer.\nError: {ex}") from ex
 
     @staticmethod
     def generate_analyzer_queries_312(analyzer_name):
-        """return queries for analyzers"""
+        """ return queries for analyzers """
         return {
             "My_Identity_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
-                "expected_output": [["UPPER lower dïäcríticš"]],
+                "expected_output": [["UPPER lower dïäcríticš"]]
             },
             "My_Delimiter_Analyzer": {
                 "query": "RETURN TOKENS('some-delimited-words', 'My_Delimiter_Analyzer')",
-                "expected_output": [["some-delimited-words"]],
+                "expected_output": [["some-delimited-words"]]
             },
             "My_Stem_Analyzer": {
                 "query": "RETURN TOKENS('databases', 'My_Stem_Analyzer')",
-                "expected_output": [["databas"]],
+                "expected_output": [["databas"]]
             },
             "My_Norm_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Norm_Analyzer')",
-                "expected_output": [["UPPER LOWER DÏÄCRÍTICŠ"]],
+                "expected_output": [["UPPER LOWER DÏÄCRÍTICŠ"]]
             },
             "My_N-Gram_Analyzer": {
                 "query": "RETURN TOKENS('foobar', 'My_N-Gram_Analyzer')",
-                "expected_output": [["^foo", "^foobar", "foobar$", "oob", "oba", "bar$"]],
+                "expected_output": [["^foo", "^foobar", "foobar$", "oob", "oba", "bar$"]]
             },
             "My_Text_Analyzer": {
                 "query": "RETURN TOKENS('The quick brown fox jumps over the dogWithAVeryLongName', 'My_Text_Analyzer')",
                 "expected_output": [
-                    [
-                        "the",
-                        "qui",
-                        "quic",
-                        "quick",
-                        "bro",
-                        "brow",
-                        "brown",
-                        "fox",
-                        "jum",
-                        "jump",
-                        "jumps",
-                        "ove",
-                        "over",
-                        "the",
-                        "dog",
-                        "dogw",
-                        "dogwi",
-                        "dogwit",
-                        "dogwith",
-                        "dogwitha",
-                        "dogwithaverylongname",
-                    ]
-                ],
+                    ["the", "qui", "quic", "quick", "bro", "brow", "brown", "fox", "jum", "jump", "jumps", "ove",
+                     "over", "the", "dog", "dogw", "dogwi", "dogwit", "dogwith", "dogwitha", "dogwithaverylongname"]]
             },
             "My_AQL_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš','My_AQL_Analyzer')",
-                "expected_output": [["U164"]],
+                "expected_output": [["U164"]]
             },
             "My_Stopwords_Analyzer": {
                 "query": "RETURN FLATTEN(TOKENS(SPLIT('the fox and the dog and a theater', ' '), 'My_Stopwords_Analyzer'))",
-                "expected_output": [["fox", "dog", "a", "theater"]],
+                "expected_output": [["fox", "dog", "a", "theater"]]
             },
             "My_Pipeline_Analyzer": {
                 "query": "RETURN TOKENS('Quick brown foX', 'My_Pipeline_Analyzer')",
-                "expected_output": [["QUICK BROWN FOX"]],
+                "expected_output": [["QUICK BROWN FOX"]]
             },
+
+
             # Add more analyzers and their queries and expected outputs here
         }.get(analyzer_name, {})
 
@@ -1443,86 +1242,48 @@ class AnalyzerPage(NavigationBarPage):
 
     @staticmethod
     def generate_analyzer_queries_311(analyzer_name):
-        """generate queries for the analyzers"""
+        """ generate queries for the analyzers """
         return {
             "My_Identity_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Identity_Analyzer')",
-                "expected_output": [["UPPER lower dïäcríticš"]],
+                "expected_output": [["UPPER lower dïäcríticš"]]
             },
             "My_Delimiter_Analyzer": {
                 "query": "RETURN TOKENS('some-delimited-words', 'My_Delimiter_Analyzer')",
-                "expected_output": [["some-delimited-words"]],
+                "expected_output": [["some-delimited-words"]]
             },
             "My_Stem_Analyzer": {
                 "query": "RETURN TOKENS('databases', 'My_Stem_Analyzer')",
-                "expected_output": [["databas"]],
+                "expected_output": [["databas"]]
             },
             "My_Norm_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš', 'My_Norm_Analyzer')",
-                "expected_output": [["upper lower dïäcríticš"]],
+                "expected_output": [["upper lower dïäcríticš"]]
             },
             "My_N-Gram_Analyzer": {
                 "query": "RETURN TOKENS('foobar', 'My_N-Gram_Analyzer')",
-                "expected_output": [["^foo", "^foobar", "foobar$", "oob", "oba", "bar$"]],
+                "expected_output": [["^foo", "^foobar", "foobar$", "oob", "oba", "bar$"]]
             },
             "My_Text_Analyzer": {
                 "query": "RETURN TOKENS('The quick brown fox jumps over the dogWithAVeryLongName', 'My_Text_Analyzer')",
-                "expected_output": [
-                    [
-                        "THE",
-                        "QUI",
-                        "QUIC",
-                        "QUICK",
-                        "BRO",
-                        "BROW",
-                        "BROWN",
-                        "FOX",
-                        "JUM",
-                        "JUMP",
-                        "JUMPS",
-                        "OVE",
-                        "OVER",
-                        "THE",
-                        "DOG",
-                        "DOGW",
-                        "DOGWI",
-                        "DOGWIT",
-                        "DOGWITH",
-                        "DOGWITHA",
-                        "DOGWITHAVERYLONGNAME",
-                    ]
-                ],
+                "expected_output": [["THE","QUI","QUIC","QUICK","BRO","BROW","BROWN","FOX","JUM","JUMP","JUMPS",
+                                     "OVE","OVER","THE","DOG","DOGW","DOGWI","DOGWIT","DOGWITH",
+                                     "DOGWITHA","DOGWITHAVERYLONGNAME"]]
             },
             "My_AQL_Analyzer": {
                 "query": "RETURN TOKENS('UPPER lower dïäcríticš','My_AQL_Analyzer')",
-                "expected_output": [[["oIAAAAAAAAAA", "sIAAAAAAAA==", "wIAAAAA=", "0IAA"]]],
+                "expected_output": [[["oIAAAAAAAAAA","sIAAAAAAAA==","wIAAAAA=","0IAA"]]]
             },
             "My_Stopwords_Analyzer": {
                 "query": "RETURN FLATTEN(TOKENS(SPLIT('the fox and the dog and a theater', ' '), 'My_Stopwords_Analyzer'))",
-                "expected_output": [["fox", "dog", "a", "theater"]],
+                "expected_output": [["fox", "dog", "a", "theater"]]
             },
             "My_Pipeline_Analyzer": {
                 "query": "RETURN TOKENS('Quick brown foX', 'My_Pipeline_Analyzer')",
-                "expected_output": [
-                    [
-                        "^QUI",
-                        "^QUICKBROWNFOX",
-                        "QUICKBROWNFOX$",
-                        "UIC",
-                        "ICK",
-                        "CK",
-                        "KB",
-                        "BR",
-                        "BRO",
-                        "ROW",
-                        "OWN",
-                        "WN",
-                        "NF",
-                        "FO",
-                        "FOX$",
-                    ]
-                ],
+                "expected_output": [["^QUI","^QUICKBROWNFOX","QUICKBROWNFOX$","UIC","ICK","CK","KB","BR","BRO",
+                                     "ROW","OWN","WN","NF","FO","FOX$"]]
             },
+
             # Add more analyzers and their queries and expected outputs here
         }.get(analyzer_name, {})
 
@@ -1545,8 +1306,7 @@ class AnalyzerPage(NavigationBarPage):
     def generate_expected_properties_311(analyzer_name, ui_data_dir=None):
         """Define a method to generate expected text for a specific analyzer for == v311"""
         location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
-        analyzers = {
-            "My_Identity_Analyzer": """{
+        analyzers = { "My_Identity_Analyzer": """{
                 "name": "_system::My_Identity_Analyzer",
                 "type": "identity",
                 "features": [
@@ -1556,7 +1316,7 @@ class AnalyzerPage(NavigationBarPage):
                 ],
                 "properties": {}
             }""",
-            "My_Delimiter_Analyzer": """{
+                      "My_Delimiter_Analyzer": """{
                   "name": "_system::My_Delimiter_Analyzer",
                   "type": "delimiter",
                   "features": [
@@ -1568,7 +1328,7 @@ class AnalyzerPage(NavigationBarPage):
                     "delimiter": "_"
                   }
                 }""",
-            "My_Stem_Analyzer": """{
+                      "My_Stem_Analyzer": """{
                   "name": "_system::My_Stem_Analyzer",
                   "type": "stem",
                   "features": [
@@ -1580,7 +1340,7 @@ class AnalyzerPage(NavigationBarPage):
                     "locale": "en"
                   }
                 }""",
-            "My_Norm_Analyzer": """{
+                      "My_Norm_Analyzer": """{
                   "name": "_system::My_Norm_Analyzer",
                   "type": "norm",
                   "features": [
@@ -1594,7 +1354,7 @@ class AnalyzerPage(NavigationBarPage):
                     "accent": true
                   }
                 }""",
-            "My_N-Gram_Analyzer": """{
+                      "My_N-Gram_Analyzer": """{
                   "name": "_system::My_N-Gram_Analyzer",
                   "type": "ngram",
                   "features": [
@@ -1611,7 +1371,7 @@ class AnalyzerPage(NavigationBarPage):
                     "endMarker": "$"
                   }
                 }""",
-            "My_Text_Analyzer": """{
+                      "My_Text_Analyzer": """{
                   "name": "_system::My_Text_Analyzer",
                   "type": "text",
                   "features": [
@@ -1632,7 +1392,7 @@ class AnalyzerPage(NavigationBarPage):
                     }
                   }
                 }""",
-            "My_AQL_Analyzer": """{
+                      "My_AQL_Analyzer": """{
                   "name": "_system::My_AQL_Analyzer",
                   "type": "aql",
                   "features": [
@@ -1649,7 +1409,7 @@ class AnalyzerPage(NavigationBarPage):
                     "returnType": "number"
                   }
                 }""",
-            "My_Stopwords_Analyzer": """{
+                      "My_Stopwords_Analyzer": """{
                   "name": "_system::My_Stopwords_Analyzer",
                   "type": "stopwords",
                   "features": [
@@ -1666,7 +1426,7 @@ class AnalyzerPage(NavigationBarPage):
                     "hex": true
                   }
                 }""",
-            "My_Collation_Analyzer": """{
+                      "My_Collation_Analyzer": """{
                   "name": "_system::My_Collation_Analyzer",
                   "type": "collation",
                   "features": [
@@ -1678,7 +1438,7 @@ class AnalyzerPage(NavigationBarPage):
                     "locale": "en_US"
                   }
                 }""",
-            "My_Segmentation_Alpha_Analyzer": """{
+                      "My_Segmentation_Alpha_Analyzer": """{
                   "name": "_system::My_Segmentation_Alpha_Analyzer",
                   "type": "segmentation",
                   "features": [
@@ -1691,7 +1451,7 @@ class AnalyzerPage(NavigationBarPage):
                     "break": "alpha"
                   }
                 }""",
-            "My_Pipeline_Analyzer": """{
+                      "My_Pipeline_Analyzer": """{
                   "name": "_system::My_Pipeline_Analyzer",
                   "type": "pipeline",
                   "features": [
@@ -1714,7 +1474,7 @@ class AnalyzerPage(NavigationBarPage):
                     ]
                   }
                 }""",
-            "My_GeoJSON_Analyzer": """{
+                      "My_GeoJSON_Analyzer": """{
                   "name": "_system::My_GeoJSON_Analyzer",
                   "type": "geojson",
                   "features": [
@@ -1730,7 +1490,7 @@ class AnalyzerPage(NavigationBarPage):
                     },
                     "type":"shape","legacy":false}
                 }""",
-            "My_GeoPoint_Analyzer": """{
+                      "My_GeoPoint_Analyzer": """{
                   "name": "_system::My_GeoPoint_Analyzer",
                   "type": "geopoint",
                   "features": [
@@ -1749,7 +1509,7 @@ class AnalyzerPage(NavigationBarPage):
                   }
                 }
                 """,
-            "My_GeoS2_Analyzer": """{
+                      "My_GeoS2_Analyzer": """{
                       "name": "_system::My_GeoS2_Analyzer",
                       "type": "geo_s2",
                       "features": [
@@ -1767,7 +1527,7 @@ class AnalyzerPage(NavigationBarPage):
                         "format": "s2Point"
                       }
                     }""",
-            "My_Minhash_Analyzer": """{
+                      "My_Minhash_Analyzer": """{
                   "name": "_system::My_Minhash_Analyzer",
                   "type": "minhash",
                   "features": [
@@ -1785,7 +1545,7 @@ class AnalyzerPage(NavigationBarPage):
                     }
                   }
                 }""",
-            "My_MultiDelimiter_Analyzer": """{
+                      "My_MultiDelimiter_Analyzer": """{
                   "name": "_system::My_MultiDelimiter_Analyzer",
                   "type": "multi_delimiter",
                   "features": [
@@ -1806,7 +1566,7 @@ class AnalyzerPage(NavigationBarPage):
                     ]
                   }
                 }""",
-            "My_WildCard_Analyzer": """
+                      "My_WildCard_Analyzer":"""
                 {
                   "name": "_system::My_WildCard_Analyzer",
                   "type": "wildcard",
@@ -1833,7 +1593,7 @@ class AnalyzerPage(NavigationBarPage):
                     }
                   }
                 }""",
-            "My_Nearest_Neighbor_Analyzer": f"""
+                      "My_Nearest_Neighbor_Analyzer": f"""
            {{
                 "name": "_system::My_Nearest_Neighbor_Analyzer",
                 "type": "nearest_neighbors",
@@ -1847,7 +1607,7 @@ class AnalyzerPage(NavigationBarPage):
                 "top_k": 2
                 }}
                       }}""",
-            "My_Classification_Analyzer": f"""{{
+                      "My_Classification_Analyzer": f"""{{
                 "name": "_system::My_Classification_Analyzer",
                 "type": "classification",
                 "features": [
@@ -1862,7 +1622,7 @@ class AnalyzerPage(NavigationBarPage):
                 }}
                 }}
             """,
-        }
+                     }
         return analyzers[analyzer_name]
 
     @staticmethod
@@ -1870,7 +1630,7 @@ class AnalyzerPage(NavigationBarPage):
         """Define a method to generate expected text for a specific analyzer"""
         location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
         analyzers = {
-            "My_Identity_Analyzer": """{
+            "My_Identity_Analyzer":  """{
                 "name": "_system::My_Identity_Analyzer",
                 "type": "identity",
                 "properties": {},
@@ -1935,7 +1695,7 @@ class AnalyzerPage(NavigationBarPage):
                     "norm"
                   ]
                 }""",
-            "My_Text_Analyzer": """{
+            "My_Text_Analyzer":  """{
                   "name": "_system::My_Text_Analyzer",
                   "type": "text",
                   "properties": {
@@ -1972,7 +1732,7 @@ class AnalyzerPage(NavigationBarPage):
                     "norm"
                   ]
                 }""",
-            "My_Stopwords_Analyzer": """{
+            "My_Stopwords_Analyzer":  """{
                   "name": "_system::My_Stopwords_Analyzer",
                   "type": "stopwords",
                   "properties": {
@@ -2187,9 +1947,10 @@ class AnalyzerPage(NavigationBarPage):
                 "position",
                 "norm"
                 ]
-            }}""",
+            }}"""
         }
         return analyzers[analyzer_name]
+
 
     def creating_all_supported_analyzer(self, enterprise, model_location=None):
         """This method will create all the supported version-specific analyzers"""
@@ -2204,23 +1965,15 @@ class AnalyzerPage(NavigationBarPage):
             "My_Stopwords_Analyzer": (0, None, False),
             "My_Collation_Analyzer": (0, None, False),
             "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse("3.10.0"), False),
-            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse("3.10.0"), False),
-            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse("3.10.0"), False),
-            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse("3.11.99"), False),
-            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse("3.11.99"), False),
-            "My_Minhash_Analyzer": (
-                0,
-                semver.VersionInfo.parse("3.11.99"),
-                not (enterprise and self.version_is_newer_than("3.11.99")),
-            ),
-            "My_Nearest_Neighbor_Analyzer": (
-                1 if enterprise else 0,
-                semver.VersionInfo.parse("3.10.0"),
-                not enterprise,
-            ),
-            "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse("3.10.0"), not enterprise),
-            "My_GeoS2_Analyzer": (0, None, not enterprise),
+            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
+            "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
+            "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
+            "My_GeoS2_Analyzer": (0, None, not enterprise)
         }
 
         # Loop through each analyzer in the dictionary
@@ -2229,11 +1982,11 @@ class AnalyzerPage(NavigationBarPage):
             num_params, version_requirement, skip_condition = config
             # Check if the analyzer should be skipped
             if skip_condition:
-                self.tprint(f"Skipping {analyzer_name} creation\n")
+                self.tprint(f'Skipping {analyzer_name} creation\n')
                 continue
             # Check if the current package version meets the version requirement
             if version_requirement is None or self.version_is_newer_than(str(version_requirement)):
-                self.tprint(f"Adding {analyzer_name} analyzer\n")
+                self.tprint(f'Adding {analyzer_name} analyzer\n')
                 # Create the analyzer based on the number of parameters required
                 if num_params == 0:
                     self.add_new_analyzer(analyzer_name)
@@ -2307,7 +2060,7 @@ class AnalyzerPage(NavigationBarPage):
             add_analyzer_sitem.click()
             time.sleep(2)
 
-            self.tprint(f"checking {name} started \n")
+            self.tprint(f'checking {name} started \n')
             # common attributes for all the analyzers
             analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
             analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
@@ -2444,10 +2197,7 @@ class AnalyzerPage(NavigationBarPage):
                 self.tprint(f"Selecting greater number for batch size {name} \n")
 
                 analyzer_name_error_input = ["1001", "-1"]
-                analyzer_name_print_statement = [
-                    f'Checking {name} with input "1001"',
-                    f'Checking {name} with input "-1"',
-                ]
+                analyzer_name_print_statement = [f'Checking {name} with input "1001"', f'Checking {name} with input "-1"']
                 analyzer_name_error_message = [
                     "Failure: Got unexpected server response: Failure initializing an "
                     "arangosearch analyzer instance for name '_system::AQL_Analyzer' type "
@@ -2474,7 +2224,7 @@ class AnalyzerPage(NavigationBarPage):
                 )
 
             self.tprint(f"Closing the {name} check \n")
-            if self.version_is_newer_than("3.11.0"):
+            if self.version_is_newer_than('3.11.0'):
                 close_btn = '//*[@id="chakra-modal-2"]/footer/button[1]'
             else:
                 close_btn = '//*[@id="modal-content-add-analyzer"]/div[3]/button[1]'
@@ -2484,31 +2234,32 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f"Expected error scenario for the {name} Completed \n")
         except Exception:
-            self.tprint("Info: Error occured during checking expected error!")
+            self.tprint('Info: Error occured during checking expected error!')
 
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
-        if self.version_is_newer_than("3.11.99"):
-            self.tprint("Skipped \n")
+        if self.version_is_newer_than('3.11.99'):
+            self.tprint('Skipped \n')
         else:
-            self.tprint("Checking negative scenario for the identity analyzers name \n")
-            self.test_analyzer_expected_error("Identity_Analyzer")
-            self.tprint("Checking negative scenario for the stem analyzers locale value \n")
-            self.test_analyzer_expected_error("Stem_Analyzer")
-            self.tprint("Checking negative scenario for the stem analyzers locale value \n")
-            self.test_analyzer_expected_error("N_Gram_Analyzer")
-            self.tprint("Checking negative scenario for the AQL analyzers \n")
-            self.test_analyzer_expected_error("AQL_Analyzer")
+            self.tprint('Checking negative scenario for the identity analyzers name \n')
+            self.test_analyzer_expected_error('Identity_Analyzer')
+            self.tprint('Checking negative scenario for the stem analyzers locale value \n')
+            self.test_analyzer_expected_error('Stem_Analyzer')
+            self.tprint('Checking negative scenario for the stem analyzers locale value \n')
+            self.test_analyzer_expected_error('N_Gram_Analyzer')
+            self.tprint('Checking negative scenario for the AQL analyzers \n')
+            self.test_analyzer_expected_error('AQL_Analyzer')
+
 
     def checking_search_filter(self):
         """This method will check analyzer's search filter option"""
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than('3.11.99'):
             self.tprint("Skipped \n")
         else:
-            self.tprint("Checking analyzer search filter options started \n")
-            self.checking_search_filter_option("de")
-            self.checking_search_filter_option("geo", False)  # false indicating builtIn option will be disabled
-            self.tprint("Checking analyzer search filter options completed \n")
+            self.tprint('Checking analyzer search filter options started \n')
+            self.checking_search_filter_option('de')
+            self.checking_search_filter_option('geo', False)  # false indicating builtIn option will be disabled
+            self.tprint('Checking analyzer search filter options completed \n')
 
     def delete_analyzer(self, analyzer_name):
         """Deleting all the analyzer using their ID"""
@@ -2516,13 +2267,13 @@ class AnalyzerPage(NavigationBarPage):
         self.webdriver.refresh()
 
         try:
-            self.tprint(f"Deletion of {analyzer_name} started \n")
-            if self.version_is_newer_than("3.11.99"):
+            self.tprint(f'Deletion of {analyzer_name} started \n')
+            if self.version_is_newer_than('3.11.99'):
                 analyzer = f"//*[text()='_system::{analyzer_name}']"
                 time.sleep(5)
                 analyzer_sitem = self.locator_finder_by_xpath(analyzer)
                 if analyzer_sitem is None:
-                    self.tprint(f"This {analyzer_name} has never been created \n")
+                    self.tprint(f'This {analyzer_name} has never been created \n')
                 else:
                     analyzer_sitem.click()
                     time.sleep(5)
@@ -2562,34 +2313,34 @@ class AnalyzerPage(NavigationBarPage):
                 else:
                     delete_btn_sitem.click()
                     time.sleep(8)
-                self.tprint(f"Deletion of {analyzer_name} completed \n")
+                self.tprint(f'Deletion of {analyzer_name} completed \n')
         except TimeoutException:
-            self.tprint("TimeoutException occurred! \n")
-            self.tprint("Info: Analyzer has already been deleted or never created. \n")
+            self.tprint('TimeoutException occurred! \n')
+            self.tprint('Info: Analyzer has already been deleted or never created. \n')
         except Exception as ex:
             traceback.print_exc()
-            raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
+            raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
     def deleting_all_created_analyzers(self):
         """Deleting all the created analyzers"""
-        self.delete_analyzer("My_AQL_Analyzer")
-        self.delete_analyzer("My_Collation_Analyzer")
-        self.delete_analyzer("My_Delimiter_Analyzer")
-        self.delete_analyzer("My_GeoJSON_Analyzer")
-        self.delete_analyzer("My_GeoPoint_Analyzer")
-        self.delete_analyzer("My_Identity_Analyzer")
-        self.delete_analyzer("My_N-Gram_Analyzer")
-        self.delete_analyzer("My_Norm_Analyzer")
-        self.delete_analyzer("My_Pipeline_Analyzer")
-        self.delete_analyzer("My_Segmentation_Alpha_Analyzer")
-        self.delete_analyzer("My_Stem_Analyzer")
-        self.delete_analyzer("My_Stopwords_Analyzer")
-        self.delete_analyzer("My_Text_Analyzer")
-        self.delete_analyzer("My_Nearest_Neighbor_Analyzer")
-        self.delete_analyzer("My_Classification_Analyzer")
-        self.delete_analyzer("My_GeoS2_Analyzer")
-        if self.version_is_newer_than("3.11.99"):
-            self.delete_analyzer("My_Minhash_Analyzer")
-            self.delete_analyzer("My_MultiDelimiter_Analyzer")
-            self.delete_analyzer("My_WildCard_Analyzer")
-        self.tprint("All the created analyzers have been deleted \n")
+        self.delete_analyzer('My_AQL_Analyzer')
+        self.delete_analyzer('My_Collation_Analyzer')
+        self.delete_analyzer('My_Delimiter_Analyzer')
+        self.delete_analyzer('My_GeoJSON_Analyzer')
+        self.delete_analyzer('My_GeoPoint_Analyzer')
+        self.delete_analyzer('My_Identity_Analyzer')
+        self.delete_analyzer('My_N-Gram_Analyzer')
+        self.delete_analyzer('My_Norm_Analyzer')
+        self.delete_analyzer('My_Pipeline_Analyzer')
+        self.delete_analyzer('My_Segmentation_Alpha_Analyzer')
+        self.delete_analyzer('My_Stem_Analyzer')
+        self.delete_analyzer('My_Stopwords_Analyzer')
+        self.delete_analyzer('My_Text_Analyzer')
+        self.delete_analyzer('My_Nearest_Neighbor_Analyzer')
+        self.delete_analyzer('My_Classification_Analyzer')
+        self.delete_analyzer('My_GeoS2_Analyzer')
+        if self.version_is_newer_than('3.11.99'):
+            self.delete_analyzer('My_Minhash_Analyzer')
+            self.delete_analyzer('My_MultiDelimiter_Analyzer')
+            self.delete_analyzer('My_WildCard_Analyzer')
+        self.tprint('All the created analyzers have been deleted \n')

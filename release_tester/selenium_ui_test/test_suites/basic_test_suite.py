@@ -23,7 +23,6 @@ class BasicTestSuite(BaseSeleniumTestSuite):
         ViewsTestSuite,
         GraphTestSuite,
         QueryTestSuite,
-        # TODO: fix breaking selectors: https://arangodb.atlassian.net/browse/QA-560
         AnalyzersTestSuite,
         DatabaseTestSuite,
         LogInTestSuite,
