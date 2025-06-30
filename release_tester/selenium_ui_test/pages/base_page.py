@@ -566,6 +566,22 @@ class BasePage:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
 
+    def locator_finder_by_css_selector(self, locator_name, timeout=10):
+        """This method finds an element by its CSS Selector"""
+        self.locator = WebDriverWait(self.webdriver, timeout).until(
+            EC.presence_of_element_located((BY.CSS_SELECTOR, locator_name)),
+            message="UI-Test: UI element with '" + locator_name + "' css selector was not found.",
+        )
+        if self.locator is None:
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        return self.locator
+
+    def locator_finder_by_xpath_or_css_selector(self, locator_name, timeout=10):
+        """This method determines whether locator is css selector or xpath expression and calls respective method"""
+        if '/' in locator_name:
+            return self.locator_finder_by_xpath(locator_name, timeout)
+        return self.locator_finder_by_css_selector(locator_name, timeout)
+
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(
         self, error_input, print_statement, error_message, locators_id, error_message_id
