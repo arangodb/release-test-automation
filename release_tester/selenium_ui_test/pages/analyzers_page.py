@@ -267,24 +267,6 @@ class AnalyzerPage(NavigationBarPage):
         time.sleep(2)
 
         self.tprint(f'Creating {name} started \n')
-        # common attributes for all the analyzer
-        # if self.version_is_newer_than('3.11.99'):
-        #     print('Version is newer than 3.11.99')
-        #     analyzer_name = "(//input[@id='name'])[1]"
-        #     analyzer_type = "(//input[@id='type'])[1]"
-        #     frequency = "(//label[normalize-space()='Frequency'])[1]"
-        #     norm = "(//label[normalize-space()='Norm'])[1]"
-        #     position = "(//label[normalize-space()='Position'])[1]"
-        #     local_placeholder = "(//input[@id='properties.locale'])[1]"
-        #     case_placeholder = "(//label[normalize-space()='Case'])[1]"
-        # else:
-        #     analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
-        #     analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
-        #     frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
-        #     norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
-        #     position = '//div[label[text()="Position"]]/input[not(@disabled)]'
-        #     local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
-        #     case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
 
         time.sleep(5) # debug
         analyzer_name_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_analyzer_name)
