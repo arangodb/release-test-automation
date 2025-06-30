@@ -287,7 +287,7 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
             time.sleep(1)
         else:
-            self.locator_finder_by_xpath_or_css_selector(self.elements.txt_analyzer_type, index)
+            self.locator_finder_by_select_using_xpath(self.elements.txt_analyzer_type, index)
             time.sleep(2)
 
         self.tprint(f"selecting frequency for {name} \n")
@@ -973,15 +973,6 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(3)
 
         self.tprint(f"Selecting the create button for the {name} \n")
-        # self.tprint(f'Selecting the create button for the {name} \n')
-        # if self.version_is_newer_than('3.11.0'):
-        #     if self.version_is_newer_than('3.11.99'):
-        #         create = "(//button[normalize-space()='Create'])[1]"
-        #     else:
-        #         create = '//*[@id="chakra-modal-2"]/footer/button[2]'
-        # else:
-        #     create = "//*[text()='Create']"
-
         create_btn_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.btn_create_analyzer)
         create_btn_sitem.click()
         time.sleep(2)
@@ -1034,7 +1025,7 @@ class AnalyzerPage(NavigationBarPage):
                             analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
 
                         if analyzer_sitem is None:
-                            self.tprint(f'This {analyzer_name} has never been created \n')
+                            self.tprint(f'This {name} has never been created \n')
                         else:
                             analyzer_sitem.click()
                             time.sleep(3)
