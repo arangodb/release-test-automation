@@ -792,15 +792,7 @@ class Runner(ABC):
             if not starter.is_leader:
                 continue
             assert starter.arango_dump, "dump everything: this starter doesn't have an dump instance!"
-            print('abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
-            print(self.cfg.base_test_dir)
-            print(type(self.cfg.base_test_dir))
-            print(type(self.cfg.base_test_dir.resolve()))
-            print(self.basedir)
-            print(type(self.basedir))
             self.backup_name = self.cfg.base_test_dir.resolve()  / self.basedir / name
-            print(self.backup_name)
-            print(self.cfg)
             args = [
                 '--include-system-collections',
                 'true',
