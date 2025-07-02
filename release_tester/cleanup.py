@@ -71,7 +71,7 @@ def main(**kwargs):
     test_driver = TestDriver(**kwargs)
     try:
         test_driver.set_r_limits()
-        test_driver.run_cleanup(RunProperties(enterprise, False, False), versions)
+        test_driver.run_cleanup(RunProperties(enterprise, False, False, False), versions)
     finally:
         test_driver.destructor()
 
