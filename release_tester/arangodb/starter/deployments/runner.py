@@ -110,7 +110,6 @@ class Runner(ABC):
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
-        self.uploaded_backups = []
         self.hot_backup = (
             cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
         )
@@ -275,12 +274,42 @@ class Runner(ABC):
                 "{0}{1} Deployment started. Please test the UI!".format((self.versionstr), str(self.name)),
             )
             if self.hot_backup:
-                self.test_hotbackup()
+                self.progress(False, "TESTING HOTBACKUP")
+                self.backup_name = self.create_backup("thy_name_is_" + self.name)
+                self.validate_local_backup(self.backup_name)
+                self.tcp_ping_all_nodes()
+                self.create_non_backup_data()
+                taken_backups = self.list_backup()
+                backup_no = len(taken_backups) - 1
+                self.upload_backup(taken_backups[backup_no])
+                self.tcp_ping_all_nodes()
+                self.delete_backup(taken_backups[backup_no])
+                self.tcp_ping_all_nodes()
+                backups = self.list_backup()
+                if len(backups) != len(taken_backups) - 1:
+                    raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                self.download_backup(self.backup_name)
+                self.validate_local_backup(self.backup_name)
+                self.tcp_ping_all_nodes()
+                backups = self.list_backup()
+                if backups[len(backups) - 1] != self.backup_name:
+                    raise Exception("downloaded backup has different name? " + str(backups))
+                self.before_backup()
+                self.restore_backup(backups[len(backups) - 1])
+                self.tcp_ping_all_nodes()
+                self.after_backup()
+                time.sleep(20)  # TODO fix
+                self.check_data_impl()
+                if not self.check_non_backup_data():
+                    raise Exception("data created after backup is still there??")
             if self.dump_restore:
                 self.dump_everything("dump_this_" + self.name)
                 print(self.backup_name)
                 self.restore_everything(self.backup_name)
+
             if self.new_installer:
+                if self.hot_backup:
+                    self.create_non_backup_data()
                 self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
                 self.upgrade_counter += 1
@@ -309,10 +338,38 @@ class Runner(ABC):
                 if self.is_minor_upgrade() and self.new_installer.supports_backup():
                     self.new_installer.check_backup_is_created()
                 if self.hot_backup:
-                    self.test_hotbackup_after_upgrade()
+                    self.check_data_impl()
+                    self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
+                    backups = self.list_backup()
+                    self.upload_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
+                    self.download_backup(self.backup_name)
+                    self.validate_local_backup(self.backup_name)
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if backups[0] != self.backup_name:
+                        raise Exception("downloaded backup has different name? " + str(backups))
+                    time.sleep(20)  # TODO fix
+                    self.before_backup()
+                    self.restore_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    self.after_backup()
+                    if not self.check_non_backup_data():
+                        raise Exception("data created after backup is still there??")
+                    self.delete_backup(backups[0])
+                    self.tcp_ping_all_nodes()
+                    backups = self.list_backup()
+                    if len(backups) != 0:
+                        raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                 if self.dump_restore:
                     print(self.backup_name)
                     self.restore_everything(self.backup_name)
+
                 self.check_data_impl()
                 self.versionstr = "OLD[" + self.new_cfg.version + "] "
             else:
@@ -328,7 +385,7 @@ class Runner(ABC):
                 self.check_data_impl()
                 if not is_keep_db_dir:
                     self.starter_shutdown()
-                    for starter in self.get_running_starters():
+                    for starter in self.starter_instances:
                         starter.detect_fatal_errors()
                 if is_uninstall_now:
                     self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
@@ -350,78 +407,6 @@ class Runner(ABC):
 
         self.progress(False, "Runner of type {0} - Finished!".format(str(self.name)))
 
-    def test_hotbackup(self):
-        """test hotbackup"""
-        self.progress(False, "TESTING HOTBACKUP")
-        self.test_hotbackup_impl()
-
-    def test_hotbackup_after_upgrade(self):
-        """test hotbackup after upgrade"""
-        self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
-        self.test_hotbackup_after_upgrade_impl()
-
-    @step
-    def test_hotbackup_impl(self):
-        """test hotbackup feature: general implementation"""
-        self.backup_name = self.create_backup("thy_name_is_" + self.name)
-        self.validate_local_backup(self.backup_name)
-        self.tcp_ping_all_nodes()
-        self.create_non_backup_data()
-        taken_backups = self.list_backup()
-        backup_no = len(taken_backups) - 1
-        self.upload_backup(taken_backups[backup_no])
-        self.tcp_ping_all_nodes()
-        self.delete_backup(taken_backups[backup_no])
-        self.tcp_ping_all_nodes()
-        backups = self.list_backup()
-        if len(backups) != len(taken_backups) - 1:
-            raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-        self.download_backup(self.backup_name)
-        self.validate_local_backup(self.backup_name)
-        self.tcp_ping_all_nodes()
-        backups = self.list_backup()
-        if backups[len(backups) - 1] != self.backup_name:
-            raise Exception("downloaded backup has different name? " + str(backups))
-        self.before_backup()
-        self.restore_backup(backups[len(backups) - 1])
-        self.tcp_ping_all_nodes()
-        self.after_backup()
-        time.sleep(20)  # TODO fix
-        self.check_data_impl()
-        if not self.check_non_backup_data():
-            raise Exception("data created after backup is still there??")
-
-    @step
-    def test_hotbackup_after_upgrade_impl(self):
-        """test hotbackup after upgrade: general"""
-        self.check_data_impl()
-        backups = self.list_backup()
-        self.upload_backup(backups[0])
-        self.tcp_ping_all_nodes()
-        self.delete_backup(backups[0])
-        self.tcp_ping_all_nodes()
-        backups = self.list_backup()
-        if len(backups) != 0:
-            raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-        self.download_backup(self.backup_name)
-        self.validate_local_backup(self.backup_name)
-        self.tcp_ping_all_nodes()
-        backups = self.list_backup()
-        if backups[0] != self.backup_name:
-            raise Exception("downloaded backup has different name? " + str(backups))
-        time.sleep(20)  # TODO fix
-        self.before_backup()
-        self.restore_backup(backups[0])
-        self.tcp_ping_all_nodes()
-        self.after_backup()
-        if not self.check_non_backup_data():
-            raise Exception("data created after backup is still there??")
-        self.delete_backup(backups[0])
-        self.tcp_ping_all_nodes()
-        backups = self.list_backup()
-        if len(backups) != 0:
-            raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-
     def run_selenium(self):
         """fake to run the full lifecycle flow of this deployment"""
 
@@ -435,12 +420,12 @@ class Runner(ABC):
         )
         self.starter_prepare_env()
         self.finish_setup()  # create the instances...
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             # attach the PID of the starter instance:
             starter.attach_running_starter()
             # find out about its processes:
             starter.detect_instances()
-        print(self.get_running_starters())
+        print(self.starter_instances)
         self.selenium.test_after_install()
         if self.new_installer:
             self.versionstr = "NEW[" + self.new_cfg.version + "] "
@@ -510,6 +495,7 @@ class Runner(ABC):
             sys_arangosh.js_version_check()
         # TODO: here we should invoke Makedata for the system installation.
         self.progress(True, "stop system service to make ports available for starter")
+
         inst.stop_service()
 
     def get_selenium_status(self):
@@ -658,7 +644,7 @@ class Runner(ABC):
     def get_frontend_instances(self):
         """fetch all frontend instances"""
         frontends = []
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             if not starter.is_leader:
                 continue
             for frontend in starter.get_frontends():
@@ -668,7 +654,7 @@ class Runner(ABC):
     def get_frontend_starters(self):
         """fetch all frontend instances"""
         frontends = []
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             if not starter.is_leader:
                 continue
             if len(starter.get_frontends()) > 0:
@@ -678,7 +664,7 @@ class Runner(ABC):
     @step
     def tcp_ping_all_nodes(self):
         """check whether all nodes react via tcp connection"""
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             starter.tcp_ping_nodes()
 
     @step
@@ -695,7 +681,7 @@ class Runner(ABC):
     def print_all_instances_table(self):
         """print all http frontends to the user"""
         instances = []
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             instances += starter.get_instance_essentials()
         print_instances_table(instances)
 
@@ -967,12 +953,6 @@ class Runner(ABC):
             return starter.hb_instance.delete(name)
         raise Exception("no frontend found.")
 
-    @step
-    def delete_all_backups(self):
-        """delete all locally-stored backups"""
-        for backup in self.list_backup():
-            self.delete_backup(backup)
-
     def wait_for_restore_impl(self, backup_starter):
         """wait for all restores to be finished"""
         backup_starter.wait_for_restore()
@@ -997,9 +977,7 @@ class Runner(ABC):
                 continue
             assert starter.hb_instance, "upload backup: this starter doesn't have an hb instance!"
             hb_id = starter.hb_instance.upload(name, starter.hb_config, "12345")
-            starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count, timeout=timeout)
-            self.uploaded_backups.append(name)
-            return
+            return starter.hb_instance.upload_status(name, hb_id, self.backup_instance_count, timeout=timeout)
         raise Exception("no frontend found.")
 
     @step
@@ -1016,34 +994,15 @@ class Runner(ABC):
     @step
     def validate_local_backup(self, name):
         """validate the local backup"""
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             starter.hb_instance.validate_local_backup(starter.basedir, name)
-
-    @step
-    def create_backup_and_upload(self, backup_name, delete_local=True):
-        """create a hotbackup, then upload and delete it"""
-        backup_name = self.create_backup(backup_name)
-        self.backup_name = backup_name
-        self.validate_local_backup(self.backup_name)
-        self.tcp_ping_all_nodes()
-        taken_backups = self.list_backup()
-        backup_no = len(taken_backups) - 1
-        self.upload_backup(taken_backups[backup_no])
-        self.tcp_ping_all_nodes()
-        if delete_local:
-            self.delete_backup(taken_backups[backup_no])
-            self.tcp_ping_all_nodes()
-            backups = self.list_backup()
-            if len(backups) != len(taken_backups) - 1:
-                raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
-        return backup_name
 
     @step
     def search_for_warnings(self, print_lines=True):
         """search for any warnings in any logfiles and dump them to the screen"""
         ret = False
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             print("Ww" * 40)
             starter.search_for_warnings()
             for instance in starter.all_instances:
@@ -1085,7 +1044,7 @@ class Runner(ABC):
         if self.cfg.base_test_dir.exists():
             print("zipping test dir")
             if self.hot_backup:
-                for starter in self.get_running_starters():
+                for starter in self.starter_instances:
                     starter.cleanup_hotbackup_in_instance()
                 # we just assume that we might have the "remote" directory in this subdir:
                 backup_dir = self.basedir / "backup"
@@ -1129,7 +1088,7 @@ class Runner(ABC):
 
     def _set_logging(self, instance_type):
         """turn on logging for all of instance_type"""
-        for starter_mgr in self.get_running_starters():
+        for starter_mgr in self.starter_instances:
             starter_mgr.send_request(
                 instance_type,
                 requests.put,
@@ -1155,9 +1114,7 @@ class Runner(ABC):
     @step
     def get_collection_list(self):
         """get a list of collections and their shards"""
-        reply = self.get_running_starters()[0].send_request(
-            InstanceType.COORDINATOR, requests.get, "/_api/collection", None
-        )
+        reply = self.starter_instances[0].send_request(InstanceType.COORDINATOR, requests.get, "/_api/collection", None)
         if reply[0].status_code != 200:
             raise Exception(
                 "get Collections: Unsupported return code" + str(reply[0].status_code) + " - " + str(reply[0].body)
@@ -1174,7 +1131,7 @@ class Runner(ABC):
 
     def get_collection_cluster_details(self, collection_name):
         """get the shard details for a single collection"""
-        reply = self.get_running_starters()[0].send_request(
+        reply = self.starter_instances[0].send_request(
             InstanceType.COORDINATOR,
             requests.put,
             "/_db/_system/_admin/cluster/collectionShardDistribution",
@@ -1270,7 +1227,7 @@ class Runner(ABC):
     def export_instance_info(self):
         """resemble the testing.js INSTANCEINFO env"""
         starter_structs = []
-        for starter in self.get_running_starters():
+        for starter in self.starter_instances:
             starter_structs.append(starter.get_structure())
         struct = starter_structs[0]
         for starter in starter_structs[1:]:
@@ -1285,7 +1242,7 @@ class Runner(ABC):
         body = '{"server": "%s"}' % server_uuid
         deadline = datetime.now() + timedelta(seconds=deadline)
         while datetime.now() < deadline:
-            reply = self.get_running_starters()[0].send_request(
+            reply = self.starter_instances[0].send_request(
                 InstanceType.COORDINATOR,
                 requests.post,
                 "/_admin/cluster/removeServer",
@@ -1304,11 +1261,3 @@ class Runner(ABC):
     def makedata_databases(self):
         """return a list of databases that makedata tests must be ran in"""
         return [["_system", self.props.force_one_shard, 0]] + self.custom_databases.copy()
-
-    def get_running_starters(self):
-        """get list of running starters"""
-        return [starter for starter in self.starter_instances if starter.is_running]
-
-    def get_not_running_starters(self):
-        """get list of not running starters"""
-        return [starter for starter in self.starter_instances if not starter.is_running]

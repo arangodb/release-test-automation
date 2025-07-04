@@ -49,7 +49,6 @@ def main(**kwargs):
                 force_one_shard=kwargs["force_one_shard"],
                 create_oneshard_db=kwargs["create_oneshard_db"],
                 use_auto_certs=kwargs["use_auto_certs"],
-                cluster_nodes=kwargs["cluster_nodes"],
             ),
         )
         print("V" * 80)
