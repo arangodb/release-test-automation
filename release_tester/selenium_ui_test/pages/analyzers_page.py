@@ -3,6 +3,9 @@
 import time
 import traceback
 import semver
+import json
+import pathlib
+from collections import namedtuple
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.webdriver.common.by import By
@@ -22,6 +25,16 @@ class AnalyzerPage(NavigationBarPage):
                                   "and not(ancestor::div[contains(@style,'display: none')])] "
         self.index = 0
         self.package_version = self.current_package_version()
+        # external page elements
+        ui_version = 'new_ui' if self.version_is_newer_than('3.11.99') else 'old_ui'
+        elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
+        print(f'UI elements JSON file path - {elements_json_path}')
+        elements_data = {}
+        with open(elements_json_path, 'r') as file:
+            elements_data = json.load(file)
+        elements_dict = dict(elements_data[self.analyzers_page][ui_version])
+        Elements = namedtuple("Elements", list(elements_dict.keys()))
+        self.elements = Elements(*list(elements_dict.values()))
 
     def select_analyzers_page(self):
         """Selecting analyzers page"""
@@ -249,35 +262,14 @@ class AnalyzerPage(NavigationBarPage):
         self.webdriver.refresh()
         self.wait_for_ajax()
 
-        if self.version_is_newer_than('3.11.99'):
-            add_new_analyzer_btn = "(//button[normalize-space()='Add analyzer'])[1]"
-        else:
-            add_new_analyzer_btn = '//*[@id="analyzersContent"]/div/div/div/div/button/i'
-
-        add_analyzer_sitem = self.locator_finder_by_xpath(add_new_analyzer_btn, benchmark=True)
+        add_analyzer_sitem = self.locator_finder_by_xpath(self.elements.btn_add_new_analyzer, benchmark=True)
         add_analyzer_sitem.click()
         time.sleep(2)
 
         self.tprint(f'Creating {name} started \n')
-        # common attributes for all the analyzer
-        if self.version_is_newer_than('3.11.99'):
-            analyzer_name = "(//input[@id='name'])[1]"
-            analyzer_type = "(//*[name()='svg'][@class='css-8mmkcg'])[2]"
-            frequency = "(//label[normalize-space()='Frequency'])[1]"
-            norm = "(//label[normalize-space()='Norm'])[1]"
-            position = "(//label[normalize-space()='Position'])[1]"
-            local_placeholder = "(//input[@id='properties.locale'])[1]"
-            case_placeholder = "(//label[normalize-space()='Case'])[1]"
-        else:
-            analyzer_name = '//div[label[text()="Analyzer Name"]]/input[not(@disabled)]'
-            analyzer_type = '//div[label[text()="Analyzer Type"]]/select[not(@disabled)]'
-            frequency = '//div[label[text()="Frequency"]]/input[not(@disabled)]'
-            norm = '//div[label[text()="Norm"]]/input[not(@disabled)]'
-            position = '//div[label[text()="Position"]]/input[not(@disabled)]'
-            local_placeholder = '//div[label[text()="Locale"]]//input[not(@disabled)]'
-            case_placeholder = '//div[label[text()="Case"]]//select[not(@disabled)]'
 
-        analyzer_name_sitem = self.locator_finder_by_xpath(analyzer_name)
+        time.sleep(5) # debug
+        analyzer_name_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_analyzer_name)
         analyzer_name_sitem.click()
         analyzer_name_sitem.clear()
         analyzer_name_sitem.send_keys(name)
@@ -285,7 +277,7 @@ class AnalyzerPage(NavigationBarPage):
 
         self.tprint('Selecting analyzer type \n')
         if self.version_is_newer_than('3.11.99'):
-            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type, benchmark=True)
+            analyzer_type_sitem = self.locator_finder_by_xpath(self.elements.txt_analyzer_type, benchmark=True)
             analyzer_type_sitem.click()
             time.sleep(2)
             # this will simulate down arrow key according to its index position
@@ -295,21 +287,21 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
             time.sleep(1)
         else:
-            self.locator_finder_by_select_using_xpath(analyzer_type, index)
+            self.locator_finder_by_select_using_xpath(self.elements.txt_analyzer_type, index)
             time.sleep(2)
 
         self.tprint(f"selecting frequency for {name} \n")
-        frequency_sitem = self.locator_finder_by_xpath(frequency)
+        frequency_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_frequency)
         frequency_sitem.click()
         time.sleep(2)
 
         self.tprint(f"selecting norm for {name}\n")
-        norm_sitem = self.locator_finder_by_xpath(norm)
+        norm_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_norm)
         norm_sitem.click()
         time.sleep(2)
 
         self.tprint(f"selecting position for {name} \n")
-        position_sitem = self.locator_finder_by_xpath(position)
+        position_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_position)
         position_sitem.click()
         time.sleep(2)
 
@@ -317,53 +309,49 @@ class AnalyzerPage(NavigationBarPage):
         self.tprint(f"selecting value for the placeholder for {name} \n")
         # for delimiter
         if name == "My_Delimiter_Analyzer":
-            delimiter = '//div[label[text()="Delimiter (characters to split on)"]]//input[not(@disabled)]'
-            value = "_"
-            delimiter_sitem = self.locator_finder_by_xpath(delimiter)
+            delimiter_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_delimiter)
             delimiter_sitem.click()
             delimiter_sitem.clear()
+            value = "_"
             delimiter_sitem.send_keys(value)
         # for stem
         elif name == "My_Stem_Analyzer":
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
         # for norm
         elif name == "My_Norm_Analyzer":
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
 
             self.tprint('Selecting case for norm analyzer using index value \n')
             if self.version_is_newer_than('3.11.99'):
-                case_sitem = self.locator_finder_by_xpath(case_placeholder)
+                case_sitem = self.locator_finder_by_xpath(self.elements.select_case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                self.locator_finder_by_select_using_xpath(case_placeholder, 0)
+                self.locator_finder_by_select_using_xpath(self.elements.select_case, 0)
 
             self.tprint('Selecting accent for norm analyzer \n')
             if self.version_is_newer_than('3.11.99'):
                 self.tprint("Accent properties skipped \n")
-                # accent = '//*[@id="chakra-modal--body-7"]/div/div[3]/div/div[3]/div/div/label[2]/span/span'
             else:
-                accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-                accent_sitem = self.locator_finder_by_xpath(accent)
+                accent_sitem = self.locator_finder_by_xpath(self.elements.txt_accent)
                 accent_sitem.click()
                 time.sleep(2)
 
         # for N-Gram
         elif name == "My_N-Gram_Analyzer":
             self.tprint(f'Adding minimum n-gram length for {name} \n')
-            min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            min_length_sitem = self.locator_finder_by_xpath(min_length)
+            min_length_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_min_length)
             min_length_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.clear_textfield()
@@ -373,8 +361,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Adding maximum n-gram length for {name} \n')
-            max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            max_length_sitem = self.locator_finder_by_xpath(max_length)
+            max_length_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_max_length)
             max_length_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.clear_textfield()
@@ -384,26 +371,19 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Preserve original value for {name}\n')
-            if self.version_is_newer_than('3.11.99'):
-                preserve = '(//label[text()="Preserve Original"])'
-            else:
-                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-
-            preserve_sitem = self.locator_finder_by_xpath(preserve)
+            preserve_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_preserve)
             preserve_sitem.click()
             time.sleep(2)
 
             self.tprint(f'Start marker value {name}\n')
-            start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-            start_marker_sitem = self.locator_finder_by_xpath(start_marker)
+            start_marker_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_start_marker)
             start_marker_sitem.click()
             start_marker_sitem.clear()
             start_marker_sitem.send_keys('^')
             time.sleep(2)
 
             self.tprint(f'End marker value for {name} \n')
-            end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-            end_marker_sitem = self.locator_finder_by_xpath(end_marker)
+            end_marker_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_end_marker)
             end_marker_sitem.click()
             end_marker_sitem.clear()
             end_marker_sitem.send_keys('$')
@@ -411,20 +391,18 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Stream type selection using index value for {name}\n')
             if self.version_is_newer_than('3.11.99'):
-                stream_type = "(//label[normalize-space()='Stream Type'])[1]"
-                stream_type_sitem = self.locator_finder_by_xpath(stream_type)
+                stream_type_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_stream_type)
                 stream_type_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(stream_type, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_stream_type, 1)
             time.sleep(2)
         # for text
         elif name == "My_Text_Analyzer":
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -442,8 +420,7 @@ class AnalyzerPage(NavigationBarPage):
             if self.version_is_newer_than('3.11.99'):
                 self.tprint("skipped! \n")
             else:
-                stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
+                stopwords_sitem = self.locator_finder_by_xpath(self.elements.txt_stop_words)
                 stopwords_sitem.clear()
                 stopwords_sitem.send_keys('dog')
                 stopwords_sitem.send_keys(Keys.ENTER)
@@ -457,51 +434,40 @@ class AnalyzerPage(NavigationBarPage):
 
             self.tprint(f'Selecting case for the analyzer from the dropdown menu for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                case = "(//label[normalize-space()='Case'])[1]"
-                case_sitem = self.locator_finder_by_xpath(case)
+                case_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.TAB)
             else:
-                self.locator_finder_by_select_using_xpath(case_placeholder, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_case, 1)
 
             self.tprint('Selecting stem for the analyzer \n')
             # stemming is already toggled in this version 3.12.2 nightly, thus keep it as it is
             if self.version_is_older_than('3.11.99'):
-                stem = '//div[label[text()="Stemming"]]//input[not(@disabled)]'
-                stem_sitem = self.locator_finder_by_xpath(stem)
+                stem_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_stem)
                 stem_sitem.click()
                 time.sleep(2)
 
             self.tprint('Selecting accent for the analyzer \n')
-            if self.version_is_newer_than('3.11.99'):
-                accent = '(//label[text()="Accent"])'
-            else:
-                accent = '//div[label[text()="Accent"]]//input[not(@disabled)]'
-            accent_sitem = self.locator_finder_by_xpath(accent)
+            accent_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_accent)
             accent_sitem.click()
             time.sleep(2)
 
             self.tprint(f'Selecting minimum N-Gram length for {name} \n')
-            ngram_length_min = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-            ngram_length_min_sitem = self.locator_finder_by_xpath(ngram_length_min)
+            ngram_length_min_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_ngram_min_length)
             ngram_length_min_sitem.click()
             ngram_length_min_sitem.send_keys('3')
             time.sleep(2)
 
             self.tprint(f'Selecting maximum N-Gram length for {name} \n')
-            ngram_length_max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-            ngram_length_max_length_sitem = self.locator_finder_by_xpath(ngram_length_max_length)
+            ngram_length_max_length_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_ngram_max_length)
             ngram_length_max_length_sitem.click()
             ngram_length_max_length_sitem.send_keys('8')
             time.sleep(2)
 
             self.tprint(f'Selecting preserve original for {name} \n')
-            if self.version_is_newer_than('3.11.99'):
-                preserve = "(//label[normalize-space()='Preserve Original'])[1]"
-            else:
-                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-            preserve_sitem = self.locator_finder_by_xpath(preserve)
+            preserve_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_preserve_original)
             preserve_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.tprint("skipped")
@@ -511,14 +477,12 @@ class AnalyzerPage(NavigationBarPage):
         # for AQL analyzer
         elif name == "My_AQL_Analyzer":
             self.tprint(f'Selecting query string for {name} \n')
-            query_string = '//div[label[text()="Query String"]]/textarea[not(@disabled)]'
-            query_string_sitem = self.locator_finder_by_xpath(query_string)
+            query_string_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_query_string)
             query_string_sitem.send_keys('RETURN SOUNDEX(@param)')
             time.sleep(2)
 
             self.tprint(f'Selecting batch size for {name} \n')
-            batch_size = '//div[label[text()="Batch Size"]]//input[not(@disabled)]'
-            batch_size_sitem = self.locator_finder_by_xpath(batch_size)
+            batch_size_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_batch_size)
             batch_size_sitem.click()
             if self.package_version >= semver.VersionInfo.parse('3.11.99'):
                 self.clear_textfield()
@@ -529,8 +493,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting memory limit for {name} \n')
-            memory_limit = '//div[label[text()="Memory Limit"]]//input[not(@disabled)]'
-            memory_limit_sitem = self.locator_finder_by_xpath(memory_limit)
+            memory_limit_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_memory_limit)
             memory_limit_sitem.click()
             if self.package_version >= semver.VersionInfo.parse('3.11.99'):
                 self.clear_textfield()
@@ -541,11 +504,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting collapse position for {name} \n')
-            if self.version_is_newer_than('3.11.99'):
-                collapse = "(//label[normalize-space()='Collapse Positions'])[1]"
-            else:
-                collapse = '//div[label[text()="Collapse Positions"]]//input[not(@disabled)]'
-            collapse_sitem = self.locator_finder_by_xpath(collapse)
+            collapse_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_collapse)
             collapse_sitem.click()
             time.sleep(2)
 
@@ -553,29 +512,25 @@ class AnalyzerPage(NavigationBarPage):
             if self.version_is_newer_than('3.11.99'):
                 self.tprint('Skipped \n')
             else:
-                keep_null = '//div[label[text()="Keep Null"]]//input[not(@disabled)]'
-                keep_null_sitem = self.locator_finder_by_xpath(keep_null)
+                keep_null_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.switch_keep_null)
                 keep_null_sitem.click()
             time.sleep(2)
 
             self.tprint(f'Selecting Return type for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                return_type = "(//label[normalize-space()='Return Type'])[1]"
-                return_type_sitem = self.locator_finder_by_xpath(return_type)
+                return_type_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_return_type)
                 return_type_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
 
             else:
-                return_type = '//div[label[text()="Return Type"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(return_type, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_return_type, 1)
             time.sleep(2)
         # for stopwords
         elif name == "My_Stopwords_Analyzer":
             self.tprint(f'Selecting stopwords for {name} \n')
+            stopwords_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_stop_words)
             if self.version_is_newer_than('3.11.99'):
-                stopwords = "(//label[normalize-space()='Stopwords'])[1]"
-                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
                 stopwords_sitem.click()
                 self.send_key_action('616e64')
                 self.send_key_action(Keys.ENTER)
@@ -583,8 +538,6 @@ class AnalyzerPage(NavigationBarPage):
                 self.send_key_action('746865')
                 self.send_key_action(Keys.ENTER)
             else:
-                stopwords = '//div[label[text()="Stopwords (One per line)"]]//textarea[not(@disabled)]'
-                stopwords_sitem = self.locator_finder_by_xpath(stopwords)
                 stopwords_sitem.click()
                 stopwords_sitem.clear()
                 stopwords_sitem.send_keys('616e64')
@@ -595,11 +548,7 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(1)
 
             self.tprint(f'Selecting hex value for {name} \n')
-            if self.version_is_newer_than('3.11.99'):
-                hex_value = "(//label[normalize-space()='Hex'])[1]"
-            else:
-                hex_value = '//div[label[text()="Hex"]]//input[not(@disabled)]'
-            hex_sitem = self.locator_finder_by_xpath(hex_value)
+            hex_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_hex_value)
             hex_sitem.click()
             time.sleep(2)
 
@@ -607,7 +556,7 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "My_Collation_Analyzer":
             self.tprint(f'Selecting locale for {name} \n')
             value = 'en_US.utf-8'
-            locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+            locale_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_local_placeholder)
             locale_sitem.click()
             locale_sitem.clear()
             locale_sitem.send_keys(value)
@@ -615,40 +564,34 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "My_Segmentation_Alpha_Analyzer":
             self.tprint(f'Selecting segmentation break as alpha for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                alpha_break = "(//label[normalize-space()='Break'])[1]"
-                alpha_break_sitem = self.locator_finder_by_xpath(alpha_break)
+                alpha_break_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_alpha_break)
                 alpha_break_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                alpha_break = '//div[label[text()="Break"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(alpha_break, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_alpha_break, 1)
             time.sleep(2)
 
             self.tprint(f'Selecting segmentation case as lower for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                case_lower = "(//label[normalize-space()='Case'])[1]"
-                case_lower_sitem = self.locator_finder_by_xpath(case_lower)
+                case_lower_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_lower_case)
                 case_lower_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
             else:
-                case_lower = '//div[label[text()="Case"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(case_lower, 0)
+                self.locator_finder_by_select_using_xpath(self.elements.select_lower_case, 0)
             time.sleep(2)
 
         # for nearest neighbor analyzer introduced on 3.10.x
         elif name == "My_Nearest_Neighbor_Analyzer":
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
             self.tprint(f'Selecting model location for {name} \n')
-            model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
-            model_location_sitem = self.locator_finder_by_xpath(model_location)
+            model_location_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_model_location)
             model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
             self.tprint(f'Selecting Top K value for {name}\n')
-            top_k = '//div[label[text()="Top K"]]//input[not(@disabled)]'
-            top_k_sitem = self.locator_finder_by_xpath(top_k)
+            top_k_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_top_k_val)
             top_k_sitem.send_keys('2')
             time.sleep(2)
 
@@ -656,38 +599,33 @@ class AnalyzerPage(NavigationBarPage):
         elif name == "My_Classification_Analyzer":
             location = ui_data_dir / "ui_data" / "analyzer_page" / "610_model_cooking.bin"
             self.tprint(f'Selecting model location for {name} \n')
-            model_location = '//div[label[text()="Model Location"]]//input[not(@disabled)]'
-            model_location_sitem = self.locator_finder_by_xpath(model_location)
+            model_location_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_model_location)
             model_location_sitem.send_keys(str(location.absolute()))
             time.sleep(2)
 
             self.tprint(f'Selecting Top K value for {name}\n')
-            top_k = '//div[label[text()="Top K"]]//input[not(@disabled)]'
-            top_k_sitem = self.locator_finder_by_xpath(top_k)
+            top_k_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_top_k_val)
             top_k_sitem.send_keys('2')
             time.sleep(2)
 
             self.tprint(f'Selecting threshold for {name} \n')
-            threshold = '//div[label[text()="Threshold"]]//input[not(@disabled)]'
-            threshold_sitem = self.locator_finder_by_xpath(threshold)
-            threshold_sitem.send_keys('.80')
+            threshold_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_threshold)
+            # threshold_sitem.send_keys('.80')
+            threshold_sitem.clear()
+            threshold_sitem.send_keys('1')
 
         # Pipeline
         elif name == "My_Pipeline_Analyzer":
             # ----------------------adding first pipeline analyzer as Norm analyzer--------------------------
             self.tprint(f'Selecting add analyzer button for {name} \n')
-            if self.version_is_newer_than('3.11.99'):
-                add_analyzer01 = '(//button[text()="Add analyzer"])[2]'
-            else:
-                add_analyzer01 = '(//button[@class="button-warning"][not(@disabled)])[2]'
-            add_analyzer01_sitem = self.locator_finder_by_xpath(add_analyzer01)
+            add_analyzer01_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.btn_add_pipeline_analyzer)
             add_analyzer01_sitem.click()
             time.sleep(1)
 
             self.tprint(f'Selecting first pipeline analyzer as Norm for {name} \n')
             if self.version_is_newer_than('3.11.99'):
-                norm = '(//*[text()="Type"])[3]'
-                norm_sitem = self.locator_finder_by_xpath(norm)
+                norm_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_pipeline_analyzer_type)
                 norm_sitem.click()
 
                 # selecting norm analyzer
@@ -697,97 +635,85 @@ class AnalyzerPage(NavigationBarPage):
                 time.sleep(1)
 
                 # selecting locale value
-                select_locale = "(//input[@id='properties.pipeline.0.properties.locale'])[1]"
-                select_locale_sitem = self.locator_finder_by_xpath(select_locale)
+                select_locale_sitem = self.locator_finder_by_xpath_or_css_selector(
+                    self.elements.txt_pipeline_analyzer_locale)
                 select_locale_sitem.click()
                 select_locale_sitem.send_keys("en_US.utf-8")
                 time.sleep(1)
 
                 # selecting case for norm analyzer
-                case = "(//label[normalize-space()='Case'])[1]"
-                case_sitem = self.locator_finder_by_xpath(case)
+                case_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_case)
                 case_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ENTER)
                 time.sleep(1)
 
                 # selecting accent
-                accent = "(//label[normalize-space()='Accent'])[1]"
-                accent_sitem = self.locator_finder_by_xpath(accent)
+                accent_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_accent)
                 accent_sitem.click()
                 time.sleep(1)
             else:
-                norm = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[2]'
-                self.locator_finder_by_select_using_xpath(norm, 2)  # 2 for norm from the drop-down list
+                self.locator_finder_by_select_using_xpath(self.elements.select_pipeline_analyzer_type, 2)  # 2 for norm from the drop-down list
                 time.sleep(2)
                 self.tprint(f'Selecting locale value for Norm analyzer of {name} \n')
                 value = 'en_US.utf-8'
-                locale_sitem = self.locator_finder_by_xpath(local_placeholder)
+                locale_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_local_placeholder)
                 locale_sitem.click()
                 locale_sitem.send_keys(value)
                 time.sleep(2)
 
                 self.tprint(f'Selecting case value to upper for Norm analyzer of {name} \n')
-                self.locator_finder_by_select_using_xpath(case_placeholder,1)  # 1 represents upper from the dropdown
+                self.locator_finder_by_select_using_xpath(self.elements.select_case,1)  # 1 represents upper from the dropdown
                 time.sleep(2)
                 # ----------------------adding second pipeline analyzer as N-Gram analyzer--------------------------
                 self.tprint(f'Selecting add analyzer button for {name} \n')
-                new_analyzer = '(//button[@class="button-warning"][not(@disabled)])[3]'
-                new_analyzer_sitem = self.locator_finder_by_xpath(new_analyzer)
+                new_analyzer_sitem = self.locator_finder_by_xpath(self.elements.btn_add_second_pipeline_analyzer)
                 new_analyzer_sitem.click()
                 time.sleep(2)
 
                 self.tprint(f'Selecting second pipeline analyzer as N-Gram for {name} \n')
-                ngram = '(//div[label[text()="Analyzer Type"]]//select[not(@disabled)])[3]'
-                self.locator_finder_by_select_using_xpath(ngram, 3)  # 3 represents N-Gram from the dropdown
+                self.locator_finder_by_select_using_xpath(self.elements.select_second_pipeline_analyzer_type, 3)  # 3 represents N-Gram from the dropdown
                 time.sleep(2)
 
                 self.tprint(f'Selecting N-Gram minimum length for {name} \n')
-                min_length = '//div[label[text()="Minimum N-Gram Length"]]//input[not(@disabled)]'
-                min_length_sitem = self.locator_finder_by_xpath(min_length)
+                min_length_sitem = self.locator_finder_by_xpath(self.elements.txt_ngram_min_length)
                 min_length_sitem.click()
                 min_length_sitem.clear()
                 min_length_sitem.send_keys(3)
                 time.sleep(2)
 
                 self.tprint(f'Selecting N-Gram maximum length for {name} \n')
-                max_length = '//div[label[text()="Maximum N-Gram Length"]]//input[not(@disabled)]'
-                max_length_sitem = self.locator_finder_by_xpath(max_length)
+                max_length_sitem = self.locator_finder_by_xpath(self.elements.txt_ngram_max_length)
                 max_length_sitem.click()
                 max_length_sitem.clear()
                 max_length_sitem.send_keys(3)
 
                 self.tprint(f'Selecting Preserve original value for {name}\n')
-                preserve = '//div[label[text()="Preserve Original"]]//input[not(@disabled)]'
-                preserve_sitem = self.locator_finder_by_xpath(preserve)
+                preserve_sitem = self.locator_finder_by_xpath(self.elements.txt_preserve_original)
                 preserve_sitem.click()
                 time.sleep(2)
 
                 self.tprint(f'Start marker value {name}\n')
-                start_marker = '//div[label[text()="Start Marker"]]//input[not(@disabled)]'
-                start_marker_sitem = self.locator_finder_by_xpath(start_marker)
+                start_marker_sitem = self.locator_finder_by_xpath(self.elements.txt_start_marker)
                 start_marker_sitem.click()
                 start_marker_sitem.clear()
                 start_marker_sitem.send_keys('^')
                 time.sleep(2)
 
                 self.tprint(f'End marker value for {name} \n')
-                end_marker = '//div[label[text()="End Marker"]]//input[not(@disabled)]'
-                end_marker_sitem = self.locator_finder_by_xpath(end_marker)
+                end_marker_sitem = self.locator_finder_by_xpath(self.elements.txt_end_marker)
                 end_marker_sitem.click()
                 end_marker_sitem.clear()
                 end_marker_sitem.send_keys('$')
                 time.sleep(2)
 
                 self.tprint(f'Stream type selection using name value for {name}\n')
-                stream_type = '//div[label[text()="Stream Type"]]//select[not(@disabled)]'
-                self.locator_finder_by_select_using_xpath(stream_type, 1)
+                self.locator_finder_by_select_using_xpath(self.elements.select_stream_type, 1)
                 time.sleep(2)
         # GeoJson
         elif name == "My_GeoJSON_Analyzer":
+            types_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_geo_json_type)
             if self.version_is_newer_than('3.11.99'):
-                types = '(//*[text()="Type"])[3]'
-                types_sitem = self.locator_finder_by_xpath(types)
                 types_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -795,18 +721,11 @@ class AnalyzerPage(NavigationBarPage):
                 self.send_key_action(Keys.ENTER)
 
             else:
-                types = '//div[label[text()="Type"]]//select[not(@disabled)]'
-                types_sitem = self.locator_finder_by_xpath(types)
                 types_sitem.click()
             time.sleep(2)
 
             self.tprint(f'Selecting max S2 cells value for {name} \n')
-            if self.version_is_newer_than('3.11.99'):
-                max_s2_cells = '//*[@id="properties.options.maxCells"]'
-            else:
-                max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-
-            max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
+            max_s2_cells_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_max_s2_cells)
             max_s2_cells_sitem.click()
 
             if self.version_is_newer_than('3.11.99'):
@@ -819,8 +738,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting least precise S2 levels for {name} \n')
-            least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            least_precise_sitem = self.locator_finder_by_xpath(least_precise)
+            least_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_least_precise_s2_level)
             least_precise_sitem.click()
 
             if self.version_is_newer_than('3.11.99'):
@@ -832,8 +750,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting most precise S2 levels for {name} \n')
-            most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            most_precise_sitem = self.locator_finder_by_xpath(most_precise)
+            most_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_most_precise_s2_level)
             most_precise_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -844,8 +761,7 @@ class AnalyzerPage(NavigationBarPage):
         # GeoPoint
         elif name == "My_GeoPoint_Analyzer":
             self.tprint(f'Selecting Latitude Path for {name} \n')
-            latitude_paths = '//div[label[text()="Latitude Path"]]//input[not(@disabled)]'
-            latitude_paths_sitem = self.locator_finder_by_xpath(latitude_paths)
+            latitude_paths_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_latitude)
             latitude_paths_sitem.click()
             latitude_paths_sitem.send_keys('40.78')
             if self.version_is_newer_than('3.11.99'):
@@ -853,8 +769,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting Longitude Path for {name} \n')
-            longitude_paths = '//div[label[text()="Longitude Path"]]//input[not(@disabled)]'
-            longitude_paths_sitem = self.locator_finder_by_xpath(longitude_paths)
+            longitude_paths_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_longitude)
             longitude_paths_sitem.click()
             longitude_paths_sitem.send_keys('-73.97')
             if self.version_is_newer_than('3.11.99'):
@@ -862,8 +777,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting max S2 cells value for {name} \n')
-            max_s2_cells = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-            max_s2_cells_sitem = self.locator_finder_by_xpath(max_s2_cells)
+            max_s2_cells_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_geo_point_max_s2_cells)
             max_s2_cells_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -872,8 +786,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting least precise S2 levels for {name} \n')
-            least_precise = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            least_precise_sitem = self.locator_finder_by_xpath(least_precise)
+            least_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_least_precise_s2_level)
             least_precise_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -881,8 +794,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting most precise S2 levels for {name} \n')
-            most_precise = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            most_precise_sitem = self.locator_finder_by_xpath(most_precise)
+            most_precise_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_most_precise_s2_level)
             most_precise_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -892,15 +804,10 @@ class AnalyzerPage(NavigationBarPage):
         # GeoS2
         elif name == 'My_GeoS2_Analyzer':
             self.tprint("Selecting type of geos2 analyzer")
-            if self.version_is_newer_than('3.11.99'):
-                types = '(//*[text()="Type"])[3]'
-            else:
-                types = "(//label[normalize-space()='Type'])[1]"
-
             if self.version_is_older_than('3.10.99'):
                 self.tprint("Type and Formate selection skipped for this version below 3.10 \n")
             else:
-                type_sitem = self.locator_finder_by_xpath(types)
+                type_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_geo_s2_analyzer_type)
                 type_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -909,12 +816,8 @@ class AnalyzerPage(NavigationBarPage):
                     self.send_key_action(Keys.ENTER)
 
                 self.tprint("Selecting format of geos2 analyzer")
-                if self.version_is_newer_than('3.11.99'):
-                    formats = "(//label[normalize-space()='format'])[1]"
-                else:
-                    formats = "(//label[normalize-space()='Format'])[1]"
 
-                format_sitem = self.locator_finder_by_xpath(formats)
+                format_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.select_geo_s2_analyzer_format)
                 format_sitem.click()
                 self.send_key_action(Keys.ARROW_DOWN)
                 self.send_key_action(Keys.ARROW_DOWN)
@@ -922,12 +825,8 @@ class AnalyzerPage(NavigationBarPage):
                     self.send_key_action(Keys.ENTER)
 
             self.tprint(f"Selecting max s2 for {name} \n")
-            if self.version_is_older_than('3.10.99'):
-                max_s2_cell = '//div[label[text()="Max S2 Cells"]]//input[not(@disabled)]'
-            else:
-                max_s2_cell = "//*[text()='Max S2 Cells']"
 
-            max_s2_cell_sitem = self.locator_finder_by_xpath(max_s2_cell)
+            max_s2_cell_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_geo_s2_max_s2_cells)
             max_s2_cell_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -936,11 +835,8 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting least precise for {name} \n')
-            if self.version_is_older_than('3.10.99'):
-                least_precise_s2_level = '//div[label[text()="Least Precise S2 Level"]]//input[not(@disabled)]'
-            else:
-                least_precise_s2_level = "//*[text()='Least Precise S2 Level']"
-            least_precise_s2_level_sitem = self.locator_finder_by_xpath(least_precise_s2_level)
+            least_precise_s2_level_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_geo_s2_least_precise_s2_level)
             least_precise_s2_level_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -948,11 +844,8 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint(f'Selecting most precise S2 level for {name} \n')
-            if self.version_is_older_than('3.10.99'):
-                most_precise_s2_level = '//div[label[text()="Most Precise S2 Level"]]//input[not(@disabled)]'
-            else:
-                most_precise_s2_level = "//*[text()='Most Precise S2 Level']"
-            most_precise_s2_level_sitem = self.locator_finder_by_xpath(most_precise_s2_level)
+            most_precise_s2_level_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_geo_s2_most_precise_s2_level)
             most_precise_s2_level_sitem.click()
             if self.version_is_newer_than('3.11.99'):
                 self.send_key_action(Keys.BACKSPACE)
@@ -962,8 +855,8 @@ class AnalyzerPage(NavigationBarPage):
         # Minhash
         elif name == 'My_Minhash_Analyzer':
             self.tprint("Selecting type of minhash analyzer")
-            analyzer_type = '(//*[text()="Analyzer type"])[2]'
-            analyzer_type_sitem = self.locator_finder_by_xpath(analyzer_type)
+            analyzer_type_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.select_minhash_analyzer_type)
             analyzer_type_sitem.click()
             # selecting minhash for delimiter analyzer
             self.send_key_action(Keys.ARROW_DOWN)
@@ -972,22 +865,19 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(2)
 
             self.tprint("adding minhash for delimiter analyzer")
-            delimiter_value = '//*[@id="properties.analyzer.properties.delimiter"]'
-            delimiter_value_sitem = self.locator_finder_by_xpath(delimiter_value)
+            delimiter_value_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_delimiter_value)
             delimiter_value_sitem.click()
             delimiter_value_sitem.send_keys("#")
             time.sleep(1)
 
-            numhashes = "(//input[@id='properties.numHashes'])[1]"
-            numhashes_sitem = self.locator_finder_by_xpath(numhashes)
+            numhashes_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_num_of_hashes)
             numhashes_sitem.click()
             numhashes_sitem.send_keys("10")
             time.sleep(1)
         # MultiDelimiter
         elif name == "My_MultiDelimiter_Analyzer":
             self.tprint("Selecting type of MultiDelimiter analyzer")
-            delimiters = "(//label[normalize-space()='Delimiters'])[1]"
-            delimiters_sitem = self.locator_finder_by_xpath(delimiters)
+            delimiters_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_delimiters)
             delimiters_sitem.click()
 
             # selecting values for MultiDelimiter analyzer
@@ -1018,16 +908,15 @@ class AnalyzerPage(NavigationBarPage):
         # WildCard
         elif name == "My_WildCard_Analyzer":
             self.tprint("Selecting type of WildCard analyzer\n")
-            ngram = "//input[@id='properties.ngramSize']"
-            ngram_sitem = self.locator_finder_by_xpath(ngram)
+            ngram_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_ngram_size)
             ngram_sitem.click()
             self.send_key_action(Keys.BACKSPACE)
             ngram_sitem.send_keys('4')
             time.sleep(2)
 
             self.tprint("Selecting delimiter analyzer\n")
-            delimiter = '(//*[text()="Analyzer type"])[2]'
-            delimiter_sitem = self.locator_finder_by_xpath(delimiter)
+            delimiter_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.select_delimiter_analyzer_type)
             delimiter_sitem.click()
             time.sleep(1)
 
@@ -1041,8 +930,8 @@ class AnalyzerPage(NavigationBarPage):
             self.send_key_action(Keys.ENTER)
 
             self.tprint("Selecting Multi Delimiters \n")
-            delimiter_properties = '//*[text()="Delimiters"]'
-            delimiter_properties_sitem = self.locator_finder_by_xpath(delimiter_properties)
+            delimiter_properties_sitem = self.locator_finder_by_xpath_or_css_selector(
+                self.elements.txt_multi_delimiters)
             delimiter_properties_sitem.click()
 
             self.send_key_action(",")
@@ -1084,16 +973,7 @@ class AnalyzerPage(NavigationBarPage):
             time.sleep(3)
 
         self.tprint(f"Selecting the create button for the {name} \n")
-        self.tprint(f'Selecting the create button for the {name} \n')
-        if self.version_is_newer_than('3.11.0'):
-            if self.version_is_newer_than('3.11.99'):
-                create = "(//button[normalize-space()='Create'])[1]"
-            else:
-                create = '//*[@id="chakra-modal-2"]/footer/button[2]'
-        else:
-            create = "//*[text()='Create']"
-
-        create_btn_sitem = self.locator_finder_by_xpath(create)
+        create_btn_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.btn_create_analyzer)
         create_btn_sitem.click()
         time.sleep(2)
 
@@ -1145,7 +1025,7 @@ class AnalyzerPage(NavigationBarPage):
                             analyzer_sitem = self.locator_finder_by_xpath(analyzer_xpath)
 
                         if analyzer_sitem is None:
-                            self.tprint(f'This {analyzer_name} has never been created \n')
+                            self.tprint(f'This {name} has never been created \n')
                         else:
                             analyzer_sitem.click()
                             time.sleep(3)
@@ -1711,7 +1591,7 @@ class AnalyzerPage(NavigationBarPage):
                 "properties": {{
                 "model_location": "{str(location.absolute())}",
                 "top_k": 2,
-                "threshold": 0.8
+                "threshold": 1  
                 }}
                 }}
             """,
@@ -2033,7 +1913,7 @@ class AnalyzerPage(NavigationBarPage):
                 "properties": {{
                 f"model_location": "{str(location.absolute())}",
                 "top_k": 2,
-                "threshold": 0.8
+                "threshold": 1
                 }},
                 "features": [
                 "frequency",
@@ -2363,22 +2243,23 @@ class AnalyzerPage(NavigationBarPage):
             self.tprint(f'Deletion of {analyzer_name} started \n')
             if self.version_is_newer_than('3.11.99'):
                 analyzer = f"//*[text()='_system::{analyzer_name}']"
+                time.sleep(5)
                 analyzer_sitem = self.locator_finder_by_xpath(analyzer)
                 if analyzer_sitem is None:
                     self.tprint(f'This {analyzer_name} has never been created \n')
                 else:
                     analyzer_sitem.click()
-                    time.sleep(1)
+                    time.sleep(5)
 
                     select_delete_btn = "(//button[normalize-space()='Delete'])[1]"
                     select_delete_btn_sitem = self.locator_finder_by_xpath(select_delete_btn)
                     select_delete_btn_sitem.click()
-                    time.sleep(1)
+                    time.sleep(5)
 
                     delete_confirm_btn = '(//button[text()="Delete"])[2]'
                     delete_confirm_btn_sitem = self.locator_finder_by_xpath(delete_confirm_btn)
                     delete_confirm_btn_sitem.click()
-                    time.sleep(1)
+                    time.sleep(2)
 
             else:
                 # search for specific analyzer according to their name

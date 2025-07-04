@@ -108,6 +108,9 @@ def upgrade_package_test(
         for default_props in EXECUTION_PLAN:
             if default_props.directory_suffix not in editions:
                 continue
+            if default_props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
+                print("skipping " + str(default_props))
+                continue
             props = deepcopy(default_props)
             props.set_kwargs(kwargs)
             if props.directory_suffix not in editions:
@@ -146,6 +149,9 @@ def upgrade_package_test(
     for scenario in upgrade_scenarios:
 
         for default_props in EXECUTION_PLAN:
+            if default_props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
+                print("skipping " + str(default_props))
+                continue
             props = deepcopy(default_props)
             props.set_kwargs(kwargs)
 
