@@ -88,7 +88,7 @@ def upgrade_package_test(
             test_driver.base_config,
             dl_opt,
             new_version,
-            props.enterprise,
+            props.enterprise if not props.mixed else True,
             new_dlstage,
             versions,
             fresh_versions,

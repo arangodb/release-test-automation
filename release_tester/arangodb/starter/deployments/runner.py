@@ -72,6 +72,7 @@ class Runner(ABC):
 
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
+        self.mixed = self.cfg.mixed or self.new_cfg.mixed
 
         mem = psutil.virtual_memory()
         os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
@@ -752,7 +753,7 @@ class Runner(ABC):
                         args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
-                        mixed=self.cfg.mixed,
+                        mixed=self.mixed,
                         deadline=deadline,
                         progressive_timeout=progressive_timeout,
                     )
