@@ -752,6 +752,7 @@ class Runner(ABC):
                         args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
+                        mixed=self.cfg.mixed,
                         deadline=deadline,
                         progressive_timeout=progressive_timeout,
                     )
@@ -779,7 +780,8 @@ class Runner(ABC):
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             frontend_found = True
             arangosh = starter.arangosh
-            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+            self.check_data_impl_sh(arangosh,
+                                    starter.supports_foxx_tests)
         if not frontend_found:
             raise Exception("no frontend found.")
 
@@ -841,7 +843,7 @@ class Runner(ABC):
                 str(path),
                 args,
                 progressive_timeout=progressive_timeout)
-            testFoxxRoutingReady = ("wait for self heal", """
+            starter.arangosh.run_command(("wait for self heal", """
     waitForSelfHeal = function () {
       for (let i = 0; i < 20; i++) {
         try {
@@ -858,8 +860,7 @@ class Runner(ABC):
       }
       throw new Error("foxx routeing not ready on time!");
     }; waitForSelfHeal();
-            """)
-            starter.arangosh.run_command(testFoxxRoutingReady)
+            """))
             #self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
