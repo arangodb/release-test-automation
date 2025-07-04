@@ -367,6 +367,7 @@ class RunProperties:
         minimum_supported_version: str = "3.5.0",
         use_auto_certs: bool = False,
         cluster_nodes: int = 3,
+        only_zip_src: bool = False,
     ):
         """set the values for this testrun"""
         if (create_oneshard_db or force_one_shard) and not enterprise:
@@ -384,6 +385,7 @@ class RunProperties:
         self.create_oneshard_db = create_oneshard_db
         self.minimum_supported_version = semver.VersionInfo.parse(minimum_supported_version)
         self.cluster_nodes = cluster_nodes
+        self.only_zip_src = only_zip_src
 
     def set_kwargs(self, kwargs):
         """pick values from the commandline arguments that should override defaults"""
@@ -410,7 +412,7 @@ EXECUTION_PLAN = [
     RunProperties(True, False, False, False, False, False, False, True, "Enterprise", "EP"),
     # RunProperties(True, False, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
     RunProperties(False, False, True, False, False, False, False, False, "Community", "C"),
-    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE"),
+    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE", True),
     # RunProperties(False, True, False, False, True, False, False, "Community\nreplication v.2", "Cr2", "3.11.999"),
 ]
 
@@ -432,6 +434,9 @@ def create_config_installer_set(
         if str(one_version).find("src") >= 0:
             one_cfg.zip_package = False
             one_cfg.src_testing = True
+        is_zip = one_cfg.zip_package or one_cfg.src_testing
+        if is_zip and run_properties.only_zip_src:
+            return []
         install_config = InstallerConfig(
             str(one_version),
             ep,
