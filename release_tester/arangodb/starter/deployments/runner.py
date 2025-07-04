@@ -72,7 +72,7 @@ class Runner(ABC):
 
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
-        self.mixed = self.cfg.mixed or self.new_cfg.mixed
+        self.mixed = self.cfg.mixed or (self.new_cfg and self.new_cfg.mixed)
 
         mem = psutil.virtual_memory()
         os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
