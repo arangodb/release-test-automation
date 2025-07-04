@@ -2,6 +2,8 @@
 """ base page object """
 import time
 import traceback
+import json
+import pathlib
 from datetime import datetime
 
 import tools.interact as ti
@@ -52,6 +54,11 @@ class BasePage:
         self.locator = None
         self.select = None
         self.current = None
+        # external element locators
+        elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
+        self.elements_data = {}
+        with open(elements_json_path, 'r', encoding='utf-8') as file:
+            self.elements_data = json.load(file)
 
     def tprint(self, string):
         """print including timestamp relative to video start"""

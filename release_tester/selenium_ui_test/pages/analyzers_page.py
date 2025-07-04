@@ -2,8 +2,6 @@
 """ analyzer page object """
 import time
 import traceback
-import json
-import pathlib
 from collections import namedtuple
 import semver
 from selenium_ui_test.pages.base_page import Keys
@@ -25,15 +23,9 @@ class AnalyzerPage(NavigationBarPage):
                                   "and not(ancestor::div[contains(@style,'display: none')])] "
         self.index = 0
         self.package_version = self.current_package_version()
-        # external page elements
+        # enabling external page locators for analyzer page
         ui_version = 'new_ui' if self.version_is_newer_than('3.11.99') else 'old_ui'
-        elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
-        print(f'UI elements JSON file path - {elements_json_path}')
-        elements_data = {}
-        with open(elements_json_path, 'r', encoding='utf-8') as file:
-            elements_data = json.load(file)
-        elements_dict = dict(elements_data[self.analyzers_page][ui_version])
-        # pylint: disable=invalid-name
+        elements_dict = dict(self.elements_data[self.analyzers_page][ui_version])
         Elements = namedtuple("Elements", list(elements_dict.keys())) # pylint: disable=C0103
         self.elements = Elements(*list(elements_dict.values()))
 
@@ -238,15 +230,15 @@ class AnalyzerPage(NavigationBarPage):
             "My_Stopwords_Analyzer": 7,
             "My_Collation_Analyzer": 8,
             "My_Segmentation_Alpha_Analyzer": 9,
-            "My_Nearest_Neighbor_Analyzer": 10 if self.version_is_newer_than('3.9.99') else 9,
-            "My_Classification_Analyzer": 11 if self.version_is_newer_than('3.9.99') else 9,
-            "My_Pipeline_Analyzer": 12 if self.version_is_newer_than('3.9.99') else 10,
-            "My_GeoJSON_Analyzer": 13 if self.version_is_newer_than('3.9.99') else 11,
-            "My_GeoPoint_Analyzer": 14 if self.version_is_newer_than('3.9.99') else 12,
-            "My_GeoS2_Analyzer": 15 if self.version_is_newer_than('3.9.99') else 13,
-            "My_Minhash_Analyzer": 16 if self.version_is_newer_than('3.9.99') else 14,
-            "My_MultiDelimiter_Analyzer": 17 if self.version_is_newer_than('3.9.99') else 15,
-            "My_WildCard_Analyzer": 18 if self.version_is_newer_than('3.9.99') else 16
+            "My_Nearest_Neighbor_Analyzer": 10,
+            "My_Classification_Analyzer": 11,
+            "My_Pipeline_Analyzer": 12,
+            "My_GeoJSON_Analyzer": 13,
+            "My_GeoPoint_Analyzer": 14,
+            "My_GeoS2_Analyzer": 15,
+            "My_Minhash_Analyzer": 16,
+            "My_MultiDelimiter_Analyzer": 17,
+            "My_WildCard_Analyzer": 18
         }
         return analyzer_lookup.get(name, -1)  # Return -1 if the analyzer name is not found
 
