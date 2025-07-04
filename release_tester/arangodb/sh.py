@@ -401,6 +401,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         args=None,
         one_shard: bool = False,
         database_name: str = "_system",
+        mixed: bool = False,
         result_line_handler=default_line_result,
         log_debug=False,
         deadline=900,
@@ -429,7 +430,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--progress', 'true',
                 '--oldVersion', self.old_version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
-                '--passvoid', self.cfg.passvoid
+                '--passvoid', self.cfg.passvoid,
+                '--mixed', 'true' if mixed else 'false'
             ] + test_filter,
             # fmt: on
             progressive_timeout=progressive_timeout,
