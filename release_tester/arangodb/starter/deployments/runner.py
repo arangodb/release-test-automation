@@ -521,10 +521,11 @@ class Runner(ABC):
         inst.cleanup_system()
 
     @step
-    def starter_prepare_env(self):
+    def starter_prepare_env(self, more_opts=None):
         """base setup; declare instance variables etc"""
         self.progress(True, "{0} - prepare starter launch".format(str(self.name)))
-        self.starter_prepare_env_impl()
+        # pylint: disable=unexpected-keyword-arg
+        self.starter_prepare_env_impl(more_opts=more_opts)
         self.agency = Agency(self)
 
     @step
@@ -792,30 +793,29 @@ class Runner(ABC):
             if not starter.is_leader:
                 continue
             assert starter.arango_dump, "dump everything: this starter doesn't have an dump instance!"
-            self.backup_name = self.cfg.base_test_dir.resolve()  / self.basedir / name
+            self.backup_name = self.cfg.base_test_dir.resolve() / self.basedir / name
             args = [
-                '--include-system-collections',
-                'true',
-                '--overwrite',
-                'true',
-                '--use-experimental-dump',
-                'true',
-                '--all-databases',
-                'true',
-                '--local-writer-threads',
-                '5',
-                '--local-network-threads',
-                '10',
-                '--dbserver-prefetch-batches',
-                '20',
-                '--split-files',
-                'true'
+                "--include-system-collections",
+                "true",
+                "--overwrite",
+                "true",
+                "--use-experimental-dump",
+                "true",
+                "--all-databases",
+                "true",
+                "--local-writer-threads",
+                "5",
+                "--local-network-threads",
+                "10",
+                "--dbserver-prefetch-batches",
+                "20",
+                "--split-files",
+                "true",
             ]
             ret = starter.arango_dump.run_dump_monitored(
-                self.backup_name,
-                args,
-                progressive_timeout=progressive_timeout)
-            #self.after_backup_create_impl()
+                self.backup_name, args, progressive_timeout=progressive_timeout
+            )
+            # self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
 
@@ -830,18 +830,18 @@ class Runner(ABC):
             assert starter.arango_restore, "restore everything: this starter doesn't have an restore instance!"
             print(path)
             args = [
-                '--include-system-collections',
-                'true',
-                '--overwrite',
-                'true',
-                '--all-databases',
-                'true',
+                "--include-system-collections",
+                "true",
+                "--overwrite",
+                "true",
+                "--all-databases",
+                "true",
             ]
-            ret = starter.arango_restore.run_restore_monitored(
-                str(path),
-                args,
-                progressive_timeout=progressive_timeout)
-            testFoxxRoutingReady = ("wait for self heal", """
+            ret = starter.arango_restore.run_restore_monitored(str(path), args, progressive_timeout=progressive_timeout)
+            # pylint: disable=invalid-name
+            testFoxxRoutingReady = (
+                "wait for self heal",
+                """
     waitForSelfHeal = function () {
       for (let i = 0; i < 20; i++) {
         try {
@@ -858,9 +858,10 @@ class Runner(ABC):
       }
       throw new Error("foxx routeing not ready on time!");
     }; waitForSelfHeal();
-            """)
+            """,
+            )
             starter.arangosh.run_command(testFoxxRoutingReady)
-            #self.after_backup_create_impl()
+            # self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
 

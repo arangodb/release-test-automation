@@ -30,15 +30,13 @@ class Single(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "Single", 400, 500, True, 1
-            ),
+            RunnerProperties(rp, "Single", 400, 500, True, 1),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -48,8 +46,9 @@ class Single(Runner):
         self.backup_instance_count = 1
         self.success = False
 
-    def starter_prepare_env_impl(self):
-        opts = []
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"
@@ -64,7 +63,7 @@ class Single(Runner):
                     "--host=localhost",
                 ]
             )
-            opts.append(f"--ssl.keyfile={tls_keyfile}")
+            more_opts.append(f"--ssl.keyfile={tls_keyfile}")
 
         self.starter_instance = StarterManager(
             self.cfg,
@@ -74,7 +73,7 @@ class Single(Runner):
             port=1234,
             expect_instances=[InstanceType.SINGLE],
             jwt_str="single",
-            moreopts=opts,
+            moreopts=more_opts,
         )
         self.starter_instance.is_leader = True
 
@@ -105,7 +104,7 @@ class Single(Runner):
 
         if self.selenium:
             self.selenium.test_after_install()
-        #self.make_data()
+        # self.make_data()
         if self.selenium:
             self.selenium.test_setup()
 

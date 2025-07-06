@@ -26,9 +26,10 @@ arangoversions = {
 }
 
 more_nodes_supported_starter = [
-    [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
-    [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
+    [semver.VersionInfo.parse("3.11.8-99"), semver.VersionInfo.parse("3.11.99")],
+    [semver.VersionInfo.parse("3.11.99"), semver.VersionInfo.parse("3.12.99")],
 ]
+
 
 def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
@@ -47,6 +48,7 @@ def remove_node_x_from_json(starter_dir):
     with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
         json.dump(content, setup_file)
 
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
@@ -59,7 +61,7 @@ class Cluster(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         name = "CLUSTER" if not rp.force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
@@ -87,8 +89,11 @@ class Cluster(Runner):
                 print("One deployment doesn't support starters with more nodes!")
                 self.props.cluster_nodes = 3
 
-    def starter_prepare_env_impl(self, sm=None):
+    def starter_prepare_env_impl(self, sm=None, more_opts=None):
         # pylint: disable=invalid-name
+        if more_opts is None:
+            more_opts = []
+
         def add_starter(name, port, opts, sm, hasAgency):
             agencyInstance = []
             if hasAgency:
@@ -108,16 +113,16 @@ class Cluster(Runner):
                         InstanceType.COORDINATOR,
                         InstanceType.DBSERVER,
                     ],
-                    moreopts=opts,
+                    moreopts=opts + more_opts,
                 )
             )
 
         self.create_test_collection = (
             "create test collection",
             """
-db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
-db.testCollection.save({test: "document"})
-""",
+                db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
+                db.testCollection.save({test: "document"})
+            """,
         )
         common_opts = []
         if self.props.replication2:
@@ -131,8 +136,8 @@ db.testCollection.save({test: "document"})
             common_opts += [
                 "--coordinators.cluster.force-one-shard=true",
                 "--dbservers.cluster.force-one-shard=true",
-                #"--coordinators.log.level=requests=trace",
-                #"--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
+                # "--coordinators.log.level=requests=trace",
+                # "--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
             ]
         else:
             common_opts += ["--args.all.cluster.default-replication-factor=2"]
@@ -201,7 +206,7 @@ db.testCollection.save({test: "document"})
             [],
             ["true"],
             verbose=True,
-            log_debug=True
+            log_debug=True,
         )
         if not retval:
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
@@ -404,7 +409,7 @@ db.testCollection.save({test: "document"})
                         db_name,
                         log_debug=True,
                         deadline=deadline,
-                        progressive_timeout=progressive_timeout
+                        progressive_timeout=progressive_timeout,
                     )
                     if not ret[0]:
                         raise Exception("check data failed in database %s :\n" % db_name + ret[1])

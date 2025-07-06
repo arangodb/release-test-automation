@@ -31,15 +31,13 @@ class ActiveFailover(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "ActiveFailOver", 500, 600, True, 3
-            ),
+            RunnerProperties(rp, "ActiveFailOver", 500, 600, True, 3),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -67,7 +65,9 @@ class ActiveFailover(Runner):
                 self.follower_nodes.append(node)
             node.set_passvoid("leader", node.is_leader)
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         # fmt: off
         node1_opts = ['--args.all.log.level=replication=debug']
         node2_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
@@ -129,7 +129,7 @@ class ActiveFailover(Runner):
                         InstanceType.RESILIENT_SINGLE,
                     ],
                     jwt_str="afo",
-                    moreopts=opts,
+                    moreopts=opts + more_opts,
                 )
             )
 
@@ -316,13 +316,11 @@ class ActiveFailover(Runner):
             args = []
             if self.old_installer.semver <= semver.VersionInfo.parse("3.11.11"):
                 # we know AFO 3.11.11 and older is broken here:
-                args = ['--skip', '802_']
+                args = ["--skip", "802_"]
                 self.checkdata_args = args
             ret = curr_leader.arangosh.check_test_data(
-                "checking active failover new leader node",
-                True,
-                 args,
-                log_debug=True)
+                "checking active failover new leader node", True, args, log_debug=True
+            )
             if not ret[0]:
                 raise Exception("check data failed " + ret[1])
 

@@ -107,16 +107,14 @@ class Dc2Dc(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         name = "DC2DC" if not rp.force_one_shard else "FORCED_ONESHARD_DC2DC"
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, name, 0, 4500, True, 12
-            ),
+            RunnerProperties(rp, name, 0, 4500, True, 12),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -131,7 +129,9 @@ class Dc2Dc(Runner):
         self.min_replication_factor = 2
         # self.hot_backup = False
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         datadir = Path("data")
         self.create_cert_dir()
 
@@ -197,13 +197,13 @@ class Dc2Dc(Runner):
             self.cert_op(["jwt-secret", "--secret=" + str(node["SyncSecret"])])
             self.cert_op(["jwt-secret", "--secret=" + str(node["JWTSecret"])])
 
-        def _add_starter(val, port, moreopts=None):
+        def _add_starter(val, port, local_more_opts=None):
             # fmt: off
-            if moreopts is None:
-                moreopts = []
+            if local_more_opts is None:
+                local_more_opts = []
             if psutil.cpu_count() < 16:
                 # FIXME: temp solution for BTS-1690 - limit concurrency during initial-sync phase (default 16)
-                moreopts.append('--args.syncworkers.worker.max-initial-sync-tasks=8')
+                local_more_opts.append('--args.syncworkers.worker.max-initial-sync-tasks=8')
             opts = [
                     '--args.all.cluster.default-replication-factor=2',
                     '--args.all.log.level=backup=trace',
@@ -218,7 +218,7 @@ class Dc2Dc(Runner):
                     '--sync.server.client-cafile=' + str(client_cert),
                     '--sync.master.jwt-secret=' +    str(val["SyncSecret"]),
                     '--starter.address=' +           self.cfg.publicip
-                ] + moreopts
+                ] + local_more_opts + more_opts
             # fmt: on
             if self.cfg.ssl and not self.cfg.use_auto_certs:
                 opts.append("--ssl.keyfile=" + str(val["tlsKeyfile"]))
@@ -260,12 +260,12 @@ class Dc2Dc(Runner):
             ]
         if self.props.force_one_shard:
             common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
-        _add_starter(self.cluster1, port=7528, moreopts=common_opts)
+        _add_starter(self.cluster1, port=7528, local_more_opts=common_opts)
         _add_starter(
             self.cluster2,
             port=9528,
-            moreopts=common_opts
-            # moreopts=['--args.dbservers.log', 'request=trace']
+            local_more_opts=common_opts,
+            # local_more_opts=['--args.dbservers.log', 'request=trace']
         )
         self.starter_instances = [self.cluster1["instance"], self.cluster2["instance"]]
 
@@ -499,7 +499,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "dc2dc (post setup - dc2)",
                     True,
-                    ["--readOnly", "true", "--countOffset", str(count_offset), '--skip', '802_'],
+                    ["--readOnly", "true", "--countOffset", str(count_offset), "--skip", "802_"],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
@@ -655,7 +655,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "cluster2 after dissolving",
                     True,
-                    args=["--countOffset", str(count_offset), '--skip', '802_'],
+                    args=["--countOffset", str(count_offset), "--skip", "802_"],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
@@ -669,7 +669,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "cluster2 after re-syncing",
                     True,
-                    ["--readOnly", "true", "--countOffset", str(count_offset), '--skip', '802_'],
+                    ["--readOnly", "true", "--countOffset", str(count_offset), "--skip", "802_"],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
@@ -701,7 +701,7 @@ class Dc2Dc(Runner):
                 ret = self.cluster2["instance"].arangosh.check_test_data(
                     "cluster2 after reversing direction",
                     True,
-                    args=["--countOffset", str(count_offset), '--skip', '802_'],
+                    args=["--countOffset", str(count_offset), "--skip", "802_"],
                     database_name=db_name,
                     one_shard=one_shard,
                 )
