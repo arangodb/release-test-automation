@@ -407,6 +407,7 @@ class Cluster(Runner):
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
+                        mixed=self.mixed,
                         log_debug=True,
                         deadline=deadline,
                         progressive_timeout=progressive_timeout,

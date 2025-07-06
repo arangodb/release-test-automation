@@ -68,6 +68,7 @@ class InstallerConfig:
         force_one_shard: bool,
         use_auto_certs: bool,
         arangods: list,
+        mixed: bool,
     ):
         self.publicip = bc.publicip
         self.interactive = bc.interactive
@@ -137,6 +138,7 @@ class InstallerConfig:
         self.arangods = arangods
         self.check_locale = bc.check_locale
         self.checkdata = bc.checkdata
+        self.mixed = mixed
 
     def __repr__(self):
         return """
@@ -221,6 +223,7 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.skip = other_cfg.skip
             self.check_locale = other_cfg.check_locale
             self.checkdata = other_cfg.checkdata
+            self.mixed = other_cfg.mixed
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -364,6 +367,7 @@ class RunProperties:
         create_oneshard_db: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
+        only_zip_src: bool = False,
         minimum_supported_version: str = "3.5.0",
         use_auto_certs: bool = False,
         cluster_nodes: int = 3,
@@ -384,6 +388,7 @@ class RunProperties:
         self.create_oneshard_db = create_oneshard_db
         self.minimum_supported_version = semver.VersionInfo.parse(minimum_supported_version)
         self.cluster_nodes = cluster_nodes
+        self.only_zip_src = only_zip_src
 
     def set_kwargs(self, kwargs):
         """pick values from the commandline arguments that should override defaults"""
@@ -406,12 +411,12 @@ directory_suffix: {0.directory_suffix}""".format(
 EXECUTION_PLAN = [
     RunProperties(True, False, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
     RunProperties(True, False, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
-    # RunProperties(True, False, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
+    # RunProperties(True, False, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", False, "3.11.999"),
     RunProperties(True, False, False, False, False, False, False, True, "Enterprise", "EP"),
-    # RunProperties(True, False, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
+    # RunProperties(True, False, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", False, "3.11.999"),
     RunProperties(False, False, True, False, False, False, False, False, "Community", "C"),
-    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE"),
-    # RunProperties(False, True, False, False, True, False, False, "Community\nreplication v.2", "Cr2", "3.11.999"),
+    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE", True),
+    # RunProperties(False, True, False, False, True, False, False, "Community\nreplication v.2", "Cr2", False, "3.11.999"),
 ]
 
 
@@ -442,6 +447,7 @@ def create_config_installer_set(
             run_properties.force_one_shard,
             run_properties.use_auto_certs,
             base_config.arangods,
+            run_properties.mixed,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()

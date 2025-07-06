@@ -118,7 +118,8 @@ class Download:
             ssl=False,
             force_one_shard=False,
             use_auto_certs=False,
-            arangods=arangods
+            arangods=arangods,
+            mixed=False,
         )
 
         self.inst = make_installer(self.cfg)

@@ -72,6 +72,7 @@ class Runner(ABC):
 
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
+        self.mixed = self.cfg.mixed or (self.new_cfg and self.new_cfg.mixed)
 
         mem = psutil.virtual_memory()
         os.environ["ARANGODB_OVERRIDE_DETECTED_TOTAL_MEMORY"] = str(
@@ -753,6 +754,7 @@ class Runner(ABC):
                         args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
+                        mixed=self.mixed,
                         deadline=deadline,
                         progressive_timeout=progressive_timeout,
                     )
@@ -838,10 +840,10 @@ class Runner(ABC):
                 "true",
             ]
             ret = starter.arango_restore.run_restore_monitored(str(path), args, progressive_timeout=progressive_timeout)
-            # pylint: disable=invalid-name
-            testFoxxRoutingReady = (
-                "wait for self heal",
-                """
+            starter.arangosh.run_command(
+                (
+                    "wait for self heal",
+                    """
     waitForSelfHeal = function () {
       for (let i = 0; i < 20; i++) {
         try {
@@ -859,8 +861,8 @@ class Runner(ABC):
       throw new Error("foxx routeing not ready on time!");
     }; waitForSelfHeal();
             """,
+                )
             )
-            starter.arangosh.run_command(testFoxxRoutingReady)
             # self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
