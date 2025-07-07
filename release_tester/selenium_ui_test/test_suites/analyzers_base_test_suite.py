@@ -8,13 +8,13 @@ from selenium_ui_test.test_suites.base_selenium_test_suite import BaseSeleniumTe
 from test_suites_core.base_test_suite import testcase
 
 
-class AnalyzersTestSuite1(BaseSeleniumTestSuite):
-    """ analyzer page testsuite """
-    @testcase
-    def test_analyzers(self):
-        """ analyzer page test set 1 """
+class AnalyzersBaseTestSuite(BaseSeleniumTestSuite):
+    """ analyzer base testsuite class """
+
+    def test_analyzers(self, analyzer_set=1):
+        """ analyzer page test base method """
         # pylint: disable=too-many-statements
-        self.tprint("---------Analyzers Page Test Set 1 Begin--------- \n")
+        self.tprint(f"---------Analyzers Page Test Set {analyzer_set} Begin--------- \n")
         analyzers = AnalyzerPage(self.webdriver, self.cfg, self.video_start_time)
 
         assert analyzers.current_user() == "ROOT", "current user is root?"
@@ -35,8 +35,8 @@ class AnalyzersTestSuite1(BaseSeleniumTestSuite):
                     self.tprint('Checking all built-in analyzers\n')
                     analyzers.checking_all_built_in_analyzer()
 
-                self.tprint('Creating all supported analyzers\n')
-                analyzers.creating_all_supported_analyzer(self.is_enterprise, self.ui_data_dir, analyzer_set=1)
+                self.tprint(f'Creating all supported analyzers in set {analyzer_set}\n')
+                analyzers.creating_all_supported_analyzer(self.is_enterprise, self.ui_data_dir, analyzer_set)
 
                 self.tprint('Checking expected negative scenarios for analyzers\n')
                 analyzers.analyzer_expected_error_check()
@@ -55,8 +55,8 @@ class AnalyzersTestSuite1(BaseSeleniumTestSuite):
             analyzers.print_combined_performance_results()
             if package_version >= semver.VersionInfo.parse("3.9.0"):
                 self.tprint("Analyzer deletion started.")
-                analyzers.deleting_all_created_analyzers(analyzer_set=1)
+                analyzers.deleting_all_created_analyzers(analyzer_set)
                 del analyzers
-                self.tprint("---------Analyzers Page Test Set 1 Completed--------- \n")
+                self.tprint(f"---------Analyzers Page Test {analyzer_set} Completed--------- \n")
                 if self.exception:
                     raise Exception(self.error)
