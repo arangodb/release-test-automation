@@ -2,10 +2,8 @@
 """ analyzer page object """
 import time
 import traceback
-import semver
-import json
-import pathlib
 from collections import namedtuple
+import semver
 from selenium_ui_test.pages.base_page import Keys
 from selenium_ui_test.pages.navbar import NavigationBarPage
 from selenium.webdriver.common.by import By
@@ -25,15 +23,10 @@ class AnalyzerPage(NavigationBarPage):
                                   "and not(ancestor::div[contains(@style,'display: none')])] "
         self.index = 0
         self.package_version = self.current_package_version()
-        # external page elements
+        # enabling external page locators for analyzer page
         ui_version = 'new_ui' if self.version_is_newer_than('3.11.99') else 'old_ui'
-        elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
-        print(f'UI elements JSON file path - {elements_json_path}')
-        elements_data = {}
-        with open(elements_json_path, 'r') as file:
-            elements_data = json.load(file)
-        elements_dict = dict(elements_data[self.analyzers_page][ui_version])
-        Elements = namedtuple("Elements", list(elements_dict.keys()))
+        elements_dict = dict(self.elements_data[self.analyzers_page][ui_version])
+        Elements = namedtuple("Elements", list(elements_dict.keys())) # pylint: disable=C0103
         self.elements = Elements(*list(elements_dict.values()))
 
     def select_analyzers_page(self):
@@ -237,15 +230,15 @@ class AnalyzerPage(NavigationBarPage):
             "My_Stopwords_Analyzer": 7,
             "My_Collation_Analyzer": 8,
             "My_Segmentation_Alpha_Analyzer": 9,
-            "My_Nearest_Neighbor_Analyzer": 10 if self.version_is_newer_than('3.9.99') else 9,
-            "My_Classification_Analyzer": 11 if self.version_is_newer_than('3.9.99') else 9,
-            "My_Pipeline_Analyzer": 12 if self.version_is_newer_than('3.9.99') else 10,
-            "My_GeoJSON_Analyzer": 13 if self.version_is_newer_than('3.9.99') else 11,
-            "My_GeoPoint_Analyzer": 14 if self.version_is_newer_than('3.9.99') else 12,
-            "My_GeoS2_Analyzer": 15 if self.version_is_newer_than('3.9.99') else 13,
-            "My_Minhash_Analyzer": 16 if self.version_is_newer_than('3.9.99') else 14,
-            "My_MultiDelimiter_Analyzer": 17 if self.version_is_newer_than('3.9.99') else 15,
-            "My_WildCard_Analyzer": 18 if self.version_is_newer_than('3.9.99') else 16
+            "My_Nearest_Neighbor_Analyzer": 10,
+            "My_Classification_Analyzer": 11,
+            "My_Pipeline_Analyzer": 12,
+            "My_GeoJSON_Analyzer": 13,
+            "My_GeoPoint_Analyzer": 14,
+            "My_GeoS2_Analyzer": 15,
+            "My_Minhash_Analyzer": 16,
+            "My_MultiDelimiter_Analyzer": 17,
+            "My_WildCard_Analyzer": 18
         }
         return analyzer_lookup.get(name, -1)  # Return -1 if the analyzer name is not found
 
@@ -1925,29 +1918,36 @@ class AnalyzerPage(NavigationBarPage):
         return analyzers[analyzer_name]
 
 
-    def creating_all_supported_analyzer(self, enterprise, model_location=None):
+    def creating_all_supported_analyzer(self, enterprise, model_location=None, analyzer_set=1):
         """This method will create all the supported version-specific analyzers"""
-        decode_analyzers = {
-            "My_Identity_Analyzer": (0, None, False),
-            "My_Delimiter_Analyzer": (0, None, False),
-            "My_Stem_Analyzer": (0, None, False),
-            "My_Norm_Analyzer": (0, None, False),
-            "My_N-Gram_Analyzer": (0, None, False),
-            "My_Text_Analyzer": (0, None, False),
-            "My_AQL_Analyzer": (0, None, False),
-            "My_Stopwords_Analyzer": (0, None, False),
-            "My_Collation_Analyzer": (0, None, False),
-            "My_Segmentation_Alpha_Analyzer": (0, None, False),
-            "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
-            "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
-            "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), not (enterprise and self.version_is_newer_than('3.11.99'))),
-            "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
-            "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'), not enterprise),
-            "My_GeoS2_Analyzer": (0, None, not enterprise)
-        }
+        if analyzer_set == 1:
+            decode_analyzers = {
+                "My_Identity_Analyzer": (0, None, False),
+                "My_Delimiter_Analyzer": (0, None, False),
+                "My_Stem_Analyzer": (0, None, False),
+                "My_Norm_Analyzer": (0, None, False),
+                "My_N-Gram_Analyzer": (0, None, False),
+                "My_Text_Analyzer": (0, None, False),
+                "My_AQL_Analyzer": (0, None, False),
+                "My_Stopwords_Analyzer": (0, None, False),
+                "My_Collation_Analyzer": (0, None, False),
+                "My_Segmentation_Alpha_Analyzer": (0, None, False)
+            }
+        else:
+            decode_analyzers = {
+                "My_Pipeline_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+                "My_GeoJSON_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+                "My_GeoPoint_Analyzer": (0, semver.VersionInfo.parse('3.10.0'), False),
+                "My_MultiDelimiter_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+                "My_WildCard_Analyzer": (0, semver.VersionInfo.parse('3.11.99'), False),
+                "My_Minhash_Analyzer": (0, semver.VersionInfo.parse('3.11.99'),
+                                        not (enterprise and self.version_is_newer_than('3.11.99'))),
+                "My_Nearest_Neighbor_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'),
+                                                 not enterprise),
+                "My_Classification_Analyzer": (1 if enterprise else 0, semver.VersionInfo.parse('3.10.0'),
+                                               not enterprise),
+                "My_GeoS2_Analyzer": (0, None, not enterprise)
+            }
 
         # Loop through each analyzer in the dictionary
         for analyzer_name, config in decode_analyzers.items():
@@ -2294,26 +2294,28 @@ class AnalyzerPage(NavigationBarPage):
             traceback.print_exc()
             raise Exception('Critical Error occurred and need manual inspection!! \n') from ex
 
-    def deleting_all_created_analyzers(self):
+    def deleting_all_created_analyzers(self, analyzer_set=1):
         """Deleting all the created analyzers"""
-        self.delete_analyzer('My_AQL_Analyzer')
-        self.delete_analyzer('My_Collation_Analyzer')
-        self.delete_analyzer('My_Delimiter_Analyzer')
-        self.delete_analyzer('My_GeoJSON_Analyzer')
-        self.delete_analyzer('My_GeoPoint_Analyzer')
-        self.delete_analyzer('My_Identity_Analyzer')
-        self.delete_analyzer('My_N-Gram_Analyzer')
-        self.delete_analyzer('My_Norm_Analyzer')
-        self.delete_analyzer('My_Pipeline_Analyzer')
-        self.delete_analyzer('My_Segmentation_Alpha_Analyzer')
-        self.delete_analyzer('My_Stem_Analyzer')
-        self.delete_analyzer('My_Stopwords_Analyzer')
-        self.delete_analyzer('My_Text_Analyzer')
-        self.delete_analyzer('My_Nearest_Neighbor_Analyzer')
-        self.delete_analyzer('My_Classification_Analyzer')
-        self.delete_analyzer('My_GeoS2_Analyzer')
-        if self.version_is_newer_than('3.11.99'):
-            self.delete_analyzer('My_Minhash_Analyzer')
-            self.delete_analyzer('My_MultiDelimiter_Analyzer')
-            self.delete_analyzer('My_WildCard_Analyzer')
+        if analyzer_set == 1:
+            self.delete_analyzer('My_Identity_Analyzer')
+            self.delete_analyzer('My_Delimiter_Analyzer')
+            self.delete_analyzer('My_Stem_Analyzer')
+            self.delete_analyzer('My_Norm_Analyzer')
+            self.delete_analyzer('My_N-Gram_Analyzer')
+            self.delete_analyzer('My_Text_Analyzer')
+            self.delete_analyzer('My_AQL_Analyzer')
+            self.delete_analyzer('My_Stopwords_Analyzer')
+            self.delete_analyzer('My_Collation_Analyzer')
+            self.delete_analyzer('My_Segmentation_Alpha_Analyzer')
+        else:
+            self.delete_analyzer('My_Pipeline_Analyzer')
+            self.delete_analyzer('My_GeoJSON_Analyzer')
+            self.delete_analyzer('My_GeoPoint_Analyzer')
+            self.delete_analyzer('My_Nearest_Neighbor_Analyzer')
+            self.delete_analyzer('My_Classification_Analyzer')
+            self.delete_analyzer('My_GeoS2_Analyzer')
+            if self.version_is_newer_than('3.11.99'):
+                self.delete_analyzer('My_Minhash_Analyzer')
+                self.delete_analyzer('My_MultiDelimiter_Analyzer')
+                self.delete_analyzer('My_WildCard_Analyzer')
         self.tprint('All the created analyzers have been deleted \n')
