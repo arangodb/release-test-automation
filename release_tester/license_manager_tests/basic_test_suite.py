@@ -9,9 +9,12 @@ from license_manager_tests.base.license_manager_base_test_suite import (
     EXTERNAL_HELPERS_LOADED,
 )
 from license_manager_tests.cluster import LicenseManagerClusterTestSuite
+from license_manager_tests.cluster_new import LicenseManagerClusterNewTestSuite
 from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
 from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
+from license_manager_tests.leader_follower_new import LicenseManagerLeaderFollowerNewTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
+from license_manager_tests.single_server_new import LicenseManagerSingleServerNewTestSuite
 from test_suites_core.base_test_suite import run_before_suite, run_after_suite, disable_if_false
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
@@ -28,6 +31,9 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         LicenseManagerAfoTestSuite,
         LicenseManagerClusterTestSuite,
         LicenseManagerDc2DcTestSuite,
+        LicenseManagerSingleServerNewTestSuite,
+        LicenseManagerLeaderFollowerNewTestSuite,
+        LicenseManagerClusterNewTestSuite,
     ]
 
     def __init__(self, params: CliTestSuiteParameters):
@@ -36,6 +42,10 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         local_params = deepcopy(params)
         local_params.old_version = None
         super().__init__(local_params)
+
+    def _check_versions_eligible(self):
+        """Check that test suite is compatible with ArangoDB versions that are being tested."""
+        return True, "eligibility must be checked inside child test suites"
 
     @run_after_suite
     def uninstall_package(self):

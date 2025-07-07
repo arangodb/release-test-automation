@@ -32,27 +32,12 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
 
     # pylint: disable=too-many-instance-attributes disable=too-many-boolean-expressions
     def __init__(self, params: CliTestSuiteParameters):
-        min_version = semver.VersionInfo.parse("3.9.0-nightly")
-        max_version = semver.VersionInfo.parse("3.12.4")
         super().__init__(params)
-        if (
-            self.new_version is not None
-            and (
-                semver.VersionInfo.parse(self.new_version) < min_version
-                or semver.VersionInfo.parse(self.new_version) > max_version
-            )
-        ) or (
-            self.old_version is not None
-            and (
-                semver.VersionInfo.parse(self.old_version) < min_version
-                or semver.VersionInfo.parse(self.old_version) > max_version
-            )
-        ):
+        eligible, reason = self._check_versions_eligible()
+        if not eligible:
             self.__class__.is_disabled = True
             # pylint: disable=no-member
-            self.__class__.disable_reasons.append(
-                "License manager test suite is only applicable to versions 3.9.0 to 3.12.4."
-            )
+            self.__class__.disable_reasons.append(reason)
         self.sub_suite_name = self.__doc__ if self.__doc__ else self.__class__.__name__
         self.installer_set = create_config_installer_set(
             versions=[self.old_version, self.new_version] if self.old_version else [self.new_version],
@@ -69,6 +54,28 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
         self.parent_test_suite_name = (
             f"Licence manager test suite: ArangoDB v. {str(self.new_version)} ({self.installer.installer_type})"
         )
+
+    def _check_versions_eligible(self):
+        """Check that test suite is compatible with ArangoDB versions that are being tested."""
+        min_version = semver.VersionInfo.parse("3.9.0-nightly")
+        max_version = semver.VersionInfo.parse("3.12.4")
+        # pylint: disable=no-else-return
+        if (
+            self.new_version is not None
+            and (
+                semver.VersionInfo.parse(self.new_version) < min_version
+                or semver.VersionInfo.parse(self.new_version) > max_version
+            )
+        ) or (
+            self.old_version is not None
+            and (
+                semver.VersionInfo.parse(self.old_version) < min_version
+                or semver.VersionInfo.parse(self.old_version) > max_version
+            )
+        ):
+            return False, "This test suite is only applicable to versions 3.9.0 to 3.12.4."
+        else:
+            return True, None
 
     def init_child_class(self, child_class):
         """initialise the child class"""
@@ -150,9 +157,10 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     # pylint: disable=fixme
     # FIXME: set valid license before each test case
     #    @run_before_each_testcase
+    @step
     def set_valid_license(self):
         """set valid license"""
-        new_timestamp = str(int(time() + 59 * 60))
+        new_timestamp = str(int(time() + 24 * 60 * 60))
         # pylint: disable=assignment-from-no-return
         server_id = self.get_server_id()
         license_str = create_license(new_timestamp, server_id)

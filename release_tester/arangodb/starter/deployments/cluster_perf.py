@@ -45,6 +45,7 @@ from tools.timestamp import timestamp
 RESULTS_TXT = None
 OTHER_SH_OUTPUT = None
 
+
 # pylint: disable=unused-argument
 def result_line(wait, line, params):
     """get one result line"""
@@ -83,7 +84,7 @@ class ClusterPerf(Cluster):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         global OTHER_SH_OUTPUT, RESULTS_TXT
         cfg = installer_set[0][1].cfg
@@ -100,9 +101,7 @@ class ClusterPerf(Cluster):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "CLUSTER", 400, 600, self.scenario.hot_backup, 6
-            ),
+            RunnerProperties(rp, "CLUSTER", 400, 600, self.scenario.hot_backup, 6),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -446,7 +445,9 @@ class ClusterPerf(Cluster):
                 self._check_defined_data(makedata_job_params)
             count += 1
 
-    def starter_prepare_env_impl(self, sm=None):
+    def starter_prepare_env_impl(self, sm=None, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         self.cfg.index = 0
 
         # pylint: disable=import-outside-toplevel
@@ -454,7 +455,7 @@ class ClusterPerf(Cluster):
             pass
         else:
 
-            super().starter_prepare_env_impl()
+            super().starter_prepare_env_impl(more_opts=more_opts)
         # super().starter_prepare_env_impl(StarterManager)
         # += ['--agents.agency.election-timeout-min=5',
         #     '--agents.agency.election-timeout-max=10',]

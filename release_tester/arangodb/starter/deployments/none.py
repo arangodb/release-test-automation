@@ -17,22 +17,20 @@ class NoStarter(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         self.msg = ""
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "none", 0, 1, False, 1
-            ),
+            RunnerProperties(rp, "none", 0, 1, False, 1),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
         )
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, more_opts=None):
         """nothing to see here"""
 
     def starter_run_impl(self):

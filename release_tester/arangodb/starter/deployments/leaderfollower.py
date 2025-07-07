@@ -30,15 +30,13 @@ class LeaderFollower(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "LeaderFollower", 400, 500, False, 2
-            ),
+            RunnerProperties(rp, "LeaderFollower", 400, 500, False, 2),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -134,7 +132,9 @@ while (true) {{
             ),
         }
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         leader_opts = []
         follower_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
@@ -174,7 +174,7 @@ while (true) {{
             port=1234,
             expect_instances=[InstanceType.SINGLE],
             jwt_str="leader",
-            moreopts=leader_opts,
+            moreopts=leader_opts + more_opts,
         )
         self.leader_starter_instance.is_leader = True
 
@@ -186,7 +186,7 @@ while (true) {{
             port=2345,
             expect_instances=[InstanceType.SINGLE],
             jwt_str="follower",
-            moreopts=follower_opts,
+            moreopts=follower_opts + more_opts,
         )
 
     @step
@@ -332,8 +332,8 @@ process.exit(0);
         """run the replication fuzzing test"""
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
-        deadline=500000 if self.cfg.is_instrumented else 1000
-        progressive_timeout=1000 if self.cfg.is_instrumented else 100
+        deadline = 500000 if self.cfg.is_instrumented else 1000
+        progressive_timeout = 1000 if self.cfg.is_instrumented else 100
         self.tcp_ping_all_nodes()
         ret = self.leader_starter_instance.arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
