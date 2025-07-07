@@ -18,13 +18,12 @@ class LicenseManagerNewBaseTestSuite(LicenseManagerBaseTestSuite):
         """Check that test suite is compatible with ArangoDB versions that are being tested.
         If not, disable test suite.
         """
-        return False, "TODO: this testsuite is still disabled" # TODO
-        #if self.new_version is not None and semver.VersionInfo.parse(self.new_version) <= semver.VersionInfo.parse(
-        #    "3.12.5"
-        #):
-        #    return False, "This test suite is only applicable to versions above 3.12.5"
-        #else:
-        #    return True, None
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) <= semver.VersionInfo.parse(
+            "3.12.5"
+        ):
+            return False, "This test suite is only applicable to versions above 3.12.5"
+        else:
+            return True, None
 
     @staticmethod
     def sleep(seconds: int = 60):
