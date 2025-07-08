@@ -95,6 +95,7 @@ class AfoServerState(IntEnum):
     CHALLENGE_ONGOING = 3
     STARTUP_MAINTENANCE = 4
     NOT_CONNECTED = 5
+    UNAUTHORIZED = 6
 
 
 class Instance(ABC):
@@ -707,6 +708,10 @@ class ArangodInstance(Instance):
             if body_json["errorNum"] == 503:
                 return AfoServerState.STARTUP_MAINTENANCE
             raise Exception("afo_state: unsupported error code in " + str(reply.content))
+        if reply.status_code == 401:
+            body_json = json.loads(reply.content)
+            print("afo_state: http Unauthorized with: " + str(reply.content))
+            return AfoServerState.UNAUTHORIZED
         raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code) + str(reply))
 
     def detect_restore_restart(self):
