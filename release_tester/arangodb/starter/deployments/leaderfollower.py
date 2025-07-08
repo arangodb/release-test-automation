@@ -263,6 +263,8 @@ process.exit(0);
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
+        if not self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"]):
+            raise Exception("the follower would not catch up in time!")
         if not self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
             while tries:
                 if self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
