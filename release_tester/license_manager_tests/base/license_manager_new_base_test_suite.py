@@ -18,9 +18,7 @@ class LicenseManagerNewBaseTestSuite(LicenseManagerBaseTestSuite):
         """Check that test suite is compatible with ArangoDB versions that are being tested.
         If not, disable test suite.
         """
-        self.__class__.is_disabled = True
-        # pylint: disable=no-member
-        self.__class__.disable_reasons.append("TODO: WIP!")        # pylint: disable=no-else-return
+        return False, "TODO: this testsuite is still disabled" # TODO
         #if self.new_version is not None and semver.VersionInfo.parse(self.new_version) <= semver.VersionInfo.parse(
         #    "3.12.5"
         #):
