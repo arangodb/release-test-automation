@@ -712,7 +712,7 @@ class ArangodInstance(Instance):
             body_json = json.loads(reply.content)
             print("afo_state: http Unauthorized with: " + str(reply.content))
             return AfoServerState.UNAUTHORIZED
-        raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code) + str(reply))
+        raise Exception("afo_state: unsupported HTTP-Status code " + str(reply.status_code) + str(reply))
 
     def detect_restore_restart(self):
         """has the server restored their backup restored and is back up"""
