@@ -163,7 +163,7 @@ class Download:
         self.inst.calculate_package_names()
         full_version = "v{major}.{minor}.{patch}".format(**self.cfg.semver.to_dict())
         if self.cfg.semver.prerelease is not None:
-            full_version += "-" + self.cfg.semver.prerelease
+            full_version += "." + self.cfg.semver.prerelease
         self.params = {
             "full_version": full_version,
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
