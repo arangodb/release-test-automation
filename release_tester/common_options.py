@@ -417,6 +417,7 @@ def download_options(default_source="public", double_source=False, other_source=
         "ftp:stage1",
         "ftp:stage2",
         "http:stage2",
+        "http:stage1-rta",
         "http:stage2-rta",
         "nightlypublic",
         "public",
