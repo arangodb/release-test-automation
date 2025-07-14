@@ -161,8 +161,11 @@ class Download:
     def calculate_package_names(self):
         """guess where to locate the packages"""
         self.inst.calculate_package_names()
+        full_version = self.cfg.semver.to_dict()
+        if self.cfg.semver.prerelease is not None:
+            full_version += "-" + self.cfg.semver.prerelease
         self.params = {
-            "full_version": "v{major}.{minor}.{patch}".format(**self.cfg.semver.to_dict()),
+            "full_version": "v{major}.{minor}.{patch}".format(full_version),
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
