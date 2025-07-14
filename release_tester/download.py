@@ -103,6 +103,8 @@ class Download:
                 self.remote_host = "nas01.arangodb.biz"
             elif source in ["http:stage2-rta"]:
                 self.remote_host = "storage.googleapis.com"
+            elif source in ["http:stage1-rta"]:
+                self.remote_host = "storage.googleapis.com"
             elif source in ["http:stage2"]:
                 self.remote_host = "download.arangodb.com"
             else:
@@ -182,6 +184,9 @@ class Download:
             "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
+            "http:stage1-rta": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
+                **self.params
+            ),
             "http:stage2-rta": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
@@ -202,6 +207,7 @@ class Download:
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
+            "http:stage1-rta": self.acquire_live_rta,
             "http:stage2-rta": self.acquire_live_rta,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
