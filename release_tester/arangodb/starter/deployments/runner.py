@@ -307,6 +307,8 @@ class Runner(ABC):
                 self.dump_everything("dump_this_" + self.name)
                 print(self.backup_name)
                 self.restore_everything(self.backup_name)
+                # self.reload_routing()
+                self.check_data_impl()
 
             if self.new_installer:
                 if self.hot_backup:
@@ -370,6 +372,7 @@ class Runner(ABC):
                 if self.dump_restore:
                     print(self.backup_name)
                     self.restore_everything(self.backup_name)
+                    # self.reload_routing()
 
                 self.check_data_impl()
                 self.versionstr = "OLD[" + self.new_cfg.version + "] "
@@ -999,6 +1002,19 @@ class Runner(ABC):
         for starter in self.starter_instances:
             assert starter.hb_instance, "download backup: this starter doesn't have an hb instance!"
             starter.hb_instance.validate_local_backup(starter.basedir, name)
+
+    @step
+    def reload_routing(self):
+        """reload the routing"""
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            for instance_type in [
+                    InstanceType.COORDINATOR,
+                    InstanceType.RESILIENT_SINGLE,
+                    InstanceType.SINGLE
+            ]:
+                starter.send_request(instance_type,requests.post, "/_admin/routing/reload", "")
 
     @step
     def search_for_warnings(self, print_lines=True):
