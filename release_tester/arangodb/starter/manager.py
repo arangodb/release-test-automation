@@ -891,9 +891,13 @@ class StarterManager:
         frontends = self.get_frontends()
         for frontend in frontends:
             # we abuse this function:
+            count = 0
             while frontend.get_afo_state() != AfoServerState.LEADER:
                 progress(".")
-                time.sleep(0.1)
+                time.sleep(0.5)
+                count += 1
+                if count > 240:
+                    raise Exception("system did not become available in 2 minutes!")
 
     @step
     def execute_frontend(self, cmd, verbose=True):
