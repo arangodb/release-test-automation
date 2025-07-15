@@ -50,10 +50,10 @@ class InstallerNsis(InstallerWin):
         cfg.log_dir = cfg.install_prefix / "LOG"
         cfg.dbdir = cfg.install_prefix / "DB"
         cfg.appdir = cfg.install_prefix / "APP"
-        cfg.install_prefix = cfg.install_prefix / ("PROG" + cfg.version)
+        subdir = "PROG" + cfg.version
         if cfg.semver.prerelease is not None:
-            cfg.install_prefix += "_" + cfg.semver.prerelease
-
+            subdir += "_" + cfg.semver.prerelease
+        cfg.install_prefix = cfg.install_prefix / subdir
         cfg.cfgdir = cfg.install_prefix / "etc/arangodb3"
 
         cfg.bin_dir = cfg.install_prefix / "usr" / "bin"
