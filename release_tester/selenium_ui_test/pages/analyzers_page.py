@@ -990,7 +990,7 @@ class AnalyzerPage(NavigationBarPage):
         self.tprint(f"Creating {name} completed successfully \n")
 
         # --------------------here we are checking the properties of the created analyzer----------------------
-        if self.version_is_older_than('3.11.99'):
+        if self.version_is_older_than('3.11.0'):
             # primariliy enable the test for the version below 3.11.99
             if name in ["My_Nearest_Neighbor_Analyzer", "My_Classification_Analyzer"]:
                 self.tprint(f"Skipping the properties check for {name} \n") #todo: need to fix this for 3.11.x, location porperties has changed due to the dynamic selenoid depoloyment
