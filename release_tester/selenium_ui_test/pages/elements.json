@@ -108,7 +108,7 @@
       ["txt_longitude", "//div[label[text()='Longitude Path']]//input[not(@disabled)]"],
       ["txt_geo_point_max_s2_cells", "//div[label[text()='Max S2 Cells']]//input[not(@disabled)]"],
       ["select_geo_s2_analyzer_type", "(//label[normalize-space()='Type'])[1]"],
-      ["select_geo_s2_analyzer_format", "(//label[normalize-space()='format'])[1]"],
+      ["select_geo_s2_analyzer_format", "(//label[normalize-space()='Format'])[1]"],
       ["txt_geo_s2_max_s2_cells", "//*[text()='Max S2 Cells']"],
       ["txt_geo_s2_least_precise_s2_level", "//*[text()='Least Precise S2 Level']"],
       ["txt_geo_s2_most_precise_s2_level", "//*[text()='Most Precise S2 Level']"],

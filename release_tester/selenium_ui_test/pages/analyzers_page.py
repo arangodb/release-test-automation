@@ -148,7 +148,7 @@ class AnalyzerPage(NavigationBarPage):
         # Click the search icon from the search/filter box if it takes
         # to the collection page then it's an error.
 
-        if self.version_is_newer_than('3.11.99'):
+        if self.version_is_newer_than('3.11.0'):
             self.tprint("checking_analyzer_page_transition test skipped \n")
         else:
             self.navbar_goto("analyzers")
@@ -990,7 +990,7 @@ class AnalyzerPage(NavigationBarPage):
         self.tprint(f"Creating {name} completed successfully \n")
 
         # --------------------here we are checking the properties of the created analyzer----------------------
-        if self.version_is_older_than('3.11.99'):
+        if self.version_is_older_than('3.11.0'):
             # primariliy enable the test for the version below 3.11.99
             if name in ["My_Nearest_Neighbor_Analyzer", "My_Classification_Analyzer"]:
                 self.tprint(f"Skipping the properties check for {name} \n") #todo: need to fix this for 3.11.x, location porperties has changed due to the dynamic selenoid depoloyment
@@ -2211,7 +2211,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def analyzer_expected_error_check(self):
         """This will call all the error scenario methods"""
-        if self.version_is_newer_than('3.11.99'):
+        if self.version_is_newer_than('3.11.0'):
             self.tprint('Skipped \n')
         else:
             self.tprint('Checking negative scenario for the identity analyzers name \n')
@@ -2226,7 +2226,7 @@ class AnalyzerPage(NavigationBarPage):
 
     def checking_search_filter(self):
         """This method will check analyzer's search filter option"""
-        if self.version_is_newer_than('3.11.99'):
+        if self.version_is_newer_than('3.11.0'):
             self.tprint("Skipped \n")
         else:
             self.tprint('Checking analyzer search filter options started \n')
