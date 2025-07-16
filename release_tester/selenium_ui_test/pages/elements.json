@@ -121,5 +121,21 @@
       ["txt_multi_delimiters", "//*[text()='Delimiters']"],
       ["btn_create_analyzer", "//*[@id='chakra-modal-2']/footer/button[2]"]
     ]
-  }
+  },
+  "replication" : [
+    ["tab_replication", "//*[@id='replication']"],
+    ["table_replication_state", ".pure-g.cluster-values"],
+    ["txt_state", "#info-state-id"],
+    ["txt_mode", "#info-mode-id"],
+    ["txt_role", "#info-role-id"],
+    ["txt_level", "#info-level-id"],
+    ["txt_health", "#info-msg-id"],
+    ["txt_tick", "#logger-lastLogTick-id"],
+    ["table_header_leader", "//*[@id='repl-logger-clients']/thead/tr/th[%d]"],
+    ["table_cell_leader", "//*[@id='repl-logger-clients']/tbody/tr[%d]/td[%d]"],
+    ["table_header_follower", "//*[@id='repl-follower-table']/thead/tr/th[%d]"],
+    ["table_cell_follower", "//*[@id='repl-follower-table']/tbody/tr[%d]/td[%d]"],
+    ["txt_nodes_leader", "#nodes-leader-id"],
+    ["txt_nodes_follower", "#nodes-followers-id>span"]
+  ]
 }
