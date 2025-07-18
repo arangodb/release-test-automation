@@ -16,6 +16,7 @@ from arangodb.starter.deployments.runner import Runner
 from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
+import tools.loghelper as lh
 
 
 class ActiveFailover(Runner):
@@ -47,6 +48,20 @@ class ActiveFailover(Runner):
         self.leader = None
         self.success = True
         self.backup_instance_count = 1
+
+    def _check_for_shards_in_sync(self):
+        """wait for all shards to be in sync"""
+        lh.subsubsection("wait for all shards to be in sync - Jamming")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_repl_catchup.js")),
+            [],
+            ["true"],
+            verbose=True,
+            log_debug=True,
+        )
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        print("all in sync.")
 
     def detect_leader(self):
         """find out the leader node"""
@@ -208,7 +223,8 @@ class ActiveFailover(Runner):
             self.selenium.test_setup()
 
     def wait_for_restore_impl(self, backup_starter):
-        backup_starter.wait_for_restore()
+        if self.hot_backup:
+            backup_starter.wait_for_restore()
         self.leader = None
         retry = True
         time.sleep(5)  # Make shaky leader less viable.
@@ -231,6 +247,7 @@ class ActiveFailover(Runner):
         # release from maintainance mode according to
         # https://www.arangodb.com/docs/3.7/programs-arangobackup-limitations.html#active-failover-special-limitations
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
+        self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""

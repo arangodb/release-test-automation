@@ -867,6 +867,7 @@ class Runner(ABC):
                 )
             )
             # self.after_backup_create_impl()
+            self.wait_for_restore_impl(starter)
             return ret
         raise Exception("no frontend found.")
 
