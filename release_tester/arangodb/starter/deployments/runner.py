@@ -961,7 +961,8 @@ class Runner(ABC):
 
     def wait_for_restore_impl(self, backup_starter):
         """wait for all restores to be finished"""
-        backup_starter.wait_for_restore()
+        if self.hot_backup:
+            backup_starter.wait_for_restore()
 
     @step
     def restore_backup(self, name):

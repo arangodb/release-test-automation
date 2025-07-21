@@ -221,9 +221,10 @@ class Cluster(Runner):
         self._check_for_shards_in_sync()
 
     def wait_for_restore_impl(self, backup_starter):
-        for starter in self.starter_instances:
-            for dbserver in starter.get_dbservers():
-                dbserver.detect_restore_restart()
+        if self.hot_backup:
+            for starter in self.starter_instances:
+                for dbserver in starter.get_dbservers():
+                    dbserver.detect_restore_restart()
         self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_impl(self):
