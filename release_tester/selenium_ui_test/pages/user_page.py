@@ -20,12 +20,12 @@ class UserPage(NavigationBarPage):
         """User page initialization"""
         super().__init__(driver, cfg, video_start_time)
         self.page_name = "user"
-        # enabling external page locators for analyzer page
+        # enabling external page locators for user page
         ui_version = 'new_ui' if self.version_is_newer_than('3.11.99') else 'old_ui'
         elements_dict = dict(self.elements_data[self.page_name][ui_version])
         Elements = namedtuple("Elements", list(elements_dict.keys())) # pylint: disable=C0103
         self.elements = Elements(*list(elements_dict.values()))
-        # page locators exposed in the test suite class
+        # page locators exposed to the test suite class
         self.a_first_collection = self.elements.header_a_first_collection
         self.m_middle_collection = self.elements.header_m_middle_collection
         self.z_last_collection = self.elements.header_z_last_collection
@@ -42,10 +42,7 @@ class UserPage(NavigationBarPage):
         """User page selecting add new user"""
         self.tprint(f"New user {tester} creation begins \n")
         time.sleep(5)
-        # btn_add_new_user = self.locator_finder_by_xpath_or_css_selector(self.elements.btn_add_new_user)
         self.locator_finder_by_xpath_or_css_selector(self.elements.btn_add_new_user).click()
-        # time.sleep(3)
-        # btn_add_new_user.click()
         time.sleep(5)
 
         # entering new username
