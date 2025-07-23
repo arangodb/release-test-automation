@@ -510,7 +510,7 @@ class BasePage:
         return self.locator
 
     def locator_finder_by_select(self, locator_name, value):
-        """This method will used for finding all the locators in drop down menu with options"""
+        """This method is used for finding all the locators in drop down menu with options"""
         self.select = Select(self.webdriver.find_element(BY.ID, locator_name))
         self.select.select_by_index(value)
         if self.select is None:
@@ -573,21 +573,36 @@ class BasePage:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
 
-    def locator_finder_by_css_selector(self, locator_name, timeout=10):
+    def locator_finder_by_css_selector(self, locator_name, timeout=10, benchmark=False):
         """This method finds an element by its CSS Selector"""
+        if benchmark:
+            metrics_before = self.get_performance_metrics(self.webdriver)
+
         self.locator = WebDriverWait(self.webdriver, timeout).until(
             EC.presence_of_element_located((BY.CSS_SELECTOR, locator_name)),
             message="UI-Test: UI element with '" + locator_name + "' css selector was not found.",
         )
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        if benchmark:
+            metrics_after = self.get_performance_metrics(self.webdriver)
+            self.collected_metrics.append(metrics_after)
+
+            evaluations_before = self.evaluate_performance_metrics(metrics_before)
+            evaluations_after = self.evaluate_performance_metrics(metrics_after)
+
+            self.tprint(f"Performance metrics: {metrics_before}")
+            self.tprint(f"Performance before finding locator {locator_name}: {evaluations_before}")
+
+            self.tprint(f"Performance metrics: {metrics_after}")
+            self.tprint(f"Performance after finding locator {locator_name}: {evaluations_after}")
         return self.locator
 
-    def locator_finder_by_xpath_or_css_selector(self, locator_name, timeout=10):
+    def locator_finder_by_xpath_or_css_selector(self, locator_name, timeout=10, benchmark=False):
         """This method determines whether locator is css selector or xpath expression and calls respective method"""
         if '/' in locator_name:
-            return self.locator_finder_by_xpath(locator_name, timeout)
-        return self.locator_finder_by_css_selector(locator_name, timeout)
+            return self.locator_finder_by_xpath(locator_name, timeout=timeout, benchmark=benchmark)
+        return self.locator_finder_by_css_selector(locator_name, timeout=timeout, benchmark=benchmark)
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(

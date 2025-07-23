@@ -36,9 +36,9 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
 
                     user.check_user_collection_sort()
 
-                    collection_page.delete_collection("a_first", user.a_first_id, self.is_cluster)
-                    collection_page.delete_collection("m_middle", user.m_middle_id, self.is_cluster)
-                    collection_page.delete_collection("z_last", user.z_last_id, self.is_cluster)
+                    collection_page.delete_collection("a_first", user.a_first_collection, self.is_cluster)
+                    collection_page.delete_collection("m_middle", user.m_middle_collection, self.is_cluster)
+                    collection_page.delete_collection("z_last", user.z_last_collection, self.is_cluster)
 
             self.tprint("New user creation begins \n")
             user.user_tab()
@@ -120,7 +120,7 @@ class UserPageTestSuite(BaseSeleniumTestSuite):
             self.tprint("Deleting created user begins\n")
             user.delete_user_btn()
             user.confirm_delete_btn()
-            collection_page.delete_collection("TestDoc", user.test_doc_collection_id, self.is_cluster)
+            collection_page.delete_collection("TestDoc", user.test_doc_collection, self.is_cluster)
 
             self.tprint("Deleting created user completed \n")
             self.tprint("---------User Test Completed---------\n")

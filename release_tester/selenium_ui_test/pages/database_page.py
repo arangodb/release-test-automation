@@ -90,9 +90,10 @@ class DatabasePage(NavigationBarPage):
                         pass
                 else:
                     self.tprint(f"selecting sharded option from drop down using index for {db_name}\n")
+                    time.sleep(15) # need to slow down Se here, or otherwise it may not find the Select element
                     select_sharded_db = "newSharding"
                     self.locator_finder_by_select(select_sharded_db, index)
-                    time.sleep(1)
+                    time.sleep(5)
             else:
                 self.tprint(f"Skipped for Community or < v3.11.99 for {db_name}\n")
 
