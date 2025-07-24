@@ -36,7 +36,9 @@ class Single(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(rp, "Single", 400, 500, True, 1),
+            RunnerProperties(
+                rp, "Single", 400, 500, True, 1
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
