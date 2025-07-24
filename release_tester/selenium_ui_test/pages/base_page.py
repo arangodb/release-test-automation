@@ -54,6 +54,7 @@ class BasePage:
         self.locator = None
         self.select = None
         self.current = None
+        self.is_one_sharded = True if str(cfg.base_test_dir).endswith('OS') else False
         # external element locators
         elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
         self.elements_data = {}

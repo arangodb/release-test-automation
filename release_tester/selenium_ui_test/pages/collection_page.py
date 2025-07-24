@@ -272,22 +272,26 @@ class CollectionPage(NavigationBarPage):
                     self.tprint("Might be failed due to forced-one-shard option is enabled, need a fix \n")
                     self.tprint(str(e))
             else:
-                self.tprint(f"selecting number of Shards for the {name} \n")
-                time.sleep(15)
-                shards = "new-collection-shards"
-                shards_sitem = self.locator_finder_by_id(shards)
-                shards_sitem.click()
-                shards_sitem.clear()
-                shards_sitem.send_keys(9)
-                time.sleep(2)
+                if self.is_one_sharded:
+                    print("We're in one sharded mode - skipping shards related options...")
+                    time.sleep(2)
+                else:
+                    self.tprint(f"selecting number of Shards for the {name} \n")
+                    time.sleep(15)
+                    shards = "new-collection-shards"
+                    shards_sitem = self.locator_finder_by_id(shards)
+                    shards_sitem.click()
+                    shards_sitem.clear()
+                    shards_sitem.send_keys(9)
+                    time.sleep(2)
 
-                self.tprint(f"selecting number of replication factor for {name} \n")
-                rf = "new-replication-factor"
-                rf_sitem = self.locator_finder_by_id(rf)
-                rf_sitem.click()
-                rf_sitem.clear()
-                rf_sitem.send_keys(3)
-                time.sleep(2)
+                    self.tprint(f"selecting number of replication factor for {name} \n")
+                    rf = "new-replication-factor"
+                    rf_sitem = self.locator_finder_by_id(rf)
+                    rf_sitem.click()
+                    rf_sitem.clear()
+                    rf_sitem.send_keys(3)
+                    time.sleep(2)
 
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             if not is_cluster:
