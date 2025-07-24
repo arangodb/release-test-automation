@@ -45,6 +45,7 @@ from reporting.reporting_utils import attach_table, step, attach_http_request_to
 
 IS_WINDOWS = sys.platform == "win32"
 
+DEFAULT_ENCRYPTION_AT_REST_KEY="defaultencatrestkey_32chars_xxxx"
 
 # pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
@@ -122,7 +123,7 @@ class StarterManager:
         if self.cfg.encryption_at_rest:
             self.keyfile = self.basedir / "key.txt"
             # generate pseudo random key of length 32:
-            self.keyfile.write_text((str(datetime.datetime.now()) * 5)[0:32])
+            self.keyfile.write_text(DEFAULT_ENCRYPTION_AT_REST_KEY)
             self.moreopts += ["--rocksdb.encryption-keyfile", str(self.keyfile)]
         self.hb_instance = None
         self.hb_config = None
@@ -380,6 +381,22 @@ class StarterManager:
         if not expect_to_fail:
             self.wait_for_logfile()
             self.wait_for_port_bind()
+        self.is_running = True
+
+    @step
+    def run_starter_and_wait(self):
+        """launch the starter and wait for all arnagod instances to come up"""
+        self.run_starter()
+        count = 0
+        while not self.is_instance_up():
+            logging.debug("waiting for mananger with logfile:" + str(self.log_file))
+            progress(".")
+            time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Starter manager installation didn't come up in two minutes!")
+        self.detect_instances()
+        self.detect_instance_pids()
 
     @step
     def attach_running_starter(self):
@@ -449,7 +466,8 @@ class StarterManager:
             self.arangosh.js_set_passvoid("root", passvoid)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         else:
-            self.arangosh.cfg.passvoid = passvoid
+            if self.arangosh:
+                self.arangosh.cfg.passvoid = passvoid
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
@@ -1295,6 +1313,15 @@ class StarterManager:
         """count occurrences of a substring in the starter log"""
         number_of_occurances = self.get_log_file().count(substring)
         return number_of_occurances
+
+    def stop_dbserver(self):
+        """stop db server managed by this starter"""
+        dbserver = self.get_dbserver()
+        self.kill_instance()
+        dbserver.terminate_instance()
+        self.all_instances.remove(dbserver)
+        self.moreopts.append("--cluster.start-dbserver=false")
+        self.run_starter()
 
 
 class StarterNonManager(StarterManager):

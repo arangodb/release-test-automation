@@ -114,7 +114,9 @@ class Dc2Dc(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(rp, name, 0, 4500, True, 12),
+            RunnerProperties(
+                rp, name, 0, 4500, True, 12
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
