@@ -147,7 +147,8 @@ class Cluster(Runner):
             self.create_tls_ca_cert()
         port = 9528
         count = 0
-        full_node_count = self.props.cluster_nodes + 2  # we need 2 additional nodes for hotbackup testing
+        # we need 2 additional nodes for hotbackup testing
+        full_node_count = self.props.cluster_nodes + 2 if self.hot_backup else self.props.cluster_nodes
         for this_node in list(range(1, full_node_count + 1)):
             node = []
             node_opts.append(node)
@@ -240,10 +241,10 @@ class Cluster(Runner):
         if self.cfg.stress_upgrade:
             bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
             bench_instances.append(self.starter_instances[1].launch_arangobench("cluster_upgrade_scenario_2"))
-        for node in self.starter_instances:
+        for node in self.get_running_starters():
             node.replace_binary_for_upgrade(self.new_installer.cfg)
 
-        for node in self.starter_instances:
+        for node in self.get_running_starters():
             node.detect_instance_pids_still_alive()
 
         self.starter_instances[1].command_upgrade()
@@ -616,6 +617,7 @@ class Cluster(Runner):
     @step
     def remove_starter_dbserver(self, starter):
         """remove dbserver managed by given starter from cluster"""
+        print("removing starter " + repr(starter))
         terminated_dbserver_uuid = starter.get_dbserver().get_uuid()
         starter.stop_dbserver()
         self.remove_server_from_agency(terminated_dbserver_uuid)
