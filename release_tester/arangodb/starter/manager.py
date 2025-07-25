@@ -313,25 +313,26 @@ class StarterManager:
     def get_frontend(self):
         """get the first frontendhost of this starter"""
         servers = self.get_frontends()
-        assert servers, "starter: don't have instances!"
+        print(repr(self))
+        assert servers, "starter: don't have instances!" + repr(self)
         return servers[0]
 
     def get_dbserver(self):
         """get the first dbserver of this starter"""
         servers = self.get_dbservers()
-        assert servers, "starter: don't have instances!"
+        assert servers, "starter: don't have instances!" + repr(self)
         return servers[0]
 
     def get_agent(self):
         """get the first agent of this starter"""
         servers = self.get_agents()
-        assert servers, "starter: have no instances!"
+        assert servers, "starter: have no instances!" + repr(self)
         return servers[0]
 
     def get_sync_master(self):
         """get the first arangosync master of this starter"""
         servers = self.get_sync_masters()
-        assert servers, "starter: don't have instances!"
+        assert servers, "starter: don't have instances!" + repr(self)
         return servers[0]
 
     def have_this_instance(self, instance):
@@ -701,7 +702,7 @@ class StarterManager:
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
             if self.instance is None:
-                logging.error("StarterManager: don't have an instance!!")
+                logging.error("StarterManager: don't have an instance!!" + repr(self))
             else:
                 logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
                 self.kill_instance()
@@ -996,14 +997,14 @@ class StarterManager:
     def read_db_logfile(self):
         """get the logfile of the dbserver instance"""
         server = self.get_dbserver()
-        assert server.logfile.exists(), "don't have logfile?"
+        assert server.logfile.exists(), "don't have logfile?" + repr(self)
         return server.logfile.read_text(errors="backslashreplace")
 
     @step
     def read_agent_logfile(self):
         """get the agent logfile of this instance"""
         server = self.get_agent()
-        assert server.logfile.exists(), "don't have logfile?"
+        assert server.logfile.exists(), "don't have logfile?" + repr(self)
         return server.logfile.read_text(errors="backslashreplace")
 
     @step

@@ -285,8 +285,6 @@ class Runner(ABC):
                 self.check_data_impl()
 
             if self.new_installer:
-                if self.hot_backup:
-                    self.create_non_backup_data()
                 self.versionstr = "NEW[" + self.new_cfg.version + "] "
 
                 self.upgrade_counter += 1
@@ -398,6 +396,7 @@ class Runner(ABC):
         self.check_data_impl()
         if not self.check_non_backup_data():
             raise Exception("data created after backup is still there??")
+        self.create_non_backup_data()
 
     @step
     def test_hotbackup_after_upgrade_impl(self):
