@@ -166,3 +166,10 @@ class LoginPage(BasePage):
         logout_button_sitem.click()
         self.tprint("Logout from the current user\n")
         self.wait_for_ajax()
+
+    def is_on_login_page(self):
+        """determine whether we are on login page"""
+        time.sleep(2)
+        if 'login' in self.webdriver.current_url:
+            return True
+        return False
