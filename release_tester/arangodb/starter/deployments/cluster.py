@@ -568,6 +568,7 @@ class Cluster(Runner):
             self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server", False)
 
         with step("step 6: create non-backup data"):
+            self._check_for_shards_in_sync()
             self.create_non_backup_data()
             self.tcp_ping_all_nodes()
 
@@ -611,6 +612,7 @@ class Cluster(Runner):
             self.remove_starter_dbserver(old_servers[1])
 
         with step("step 14: create non-backup data"):
+            self._check_for_shards_in_sync()
             self.create_non_backup_data()
             self.tcp_ping_all_nodes()
 
