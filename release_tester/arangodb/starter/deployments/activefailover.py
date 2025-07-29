@@ -354,7 +354,9 @@ class ActiveFailover(Runner):
 
         if self.selenium:
             # cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.set_selenium_instances()
+            # self.set_selenium_instances()
+            print(f'current leader url - << {curr_leader.get_frontend().get_local_url("")} >>')
+            self.set_new_selenium_instances(curr_leader.get_frontend().get_local_url(""))
             self.selenium.test_jam_attempt()
 
         prompt_user(
@@ -426,5 +428,15 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.leader.arango_importer,
             self.leader.arango_restore,
             [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
+            self.new_cfg,
+        )
+
+    def set_new_selenium_instances(self, leader_url):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.leader.arango_importer,
+            self.leader.arango_restore,
+            leader_url,
             self.new_cfg,
         )
