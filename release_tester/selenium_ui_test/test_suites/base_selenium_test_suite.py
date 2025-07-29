@@ -135,6 +135,7 @@ class BaseSeleniumTestSuite(BaseTestSuite):
     def goto_url_and_wait_until_loaded(self, path):
         """goto & wait for loaded"""
         # to account for cases like AFO when FE may not be ready right away
+        print(f'path to load: {self.url + path}')
         load_attempts, delay, counter = 10, 30, 0
         while counter < load_attempts:
             try:
