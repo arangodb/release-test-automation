@@ -135,12 +135,12 @@ class SupportPage(NavigationBarPage):
                 'Recommended Resources | ArangoDB Documentation']
         else:
             manual_link_assertion_check = [
-                'Getting Started | Manual | ArangoDB Documentation',
-                'Modeling Data for ArangoDB | ArangoDB Documentation',
-                'Administration | Manual | ArangoDB Documentation',
-                'Scaling | Manual | ArangoDB Documentation',
-                'Graphs | Manual | ArangoDB Documentation',
-                'Introduction to ArangoDB Documentation | ArangoDB Documentation']
+                'Get Started | ArangoDB Documentation',
+                'Concepts | ArangoDB Documentation',
+                'Administration | ArangoDB Documentation',
+                'ArangoDB Architecture | ArangoDB Documentation',
+                'Graphs | ArangoDB Documentation',
+                'What is ArangoDB? | ArangoDB Documentation']
 
         self.loop_through_link_traversal(
             manual_link_list_print_statement, manual_link_list, manual_link_assertion_check
@@ -175,11 +175,11 @@ class SupportPage(NavigationBarPage):
                                                 'AQL Query Patterns and Examples | ArangoDB Documentation',
                                                 'AQL Documentation | ArangoDB Documentation']
         else:
-            fundamental_link_assertion_check = ['AQL Fundamentals | AQL | ArangoDB Documentation',
+            fundamental_link_assertion_check = ['AQL Fundamentals | ArangoDB Documentation',
                                                 'AQL Data Queries | ArangoDB Documentation',
-                                                'ArangoDB Query Language AQL Functions | ArangoDB Documentation',
-                                                'AQL Query Patterns & Examples | ArangoDB Documentation',
-                                                'ArangoDB Query Language (AQL) Introduction | ArangoDB Documentation']
+                                                'AQL functions | ArangoDB Documentation',
+                                                'AQL Query Patterns and Examples | ArangoDB Documentation',
+                                                'AQL Documentation | ArangoDB Documentation']
 
         self.loop_through_link_traversal(aql_link_list_print_statement, aql_link_list, fundamental_link_assertion_check)
 
