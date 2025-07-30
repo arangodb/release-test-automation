@@ -8,7 +8,6 @@ from pathlib import Path
 import traceback
 
 import click
-import semver
 
 import tools.loghelper as lh
 from arangodb.hot_backup_cfg import HotBackupCliCfg
@@ -105,7 +104,7 @@ def upgrade_package_test(
             test_driver.reset_test_data_dir(this_test_dir)
             skip = False
             for version in [new_version, old_version]:
-                if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                if props.is_version_not_supported(version):
                     skip = True
             if skip:
                 print(f"Skipping {str(props)}")

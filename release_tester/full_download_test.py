@@ -6,7 +6,6 @@ from pathlib import Path
 import sys
 
 import click
-import semver
 
 import reporting.reporting_utils
 from common_options import (
@@ -60,7 +59,7 @@ def package_test(
         props = deepcopy(init_props)
         if props.directory_suffix not in editions:
             continue
-        if semver.VersionInfo.parse(new_version) < props.minimum_supported_version:
+        if props.is_version_not_supported(new_version):
             continue
         props.set_kwargs(kwargs)
         dl_opt = deepcopy(dl_opts)

@@ -7,7 +7,6 @@ from copy import copy, deepcopy
 from pathlib import Path
 
 import click
-import semver
 
 import tools.loghelper as lh
 from common_options import (
@@ -176,7 +175,7 @@ def upgrade_package_test(
             if props.directory_suffix not in editions:
                 continue
 
-            if props.minimum_supported_version > packages[primary_version][props.directory_suffix].cfg.semver:
+            if props.is_version_not_supported(packages[primary_version][props.directory_suffix].cfg.version):
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
@@ -204,7 +203,7 @@ def upgrade_package_test(
                     continue
                 skip = False
                 for version in scenario:
-                    if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                    if props.is_version_not_supported(version):
                         skip = True
                 if skip:
                     print(f"Skipping {str(props)}")

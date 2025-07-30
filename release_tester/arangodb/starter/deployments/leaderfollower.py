@@ -193,7 +193,7 @@ while (true) {{
     def restore_everything(self, path):
         """restore a dump to the installation"""
         # self.before_backup_create_impl()
-        ret = self.restore_everything_from_dump(self.leader_starter_instance, path)
+        self.restore_everything_from_dump(self.leader_starter_instance, path)
         self.wait_for_self_heal(self.leader_starter_instance)
         self.wait_for_restore_impl(self.leader_starter_instance)
         self.follower_starter_instance.arangosh.run_command((

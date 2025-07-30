@@ -825,6 +825,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     def wait_for_self_heal(self, starter):
+        """ wait until the servers foxx has healed """
         starter.arangosh.run_command(
             (
                 "wait for self heal",
@@ -850,6 +851,7 @@ class Runner(ABC):
         )
 
     def restore_everything_from_dump(self, starter, path):
+        """ do a full restore from a dump """
         progressive_timeout = 1600 if self.cfg.is_instrumented else 100
         assert starter.arango_restore, "restore everything: this starter doesn't have an restore instance!"
         print(path)
