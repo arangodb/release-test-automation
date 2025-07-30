@@ -354,13 +354,14 @@ class ActiveFailover(Runner):
 
         if self.selenium:
             # cfg = self.new_cfg if self.new_cfg else self.cfg
+            curr_leader_port = curr_leader.get_frontend().get_local_url("").split(":")[2]
             print(f'current leader url - << {curr_leader.get_frontend().get_local_url("")} >>')
-            print(f'current leader port - << {curr_leader.port} >>')
-            resilient_instance = [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0]
+            print(f'current leader port - << {curr_leader_port} >>')
             print(f'leader.all_instances - {self.leader.all_instances}')
+            resilient_instance = [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0]
             print(f'resilient instance - {resilient_instance}, its port - {resilient_instance.port}')
             # self.set_selenium_instances()
-            resilient_instance.port = curr_leader.port
+            resilient_instance.port = int(curr_leader_port)
             self.set_new_selenium_instances(resilient_instance)
             self.selenium.test_jam_attempt()
 
