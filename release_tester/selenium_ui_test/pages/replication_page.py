@@ -111,16 +111,19 @@ class ReplicationPage(NavigationBarPage):
         time.sleep(1)
         assert replication_mode == "Active Failover", f"Expected Active Failover but got {replication_mode}"
 
-        ip_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729"]
+        url_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729",
+                    "ssl://localhost:9529", "ssl://localhost:9629", "ssl://localhost:9729"]
 
-        self.tprint("checking leader id\n")
+        self.tprint("checking leader ip\n")
         leader_id_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_nodes_leader)
         leader = leader_id_sitem.text
+        print(f"leader url - {leader}")
         time.sleep(1)
-        assert leader in ip_list, "Error occurred, Couldn't find expected leader ip"
+        assert leader in url_list, "Error occurred, Couldn't find expected leader url"
 
-        self.tprint("checking follower id\n")
+        self.tprint("checking follower ip\n")
         follower_id_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_nodes_follower)
         follower = follower_id_sitem.text
+        print(f"follower url - {leader}")
         time.sleep(1)
-        assert follower in ip_list, "Error occurred, Couldn't find expected follower ip"
+        assert follower in url_list, "Error occurred, Couldn't find expected follower url"
