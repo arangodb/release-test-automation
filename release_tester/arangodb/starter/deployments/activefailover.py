@@ -354,9 +354,14 @@ class ActiveFailover(Runner):
 
         if self.selenium:
             # cfg = self.new_cfg if self.new_cfg else self.cfg
+            print(f'current leader url - << {curr_leader.get_frontend().get_local_url("")} >>')
+            print(f'current leader port - << {curr_leader.port} >>')
+            resilient_instance = [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0]
+            print(f'leader.all_instances - {self.leader.all_instances}')
+            print(f'resilient instance - {resilient_instance}, its port - {resilient_instance.port}')
             # self.set_selenium_instances()
-            self.set_new_selenium_instances(curr_leader)
-            print(f'current leader url - << {curr_leader.get_frontend().get_public_url("")} >>')
+            resilient_instance.port = curr_leader.port
+            self.set_new_selenium_instances(resilient_instance)
             self.selenium.test_jam_attempt()
 
         prompt_user(
@@ -423,8 +428,6 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
-        print(f'leader.all_instances - {self.leader.all_instances}')
-        print(f'resilient instance - {[x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE]}')
         self.selenium.set_instances(
             self.cfg,
             self.leader.arango_importer,
@@ -435,9 +438,6 @@ please revalidate the UI states on the new leader; you should see *one* follower
 
     def set_new_selenium_instances(self, new_leader):
         """set instances in selenium runner"""
-        print(f'new leader - {new_leader.all_instances}')
-        print(f'leader.all_instances - {self.leader.all_instances}')
-        print(f'resilient instance - {[x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE]}')
         self.selenium.set_instances(
             self.cfg,
             self.leader.arango_importer,
