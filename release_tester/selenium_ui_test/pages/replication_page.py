@@ -114,16 +114,14 @@ class ReplicationPage(NavigationBarPage):
         url_list = ["tcp://localhost:9529", "tcp://localhost:9629", "tcp://localhost:9729",
                     "ssl://localhost:9529", "ssl://localhost:9629", "ssl://localhost:9729"]
 
-        self.tprint("checking leader ip\n")
+        self.tprint("checking leader url\n")
         leader_id_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_nodes_leader)
         leader = leader_id_sitem.text
-        print(f"leader url - {leader}")
         time.sleep(1)
         assert leader in url_list, "Error occurred, Couldn't find expected leader url"
 
-        self.tprint("checking follower ip\n")
+        self.tprint("checking follower url\n")
         follower_id_sitem = self.locator_finder_by_xpath_or_css_selector(self.elements.txt_nodes_follower)
         follower = follower_id_sitem.text
-        print(f"follower url - {leader}")
         time.sleep(1)
         assert follower in url_list, "Error occurred, Couldn't find expected follower url"
