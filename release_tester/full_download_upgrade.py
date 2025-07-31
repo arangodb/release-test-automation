@@ -66,6 +66,13 @@ def upgrade_package_test(
         if _props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
             print("skipping " + str(_props))
             continue
+        skip = False
+        for version in [new_version, old_version]:
+            if _props.is_version_not_supported(version):
+                skip = True
+        if skip:
+            print(f"Skipping {str(_props)}")
+            continue
         props = deepcopy(_props)
         props.set_kwargs(kwargs)
 
@@ -102,13 +109,6 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
-            skip = False
-            for version in [new_version, old_version]:
-                if props.is_version_not_supported(version):
-                    skip = True
-            if skip:
-                print(f"Skipping {str(props)}")
-                continue
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
             versions.append([dl_new.cfg.version, dl_old.cfg.version])
             if props.enterprise:
