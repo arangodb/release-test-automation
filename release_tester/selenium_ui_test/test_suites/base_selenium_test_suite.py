@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """ base class for all selenium testsuites """
 from datetime import datetime
+from time import sleep
 
 from allure_commons._allure import attach
 from allure_commons.types import AttachmentType
 from beautifultable import BeautifulTable
-from selenium.common.exceptions import InvalidSessionIdException
+from selenium.common.exceptions import InvalidSessionIdException, WebDriverException
 from selenium.webdriver.common.by import By
 from semver import VersionInfo
 
@@ -133,7 +134,17 @@ class BaseSeleniumTestSuite(BaseTestSuite):
 
     def goto_url_and_wait_until_loaded(self, path):
         """goto & wait for loaded"""
-        self.webdriver.get(self.url + path)
+        load_attempts, delay, counter = 10, 30, 0
+        while counter < load_attempts:
+            try:
+                self.webdriver.get(self.url + path)
+                break
+            except WebDriverException as ex:
+                print(f"'{type(ex).__name__}' is thrown - FE may not be ready yet...")
+                sleep(delay)
+            counter += 1
+        else:
+            raise Exception(f"FE at '{self.url + path}' still not ready after '{load_attempts * delay}' seconds")
         BasePage(self.webdriver, self.cfg, self.video_start_time).wait_for_ajax()
 
     @run_before_suite

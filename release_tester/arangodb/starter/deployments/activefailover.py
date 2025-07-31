@@ -3,6 +3,7 @@
 import logging
 import sys
 import time
+import re
 from pathlib import Path
 
 import requests
@@ -353,8 +354,11 @@ class ActiveFailover(Runner):
         self.set_frontend_instances()
 
         if self.selenium:
-            # cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.set_selenium_instances()
+            curr_leader_local_url = curr_leader.get_frontend().get_local_url("")
+            curr_leader_port = int(re.search('(?<=:)\d{4}', curr_leader_local_url).group())
+            resilient_instance = [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0]
+            resilient_instance.port = curr_leader_port
+            self.set_new_selenium_instances(resilient_instance)
             self.selenium.test_jam_attempt()
 
         prompt_user(
@@ -426,5 +430,15 @@ please revalidate the UI states on the new leader; you should see *one* follower
             self.leader.arango_importer,
             self.leader.arango_restore,
             [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
+            self.new_cfg,
+        )
+
+    def set_new_selenium_instances(self, new_leader_instance):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.leader.arango_importer,
+            self.leader.arango_restore,
+            new_leader_instance,
             self.new_cfg,
         )
