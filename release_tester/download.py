@@ -187,6 +187,9 @@ class Download:
             "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
                 **self.params
             ),
+            "http:hotfix": "/{enterprise_magic}/hotfixes/{full_version}/packages/{enterprise}/{remote_package_dir}/".format(
+                **self.params
+            ),
             "http:stage1-rta": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
@@ -210,6 +213,7 @@ class Download:
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
+            "http:hotfix": self.acquire_live,
             "http:stage1-rta": self.acquire_live_rta,
             "http:stage2-rta": self.acquire_live_rta,
             "nightlypublic": self.acquire_live,
