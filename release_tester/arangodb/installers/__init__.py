@@ -396,7 +396,7 @@ class RunProperties:
     def is_version_not_supported(self, version):
         """ check whether this edition is supported in version """
         ver = semver.VersionInfo.parse(version)
-        return (self.minimum_supported_version > ver > self.maximum_supported_version)
+        return not (self.maximum_supported_version > ver > self.minimum_supported_version)
 
     def set_kwargs(self, kwargs):
         """pick values from the commandline arguments that should override defaults"""
@@ -404,26 +404,25 @@ class RunProperties:
         self.cluster_nodes = kwargs["cluster_nodes"]
 
     def __repr__(self):
-        return """{0.__class__.__name__}
-enterprise: {0.enterprise}
-encryption_at_rest: {0.encryption_at_rest}
-ssl: {0.ssl}
-replication2: {0.replication2}
-testrun_name: {0.testrun_name}
-directory_suffix: {0.directory_suffix}""".format(
+        return """Runner Scenario => {0.directory_suffix}
+  enterprise: {0.enterprise}
+  encryption_at_rest: {0.encryption_at_rest}
+  ssl: {0.ssl}
+  replication2: {0.replication2}
+  testrun_name: {0.testrun_name}""".format(
             self
         )
 
 
 # pylint: disable=too-many-function-args disable=line-too-long
 EXECUTION_PLAN = [
+    RunProperties(False, False, True, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
+    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
     RunProperties(True, False, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
     RunProperties(True, False, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
     # RunProperties(True, False, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", False, "3.11.999"),
     RunProperties(True, False, False, False, False, False, False, True, "Enterprise", "EP"),
     # RunProperties(True, False, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", False, "3.11.999"),
-    RunProperties(False, False, True, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
-    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
 ]
 
 

@@ -63,15 +63,16 @@ def upgrade_package_test(
     for _props in EXECUTION_PLAN:
         if _props.directory_suffix not in editions:
             continue
-        if _props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
-            print("skipping " + str(_props))
-            continue
         skip = False
+        if _props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
+            print("Zip: skipping.")
+            skip = True
         for version in [new_version, old_version]:
             if _props.is_version_not_supported(version):
+                print(f"skipping for {version}")
                 skip = True
         if skip:
-            print(f"Skipping {str(_props)}")
+            print(f"\n** Skipping {repr(_props)}\n")
             continue
         props = deepcopy(_props)
         props.set_kwargs(kwargs)
