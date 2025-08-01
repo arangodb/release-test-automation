@@ -708,8 +708,8 @@ class StarterManager:
                         instance.kill_instance()
                     instance.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
-                        self.old_install_prefix,
-                        self.cfg.install_prefix,
+                        str(self.old_install_prefix),
+                        str(self.cfg.install_prefix),
                         self.cfg.version,
                         self.enterprise,
                         moreargs,
