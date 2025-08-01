@@ -60,6 +60,7 @@ def package_test(
         if props.directory_suffix not in editions:
             continue
         if props.is_version_not_supported(new_version):
+            print(f"skipping {repr(props)}")
             continue
         props.set_kwargs(kwargs)
         dl_opt = deepcopy(dl_opts)
@@ -97,6 +98,10 @@ def package_test(
             ]
         )
         results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
+
+    if dl_new is None:
+        print("no suites found")
+        return 1
 
     if run_test_suites:
         results.append(

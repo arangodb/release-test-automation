@@ -396,7 +396,7 @@ class RunProperties:
     def is_version_not_supported(self, version):
         """ check whether this edition is supported in version """
         ver = semver.VersionInfo.parse(version)
-        return not (self.minimum_supported_version > ver > self.maximum_supported_version)
+        return (self.minimum_supported_version > ver > self.maximum_supported_version)
 
     def set_kwargs(self, kwargs):
         """pick values from the commandline arguments that should override defaults"""
