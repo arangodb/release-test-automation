@@ -72,6 +72,8 @@ def upgrade_package_test(
                 props = deepcopy(default_props)
                 if props.directory_suffix not in editions:
                     continue
+                if props.is_version_not_supported(version_name):
+                    continue
                 props.set_kwargs(kwargs)
                 dl_opt = deepcopy(dl_opts)
                 dl_opt.force = dl_opts.force and props.force_dl
@@ -113,9 +115,6 @@ def upgrade_package_test(
             props = deepcopy(default_props)
             props.set_kwargs(kwargs)
             if props.directory_suffix not in editions:
-                continue
-
-            if props.is_version_not_supported(packages[primary_version][props.directory_suffix].cfg.version):
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
