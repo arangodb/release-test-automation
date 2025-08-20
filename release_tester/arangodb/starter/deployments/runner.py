@@ -864,33 +864,7 @@ class Runner(ABC):
       }
       throw new Error("foxx routeing not ready on time!");
     }; waitForSelfHeal();
-                """
-    @step
-    def restore_everything(self, path):
-        """restore a dump to the installation"""
-        progressive_timeout = 1600 if self.cfg.is_instrumented else 100
-        # self.before_backup_create_impl()
-        for starter in self.makedata_instances:
-            if not starter.is_leader:
-                continue
-            assert starter.arango_restore, "restore everything: this starter doesn't have an restore instance!"
-            print(path)
-            args = [
-                '--include-system-collections',
-                'true',
-                '--overwrite',
-                'true',
-                '--all-databases',
-                'true',
-            ]
-            ret = starter.arango_restore.run_restore_monitored(
-                str(path),
-                args,
-                progressive_timeout=progressive_timeout)
-            starter.arangosh.run_command(("wait for self heal", """
-            """,
-            )
-        )
+                """))
 
     def restore_everything_from_dump(self, starter, path):
         """ do a full restore from a dump """
