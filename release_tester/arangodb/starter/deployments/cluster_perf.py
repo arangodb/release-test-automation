@@ -101,7 +101,9 @@ class ClusterPerf(Cluster):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(rp, "CLUSTER", 400, 600, self.scenario.hot_backup, 6),
+            RunnerProperties(
+                rp, "CLUSTER", 400, 600, self.scenario.hot_backup, 6
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
