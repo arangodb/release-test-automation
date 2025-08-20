@@ -65,6 +65,7 @@ class StarterManager:
         self.expect_instances = expect_instances
         self.expect_instances.sort()
         self.cfg = copy.deepcopy(basecfg)
+        self.old_version = self.cfg.version
         self.default_starter_args = self.cfg.default_starter_args.copy()
         if moreopts is None:
             self.moreopts = []
@@ -687,7 +688,7 @@ class StarterManager:
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
         self.cfg = new_install_cfg
         self.arangosh = None
-        self.detect_arangosh_instances(new_install_cfg, old_version)
+        self.detect_arangosh_instances(new_install_cfg, self.old_version)
 
     @step
     def kill_specific_instance(self, which_instances):
@@ -1080,7 +1081,7 @@ class StarterManager:
             )
 
         self.show_all_instances()
-        self.detect_arangosh_instances(self.cfg, self.cfg.version)
+        self.detect_arangosh_instances(self.cfg, self.old_version)
 
     @step
     def detect_fatal_errors(self):
@@ -1339,7 +1340,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def detect_instances(self):
-        self.detect_arangosh_instances(self.cfg, self.cfg.version)
+        self.detect_arangosh_instances(self.cfg, self.old_version)
 
     @step
     def detect_instance_pids(self):
