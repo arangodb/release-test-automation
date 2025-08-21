@@ -9,6 +9,8 @@ else
     ARCH="-arm64v8"
 fi
 
-DOCKER_TAR_TAG=${1}arangodb/release-test-automation-tar-oskarnew:$2
+BASE_URL=$(echo "${1}" |sed 's;/test-ubuntu;;')
+
+DOCKER_TAR_TAG="${BASE_URL}/release-test-automation-tar-oskarnew:${2}"
 $DOCKER build containers/docker_tar_oskarnew${ARCH} -t $DOCKER_TAR_TAG${ARCH} || exit
 $DOCKER push $DOCKER_TAR_TAG${ARCH} || exit

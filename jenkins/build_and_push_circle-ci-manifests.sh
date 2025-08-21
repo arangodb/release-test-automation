@@ -1,7 +1,9 @@
 #!/bin/bash -x
 . ./jenkins/common/detect_podman.sh
 
-DOCKER_TAR_OSKARNEW_TAG=arangodb/release-test-automation-tar-oskarnew:$1
+BASE_URL=$(echo "${1}" |sed 's;/test-ubuntu;;')
+
+DOCKER_TAR_OSKARNEW_TAG="${BASE_URL}/release-test-automation-tar-oskarnew:${2}"
 
 $DOCKER manifest rm $DOCKER_TAR_OSKARNEW_TAG
 $DOCKER manifest create $DOCKER_TAR_OSKARNEW_TAG \
