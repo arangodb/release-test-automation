@@ -97,11 +97,6 @@ class StarterManager:
                 "--all.rclone.argument=--log-level=DEBUG",
                 "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
             ]
-        if self.cfg.semver > "3.12.4":
-            self.moreopts += [
-                "--all.experimental-vector-index=true",
-            ]
-        print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
         self.old_install_prefix = self.cfg.install_prefix
@@ -189,6 +184,17 @@ class StarterManager:
         self.enterprise = self.cfg.enterprise
         self.pid = None
         self.ppid = None
+
+        self.is_running = False
+        self.add_version_dependend_args()
+        print(self.moreopts)
+        print(self.default_starter_args)
+
+    def add_version_dependend_args(self):
+        if self.cfg.semver > "3.12.4":
+            self.default_starter_args += [
+                "--all.experimental-vector-index=true",
+            ]
 
     def _get_arguments(self):
         return (
@@ -672,6 +678,7 @@ class StarterManager:
         # since we can't overwrite open files:
         old_version = self.cfg.version
         self.default_starter_args = new_install_cfg.default_starter_args.copy()
+        self.add_version_dependend_args()
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step("kill the starter processes of the old version"):
