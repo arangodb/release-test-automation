@@ -876,6 +876,7 @@ class StarterManager:
         """
         assert version is not None
         self.cfg.version = version
+        self.add_version_dependend_args()
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
         if moreargs is not None:
             args.extend(moreargs)
