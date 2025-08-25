@@ -1,5 +1,7 @@
 #!/bin/bash
 . ./jenkins/common/detect_podman.sh
+DOCKER_CONTAINER="$(echo "${DOCKER_CONTAINER}" |sed "s;test-ubuntu;release-test-automation-tar-oskarnew;")"
+
 DOCKER_SUFFIX=tar-oskarnew
 ALLURE_DIR="$(pwd)/allure-results"
 if test -n "$WORKSPACE"; then
@@ -101,7 +103,7 @@ $DOCKER run \
        --pid=host \
        --init \
        \
-       "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
+       "${DOCKER_CONTAINER}" \
        \
        /home/release-test-automation/release_tester/mixed_download_upgrade_test.py \
        --upgrade-matrix "${UPGRADE_MATRIX}" \
