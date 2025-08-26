@@ -2,17 +2,19 @@ if test -z "$DOCKER_NETWORK_NAME"; then
     DOCKER_NETWORK_NAME=rta-bridge
 fi
 
-DOCKER_NAME="release-test-automation-${DOCKER_SUFFIX}"
+if test -z "${DOCKER_CONTAINER}"; then
+    DOCKER_NAME="release-test-automation-${DOCKER_SUFFIX}"
 
-DOCKER_TAG="${DOCKER_NAME}:$(cat containers/this_version.txt)${ARCH}"
-DOCKER_NAMESPACE="arangodb/"
-if test "${MODE}" != "native"; then
-  if ${DOCKER} pull "${REGISTRY_URL}${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
-      echo "using ready built container"
-  else
-      ${DOCKER} build "containers/${DOCKER}_$(echo "${DOCKER_SUFFIX}"|sed "s;-;_;g")${ARCH}"  -t "${DOCKER_TAG}" || exit
-      DOCKER_NAMESPACE=""
-  fi
+    DOCKER_TAG="${DOCKER_NAME}:$(cat containers/this_version.txt)${ARCH}"
+    DOCKER_NAMESPACE="arangodb/"
+    if test "${MODE}" != "native"; then
+        if ${DOCKER} pull "${REGISTRY_URL}${DOCKER_NAMESPACE}${DOCKER_TAG}"; then
+            echo "using ready built container"
+        else
+            ${DOCKER} build "containers/${DOCKER}_$(echo "${DOCKER_SUFFIX}"|sed "s;-;_;g")${ARCH}"  -t "${DOCKER_TAG}" || exit
+            DOCKER_NAMESPACE=""
+        fi
+    fi
 fi
 . ./jenkins/common/pre_cleanup_docker.sh
 
