@@ -98,7 +98,8 @@ class StarterManager:
             ]
         if self.cfg.semver > "3.12.4":
             self.moreopts += [
-                "--all.experimental-vector-index=true",
+                "--args.coordinators.experimental-vector-index=true",
+                "--args.dbservers.experimental-vector-index=true",
             ]
         print(self.moreopts)
         # directories
