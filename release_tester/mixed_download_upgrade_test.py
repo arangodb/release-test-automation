@@ -137,7 +137,11 @@ def upgrade_package_test(
                     # if we don't upgrade, no need to download old.
                     continue
                 # Verify that all required packages are exist or can be downloaded
-                source = primary_dlstage if primary_version == version_name else other_source
+                if (primary_version == version_name or
+                    version_name.find("-src") >= 0) :
+                    source = primary_dlstage
+                else:
+                    source = other_source
                 res = Download(
                     bc,
                     dl_opts,
