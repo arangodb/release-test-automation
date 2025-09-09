@@ -78,7 +78,7 @@ class InstallerConfig:
         self.zip_package = bc.zip_package
         self.src_testing = bc.src_testing
 
-        self.supports_rolling_upgrade = not IS_WINDOWS
+        self.supports_rolling_upgrade = False #not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
         self.have_system_service = not self.zip_package and self.src_testing
