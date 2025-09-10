@@ -687,8 +687,7 @@ class StarterManager:
         self.add_version_dependend_args()
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
-        with step("kill the starter processes of the old version (port " +
-                  self.starter_port + ")"):
+        with step(f"kill the starter processes of the old version (port {self.starter_port})"):
             if self.instance is None:
                 logging.error("StarterManager: don't have an instance!!")
             else:
@@ -697,8 +696,7 @@ class StarterManager:
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
-            with step("replace the starter binary with a new one, (port " +
-                      self.starter_port +") this has not yet spawned any children"):
+            with step(f"replace the starter binary with a new one, (port {self.starter_port})this has not yet spawned any children"):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
         self.cfg = new_install_cfg

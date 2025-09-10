@@ -268,8 +268,8 @@ class Instance(ABC):
         """launch instance without starter with additional arguments"""
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + self.instance_arguments[1:] + moreargs
-        old_install_prefix = old_install_prefix + os.sep
-        new_install_prefix = new_install_prefix + os.sep
+        old_install_prefix = str(old_install_prefix) + os.sep
+        new_install_prefix = str(new_install_prefix) + os.sep
         dos_old_install_prefix_fwd = old_install_prefix.replace("\\", "/")
         dos_new_install_prefix_fwd = new_install_prefix.replace("\\", "/")
 
