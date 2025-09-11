@@ -60,6 +60,7 @@ class DownloadDummy:
             use_auto_certs=False,
             arangods=[],
             mixed=False,
+            force_manual_upgrade=False,
         )
 
         self.inst = make_installer(self.cfg)

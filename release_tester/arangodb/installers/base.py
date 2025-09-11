@@ -61,6 +61,10 @@ class InstallerBase(ABC):
         self.core_glob = "**/*core"
         self.copy_for_result = True
 
+    def supports_rolling_upgrade(self):
+        """ whether the starter can manage the upgrade on its own """
+        return True
+
     def reset_version(self, version):
         """re-configure the version we work with"""
         if version.find("nightly") >= 0:

@@ -70,6 +70,7 @@ class Runner(ABC):
             new_cfg = copy.deepcopy(install_set[1][1].cfg)
             new_inst = install_set[1][1]
 
+        self.force_manual_upgrade = properties.force_manual_upgrade
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
         self.mixed = self.cfg.mixed or (self.new_cfg and self.new_cfg.mixed)
@@ -576,7 +577,7 @@ class Runner(ABC):
     @step
     def upgrade_arangod_version(self):
         """upgrade this installation"""
-        mode = "rolling" if self.cfg.supports_rolling_upgrade else "manual"
+        mode = "rolling" if not self.force_manual_upgrade else "manual"
         self.progress(
             True,
             "{0} - {1} upgrade setup to newer version".format(str(self.name), mode),
@@ -584,7 +585,7 @@ class Runner(ABC):
         logging.info("{0} -> {1}".format(self.old_installer.cfg.version, self.new_installer.cfg.version))
 
         print("deinstall\ninstall\nreplace starter")
-        if self.cfg.supports_rolling_upgrade:
+        if not self.force_manual_upgrade:
             print("upgrading instances in rolling mode")
             self.upgrade_arangod_version_impl()
         else:

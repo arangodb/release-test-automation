@@ -30,12 +30,14 @@ class BasePackageInstallationTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=False, encryption_at_rest=False, ssl=False),
+            force_manual_upgrade=False,
         )
         self.installers["enterprise"] = create_config_installer_set(
             versions=versions,
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=RunProperties(enterprise=True, encryption_at_rest=False, ssl=False),
+            force_manual_upgrade=False,
         )
         self.old_inst_e = self.installers["enterprise"][0][1]
         self.new_inst_e = self.installers["enterprise"][1][1]

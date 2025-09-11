@@ -122,6 +122,7 @@ class Download:
             use_auto_certs=False,
             arangods=arangods,
             mixed=False,
+            force_manual_upgrade=False,
         )
 
         self.inst = make_installer(self.cfg)

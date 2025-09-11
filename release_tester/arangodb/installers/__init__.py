@@ -69,16 +69,17 @@ class InstallerConfig:
         use_auto_certs: bool,
         arangods: list,
         mixed: bool,
+        force_manual_upgrade: bool,
     ):
         self.publicip = bc.publicip
         self.interactive = bc.interactive
         self.is_instrumented = bc.is_instrumented
         self.enterprise = enterprise
+        self.force_manual_upgrade = force_manual_upgrade
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = bc.zip_package
         self.src_testing = bc.src_testing
 
-        self.supports_rolling_upgrade = False #not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
         self.have_system_service = not self.zip_package and self.src_testing
@@ -177,12 +178,12 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.interactive = other_cfg.interactive
             self.is_instrumented = other_cfg.is_instrumented
             self.enterprise = other_cfg.enterprise
+            self.force_manual_upgrade = other_cfg.force_manual_upgrade
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
             self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
-            self.supports_rolling_upgrade = other_cfg.supports_rolling_upgrade
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
             self.have_system_service = other_cfg.have_system_service
@@ -310,6 +311,7 @@ def make_installer(install_config: InstallerConfig):
         return InstallerSource(install_config)
 
     if IS_WINDOWS:
+        install_config.force_manual_upgrade = True
         if install_config.zip_package:
             from arangodb.installers.zip import InstallerZip
 
@@ -432,6 +434,7 @@ def create_config_installer_set(
     base_config: InstallerBaseConfig,
     deployment_mode: str,
     run_properties: RunProperties,
+    force_manual_upgrade: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
@@ -454,6 +457,7 @@ def create_config_installer_set(
             run_properties.use_auto_certs,
             base_config.arangods,
             run_properties.mixed,
+            force_manual_upgrade,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
