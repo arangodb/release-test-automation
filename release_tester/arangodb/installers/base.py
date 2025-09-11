@@ -36,6 +36,7 @@ class InstallerBase(ABC):
     installer_type: str
 
     def __init__(self, cfg: InstallerConfig):
+        self.force_manual_upgrade = cfg.force_manual_upgrade
         self.arangods = cfg.arangods
         self.machine = platform.machine()
         self.arango_binaries = []

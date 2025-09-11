@@ -70,7 +70,7 @@ class Runner(ABC):
             new_cfg = copy.deepcopy(install_set[1][1].cfg)
             new_inst = install_set[1][1]
 
-        self.force_manual_upgrade = properties.force_manual_upgrade
+        self.force_manual_upgrade = old_inst.force_manual_upgrade
         self.new_cfg = copy.deepcopy(new_cfg)
         self.cfg = copy.deepcopy(cfg)
         self.mixed = self.cfg.mixed or (self.new_cfg and self.new_cfg.mixed)
