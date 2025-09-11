@@ -192,10 +192,15 @@ class StarterManager:
 
     def add_version_dependend_args(self):
         if self.cfg.semver > "3.12.4":
-            self.default_starter_args += [
-                "--coordinators.experimental-vector-index=true",
-                "--dbservers.experimental-vector-index=true",
-            ]
+            if self.mode != "cluster"
+                self.default_starter_args += [
+                    "--args.all.experimental-vector-index=true",
+                ]
+            else
+                self.default_starter_args += [
+                    "--args.coordinators.experimental-vector-index=true",
+                    "--args.dbservers.experimental-vector-index=true",
+                ]
 
     def _get_arguments(self):
         return (
