@@ -92,6 +92,7 @@ class TestDriver:
         kwargs["base_config"].package_dir = kwargs["package_dir"]
 
         self.base_config = kwargs["base_config"]
+        self.force_manual_upgrade = kwargs["force_manual_upgrade"]
         self.arangods = []
         self.base_config.arangods = self.arangods
 
@@ -175,7 +176,7 @@ class TestDriver:
         if self.installer_type:
             return self.installer_type
         installers = create_config_installer_set(
-            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False)
+            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False), False
         )
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
@@ -196,7 +197,7 @@ class TestDriver:
         """main"""
         if versions is None:
             versions = ["3.3.3"]
-        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties, False)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -237,7 +238,7 @@ class TestDriver:
         lh.section("startup")
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            installers = create_config_installer_set(versions, self.base_config, "all", run_props)
+            installers = create_config_installer_set(versions, self.base_config, "all", run_props, self.force_manual_upgrade)
             # pylint: disable=unused-variable
             old_inst = installers[0][1]
             new_inst = installers[1][1]
@@ -419,7 +420,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.force_manual_upgrade,
         )
         lh.section("configuration")
         print(
@@ -565,7 +567,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.force_manual_upgrade
         )
         lh.section("configuration")
         print(

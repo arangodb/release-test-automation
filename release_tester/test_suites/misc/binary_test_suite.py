@@ -22,6 +22,7 @@ class BinaryComplianceTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=self.run_props,
+            force_manual_upgrade=False,
         )
         self.installer = self.installer_set[0][1]
         ent = "Enterprise" if self.run_props.enterprise else "Community"
