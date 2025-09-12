@@ -95,6 +95,7 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
+ - `--force-manual-upgrade` instead of utilizing starter rolling upgrade, use RTA code to upgrade.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
@@ -152,6 +153,7 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
+ - `--force-manual-upgrade` instead of utilizing starter rolling upgrade, use RTA code to upgrade.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
@@ -307,6 +309,7 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
+ - `--force-manual-upgrade` instead of utilizing starter rolling upgrade, use RTA code to upgrade.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:[stage2|stage2-rta]]`
