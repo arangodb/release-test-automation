@@ -459,7 +459,7 @@ def create_config_installer_set(
             run_properties.use_auto_certs,
             base_config.arangods,
             run_properties.mixed,
-            force_manual_upgrade || run_properties.force_manual_upgrade,
+            force_manual_upgrade or run_properties.force_manual_upgrade,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
