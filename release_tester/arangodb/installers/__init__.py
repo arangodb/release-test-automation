@@ -386,6 +386,7 @@ class RunProperties:
         self.encryption_at_rest = encryption_at_rest
         self.use_auto_certs = use_auto_certs
         self.ssl = ssl
+        self.force_manual_upgrade = force_manual_upgrade
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
         self.replication2 = replication2
