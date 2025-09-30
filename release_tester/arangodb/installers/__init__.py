@@ -368,6 +368,7 @@ class RunProperties:
         replication2: bool = False,
         force_one_shard: bool = False,
         create_oneshard_db: bool = False,
+        force_manual_upgrade: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
         only_zip_src: bool = False,
@@ -385,6 +386,7 @@ class RunProperties:
         self.encryption_at_rest = encryption_at_rest
         self.use_auto_certs = use_auto_certs
         self.ssl = ssl
+        self.force_manual_upgrade = force_manual_upgrade
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
         self.replication2 = replication2
@@ -418,13 +420,14 @@ class RunProperties:
 
 # pylint: disable=too-many-function-args disable=line-too-long
 EXECUTION_PLAN = [
-    RunProperties(False, False, True, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
-    RunProperties(False, True, True, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
-    RunProperties(True, False, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, False, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
-    # RunProperties(True, False, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", False, "3.11.999"),
-    RunProperties(True, False, False, False, False, False, False, True, "Enterprise", "EP"),
-    # RunProperties(True, False, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", False, "3.11.999"),
+    RunProperties(False, False, True, False, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
+    RunProperties(False, True, True, False, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
+    RunProperties(True, False, True, True, True, False, False, True, False, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, True, True, True, False, True, False, False, "Enterprise\nforced OneShard", "OS"),
+    # RunProperties(True, False, True, True, True, True, False, True, False, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", False, "3.11.999"),
+    RunProperties(True, False, False, False, False, False, False, True, False, "Enterprise", "EP"),
+    # RunProperties(True, False, False, False, False, True, False, True, False, "Enterprise\nreplication v.2", "EPr2", False, "3.11.999"),
+    RunProperties(True, False, False, False, False, False, False, True, True, "Enterprise\nManualUpgrade", "EPM"),
 ]
 
 
@@ -457,7 +460,7 @@ def create_config_installer_set(
             run_properties.use_auto_certs,
             base_config.arangods,
             run_properties.mixed,
-            force_manual_upgrade,
+            force_manual_upgrade or run_properties.force_manual_upgrade,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
