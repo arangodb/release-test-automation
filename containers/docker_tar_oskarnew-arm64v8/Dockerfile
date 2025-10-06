@@ -1,4 +1,4 @@
-from arangodb/ubuntubuildarangodb-devel:17
+from arangodb/ubuntubuildarangodb-devel:18
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
 ENV LANG en_US.UTF-8
