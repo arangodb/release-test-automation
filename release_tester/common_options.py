@@ -181,7 +181,6 @@ def ui_test_suite_filtering_options():
             "--buckets",
             default="1/0",
             type=click.STRING,
-            multiple=True,
             help="List of UI test suite names to run.",
         )(function)
         return function
