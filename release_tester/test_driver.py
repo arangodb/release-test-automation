@@ -101,9 +101,20 @@ class TestDriver:
 
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
-        self.selenium_include_suites = (
-            [] if "ui_include_test_suites" not in kwargs else kwargs["ui_include_test_suites"]
-        )
+
+        self.selenium_include_suites = []
+        self.bucket_count = 1
+        self.bucket_no = 0
+        if 'bucket' in kwargs:
+            (self.bucket_count, self.bucket_no) = kwargs['bucket'].split('/')
+        if "ui_include_test_suites" in kwargs:
+            suites = kwargs["ui_include_test_suites"].split(',')
+            if self.bucket_count != 1:
+                if len(suites) != self.bucket_count:
+                    raise Exception(f"buckets need to be the same count {self.bucket_count}  as {suites}")
+                self.selenium_include_suites = [suites[self.bucket_no]]
+            else:
+                self.selenium_include_suites = suites
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
