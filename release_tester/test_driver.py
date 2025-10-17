@@ -115,6 +115,7 @@ class TestDriver:
                 self.selenium_include_suites = [suites[self.bucket_no]]
             else:
                 self.selenium_include_suites = suites
+            print(f"filtering for {self.selenium_include_suites}")
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
