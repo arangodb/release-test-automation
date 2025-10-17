@@ -108,7 +108,7 @@ class TestDriver:
         if 'bucket' in kwargs:
             (self.bucket_count, self.bucket_no) = kwargs['bucket'].split('/')
         if "ui_include_test_suites" in kwargs:
-            suites = kwargs["ui_include_test_suites"].split(',')
+            suites = kwargs["ui_include_test_suites"]
             if self.bucket_count != 1:
                 if len(suites) != self.bucket_count:
                     raise Exception(f"buckets need to be the same count {self.bucket_count}  as {suites}")
