@@ -105,8 +105,8 @@ class TestDriver:
         self.selenium_include_suites = []
         self.bucket_count = 1
         self.bucket_no = 0
-        if 'bucket' in kwargs:
-            (self.bucket_count, self.bucket_no) = kwargs['bucket'].split('/')
+        if 'buckets' in kwargs:
+            (self.bucket_count, self.bucket_no) = kwargs['buckets'].split('/')
             self.bucket_count = int(self.bucket_count)
             self.bucket_no = int(self.bucket_no)
         if "ui_include_test_suites" in kwargs:
