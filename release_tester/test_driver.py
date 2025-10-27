@@ -107,12 +107,15 @@ class TestDriver:
         self.bucket_no = 0
         if 'bucket' in kwargs:
             (self.bucket_count, self.bucket_no) = kwargs['bucket'].split('/')
+            self.bucket_count = int(self.bucket_count)
+            self.bucket_no = int(self.bucket_no)
         if "ui_include_test_suites" in kwargs:
             suites = kwargs["ui_include_test_suites"]
             if self.bucket_count != 1:
                 if len(suites) != self.bucket_count:
                     raise Exception(f"buckets need to be the same count {self.bucket_count}  as {suites}")
                 self.selenium_include_suites = [suites[self.bucket_no]]
+                print(f"Chosen bucket from tests: {self.selenium_include_suites}")
             else:
                 self.selenium_include_suites = suites
             print(f"filtering for {self.selenium_include_suites}")
