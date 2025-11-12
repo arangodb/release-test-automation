@@ -23,6 +23,7 @@ from arangodb.starter.deployments.runner import Runner
 
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
+    "3126": semver.VersionInfo.parse("3.12.6"),
 }
 
 more_nodes_supported_starter = [
@@ -275,11 +276,14 @@ class Cluster(Runner):
                 # mitigate 3.6x agency shutdown issues:
                 self.cfg.version >= arangoversions['370'])
         self.progress(True, "step 3 - upgrade db-servers")
+        more_args = []
+        if self.cfg.version != arangoversions['3126']:
+            more_args = ['--cluster.upgrade=online']
         for node in self.starter_instances:
             node.upgrade_instances([
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true'])
+                '--log.foreground-tty', 'true'] + more_args)
         self.progress(True, "step 4 - coordinator upgrade")
         # now the new cluster is running. we will now run the coordinator upgrades
         for node in self.starter_instances:
