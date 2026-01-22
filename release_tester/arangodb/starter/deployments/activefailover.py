@@ -337,8 +337,10 @@ class ActiveFailover(Runner):
                 args = ["--skip", "802_"]
                 self.checkdata_args = args
             ret = curr_leader.arangosh.check_test_data(
-                "checking active failover new leader node", True, args, log_debug=True
-            )
+                "checking active failover new leader node",
+                True,
+                 args,
+                log_debug=True)
             if not ret[0]:
                 raise Exception("check data failed " + ret[1])
 

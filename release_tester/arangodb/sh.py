@@ -245,12 +245,14 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             if (!arango.isConnected()) {{
               throw new Error('connecting the database failed');
             }}
+            print("connection is established, creating this_collection_will_not_be_backed_up{suff}");
             db._create("this_collection_will_not_be_backed_up{suff}");
+            print("now saving a document tot this collection");
             db.this_collection_will_not_be_backed_up{suff}.save(
                {{"this": "document will be gone"}});
         """
         logging.debug("script to be executed: " + str(js_script_string) + str(self.connect_instance))
-        res = self.run_command(["create volatile data", js_script_string], True)  # self.cfg.verbose)
+        res = self.run_command(["create volatile data", js_script_string], True, progressive_timeout=900)  # self.cfg.verbose)
         logging.debug("data create result: " + str(res))
 
         if not res:

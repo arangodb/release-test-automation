@@ -36,7 +36,9 @@ class LeaderFollower(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(rp, "LeaderFollower", 400, 500, False, 2),
+            RunnerProperties(
+                rp, "LeaderFollower", 400, 500, False, 2
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,

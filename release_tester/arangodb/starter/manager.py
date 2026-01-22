@@ -45,6 +45,7 @@ from reporting.reporting_utils import attach_table, step, attach_http_request_to
 
 IS_WINDOWS = sys.platform == "win32"
 
+DEFAULT_ENCRYPTION_AT_REST_KEY="defaultencatrestkey_32chars_xxxx"
 
 # pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
@@ -122,7 +123,7 @@ class StarterManager:
         if self.cfg.encryption_at_rest:
             self.keyfile = self.basedir / "key.txt"
             # generate pseudo random key of length 32:
-            self.keyfile.write_text((str(datetime.datetime.now()) * 5)[0:32])
+            self.keyfile.write_text(DEFAULT_ENCRYPTION_AT_REST_KEY)
             self.moreopts += ["--rocksdb.encryption-keyfile", str(self.keyfile)]
         self.hb_instance = None
         self.hb_config = None
@@ -318,25 +319,26 @@ class StarterManager:
     def get_frontend(self):
         """get the first frontendhost of this starter"""
         servers = self.get_frontends()
-        assert servers, "starter: don't have instances!"
+        print(repr(self))
+        assert servers, "starter: don't have instances!" + repr(self)
         return servers[0]
 
     def get_dbserver(self):
         """get the first dbserver of this starter"""
         servers = self.get_dbservers()
-        assert servers, "starter: don't have instances!"
+        assert servers, "starter: don't have instances!" + repr(self)
         return servers[0]
 
     def get_agent(self):
         """get the first agent of this starter"""
         servers = self.get_agents()
-        assert servers, "starter: have no instances!"
+        assert servers, "starter: have no instances!" + repr(self)
         return servers[0]
 
     def get_sync_master(self):
         """get the first arangosync master of this starter"""
         servers = self.get_sync_masters()
-        assert servers, "starter: don't have instances!"
+        assert servers, "starter: don't have instances!" + repr(self)
         return servers[0]
 
     def have_this_instance(self, instance):
@@ -386,6 +388,22 @@ class StarterManager:
         if not expect_to_fail:
             self.wait_for_logfile()
             self.wait_for_port_bind()
+        self.is_running = True
+
+    @step
+    def run_starter_and_wait(self):
+        """launch the starter and wait for all arnagod instances to come up"""
+        self.run_starter()
+        count = 0
+        while not self.is_instance_up():
+            logging.debug("waiting for mananger with logfile:" + str(self.log_file))
+            progress(".")
+            time.sleep(1)
+            count += 1
+            if count > 120:
+                raise Exception("Starter manager installation didn't come up in two minutes!")
+        self.detect_instances()
+        self.detect_instance_pids()
 
     @step
     def attach_running_starter(self):
@@ -455,7 +473,8 @@ class StarterManager:
             self.arangosh.js_set_passvoid("root", passvoid)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         else:
-            self.arangosh.cfg.passvoid = passvoid
+            if self.arangosh:
+                self.arangosh.cfg.passvoid = passvoid
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
@@ -689,7 +708,7 @@ class StarterManager:
         self.replace_binary_setup_for_upgrade(new_install_cfg)
         with step(f"kill the starter processes of the old version (port {self.starter_port})"):
             if self.instance is None:
-                logging.error("StarterManager: don't have an instance!!")
+                logging.error("StarterManager: don't have an instance!!" + repr(self))
             else:
                 logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
                 self.kill_instance()
@@ -984,14 +1003,14 @@ class StarterManager:
     def read_db_logfile(self):
         """get the logfile of the dbserver instance"""
         server = self.get_dbserver()
-        assert server.logfile.exists(), "don't have logfile?"
+        assert server.logfile.exists(), "don't have logfile?" + repr(self)
         return server.logfile.read_text(errors="backslashreplace")
 
     @step
     def read_agent_logfile(self):
         """get the agent logfile of this instance"""
         server = self.get_agent()
-        assert server.logfile.exists(), "don't have logfile?"
+        assert server.logfile.exists(), "don't have logfile?" + repr(self)
         return server.logfile.read_text(errors="backslashreplace")
 
     @step
@@ -1301,6 +1320,15 @@ class StarterManager:
         """count occurrences of a substring in the starter log"""
         number_of_occurances = self.get_log_file().count(substring)
         return number_of_occurances
+
+    def stop_dbserver(self):
+        """stop db server managed by this starter"""
+        dbserver = self.get_dbserver()
+        self.kill_instance()
+        dbserver.terminate_instance()
+        self.all_instances.remove(dbserver)
+        self.moreopts.append("--cluster.start-dbserver=false")
+        self.run_starter()
 
 
 class StarterNonManager(StarterManager):
