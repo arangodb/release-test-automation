@@ -331,8 +331,15 @@ class TestDriver:
                             one_result["messages"].append("\n" + str(ex))
                             one_result["progress"] += runner.get_progress()
                             runner.take_screenshot()
-                            if runner.agency:
-                                runner.agency.acquire_dump()
+                            try:
+                                if runner.agency:
+                                    runner.agency.acquire_dump()
+                            except Exception as aex:
+                                testcase.context.statusDetails = StatusDetails(message=str(aex),
+                                                                               trace="".join(
+                                                                                   traceback.TracebackException.from_exception(
+                                                                                       aex).format()))
+                            print("failed to acquire agency dump! Ignoring")
                             runner.search_for_warnings()
                             runner.quit_selenium()
                             kill_all_processes()
@@ -506,8 +513,15 @@ class TestDriver:
                         one_result["messages"].append(str(ex))
                         one_result["progress"] += runner.get_progress()
                         runner.take_screenshot()
-                        if runner.agency:
-                            runner.agency.acquire_dump()
+                        try:
+                            if runner.agency:
+                                runner.agency.acquire_dump()
+                        except Exception as aex:
+                            testcase.context.statusDetails = StatusDetails(message=str(aex),
+                                                                           trace="".join(
+                                                                               traceback.TracebackException.from_exception(
+                                                                                   aex).format()))
+                            print("failed to acquire agency dump! Ignoring")
                         runner.search_for_warnings()
                         runner.quit_selenium()
                         kill_all_processes()
