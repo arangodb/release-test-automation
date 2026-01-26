@@ -1,7 +1,7 @@
 #!/bin/bash
 . ./jenkins/common/detect_podman.sh
 DOCKER_NAMESPACE="$(echo "${DOCKER_CONTAINER}" |sed -e "s;:.*;;" -e "s;test-ubuntu;release-test-automation-tar-oskarnew;")"
-DOCKER_TAG="$(echo "${DOCKER_CONTAINER}" |sed "s;.*:;;")"
+DOCKER_TAG=":$(echo "${DOCKER_CONTAINER}" |sed "s;.*:;;")"
 DOCKER_CONTAINER="$(echo "${DOCKER_CONTAINER}" |sed "s;test-ubuntu;release-test-automation-tar-oskarnew;")"
 
 DOCKER_SUFFIX=tar-oskarnew
