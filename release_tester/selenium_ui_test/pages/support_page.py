@@ -327,9 +327,19 @@ class SupportPage(NavigationBarPage):
             slack,
             google_groups,
             arangodb_contact_us,
-        ]
+        ] version_is_older_than
 
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than("3.12.4"):
+            support_link_assertion_check = ["ArangoDB - Jira Service Management",
+                                            "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
+                                            "with flexible data models for documents, graphs, and key-values. Build high "
+                                            "performance applications using a convenient SQL-like query language or "
+                                            "JavaScript extensions.",
+                                            "Just a moment...", # "Newest 'arangodb' Questions - Stack Overflow",
+                                            "Slack",
+                                            "ArangoDB - Google Groups",
+                                            "Contact Us • Arango"]
+        elif self.version_is_newer_than("3.11.99"):
             support_link_assertion_check = ["Jira Service Management",
                                             "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
                                             "with flexible data models for documents, graphs, and key-values. Build high "
