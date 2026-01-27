@@ -327,7 +327,7 @@ class SupportPage(NavigationBarPage):
             slack,
             google_groups,
             arangodb_contact_us,
-        ] version_is_older_than
+        ]
 
         if self.version_is_newer_than("3.12.4"):
             support_link_assertion_check = ["ArangoDB - Jira Service Management",
