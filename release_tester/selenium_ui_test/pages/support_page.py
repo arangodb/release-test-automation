@@ -206,7 +206,14 @@ class SupportPage(NavigationBarPage):
 
         fox_framework_list = [micro_service, guides, reference, deployment, go_to_fox_start]
 
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than("3.12.4"):
+            fox_framework_assertion_check = ['Just a moment...', # 'Getting Started | ArangoDB Documentation',
+                                             'Just a moment...', #'Guides | ArangoDB Documentation',
+                                             'Just a moment...', #'Foxx reference | ArangoDB Documentation',
+                                             'Just a moment...', #'Deployment | ArangoDB Documentation',
+                                             'Just a moment...', #'Foxx Microservices | ArangoDB Documentation'
+                                             ]
+        elif self.version_is_newer_than("3.11.99"):
             fox_framework_assertion_check = ['Getting Started | ArangoDB Documentation',
                                              'Guides | ArangoDB Documentation',
                                              'Foxx reference | ArangoDB Documentation',
@@ -330,7 +337,7 @@ class SupportPage(NavigationBarPage):
         ]
 
         if self.version_is_newer_than("3.12.4"):
-            support_link_assertion_check = ["ArangoDB - Jira Service Management",
+            support_link_assertion_check = ["Customer Login - Help Center - Jira Service Management",
                                             "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
                                             "with flexible data models for documents, graphs, and key-values. Build high "
                                             "performance applications using a convenient SQL-like query language or "
@@ -340,7 +347,7 @@ class SupportPage(NavigationBarPage):
                                             "ArangoDB - Google Groups",
                                             "Contact Us • Arango"]
         elif self.version_is_newer_than("3.11.99"):
-            support_link_assertion_check = ["Jira Service Management",
+            support_link_assertion_check = ["Customer Login - Help Center - Jira Service Management",
                                             "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
                                             "with flexible data models for documents, graphs, and key-values. Build high "
                                             "performance applications using a convenient SQL-like query language or "
@@ -350,7 +357,7 @@ class SupportPage(NavigationBarPage):
                                             "Redirecting to Google Groups",
                                             "contact - ArangoDB"]
         else:
-            support_link_assertion_check = ["ArangoDB - Jira Service Management",
+            support_link_assertion_check = ["Customer Login - Help Center - Jira Service Management",
                                             "GitHub - arangodb/arangodb: 🥑 ArangoDB is a native multi-model database "
                                             "with flexible data models for documents, graphs, and key-values. Build high "
                                             "performance applications using a convenient SQL-like query language or "
