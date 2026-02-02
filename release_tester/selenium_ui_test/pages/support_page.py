@@ -168,7 +168,14 @@ class SupportPage(NavigationBarPage):
         ]
         aql_link_list = [fundamentals, data_queries, functions, usual_query_patterns, go_to_aql_query_page]
 
-        if self.version_is_newer_than("3.11.99"):
+        if self.version_is_newer_than("3.12.4"): # don't wait for bot detection
+            fundamental_link_assertion_check = ["Just a moment...", # 'AQL Fundamentals | ArangoDB Documentation',
+                                                "Just a moment...", # 'AQL Data Queries | ArangoDB Documentation',
+                                                "Just a moment...", # 'AQL functions | ArangoDB Documentation',
+                                                "Just a moment...", # 'AQL Query Patterns and Examples | ArangoDB Documentation',
+                                                "Just a moment...", # 'AQL Documentation | ArangoDB Documentation'
+                                                ]
+        elif self.version_is_newer_than("3.11.99"):
             fundamental_link_assertion_check = ['AQL Fundamentals | ArangoDB Documentation',
                                                 'AQL Data Queries | ArangoDB Documentation',
                                                 'AQL functions | ArangoDB Documentation',
