@@ -16,6 +16,7 @@ from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 from reporting.reporting_utils import step
+from api_tests.test_suites.api_test_suite import APITestSuite
 
 
 class Single(Runner):
@@ -108,6 +109,7 @@ class Single(Runner):
         if self.selenium:
             self.selenium.test_setup()
 
+        APITestSuite(self.starter_instance, InstanceType.SINGLE).test_setup()
         logging.info("Single setup successfully finished!")
 
     @step
