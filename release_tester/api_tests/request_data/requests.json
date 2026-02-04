@@ -1,0 +1,26 @@
+{
+  "VectorIndexStoredValuesTestSuite": {
+    "test_aql_query_vector_index_with_stored_values": {
+      "endpoint": "/_api/cursor",
+      "method": "post",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {
+        "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val < 5 AND d.stringField == 'type_A' LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, stringField: d.stringField, dist}",
+        "count": true,
+        "batchSize": 2
+      }
+    },
+    "test_exec_plan_vector_index_with_stored_values": {
+      "endpoint": "/_api/explain",
+      "method": "post",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {
+        "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val < 5 AND d.stringField == 'type_A' LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, stringField: d.stringField, dist}"
+      }
+    }
+  }
+}
