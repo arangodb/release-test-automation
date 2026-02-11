@@ -176,7 +176,7 @@ class StarterManager:
         self.coordinator = None  # meaning - port
         self.expect_instance_count = 1
         self.startupwait = 2
-        self.supports_foxx_tests = True
+        self.supports_foxx_tests = False
 
         self.upgradeprocess = None
 
