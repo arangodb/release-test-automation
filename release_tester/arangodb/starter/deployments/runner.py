@@ -705,7 +705,7 @@ class Runner(ABC):
         assert self.makedata_instances, "don't have makedata instance!"
         deadline = 3600 if self.cfg.is_instrumented else 900
         progressive_timeout = 1600 if self.cfg.is_instrumented else 100
-        supports_foxx_tests = self.starter_instances[0].self.supports_foxx_tests
+        supports_foxx_tests = self.starter_instances[0].supports_foxx_tests
         self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
