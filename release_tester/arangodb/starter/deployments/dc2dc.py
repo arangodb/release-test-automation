@@ -224,6 +224,7 @@ class Dc2Dc(Runner):
                 opts.append("--ssl.keyfile=" + str(val["tlsKeyfile"]))
             val["instance"] = StarterManager(
                 self.cfg,
+                self.is_foxx_supported,
                 val["dir"],
                 val["instance_dir"],
                 port=port,

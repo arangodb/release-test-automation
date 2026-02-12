@@ -136,6 +136,7 @@ class ActiveFailover(Runner):
             self.starter_instances.append(
                 StarterManager(
                     self.cfg,
+                    self.is_foxx_supported,
                     self.basedir,
                     name,
                     mode="activefailover",
