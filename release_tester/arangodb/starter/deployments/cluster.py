@@ -452,6 +452,7 @@ class Cluster(Runner):
             moreopts.append(f"--ssl.keyfile={keyfile}")
         dead_instance = StarterManager(
             curr_cfg,
+            self.is_foxx_supported,
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",

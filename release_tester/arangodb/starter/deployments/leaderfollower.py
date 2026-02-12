@@ -168,6 +168,7 @@ while (true) {{
 
         self.leader_starter_instance = StarterManager(
             self.cfg,
+            self.is_foxx_supported,
             self.basedir,
             "leader",
             mode="single",
@@ -180,6 +181,7 @@ while (true) {{
 
         self.follower_starter_instance = StarterManager(
             self.cfg,
+            self.is_foxx_supported,
             self.basedir,
             "follower",
             mode="single",
