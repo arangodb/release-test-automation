@@ -211,7 +211,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
         """Debug arangod executable by attaching debugger to a running process (Windows)"""
         starter = StarterManager(
             basecfg=self.installer.cfg,
-            True,
+            is_foxx_supported=True,
             install_prefix=Path(DebuggerTestSuite.STARTER_DIR),
             instance_prefix="single",
             expect_instances=[InstanceType.SINGLE],

@@ -24,7 +24,7 @@ def create_arangod_dump(installer, starter_dir: str, dump_file_dir: str):
     """create arangod memory dump file"""
     starter = StarterManager(
         basecfg=installer.cfg,
-        False,
+        is_foxx_supported=False,
         install_prefix=Path(starter_dir),
         instance_prefix="single",
         expect_instances=[InstanceType.SINGLE],
