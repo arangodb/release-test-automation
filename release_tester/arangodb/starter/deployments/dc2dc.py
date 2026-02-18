@@ -730,3 +730,6 @@ class Dc2Dc(Runner):
         self.sync_manager.run_syncer()
 
         self._get_in_sync(50)
+
+    def run_api_tests_impl(self):
+        pass

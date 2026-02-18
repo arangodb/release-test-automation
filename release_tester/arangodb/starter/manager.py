@@ -500,8 +500,8 @@ class StarterManager:
         return results
 
     @step
-    def send_request_json(self, instance_type, verb_method, url, json=None, headers=None):
-        """send an http request with JSON payload to the instance"""
+    def send_request_json(self, verb_method, url, json=None, headers=None):
+        """send an http request with JSON payload to the frontend instance"""
         if headers is None:
             request_headers = {}
         else:
@@ -509,7 +509,7 @@ class StarterManager:
 
         results = []
         for instance in self.all_instances:
-            if instance.instance_type == instance_type:
+            if instance.is_frontend():
                 if instance.detect_gone():
                     print("Instance to send request to already gone: " + repr(instance))
                 else:

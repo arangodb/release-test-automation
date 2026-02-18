@@ -108,8 +108,6 @@ class Single(Runner):
         # self.make_data()
         if self.selenium:
             self.selenium.test_setup()
-
-        APITestSuite(self.starter_instance, InstanceType.SINGLE).test_setup()
         logging.info("Single setup successfully finished!")
 
     @step
@@ -203,3 +201,6 @@ class Single(Runner):
             self.starter_instance.arango_restore,
             self.starter_instance.all_instances[0],
         )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.starter_instance).run_api_tests()

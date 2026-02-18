@@ -19,6 +19,8 @@ from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
 import tools.loghelper as lh
 
+from api_tests.test_suites.api_test_suite import APITestSuite
+
 
 class ActiveFailover(Runner):
     """This launches an active failover setup"""
@@ -355,8 +357,10 @@ class ActiveFailover(Runner):
 
         if self.selenium:
             curr_leader_local_url = curr_leader.get_frontend().get_local_url("")
-            curr_leader_port = int(re.search('(?<=:)\d{4}', curr_leader_local_url).group())
-            resilient_instance = [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0]
+            curr_leader_port = int(re.search("(?<=:)\d{4}", curr_leader_local_url).group())
+            resilient_instance = [
+                x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE
+            ][0]
             resilient_instance.port = curr_leader_port
             self.set_new_selenium_instances(resilient_instance)
             self.selenium.test_jam_attempt()
@@ -442,3 +446,7 @@ please revalidate the UI states on the new leader; you should see *one* follower
             new_leader_instance,
             self.new_cfg,
         )
+
+    def run_api_tests_impl(self):
+        self.detect_leader()
+        self.api_tests_failed = not APITestSuite(self.leader).run_api_tests()
