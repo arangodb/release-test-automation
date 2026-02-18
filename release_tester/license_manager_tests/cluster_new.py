@@ -1,6 +1,8 @@
 """License manager tests: cluster"""
 
 # pylint: disable=import-error
+import semver
+
 from arangodb.installers import RunProperties
 from arangodb.installers.depvar import RunnerType
 from arangodb.instance import InstanceType
@@ -71,7 +73,14 @@ class LicenseManagerClusterNewTestSuite(LicenseManagerNewBaseTestSuite, LicenseM
         self.check_logfiles_contain("disk usage exceeded the free limit", InstanceType.COORDINATOR)
         self.sleep(10)
         self.check_readonly()
-        self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
+        old_version = semver.VersionInfo.parse("3.7.99")
+        if (
+            self.new_version is not None
+            and semver.VersionInfo.parse(self.new_version) < old_version
+            ):
+            self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
+        else:
+            self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
         self.check_logfiles_contain("Operation has been restricted to read-only mode", InstanceType.COORDINATOR)
         self.sleep(10)
         self.check_shutdown()

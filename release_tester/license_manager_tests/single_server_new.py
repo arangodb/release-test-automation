@@ -1,5 +1,7 @@
 """License manager tests: single server"""
 
+import semver
+
 from arangodb.installers import RunProperties
 from arangodb.installers.depvar import RunnerType
 from arangodb.instance import InstanceType
@@ -80,7 +82,14 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.check_logfiles_contain("disk usage exceeded the free limit", InstanceType.SINGLE)
         self.sleep(10)
         self.check_readonly()
-        self.check_logfiles_contain("f4b90", InstanceType.SINGLE)
+        old_version = semver.VersionInfo.parse("3.7.99")
+        if (
+            self.new_version is not None
+            and semver.VersionInfo.parse(self.new_version) < old_version
+            ):
+            self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
+        else:
+            self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
         self.check_logfiles_contain("Operation has been restricted to read-only mode", InstanceType.SINGLE)
         self.sleep(10)
         self.check_shutdown()
@@ -98,7 +107,14 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.check_not_readonly()
         self.check_logfiles_do_not_contain("d72fc", InstanceType.SINGLE)
         self.check_logfiles_do_not_contain("disk usage exceeded the free limit", InstanceType.SINGLE)
-        self.check_logfiles_do_not_contain("f4b90", InstanceType.SINGLE)
+        old_version = semver.VersionInfo.parse("3.7.99")
+        if (
+            self.new_version is not None
+            and semver.VersionInfo.parse(self.new_version) < old_version
+            ):
+            self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
+        else:
+            self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
         self.check_logfiles_do_not_contain("Operation has been restricted to read-only mode", InstanceType.SINGLE)
         self.sleep(11)
         self.check_logfiles_do_not_contain("d73f5", InstanceType.SINGLE)

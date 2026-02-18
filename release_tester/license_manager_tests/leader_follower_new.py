@@ -1,6 +1,8 @@
 """License manager tests: leader-follower"""
 
 # pylint: disable=import-error
+import semver
+
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import RunProperties
 from arangodb.installers.depvar import RunnerType
@@ -81,7 +83,14 @@ class LicenseManagerLeaderFollowerNewTestSuite(
         self.check_logfiles_contain("disk usage exceeded the free limit", InstanceType.SINGLE)
         self.sleep(23)
         self.check_readonly()
-        self.check_logfiles_contain("f4b90", InstanceType.SINGLE)
+        old_version = semver.VersionInfo.parse("3.7.99")
+        if (
+            self.new_version is not None
+            and semver.VersionInfo.parse(self.new_version) < old_version
+            ):
+            self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
+        else:
+            self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
         self.check_logfiles_contain("Operation has been restricted to read-only mode", InstanceType.SINGLE)
         self.sleep(32)
         self.check_shutdown()
