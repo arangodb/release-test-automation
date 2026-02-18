@@ -5,6 +5,7 @@ import requests
 from pathlib import Path
 
 from semver import VersionInfo
+from beautifultable import BeautifulTable
 
 from reporting.reporting_utils import AllureTestSuiteContext
 from test_suites_core.base_test_suite import BaseTestSuite
@@ -45,11 +46,9 @@ class APITestSuite(BaseTestSuite):
 
         self.api_test_suites.append(VectorIndexStoredValuesTestSuite)
         self.run_test_suites(self.api_test_suites)
-        # determine the outcome of API tests run
-        overall_result = all([result.success for result in self.test_results])
-        # if not overall_result:
-        #     print([result for result in self.test_results if not result.success])
-        return overall_result
+        # show api test results summary
+        self.display_results_table()
+        return all([result.success for result in self.test_results])
 
     def execute_request(self, request_data):
         return self.starter_instance.send_request_json(
@@ -59,7 +58,20 @@ class APITestSuite(BaseTestSuite):
             headers=request_data["headers"],
         )
 
-    def update_request_payload(self, request_payload, parameter):
+    @staticmethod
+    def update_request_payload(request_payload, parameter):
         """update the request payload"""
         request_payload["query"] = request_payload["query"].replace("$1", parameter)
         return request_payload
+
+    def display_results_table(self):
+        api_test_results_table = BeautifulTable(maxwidth=160)
+        api_test_results_table.set_style(BeautifulTable.STYLE_BOX_ROUNDED)
+        for result in self.test_results:
+            api_test_results_table.rows.append(
+                [result.name, "PASSED" if result.success else "FAILED", result.message, result.traceback]
+            )
+        api_test_results_table.columns.header = ["API Tests", "Result", "Message", "Traceback"]
+        api_test_results_table.columns.header.alignment = BeautifulTable.ALIGN_CENTER
+        api_test_results_table.columns.alignment["API Tests"] = BeautifulTable.ALIGN_LEFT
+        print(f"\n{str(api_test_results_table)}")

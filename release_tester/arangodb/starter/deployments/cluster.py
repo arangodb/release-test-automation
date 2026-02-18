@@ -543,6 +543,5 @@ class Cluster(Runner):
             ]
         )
 
-    @step
     def run_api_tests_impl(self):
         self.api_tests_failed = not APITestSuite(self.starter_instances[0]).run_api_tests()

@@ -549,7 +549,7 @@ class TestDriver:
 
                     if runner.api_tests_failed:
                         one_result["success"] = False
-                        one_result["messages"].append('One or more API tests failed. See console output and allure report for details.')
+                        one_result["messages"].append('One or more API tests failed. See API tests results table and allure report for details.')
                     results.append(one_result)
                     kill_all_processes()
                     count += 1

@@ -22,21 +22,21 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # pylint: disable=no-member
             self.__class__.disable_reasons.append("Test suite is only applicable to versions 3.12.7 and newer.")
 
-    @testcase("Vector index with stored values API test 1 - query with stored values filtering")
+    @testcase("VI with stored values - query with stored values filtering")
     def test_aql_query_vector_index_with_stored_values(self):
         """query with stored values filtering"""
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
-        request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
+        request_data["payload"] = APITestSuite.update_request_payload(request_data["payload"], self.collection)
         query_result = self.execute_request(request_data)[0].json()
         assert query_result["count"] == 2
 
-    @testcase("Vector index with stored values API test 2 - execution plan for query with stored values filtering")
+    @testcase("VI with stored values - execution plan for query with stored values filtering")
     def test_exec_plan_vector_index_with_stored_values(self):
         """execution plan for query with stored values filtering"""
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
-        request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
+        request_data["payload"] = APITestSuite.update_request_payload(request_data["payload"], self.collection)
         query_result = self.execute_request(request_data)[0].json()
         expected_rules = {"move-filters-up", "move-filters-up-2", "use-vector-index"}
         assert expected_rules.issubset(

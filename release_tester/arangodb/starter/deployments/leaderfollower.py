@@ -403,6 +403,5 @@ process.exit(0);
             self.leader_starter_instance.all_instances[0],
         )
 
-    @step
     def run_api_tests_impl(self):
         self.api_tests_failed = not APITestSuite(self.leader_starter_instance).run_api_tests()

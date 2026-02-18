@@ -1291,7 +1291,7 @@ class Runner(ABC):
 
     def run_api_tests(self):
         """runs api tests"""
-        self.progress(True, "{0} - running API tests".format(str(self.name)))
+        self.progress(True, "{0} - API tests".format(str(self.name)))
         self.run_api_tests_impl()
 
     @abstractmethod
