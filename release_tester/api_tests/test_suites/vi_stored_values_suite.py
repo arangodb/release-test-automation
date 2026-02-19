@@ -22,22 +22,39 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # pylint: disable=no-member
             self.__class__.disable_reasons.append("Test suite is only applicable to versions 3.12.7 and newer.")
 
-    @testcase("VI with stored values - query with stored values filtering")
+    @testcase("VI with stored values - query results (filtering and sorting)")
     def test_aql_query_vector_index_with_stored_values(self):
         """query with stored values filtering"""
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
-        request_data["payload"] = APITestSuite.update_request_payload(request_data["payload"], self.collection)
+        request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
         query_result = self.execute_request(request_data)[0].json()
+        # verify result count
         assert query_result["count"] == 2
+        # verify filtering by numeric field
+        values = self.get_elem_values_by_prop(query_result["result"], "val")
+        assert all([(val < 5) for val in values]), "Numeric filter was not applied correctly"
+        # verify filtering by string field
+        values = self.get_elem_values_by_prop(query_result["result"], "stringField")
+        assert all([(val == "type_A") for val in values]), "String filter was not applied correctly"
+        # verify results sorted by distance
+        values = self.get_elem_values_by_prop(query_result["result"], "dist")
+        assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
 
-    @testcase("VI with stored values - execution plan for query with stored values filtering")
+
+
+    @testcase("VI with stored values - execution plan (simple query)")
     def test_exec_plan_vector_index_with_stored_values(self):
         """execution plan for query with stored values filtering"""
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
-        request_data["payload"] = APITestSuite.update_request_payload(request_data["payload"], self.collection)
+        request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
         query_result = self.execute_request(request_data)[0].json()
+        # verify coverage by stored values
+        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"],
+                                                  "type","EnumerateNearVectorNode")
+        assert index_node["isCoveredByStoredValues"]
+        # verify correct rules are applied
         expected_rules = {"move-filters-up", "move-filters-up-2", "use-vector-index"}
         assert expected_rules.issubset(
             set(query_result["plan"]["rules"])

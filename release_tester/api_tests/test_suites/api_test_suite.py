@@ -71,3 +71,13 @@ class APITestSuite(BaseTestSuite):
         api_test_results_table.columns.header.alignment = BeautifulTable.ALIGN_CENTER
         api_test_results_table.columns.alignment["API Tests"] = BeautifulTable.ALIGN_LEFT
         print(f"\n{str(api_test_results_table)}")
+
+    @staticmethod
+    def find_elem_by_prop_value(elem_list, prop, val):
+        """find element by property value"""
+        return [elem for elem in elem_list if elem[prop] == val][0]
+
+    @staticmethod
+    def get_elem_values_by_prop(elem_list, prop):
+        """get elem values for property"""
+        return [elem[prop] for elem in elem_list if prop in elem]
