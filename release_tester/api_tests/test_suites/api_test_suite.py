@@ -19,7 +19,6 @@ class APITestSuite(BaseTestSuite):
     # pylint: disable=too-many-instance-attributes
     def __init__(self, starter_instance):
         super().__init__()
-        self.api_test_suites = []
         self.starter_instance = starter_instance
         self.current_version = VersionInfo.parse(starter_instance.cfg.version)
         self.sub_suite_name = self.__doc__ or self.__class__.__name__
@@ -37,15 +36,12 @@ class APITestSuite(BaseTestSuite):
         """run all test suites from a given list"""
         for suite_class in suites:
             test_suite = suite_class(self.starter_instance)
-            results = test_suite.run()
-            self.test_results += results
+            self.test_results += test_suite.run()
 
     def run_api_tests(self):
         """set up the test suites"""
-        from api_tests.test_suites.vi_stored_values_suite import VectorIndexStoredValuesTestSuite
-
-        self.api_test_suites.append(VectorIndexStoredValuesTestSuite)
-        self.run_test_suites(self.api_test_suites)
+        from api_tests.test_suites.test_suites import TestSuites
+        self.run_test_suites(TestSuites.test_suites)
         # show api test results summary
         self.display_results_table()
         return all([result.success for result in self.test_results])
