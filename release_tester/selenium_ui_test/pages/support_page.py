@@ -60,7 +60,7 @@ class SupportPage(NavigationBarPage):
                     self.wait_for_ajax()
                     if type(assertion_list[i]) is str:
                         assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
-                    else
+                    else:
                         assert title in assertion_list[i], f"Expected page title {assertion_list[[0]i]} or {assertion_list[[0]i]}  but got {title}"
                     break  # If successful, break out of the retry loop
                 except Exception as e:
