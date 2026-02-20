@@ -61,7 +61,7 @@ class SupportPage(NavigationBarPage):
                     if type(assertion_list[i]) is str:
                         assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
                     else:
-                        assert title in assertion_list[i], f"Expected page title {assertion_list[[0]i]} or {assertion_list[[0]i]}  but got {title}"
+                        assert title in assertion_list[i], f"Expected page title {assertion_list[i][0]} or {assertion_list[i][1]}  but got {title}"
                     break  # If successful, break out of the retry loop
                 except Exception as e:
                     # If an error occurs, print the error message
