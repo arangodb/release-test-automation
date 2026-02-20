@@ -267,7 +267,7 @@ class SupportPage(NavigationBarPage):
                                                   ['ArangoDB Node.js driver | ArangoDB Documentation'],
                                                   ['ArangoDB Go driver | ArangoDB Documentation'],
                                                   ['Spring Data ArangoDB | ArangoDB Documentation'],
-                                                  ['ArangoDB Datasource for Apache Spark | ArangoDB Documentation'\,
+                                                  ['ArangoDB Datasource for Apache Spark | ArangoDB Documentation'\
                                                    'Official ArangoDB drivers | ArangoDB Documentation']]
         else:
             # link name for all the Drivers and Integration link
