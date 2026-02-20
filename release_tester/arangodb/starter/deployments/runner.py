@@ -109,6 +109,7 @@ class Runner(ABC):
         self.basedir = Path(properties.short_name)
         self.ui_tests_failed = False
         self.ui_test_results_table = None
+        self.api_tests_failed = False
         self.old_installer = old_inst
         self.new_installer = new_inst
         self.backup_name = None
@@ -392,6 +393,7 @@ class Runner(ABC):
                 self.test_setup()
                 self.jam_attempt()
                 self.check_data_impl()
+                self.run_api_tests()
                 if not is_keep_db_dir:
                     self.starter_shutdown()
                     for starter in self.starter_instances:
@@ -832,7 +834,7 @@ class Runner(ABC):
         raise Exception("no frontend found.")
 
     def wait_for_self_heal(self, starter):
-        """ wait until the servers foxx has healed """
+        """wait until the servers foxx has healed"""
         starter.arangosh.run_command(
             (
                 "wait for self heal",
@@ -858,7 +860,7 @@ class Runner(ABC):
         )
 
     def restore_everything_from_dump(self, starter, path):
-        """ do a full restore from a dump """
+        """do a full restore from a dump"""
         progressive_timeout = 1600 if self.cfg.is_instrumented else 100
         assert starter.arango_restore, "restore everything: this starter doesn't have an restore instance!"
         print(path)
@@ -1026,12 +1028,8 @@ class Runner(ABC):
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
-            for instance_type in [
-                    InstanceType.COORDINATOR,
-                    InstanceType.RESILIENT_SINGLE,
-                    InstanceType.SINGLE
-            ]:
-                starter.send_request(instance_type,requests.post, "/_admin/routing/reload", "")
+            for instance_type in [InstanceType.COORDINATOR, InstanceType.RESILIENT_SINGLE, InstanceType.SINGLE]:
+                starter.send_request(instance_type, requests.post, "/_admin/routing/reload", "")
 
     @step
     def search_for_warnings(self, print_lines=True):
@@ -1296,3 +1294,12 @@ class Runner(ABC):
     def makedata_databases(self):
         """return a list of databases that makedata tests must be ran in"""
         return [["_system", self.props.force_one_shard, 0]] + self.custom_databases.copy()
+
+    def run_api_tests(self):
+        """runs api tests"""
+        self.progress(True, "{0} - API tests".format(str(self.name)))
+        self.run_api_tests_impl()
+
+    @abstractmethod
+    def run_api_tests_impl(self):
+        """run api tests on this deployment"""

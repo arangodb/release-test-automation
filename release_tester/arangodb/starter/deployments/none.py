@@ -65,3 +65,6 @@ class NoStarter(Runner):
 
     def after_backup_impl(self):
         """nothing to see here"""
+
+    def run_api_tests_impl(self):
+        """nothing to see here"""

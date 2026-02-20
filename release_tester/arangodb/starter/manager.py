@@ -501,6 +501,35 @@ class StarterManager:
         return results
 
     @step
+    def send_request_json(self, verb_method, url, json=None, headers=None):
+        """send an http request with JSON payload to the frontend instance"""
+        if headers is None:
+            request_headers = {}
+        else:
+            request_headers = dict(headers)
+
+        results = []
+        for instance in self.all_instances:
+            if instance.is_frontend():
+                if instance.detect_gone():
+                    print("Instance to send request to already gone: " + repr(instance))
+                else:
+                    request_headers["Authorization"] = "Bearer " + str(self.get_jwt_header())
+                    base_url = instance.get_public_plain_url()
+                    full_url = self.get_http_protocol() + "://" + base_url + url
+                    attach_http_request_to_report(verb_method.__name__, full_url, request_headers, json)
+                    reply = verb_method(
+                        full_url,
+                        json=json,
+                        headers=request_headers,
+                        allow_redirects=False,
+                        verify=False,
+                    )
+                    attach_http_response_to_report(reply)
+                    results.append(reply)
+        return results
+
+    @step
     def crash_instances(self):
         """make all managed instances plus the starter itself crash."""
         try:
@@ -697,7 +726,9 @@ class StarterManager:
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
-            with step(f"replace the starter binary with a new one, (port {self.starter_port})this has not yet spawned any children"):
+            with step(
+                f"replace the starter binary with a new one, (port {self.starter_port})this has not yet spawned any children"
+            ):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
         self.cfg = new_install_cfg
@@ -1120,11 +1151,7 @@ class StarterManager:
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
                 self.hb_instance = HotBackupManager(
-                    config,
-                    self.raw_basedir,
-                    config.base_test_dir / self.raw_basedir,
-                    self.get_frontend(),
-                    self.cfg
+                    config, self.raw_basedir, config.base_test_dir / self.raw_basedir, self.get_frontend(), self.cfg
                 )
                 self.hb_config = HotBackupConfig(
                     config,

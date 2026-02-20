@@ -21,6 +21,8 @@ from arangodb.installers.depvar import RunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 
+from api_tests.test_suites.api_test_suite import APITestSuite
+
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
     "3126": semver.VersionInfo.parse("3.12.6"),
@@ -542,3 +544,6 @@ class Cluster(Runner):
                 "--host=localhost",
             ]
         )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.starter_instances[0]).run_api_tests()
