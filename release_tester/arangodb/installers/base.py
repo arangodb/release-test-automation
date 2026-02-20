@@ -435,7 +435,7 @@ class InstallerBase(ABC):
                     False,
                     True,
                     "1.0.0",
-                    "4.0.0",
+                    "3.12.99",
                     [],
                     "c++",
                 )
