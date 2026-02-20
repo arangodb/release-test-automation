@@ -73,7 +73,7 @@ class InstallerSource(InstallerArchive):
         self.cfg.dbdir = self.cfg.bin_dir
         self.cfg.appdir = self.cfg.bin_dir
         self.cfg.cfgdir = self.test_dir / "etc" / "relative"
-        self.has_js = self.cfg.semver > "3.12.99"
+        self.has_js = self.cfg.semver > semver.VersionInfo.parse("3.12.99")
         js_dir = str(self.test_dir / "js")
         js_enterprise = []
         js_enterprise_server = []
