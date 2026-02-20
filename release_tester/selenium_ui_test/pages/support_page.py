@@ -58,7 +58,7 @@ class SupportPage(NavigationBarPage):
                 try:
                     title = self.click_on_link(link_list[i])
                     self.wait_for_ajax()
-                    if type assertion_list[i] is str:
+                    if type(assertion_list[i]) is str:
                         assert title == assertion_list[i], f"Expected page title {assertion_list[i]} but got {title}"
                     else
                         assert title in assertion_list[i], f"Expected page title {assertion_list[[0]i]} or {assertion_list[[0]i]}  but got {title}"
