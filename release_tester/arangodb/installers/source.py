@@ -78,9 +78,10 @@ class InstallerSource(InstallerArchive):
         js_dir = str(self.test_dir / "js")
         js_enterprise = []
         js_enterprise_server = []
-        if self.cfg.enterprise and self.has_js:
+        if self.cfg.enterprise:
             js_enterprise = ["--javascript.module-directory", str(self.test_dir / "enterprise" / "js")]
-            js_enterprise_server = ["--all.javascript.module-directory", str(self.test_dir / "enterprise" / "js")]
+            if self.has_js:
+                js_enterprise_server = ["--all.javascript.module-directory", str(self.test_dir / "enterprise" / "js")]
         self.cfg.default_backup_args = [
             "-c",
             str(self.cfg.cfgdir / "arangobackup.conf"),
