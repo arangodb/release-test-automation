@@ -176,7 +176,7 @@ class SupportPage(NavigationBarPage):
                                                 ["Just a moment...", 'AQL Data Queries | ArangoDB Documentation'],
                                                 ["Just a moment...", 'AQL functions | ArangoDB Documentation'],
                                                 ["Just a moment...", 'AQL Query Patterns and Examples | ArangoDB Documentation'],
-                                                ["Just a moment...", 'AQL Documentation | ArangoDB Documentation]'
+                                                ["Just a moment...", 'AQL Documentation | ArangoDB Documentation']
                                                 ]
         elif self.version_is_newer_than("3.11.99"):
             fundamental_link_assertion_check = [['AQL Fundamentals | ArangoDB Documentation'],
