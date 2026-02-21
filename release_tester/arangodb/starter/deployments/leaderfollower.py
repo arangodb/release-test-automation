@@ -196,14 +196,17 @@ while (true) {{
         """restore a dump to the installation"""
         # self.before_backup_create_impl()
         self.restore_everything_from_dump(self.leader_starter_instance, path)
-        self.wait_for_self_heal(self.leader_starter_instance)
+        has_js = self.cfg.semver.major < 4
+        if has_js:
+            self.wait_for_self_heal(self.leader_starter_instance)
         self.wait_for_restore_impl(self.leader_starter_instance)
-        self.follower_starter_instance.arangosh.run_command((
-            "trigger self heal",
-            """
+        if has_js:
+            self.follower_starter_instance.arangosh.run_command((
+                "trigger self heal",
+                """
             print(arango.POST_RAW("/_api/foxx/_local/heal", ""));
             """))
-        self.wait_for_self_heal(self.follower_starter_instance)
+            self.wait_for_self_heal(self.follower_starter_instance)
         # self.after_backup_create_impl()
 
     @step
