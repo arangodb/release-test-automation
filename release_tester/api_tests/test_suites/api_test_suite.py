@@ -73,6 +73,11 @@ class APITestSuite(BaseTestSuite):
         print(f"\n{str(api_test_results_table)}")
 
     @staticmethod
+    def has_elem_with_prop_value(elem_list, prop, val):
+        """find element by property value"""
+        return len([elem for elem in elem_list if elem[prop] == val]) > 0
+
+    @staticmethod
     def find_elem_by_prop_value(elem_list, prop, val):
         """find element by property value"""
         return [elem for elem in elem_list if elem[prop] == val][0]
