@@ -106,6 +106,7 @@ class Cluster(Runner):
             self.starter_instances.append(
                 sm(
                     self.cfg,
+                    self.is_foxx_supported,
                     self.basedir,
                     name,
                     mode="cluster",
@@ -454,6 +455,7 @@ class Cluster(Runner):
             moreopts.append(f"--ssl.keyfile={keyfile}")
         dead_instance = StarterManager(
             curr_cfg,
+            self.is_foxx_supported,
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",

@@ -68,6 +68,7 @@ class Single(Runner):
 
         self.starter_instance = StarterManager(
             self.cfg,
+            self.is_foxx_supported,
             self.basedir,
             "single",
             mode="single",
