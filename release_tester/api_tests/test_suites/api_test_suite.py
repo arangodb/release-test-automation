@@ -63,7 +63,7 @@ class APITestSuite(BaseTestSuite):
     def display_results_table(self):
         api_test_results_table = BeautifulTable(maxwidth=160)
         api_test_results_table.set_style(BeautifulTable.STYLE_BOX_ROUNDED)
-        for result in self.test_results:
+        for result in sorted(self.test_results, key=lambda res: res.name):
             api_test_results_table.rows.append(
                 [result.name, "PASSED" if result.success else "FAILED", result.message, result.traceback]
             )

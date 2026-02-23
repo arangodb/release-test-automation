@@ -22,7 +22,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # pylint: disable=no-member
             self.__class__.disable_reasons.append("Test suite is only applicable to versions 3.12.7 and newer.")
 
-    @testcase("VI with stored values - simple query (stored values)")
+    @testcase("1. VI with stored values - simple query (stored values)")
     def test_vi_with_stored_values_simple_query(self):
         """simple query with stored values"""
 
@@ -41,7 +41,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         values = self.get_elem_values_by_prop(query_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
 
-    @testcase("VI with stored values - simple query execution plan (stored values)")
+    @testcase("2. VI with stored values - simple query execution plan (stored values)")
     def test_vi_with_stored_values_simple_query_exec_plan(self):
         """execution plan for simple query with stored values filtering"""
 
@@ -61,7 +61,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             set(query_result["plan"]["rules"])
         ), f"expected rules: {expected_rules} were not applied!"
 
-    @testcase("VI with stored values - simple query (non-stored values)")
+    @testcase("3. VI with stored values - simple query (non-stored values)")
     def test_vi_with_stored_values_simple_query_non_stored_values(self):
         """simple query with non-stored values filtering"""
 
@@ -77,7 +77,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         values = self.get_elem_values_by_prop(query_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
 
-    @testcase("VI with stored values - simple query execution plan (non-stored values)")
+    @testcase("4. VI with stored values - simple query execution plan (non-stored values)")
     def test_vi_with_stored_values_simple_query_exec_plan_non_stored_values(self):
         """execution plan for simple query with non-stored values filtering"""
 
@@ -92,7 +92,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
                                                   "type","EnumerateNearVectorNode")
         assert not index_node["isCoveredByStoredValues"]
 
-    @testcase("VI with stored values - complex query (stored values)")
+    @testcase("5. VI with stored values - complex query (stored values)")
     def test_vi_with_stored_values_complex_query(self):
         """complex query with stored values filtering"""
 
@@ -114,7 +114,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         values = self.get_elem_values_by_prop(query_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
 
-    @testcase("VI with stored values - complex query execution plan (stored values)")
+    @testcase("6. VI with stored values - complex query execution plan (stored values)")
     def test_vi_with_stored_values_complex_query_exec_plan(self):
         """execution plan for complex query with stored values filtering"""
 
@@ -134,7 +134,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             set(query_result["plan"]["rules"])
         ), f"expected rules: {expected_rules} were not applied!"
 
-    @testcase("VI with stored values - complex query (non-stored values)")
+    @testcase("7. VI with stored values - complex query (non-stored values)")
     def test_vi_with_stored_values_complex_query_non_stored_values(self):
         """complex query with non-stored values filtering"""
 
@@ -156,7 +156,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         values = self.get_elem_values_by_prop(query_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
 
-    @testcase("VI with stored values - complex query execution plan (non-stored values)")
+    @testcase("8. VI with stored values - complex query execution plan (non-stored values)")
     def test_vi_with_stored_values_complex_query_exec_plan_non_stored_values(self):
         """execution plan for complex query with non-stored values filtering"""
 
