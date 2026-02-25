@@ -28,7 +28,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify result count
         assert query_result["count"] == 2
         # verify filtering by numeric field
@@ -47,13 +47,11 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"],
-                                                  "type","FilterNode")
+        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"], "type", "FilterNode")
         # verify coverage by stored values
-        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"],
-                                                  "type","EnumerateNearVectorNode")
+        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert index_node["isCoveredByStoredValues"]
         # verify correct optimization rules are applied
         expected_rules = {"move-filters-into-enumerate", "use-vector-index"}
@@ -67,7 +65,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify result count
         assert query_result["count"] == 5
         # verify filtering by numeric field
@@ -83,13 +81,11 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"],
-                                                  "type","FilterNode")
+        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"], "type", "FilterNode")
         # verify no coverage for non-stored values
-        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"],
-                                                  "type","EnumerateNearVectorNode")
+        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert not index_node["isCoveredByStoredValues"]
 
     @testcase("5. VI with stored values - complex query (stored values)")
@@ -98,7 +94,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify result count
         assert query_result["count"] == 10
         # verify filtering by numeric field
@@ -120,13 +116,11 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"],
-                                                  "type","FilterNode")
+        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"], "type", "FilterNode")
         # verify coverage by stored values
-        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"],
-                                                  "type","EnumerateNearVectorNode")
+        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert index_node["isCoveredByStoredValues"]
         # verify correct optimization rules are applied
         expected_rules = {"move-filters-into-enumerate", "use-vector-index"}
@@ -140,7 +134,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify result count
         assert query_result["count"] == 4
         # verify filtering by numeric field
@@ -162,11 +156,9 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_data["payload"] = self.update_request_payload(request_data["payload"], self.collection)
-        query_result = self.execute_request(request_data)[0].json()
+        query_result = self.execute_request(request_data)
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"],
-                                                  "type","FilterNode")
+        assert not self.has_elem_with_prop_value(query_result["plan"]["nodes"], "type", "FilterNode")
         # verify no coverage for non-stored values
-        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"],
-                                                  "type","EnumerateNearVectorNode")
+        index_node = self.find_elem_by_prop_value(query_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert not index_node["isCoveredByStoredValues"]
