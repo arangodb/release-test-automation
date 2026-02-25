@@ -74,7 +74,7 @@ class StarterManager:
             self.moreopts = moreopts
         # if self.cfg.verbose:
         self.moreopts += ["--log.verbose=true"]
-        self.moreopts += ['--all.log', 'startup=debug']
+        self.moreopts += ['--all.log', 'startup=trace']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
