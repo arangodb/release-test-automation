@@ -49,6 +49,7 @@ class APITestSuite(BaseTestSuite):
         return all([result.success for result in self.test_results])
 
     def execute_request(self, request_data, use_arangosh=True):
+        """execute http request"""
         if use_arangosh:
             return self.execute_request_arangosh(request_data)
         return self.starter_instance.send_request_json(
@@ -65,6 +66,7 @@ class APITestSuite(BaseTestSuite):
         return request_payload
 
     def display_results_table(self):
+        """display the results of the test run"""
         api_test_results_table = BeautifulTable(maxwidth=160)
         api_test_results_table.set_style(BeautifulTable.STYLE_BOX_ROUNDED)
         for result in sorted(self.test_results, key=lambda res: res.name):
@@ -92,6 +94,7 @@ class APITestSuite(BaseTestSuite):
         return [elem[prop] for elem in elem_list if prop in elem]
 
     def execute_request_arangosh(self, request_data):
+        """execute http request using arangosh"""
         fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
         base_url = fe_instance.get_public_plain_url()
         full_url = self.starter_instance.get_http_protocol() + "://" + base_url + request_data["endpoint"]
@@ -113,7 +116,7 @@ class APITestSuite(BaseTestSuite):
             str(self.starter_instance.get_jwt_header()),
             self.result_json_path,
         )
-        self.starter_instance.arangosh.run_command(("execute request via arangosh", js_script), verbose=False)
+        self.starter_instance.arangosh.run_command(("execute http request in arangosh", js_script), verbose=False)
         result = {"body": "{}"}
         with open(self.result_json_path, "r", encoding="utf-8") as f:
             result = json.load(f)
