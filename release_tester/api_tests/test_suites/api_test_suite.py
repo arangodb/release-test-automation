@@ -98,23 +98,30 @@ class APITestSuite(BaseTestSuite):
         fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
         base_url = fe_instance.get_public_plain_url()
         full_url = self.starter_instance.get_http_protocol() + "://" + base_url + request_data["endpoint"]
+
         js_script = """
             const fs = require('fs');
             const request = require('@arangodb/request');
             const res = request({
                 method: '%s',
                 url: '%s',
+        """ % (request_data["method"], full_url)
+        if 'headers' in request_data:
+            js_script += """
+                headers: %s,
+            """ % (json.dumps(request_data["headers"]))
+        if 'payload' in request_data:
+            js_script += """
                 body: %s,
                 json: true,
+           """ % (json.dumps(request_data["payload"]))
+        js_script += """
                 auth: {bearer: '%s'}
             });
             fs.write('%s', JSON.stringify(res));
         """ % (
-            request_data["method"],
-            full_url,
-            json.dumps(request_data["payload"]),
             str(self.starter_instance.get_jwt_header()),
-            self.result_json_path,
+            self.result_json_path
         )
         self.starter_instance.arangosh.run_command(("execute http request in arangosh", js_script), verbose=False)
         result = {"body": "{}"}
