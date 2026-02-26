@@ -245,7 +245,14 @@ class Cluster(Runner):
         self.starter_instances[1].command_upgrade()
         if self.selenium:
             self.selenium.test_wait_for_upgrade()  # * 5s
-        self.starter_instances[1].wait_for_upgrade(300)
+        try:
+            self.starter_instances[1].wait_for_upgrade(300)
+        except TimeoutError as ex:
+            for node in self.starter_instances:
+                for instance in self.all_instances:
+                    if instance.instance_type InstanceType.COORDINATOR:
+                        instance.crash_instance()
+            raise ex
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
             bench_instances[1].wait()

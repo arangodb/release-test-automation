@@ -8,6 +8,7 @@ import os
 import platform
 import re
 import shutil
+import signal
 import time
 from abc import abstractmethod, ABC
 from enum import IntEnum
@@ -405,15 +406,17 @@ class Instance(ABC):
             print(self.instance.status())
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
-                gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
-                print("generating core with PID:" + str(gcore.pid))
-                gcore.wait()
-                print(
-                    "Killing {0} instance PID:[{1}] {3}".format(
-                        self.type_str, self.instance.pid, self.instance.cmdline()
-                    )
-                )
-                self.instance.kill()
+                self.instance.send_signal(signal.SIGSEGV)
+                #gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
+                #print("generating core with PID:" + str(gcore.pid))
+                #gcore.wait()
+                #print(
+                #    "Killing {0} instance PID:[{1}] {3}".format(
+                #        self.type_str, self.instance.pid, self.instance.cmdline()
+                #    )
+                #)
+                #self.instance.send_signal(signal.SIGSEGV)
+                #self.instance.kill()
                 self.instance.wait()
                 self.add_logfile_to_report()
             else:
