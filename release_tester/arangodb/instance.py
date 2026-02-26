@@ -402,8 +402,10 @@ class Instance(ABC):
     def crash_instance(self):
         """send SIG-11 to instance..."""
         if self.instance:
-            # try:
-            print(self.instance.status())
+            try:
+                print(self.instance.status())
+            except ex:
+                pass
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
                 try:
