@@ -406,7 +406,11 @@ class Instance(ABC):
             print(self.instance.status())
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
-                self.instance.send_signal(signal.SIGSEGV)
+                try:
+                    self.instance.send_signal(signal.SIGSEGV)
+                except Exception as ex:
+                    print(f"skipping {self.instance.pid} {ex.message}")
+                    return
                 #gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
                 #print("generating core with PID:" + str(gcore.pid))
                 #gcore.wait()
