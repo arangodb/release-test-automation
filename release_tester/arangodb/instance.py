@@ -405,7 +405,8 @@ class Instance(ABC):
             try:
                 print(self.instance.status())
             except ex:
-                pass
+                print("NOT generating coredump for " + str(self.instance.pid))
+                return
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
                 try:
