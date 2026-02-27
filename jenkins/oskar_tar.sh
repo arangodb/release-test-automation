@@ -104,6 +104,7 @@ if test -n "${SAN}"; then
 fi
 # we need --init since our upgrade leans on zombies not happening:
 $DOCKER run \
+        --ulimit nofile=65536 \
        "${DOCKER_ARGS[@]}" \
        --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
