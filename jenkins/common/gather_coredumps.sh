@@ -4,7 +4,7 @@ if [ `ls -1 "$(pwd)/test_dir/core"* 2>/dev/null | wc -l ` -gt 0 ]; then
     else
         ZIP=7za
     fi
-    "${ZIP} a coredumps "$(pwd)/test_dir/core"*
+    "${ZIP}" a coredumps "$(pwd)/test_dir/core"*
     (
         cat "$(pwd)/test_dir/testfailures.txt";
         printf "\nCoredumps found after testrun:\n $(ls -l "$(pwd)/test_dir/core"*)\n"
