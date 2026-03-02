@@ -2,6 +2,8 @@
 """test suite for vector index with stored values verification"""
 import inspect
 
+import api_tests.helpers.payload_helper as ph
+
 from semver import VersionInfo
 
 from api_tests.test_suites.api_test_suite import APITestSuite
@@ -28,34 +30,33 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request1_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["query"]
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
-        request1_data["payload"] = self.update_request_payload(request1_data["payload"], self.collection)
-        request2_data["payload"] = self.update_request_payload(request2_data["payload"], self.collection)
+        request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
+        request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
         # verify query result count
         assert request1_result["count"] == 2
         # verify filtering by numeric field
-        values = self.get_elem_values_by_prop(request1_result["result"], "val")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "val")
         assert all([(val < 5) for val in values]), "Numeric field filter was not applied correctly"
         # verify filtering by string field
-        values = self.get_elem_values_by_prop(request1_result["result"], "stringField")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "stringField")
         assert all([(val == "type_A") for val in values]), "String field filter was not applied correctly"
         # verify results sorted by distance
-        values = self.get_elem_values_by_prop(request1_result["result"], "dist")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
         # verify request2 (plan) result
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
+        assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
         # verify coverage by stored values
-        index_node = self.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+        index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert index_node["isCoveredByStoredValues"]
         # verify correct optimization rules are applied
         expected_rules = {"move-filters-into-enumerate", "use-vector-index"}
         assert expected_rules.issubset(
             set(request2_result["plan"]["rules"])
         ), f"expected rules: {expected_rules} were not applied!"
-
 
     @testcase("2. VI with stored values - simple query (non-stored values)")
     def test_vi_with_stored_values_simple_query_non_stored_values(self):
@@ -63,26 +64,25 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request1_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["query"]
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
-        request1_data["payload"] = self.update_request_payload(request1_data["payload"], self.collection)
-        request2_data["payload"] = self.update_request_payload(request2_data["payload"], self.collection)
+        request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
+        request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
         # verify result count
         assert request1_result["count"] == 5
         # verify filtering by numeric field
-        values = self.get_elem_values_by_prop(request1_result["result"], "nonStoredValue")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "nonStoredValue")
         assert all([(val < 50) for val in values]), "Numeric field filter was not applied correctly"
         # verify results sorted by distance
-        values = self.get_elem_values_by_prop(request1_result["result"], "dist")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
         # verify request2 (plan) result
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
+        assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
         # verify no coverage for non-stored values
-        index_node = self.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+        index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert not index_node["isCoveredByStoredValues"]
-
 
     @testcase("3. VI with stored values - complex query (stored values)")
     def test_vi_with_stored_values_complex_query(self):
@@ -90,30 +90,30 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
         request1_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["query"]
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
-        request1_data["payload"] = self.update_request_payload(request1_data["payload"], self.collection)
-        request2_data["payload"] = self.update_request_payload(request2_data["payload"], self.collection)
+        request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
+        request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
         # verify result count
         assert request1_result["count"] == 10
         # verify filtering by numeric field
-        values = self.get_elem_values_by_prop(request1_result["result"], "val")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "val")
         assert all([(2 <= val <= 50) for val in values]), "Numeric field filter was not applied correctly"
         # verify filtering by boolean field
-        values = self.get_elem_values_by_prop(request1_result["result"], "boolField")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "boolField")
         assert all([(val == True) for val in values]), "Boolean field filter was not applied correctly"
         # verify filtering by float field
-        values = self.get_elem_values_by_prop(request1_result["result"], "floatField")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "floatField")
         assert all([(val >= 10.0) for val in values]), "Numeric field filter was not applied correctly"
         # verify results sorted by distance
-        values = self.get_elem_values_by_prop(request1_result["result"], "dist")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
         # verify request2 (plan) result
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
+        assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
         # verify coverage by stored values
-        index_node = self.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+        index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert index_node["isCoveredByStoredValues"]
         # verify correct optimization rules are applied
         expected_rules = {"move-filters-into-enumerate", "use-vector-index"}
@@ -121,35 +121,34 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             set(request2_result["plan"]["rules"])
         ), f"expected rules: {expected_rules} were not applied!"
 
-
     @testcase("4. VI with stored values - complex query (non-stored values)")
     def test_vi_with_stored_values_complex_query_non_stored_values(self):
         """complex query with non-stored values filtering"""
 
         request1_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["query"]
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
-        request1_data["payload"] = self.update_request_payload(request1_data["payload"], self.collection)
-        request2_data["payload"] = self.update_request_payload(request2_data["payload"], self.collection)
+        request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
+        request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
         # verify result count
         assert request1_result["count"] == 4
         # verify filtering by numeric field
-        values = self.get_elem_values_by_prop(request1_result["result"], "val")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "val")
         assert all([(10 <= val <= 50) for val in values]), "Numeric field filter was not applied correctly"
         # verify filtering by array field
-        values = self.get_elem_values_by_prop(request1_result["result"], "arrayField")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "arrayField")
         assert all([(val[0] > 2) for val in values]), "Array field filter was not applied correctly"
         # verify filtering by object field
-        values = self.get_elem_values_by_prop(request1_result["result"], "objectField")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "objectField")
         assert all([(val["nested"] == 1) for val in values]), "Object nested field filter was not applied correctly"
         # verify results sorted by distance
-        values = self.get_elem_values_by_prop(request1_result["result"], "dist")
+        values = ph.get_elem_values_by_prop(request1_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
         # verify request2 (plan) result
         # verify no separate filter node
-        assert not self.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
+        assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
         # verify no coverage for non-stored values
-        index_node = self.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+        index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert not index_node["isCoveredByStoredValues"]
