@@ -8,6 +8,7 @@ import os
 import platform
 import re
 import shutil
+import signal
 import time
 from abc import abstractmethod, ABC
 from enum import IntEnum
@@ -401,23 +402,32 @@ class Instance(ABC):
     def crash_instance(self):
         """send SIG-11 to instance..."""
         if self.instance:
-            # try:
-            print(self.instance.status())
+            try:
+                print(self.instance.status())
+            except Exception as ex:
+                print(f"NOT generating coredump for {str(self.instance.pid)} \n {ex}")
+                return
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
-                gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
-                print("generating core with PID:" + str(gcore.pid))
-                gcore.wait()
-                print(
-                    "Killing {0} instance PID:[{1}] {3}".format(
-                        self.type_str, self.instance.pid, self.instance.cmdline()
-                    )
-                )
-                self.instance.kill()
+                try:
+                    self.instance.send_signal(signal.SIGSEGV)
+                except Exception as ex:
+                    print(f"skipping {self.instance.pid} {ex.message}")
+                    return
+                #gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
+                #print("generating core with PID:" + str(gcore.pid))
+                #gcore.wait()
+                #print(
+                #    "Killing {0} instance PID:[{1}] {3}".format(
+                #        self.type_str, self.instance.pid, self.instance.cmdline()
+                #    )
+                #)
+                #self.instance.send_signal(signal.SIGSEGV)
+                #self.instance.kill()
                 self.instance.wait()
                 self.add_logfile_to_report()
             else:
-                print("NOT generating coredump for " + str(self.instance))
+                print(f"NOT generating coredump for {str(self.instance)}")
             self.instance = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
