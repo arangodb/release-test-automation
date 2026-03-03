@@ -405,7 +405,7 @@ class Instance(ABC):
             try:
                 print(self.instance.status())
             except Exception as ex:
-                print("NOT generating coredump for " + str(self.instance.pid))
+                print(f"NOT generating coredump for {str(self.instance.pid)} \n {ex}")
                 return
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
@@ -427,7 +427,7 @@ class Instance(ABC):
                 self.instance.wait()
                 self.add_logfile_to_report()
             else:
-                print("NOT generating coredump for " + str(self.instance))
+                print(f"NOT generating coredump for {str(self.instance)}")
             self.instance = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
