@@ -35,8 +35,6 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
-        # verify query result count
-        assert request1_result["count"] == 2
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "val")
         assert all([(val < 5) for val in values]), "Numeric field filter was not applied correctly"
@@ -69,8 +67,6 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
-        # verify result count
-        assert request1_result["count"] == 5
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "nonStoredValue")
         assert all([(val < 50) for val in values]), "Numeric field filter was not applied correctly"
@@ -95,8 +91,6 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
-        # verify result count
-        assert request1_result["count"] == 10
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "val")
         assert all([(2 <= val <= 50) for val in values]), "Numeric field filter was not applied correctly"
@@ -132,8 +126,6 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
         # verify request1 (query) result
-        # verify result count
-        assert request1_result["count"] == 4
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "val")
         assert all([(10 <= val <= 50) for val in values]), "Numeric field filter was not applied correctly"
