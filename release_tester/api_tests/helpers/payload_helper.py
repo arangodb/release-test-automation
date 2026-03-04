@@ -1,9 +1,12 @@
 """ API tests response helper """
 
+FIRST_PARAM = "$1"
 
-def update_request_payload(request_payload, parameter):
+
+def update_request_payload(request_payload, parameter, prop="query"):
     """update the request payload"""
-    request_payload["query"] = request_payload["query"].replace("$1", parameter)
+    if prop in request_payload:
+        request_payload[prop] = request_payload[prop].replace(FIRST_PARAM, parameter)
     return request_payload
 
 

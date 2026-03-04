@@ -1,7 +1,7 @@
 """ API tests base class """
 import json
 
-import api_tests.helpers.request_helper as request_helper
+import api_tests.helpers.request_helper as rh
 
 from pathlib import Path
 
@@ -38,7 +38,7 @@ class APITestSuite(BaseTestSuite):
             self.test_results += test_suite.run()
 
     def run_api_tests(self):
-        """set up the test suites"""
+        """run API test suites and report results"""
         from api_tests.test_suites.test_suites import TestSuites
 
         self.run_test_suites(TestSuites.test_suites)
@@ -46,14 +46,12 @@ class APITestSuite(BaseTestSuite):
         self.display_results_table()
         return all([result.success for result in self.test_results])
 
-    def execute_request(self, request_data, use_arangosh=False):
-        """execute http request"""
-        if use_arangosh:
-            return request_helper.execute_request_arangosh(self.starter_instance, request_data)
-        return request_helper.execute_request_python(self.starter_instance, request_data)
+    def execute_request(self, request_data):
+        """execute http request and return response code and payload"""
+        return rh.send_request(self.starter_instance, request_data)
 
     def display_results_table(self):
-        """display the results of the test run"""
+        """display results of the test run"""
         api_test_results_table = BeautifulTable(maxwidth=160)
         api_test_results_table.set_style(BeautifulTable.STYLE_BOX_ROUNDED)
         for result in sorted(self.test_results, key=lambda res: res.name):

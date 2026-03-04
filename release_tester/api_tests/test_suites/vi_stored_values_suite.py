@@ -32,8 +32,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
         request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
         request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
-        request1_result = self.execute_request(request1_data)
-        request2_result = self.execute_request(request2_data)
+        request1_result = self.execute_request(request1_data)["json"]
+        request2_result = self.execute_request(request2_data)["json"]
         # verify request1 (query) result
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "val")
@@ -64,8 +64,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
         request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
         request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
-        request1_result = self.execute_request(request1_data)
-        request2_result = self.execute_request(request2_data)
+        request1_result = self.execute_request(request1_data)["json"]
+        request2_result = self.execute_request(request2_data)["json"]
         # verify request1 (query) result
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "nonStoredValue")
@@ -88,8 +88,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
         request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
         request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
-        request1_result = self.execute_request(request1_data)
-        request2_result = self.execute_request(request2_data)
+        request1_result = self.execute_request(request1_data)["json"]
+        request2_result = self.execute_request(request2_data)["json"]
         # verify request1 (query) result
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "val")
@@ -123,8 +123,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         request2_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]["plan"]
         request1_data["payload"] = ph.update_request_payload(request1_data["payload"], self.collection)
         request2_data["payload"] = ph.update_request_payload(request2_data["payload"], self.collection)
-        request1_result = self.execute_request(request1_data)
-        request2_result = self.execute_request(request2_data)
+        request1_result = self.execute_request(request1_data)["json"]
+        request2_result = self.execute_request(request2_data)["json"]
         # verify request1 (query) result
         # verify filtering by numeric field
         values = ph.get_elem_values_by_prop(request1_result["result"], "val")
