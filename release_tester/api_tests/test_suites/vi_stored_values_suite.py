@@ -99,7 +99,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         assert all([(val == True) for val in values]), "Boolean field filter was not applied correctly"
         # verify filtering by float field
         values = ph.get_elem_values_by_prop(request1_result["result"], "floatField")
-        assert all([(val >= 10.0) for val in values]), "Numeric field filter was not applied correctly"
+        assert all([(val > 10.0) for val in values]), "Numeric field filter was not applied correctly"
         # verify results sorted by distance
         values = ph.get_elem_values_by_prop(request1_result["result"], "dist")
         assert all([el1 == el2 for el1, el2 in zip(values, sorted(values))]), "Distances not ascending"
