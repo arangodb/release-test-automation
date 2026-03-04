@@ -1,5 +1,4 @@
 """ API tests request helper """
-import json
 import requests
 
 from reporting.reporting_utils import step, attach_http_request_to_report, attach_http_response_to_report
