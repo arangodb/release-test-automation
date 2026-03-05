@@ -581,3 +581,6 @@ class ClusterPerf(Cluster):
             ti.prompt_user(self.cfg, "DONE! press any key to shut down the SUT.")
         if "backupbench" in self.scenario.phase:
             self._kill_load_workers()
+
+    def run_api_tests_impl(self):
+        pass
