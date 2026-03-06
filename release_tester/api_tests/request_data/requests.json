@@ -1,5 +1,17 @@
 {
   "VectorIndexStoredValuesTestSuite": {
+    "check_collection": {
+      "endpoint": "/_api/cursor",
+      "method": "post",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {
+        "query": "FOR d IN $1 LIMIT 5 RETURN {key: d._key, val: d.val}",
+        "count": true,
+        "batchSize": 5
+      }
+    },
     "test_vi_with_stored_values_simple_query": {
       "query" : {
         "endpoint": "/_api/cursor",

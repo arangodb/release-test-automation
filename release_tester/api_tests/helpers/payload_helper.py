@@ -1,4 +1,4 @@
-""" API tests response helper """
+""" API tests payload helper """
 
 FIRST_PARAM = "$1"
 
