@@ -23,6 +23,10 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             self.__class__.is_disabled = True
             # pylint: disable=no-member
             self.__class__.disable_reasons.append("Test suite is only applicable to versions 3.12.7 and newer.")
+        if not self.has_collection():
+            self.__class__.is_disabled = True
+            # pylint: disable=no-member
+            self.__class__.disable_reasons.append(f"Test suite requires existing '{self.collection}' collection.")
 
     @testcase("1. VI with stored values - simple query (stored values)")
     def test_vi_with_stored_values_simple_query(self):
@@ -144,3 +148,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         # verify no coverage for non-stored values
         index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
         assert not index_node["isCoveredByStoredValues"]
+
+    def has_collection(self):
+        request_data = self.requests_data["check_collection"]
+        request_data["payload"] = ph.update_request_payload(request_data["payload"], self.collection)
+        return self.execute_request(request_data)["code"] != 404

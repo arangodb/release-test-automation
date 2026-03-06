@@ -25,4 +25,8 @@ def send_request(starter_instance, request_data):
         verify=False,
     )
     attach_http_response_to_report(response)
-    return {"code": response.status_code, "json": response.json()}
+    try:
+        json_payload = response.json()
+    except requests.exceptions.JSONDecodeError:
+        json_payload = {}
+    return {"code": response.status_code, "json": json_payload}
