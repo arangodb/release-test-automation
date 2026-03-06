@@ -17,6 +17,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
     def __init__(self, starter_instance):
         super().__init__(starter_instance)
+        # TODO: Implement own per-suite per-testcase setUp/tearDown logic - QA-773
         self.collection = "c_vector_sv_0"
         self.requests_data = self.requests_data[self.__class__.__name__]
         if self.current_version < MIN_ARANGO_VERSION:
