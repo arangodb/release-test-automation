@@ -16,6 +16,7 @@ import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
 from reporting.reporting_utils import step
+from api_tests.test_suites.api_test_suite import APITestSuite
 
 
 class LeaderFollower(Runner):
@@ -403,3 +404,6 @@ process.exit(0);
             self.leader_starter_instance.arango_restore,
             self.leader_starter_instance.all_instances[0],
         )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.leader_starter_instance).run_api_tests()

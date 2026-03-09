@@ -105,8 +105,8 @@ class TestDriver:
         self.selenium_include_suites = []
         self.bucket_count = 1
         self.bucket_no = 0
-        if 'buckets' in kwargs:
-            (self.bucket_count, self.bucket_no) = kwargs['buckets'].split('/')
+        if "buckets" in kwargs:
+            (self.bucket_count, self.bucket_no) = kwargs["buckets"].split("/")
             self.bucket_count = int(self.bucket_count)
             self.bucket_no = int(self.bucket_no)
         if "ui_include_test_suites" in kwargs:
@@ -253,7 +253,9 @@ class TestDriver:
         lh.section("startup")
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            installers = create_config_installer_set(versions, self.base_config, "all", run_props, self.force_manual_upgrade)
+            installers = create_config_installer_set(
+                versions, self.base_config, "all", run_props, self.force_manual_upgrade
+            )
             # pylint: disable=unused-variable
             old_inst = installers[0][1]
             new_inst = installers[1][1]
@@ -558,6 +560,10 @@ class TestDriver:
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
+
+                    if runner.api_tests_failed:
+                        one_result["success"] = False
+                        one_result["messages"].append('One or more API tests failed. See API tests results table and allure report for details.')
                     results.append(one_result)
                     kill_all_processes()
                     count += 1
