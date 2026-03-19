@@ -202,7 +202,7 @@ class StarterManager:
                     "--args.coordinators.experimental-vector-index=true",
                     "--args.dbservers.experimental-vector-index=true",
                 ]
-        elif self.cfg.semver > "3.12.8":
+        if self.cfg.semver > "3.12.8":
             self.default_starter_args += [
                 "--args.all.javascript.endpoints-allowlist=.*",
                 "--args.all.javascript.environment-variables-allowlist=.*",
