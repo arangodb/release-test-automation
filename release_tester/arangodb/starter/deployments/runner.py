@@ -1297,8 +1297,8 @@ class Runner(ABC):
 
     def run_api_tests(self):
         """runs api tests"""
-        # one shard configuration is currently not supported for API tests
-        if self.props.force_one_shard:
+        # one shard configuration and/or upgrade flow is currently not supported for API tests
+        if self.props.force_one_shard or self.new_installer:
             self.progress(True, "{0} - skipping API tests".format(str(self.name)))
             return
         self.progress(True, "{0} - API tests".format(str(self.name)))
