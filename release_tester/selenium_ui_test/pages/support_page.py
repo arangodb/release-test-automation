@@ -263,12 +263,13 @@ class SupportPage(NavigationBarPage):
             drivers_and_integration = [arangodb_java_driver, arangojs_java_script, arangodb_go_driver,
                                        arangodb_spring_data, arangodb_spark_connector, drivers_and_integration]
 
-            driver_integration_assertion_check = [['ArangoDB Java driver | ArangoDB Documentation'],
-                                                  ['ArangoDB Node.js driver | ArangoDB Documentation'],
-                                                  ['ArangoDB Go driver | ArangoDB Documentation'],
-                                                  ['Spring Data ArangoDB | ArangoDB Documentation'],
-                                                  ['ArangoDB Datasource for Apache Spark | ArangoDB Documentation'\
-                                                   'Official ArangoDB drivers | ArangoDB Documentation']]
+            driver_integration_assertion_check = [
+                ['Just a moment...', 'ArangoDB Java driver | ArangoDB Documentation'],
+                ['Just a moment...', 'ArangoDB Node.js driver | ArangoDB Documentation'],
+                ['Just a moment...', 'ArangoDB Go driver | ArangoDB Documentation'],
+                ['Just a moment...', 'Spring Data ArangoDB | ArangoDB Documentation'],
+                ['Just a moment...', 'ArangoDB Datasource for Apache Spark | ArangoDB Documentation'\
+                 'Official ArangoDB drivers | ArangoDB Documentation']]
         else:
             # link name for all the Drivers and Integration link
             arangodb_java_driver = '//*[@id="documentation"]/div/div[5]/ul/li[1]/a'
