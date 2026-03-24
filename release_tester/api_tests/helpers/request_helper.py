@@ -5,6 +5,7 @@ from reporting.reporting_utils import step, attach_http_request_to_report, attac
 
 HTTP_METHODS = {"get": requests.get, "post": requests.post, "put": requests.put, "delete": requests.delete}
 FIRST_PARAM = "$1"
+SECOND_PARAM = "$2"
 
 
 @step
@@ -33,12 +34,16 @@ def send_request(starter_instance, request_data):
     return {"code": response.status_code, "json": json_payload}
 
 
-def update_request_data(request_data, parameter):
+def update_request_data(request_data, parameter_1, parameter_2=""):
     """update the request data with parameter value"""
     if "payload" in request_data:
         for prop in request_data["payload"].keys():
             if isinstance(request_data["payload"][prop], str):
-                request_data["payload"][prop] = request_data["payload"][prop].replace(FIRST_PARAM, parameter)
+                request_data["payload"][prop] = (
+                    request_data["payload"][prop].replace(FIRST_PARAM, parameter_1).replace(SECOND_PARAM, parameter_2)
+                )
     if "endpoint" in request_data:
-        request_data["endpoint"] = request_data["endpoint"].replace(FIRST_PARAM, parameter)
+        request_data["endpoint"] = (
+            request_data["endpoint"].replace(FIRST_PARAM, parameter_1).replace(SECOND_PARAM, parameter_2)
+        )
     return request_data

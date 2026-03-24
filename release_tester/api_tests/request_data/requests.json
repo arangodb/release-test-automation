@@ -74,7 +74,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val < 50 AND d.stringField == 'type_A' LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, stringField: d.stringField, dist}",
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.val < 50 AND d.stringField == 'type_A' LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, stringField: d.stringField, dist}",
           "count": true,
           "batchSize": 5
         }
@@ -86,7 +86,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val < 50 AND d.stringField == 'type_A' LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, stringField: d.stringField, dist}"
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.val < 50 AND d.stringField == 'type_A' LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, stringField: d.stringField, dist}"
         }
       }
     },
@@ -98,7 +98,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.nonStoredValue < 50 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, nonStoredValue: d.nonStoredValue, dist}",
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.nonStoredValue < 50 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, nonStoredValue: d.nonStoredValue, dist}",
           "count": true,
           "batchSize": 5
         }
@@ -110,7 +110,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.nonStoredValue < 50 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, nonStoredValue: d.nonStoredValue, dist}"
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.nonStoredValue < 50 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, nonStoredValue: d.nonStoredValue, dist}"
         }
       }
     },
@@ -122,7 +122,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val >= 2 AND d.val <= 50 AND d.boolField == true AND d.floatField > 10.0 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 10 RETURN {key: d._key, val: d.val, boolField: d.boolField, floatField: d.floatField, dist}",
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.val >= 2 AND d.val <= 50 AND d.boolField == true AND d.floatField > 10.0 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 10 RETURN {key: d._key, val: d.val, boolField: d.boolField, floatField: d.floatField, dist}",
           "count": true,
           "batchSize": 10
         }
@@ -134,7 +134,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val >= 2 AND d.val <= 50 AND d.boolField == true AND d.floatField > 10.0 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 10 RETURN {key: d._key, val: d.val, boolField: d.boolField, floatField: d.floatField, dist}"
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.val >= 2 AND d.val <= 50 AND d.boolField == true AND d.floatField > 10.0 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 10 RETURN {key: d._key, val: d.val, boolField: d.boolField, floatField: d.floatField, dist}"
         }
       }
     },
@@ -146,7 +146,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val >= 10 AND d.val <= 50 AND d.arrayField[0] > 2 AND d.objectField.nested == 1 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, arrayField: d.arrayField, objectField: d.objectField, dist}",
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.val >= 10 AND d.val <= 50 AND d.arrayField[0] > 2 AND d.objectField.nested == 1 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, arrayField: d.arrayField, objectField: d.objectField, dist}",
           "count": true,
           "batchSize": 5
         }
@@ -158,7 +158,7 @@
           "Accept": "application/json"
         },
         "payload": {
-          "query": "LET rp = (FOR d IN $1 FILTER d.val == 500 RETURN d.vector) FOR d IN $1 FILTER d.val >= 10 AND d.val <= 50 AND d.arrayField[0] > 2 AND d.objectField.nested == 1 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, arrayField: d.arrayField, objectField: d.objectField, dist}"
+          "query": "LET rp = (FOR d IN $1 FILTER d.val == $2 RETURN d.vector) FOR d IN $1 FILTER d.val >= 10 AND d.val <= 50 AND d.arrayField[0] > 2 AND d.objectField.nested == 1 LET dist = APPROX_NEAR_L2(FLATTEN(rp), d.vector) SORT dist LIMIT 5 RETURN {key: d._key, val: d.val, arrayField: d.arrayField, objectField: d.objectField, dist}"
         }
       }
     }
