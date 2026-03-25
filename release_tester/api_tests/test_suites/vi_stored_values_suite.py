@@ -9,7 +9,7 @@ import api_tests.helpers.test_data_helper as tdh
 from semver import VersionInfo
 
 from api_tests.test_suites.api_test_suite import APITestSuite
-from test_suites_core.base_test_suite import testcase, run_before_suite, run_after_suite
+from test_suites_core.base_test_suite import testcase, run_before_suite, run_after_suite, run_before_each_testcase
 
 HTTP_OK_CODES = [200, 201, 202]
 MIN_ARANGO_VERSION = VersionInfo.parse("3.12.7")
@@ -34,7 +34,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
 
     @run_before_suite
     def create_collection_with_index(self):
-        """create collection with docs and index if it doesn't exist"""
+        """create collection with docs and vector index"""
         if self.collection == RTA_COLLECTION:
             response_codes = []
             # create collection
@@ -51,6 +51,15 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             request_data = rh.update_request_data(request_data, self.collection)
             response_codes.append(self.execute_request(request_data)["code"])
             self.setup_ok = all([code in HTTP_OK_CODES for code in response_codes])
+
+    @run_before_each_testcase
+    def get_number_of_docs_in_collection(self):
+        """get number of docs in collection"""
+        request_data = self.requests_data["get_number_of_docs_in_collection"]
+        request_data = rh.update_request_data(request_data, self.collection)
+        request_result = self.execute_request(request_data)
+        doc_count = request_result["json"]["count"] if request_result["code"] in HTTP_OK_CODES else NUMBER_OF_DOCS
+        self.rp = str(int(doc_count / 2))
 
     @testcase("1. VI with stored values - simple query (stored values)")
     def test_vi_with_stored_values_simple_query(self):

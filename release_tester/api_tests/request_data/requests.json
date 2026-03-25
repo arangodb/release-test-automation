@@ -66,6 +66,14 @@
       },
       "payload": {}
     },
+    "get_number_of_docs_in_collection": {
+      "endpoint": "/_api/collection/$1/count",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
     "test_vi_with_stored_values_simple_query": {
       "query" : {
         "endpoint": "/_api/cursor",
