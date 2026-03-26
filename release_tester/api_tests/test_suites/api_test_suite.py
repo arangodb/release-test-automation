@@ -19,7 +19,7 @@ class APITestSuite(BaseTestSuite):
     def __init__(self, starter_instance):
         super().__init__()
         self.starter_instance = starter_instance
-        self.current_version = VersionInfo.parse(starter_instance.cfg.version)
+        self.current_version = VersionInfo.parse(starter_instance.cfg.version.split("-")[0])
         self.sub_suite_name = self.__doc__ or self.__class__.__name__
         self.requests_data = {}
         requests_data_json_path = f"{Path(__file__).parent.parent.resolve()}/request_data/requests.json"

@@ -311,7 +311,7 @@ def os_is_linux() -> bool:
 
 
 def run_before_suite(func):
-    """mark method to be ran before test suite"""
+    """marks method to be run before test suite"""
     if callable(func):
         func.run_before_suite = True
         return func
@@ -319,7 +319,7 @@ def run_before_suite(func):
 
 
 def run_after_suite(func):
-    """mark method to be ran after test suite"""
+    """marks method to be run after test suite"""
     if callable(func):
         func.run_after_suite = True
         return func
@@ -327,7 +327,7 @@ def run_after_suite(func):
 
 
 def run_before_each_testcase(func):
-    """mark method to be ran before each testcase in its test suite"""
+    """marks method to be run before each testcase in its test suite"""
     if callable(func):
         func.run_before_each_testcase = True
         return func
@@ -335,7 +335,7 @@ def run_before_each_testcase(func):
 
 
 def run_after_each_testcase(func):
-    """mark method to be ran before each testcase in its test suite"""
+    """marks method to be run before each testcase in its test suite"""
     if callable(func):
         func.run_after_each_testcase = True
         return func
@@ -343,7 +343,7 @@ def run_after_each_testcase(func):
 
 
 def collect_crash_data(func):
-    """mark methods that are used to collect crash data in case a test failed"""
+    """marks methods used to collect crash data in case of a failure"""
     if callable(func):
         func.collect_crash_data = True
         return func
