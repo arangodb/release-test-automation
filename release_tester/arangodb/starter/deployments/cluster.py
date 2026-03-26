@@ -260,6 +260,7 @@ class Cluster(Runner):
             bench_instances[1].wait()
         for node in self.starter_instances:
             node.detect_instance_pids()
+        self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
