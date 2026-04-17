@@ -10,10 +10,11 @@ from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.license_manager_new_base_test_suite import LicenseManagerNewBaseTestSuite
 from license_manager_tests.base.single_server_base import LicenseManagerSingleServerBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase, TestMustBeSkipped, disable
+from test_suites_core.base_test_suite import testcase, TestMustBeSkipped, disable, run_before_each_testcase
 
 # pylint: disable=import-error
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
+from license_manager_tests.helpers.license_helper import LicenseHelper
 
 
 class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, LicenseManagerSingleServerBaseTestSuite):
@@ -57,6 +58,12 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.runner.finish_setup()
         self.runner.starter_instance.detect_arangosh_instances(self.runner.starter_instance, self.runner.cfg.version)
         self.starter = self.runner.starter_instance
+        self.lh = LicenseHelper(self.starter)
+
+    @run_before_each_testcase
+    def download_operator_platform_tool(self):
+        """Ensure operator platform tool is available"""
+        self.lh.download_operator_platform_tool()
 
     @step
     def recreate_deployment(self):
@@ -83,10 +90,7 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.sleep(10)
         self.check_readonly()
         old_version = semver.VersionInfo.parse("3.12.7-99")
-        if (
-            self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < old_version
-            ):
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) < old_version:
             self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
         else:
             self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
@@ -108,10 +112,7 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.check_logfiles_do_not_contain("d72fc", InstanceType.SINGLE)
         self.check_logfiles_do_not_contain("disk usage exceeded the free limit", InstanceType.SINGLE)
         old_version = semver.VersionInfo.parse("3.12.7-99")
-        if (
-            self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < old_version
-            ):
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) < old_version:
             self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
         else:
             self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
@@ -130,3 +131,10 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.expire_license()
         self.sleep(12)
         self.check_readonly()
+
+    # @disable("re-enable when license generator is compatible with v. 3.12+")
+    @testcase
+    def test_05_generate_license_key(self):
+        """Use arangodb_operator_platform tool to generate a new license key"""
+        self.recreate_deployment()
+        self.lh.generate_license_key()
