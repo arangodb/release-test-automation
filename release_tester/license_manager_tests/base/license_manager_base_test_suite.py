@@ -24,7 +24,7 @@ try:
     EXTERNAL_HELPERS_LOADED = True
 except ModuleNotFoundError as exc:
     print("External helpers not found. License manager tests will not run.")
-    EXTERNAL_HELPERS_LOADED = True
+    EXTERNAL_HELPERS_LOADED = False
 
 
 class LicenseManagerBaseTestSuite(CliStartedTestSuite):
