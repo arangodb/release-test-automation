@@ -134,7 +134,11 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
 
     # @disable("re-enable when license generator is compatible with v. 3.12+")
     @testcase
-    def test_05_generate_license_key(self):
-        """Use arangodb_operator_platform tool to generate a new license key"""
+    def test_05_generate_and_apply_license(self):
+        """Use operator platform tool to generate a new license key and apply the license"""
         self.recreate_deployment()
         self.lh.generate_license_key()
+        self.lh.apply_license()
+        result = self.lh.check_license()
+        assert result["json"]["status"] == "good"
+        assert result["json"]["grant"]["managed"]

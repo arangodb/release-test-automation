@@ -4,16 +4,17 @@ import requests
 import platform
 import subprocess
 import shlex
+import os
 
 from pathlib import Path
 
-
-SUPPORTED_OS = "Linux"
 TOOL_NAME = "arangodb_operator_platform"
-CLIENT_ID = "client_id"
-CLIENT_SECRET = "client_secret"
+SUPPORTED_OS = "Linux"
 ARM64_MACHINE_NAMES = ["arm64", "aarch64"]
 AMD64_MACHINE_NAME = "amd64"
+
+CLIENT_ID = os.environ.get("CLIENT_ID", "client_id")
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "client_secret")
 
 
 class LicenseHelper:
@@ -31,9 +32,23 @@ class LicenseHelper:
         fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
         return self.starter_instance.get_http_protocol() + "://" + fe_instance.get_public_plain_url()
 
+    def _get_jwt_token(self):
+        return str(self.starter_instance.get_jwt_header())
+
+    def _get_auth_header(self):
+        return {"Authorization": "Bearer " + self._get_jwt_token()}
+
     @staticmethod
-    def _run_command(command):
-        subprocess.run(shlex.split(command), stdout=subprocess.PIPE).stdout.decode("utf-8")
+    def process_response(response):
+        try:
+            json_payload = response.json()
+        except requests.exceptions.JSONDecodeError:
+            json_payload = {}
+        return {"code": response.status_code, "json": json_payload}
+
+    @staticmethod
+    def run_command(command):
+        return subprocess.run(shlex.split(command), capture_output=True, text=True)
 
     def download_operator_platform_tool(self):
         """downloads operator platform tool for the current platform"""
@@ -50,26 +65,28 @@ class LicenseHelper:
                     f.write(chunk)
 
     def generate_license_key(self):
-        # create inventory JSON
+        # ensure operator platform tool is executable
         command = f"chmod +x {self.tool_path}"
-        LicenseHelper._run_command(command)
-        jwt_header = str(self.starter_instance.get_jwt_header())
-        command = f'{self.tool_path} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{jwt_header}" {self.inventory_path}'
-        LicenseHelper._run_command(command)
+        LicenseHelper.run_command(command)
+        # create inventory JSON
+        command = f'{self.tool_path} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
+        LicenseHelper.run_command(command)
         # obtain deployment id
-        request_headers = {"Authorization": "Bearer " + jwt_header}
-        response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=request_headers)
+        response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header())
         deployment_id = response.json()["id"]
         print(f"Deployment ID: {deployment_id}")
         # generate license key
-        # command = f'{self.tool_path} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}" 2> {self.license_key_path}'
-        # LicenseHelper._run_command(command)
+        command = f'{self.tool_path} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
+        with open(self.license_key_path, "w") as f:
+            f.write(LicenseHelper.run_command(command).stderr.strip())
 
     def apply_license(self):
-        with open(self.license_key_path, "r", encoding="utf-8") as f:
-            license_key = f.read()
-            requests.put(f"{self._get_base_url()}/_admin/license", data=license_key)
+        if Path(self.license_key_path).exists():
+            with open(self.license_key_path, "r", encoding="utf-8") as f:
+                requests.put(
+                    f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header(), data=f'"{f.read()}"'
+                )
 
     def check_license(self):
-        response = requests.get(f"{self._get_base_url()}/_admin/license")
-        assert response.status_code == 200
+        response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
+        return LicenseHelper.process_response(response)
