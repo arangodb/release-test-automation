@@ -118,10 +118,3 @@ class LicenseManagerNewBaseTestSuite(LicenseManagerBaseTestSuite):
         # we do not actually check for shutdown,
         # because it happens after a timeout of 10 mninutes, that cannot be parametrized
         # this would make tests slow
-
-    @step
-    def check_shutdown(self):
-        """[SKIPPED] check that deployment has shut down"""
-        # we do not actually check for shutdown,
-        # because it happens after a timeout of 10 mninutes, that cannot be parametrized
-        # this would make tests slow

@@ -18,14 +18,13 @@ from test_suites_core.base_test_suite import (
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
-# try:
-#     from tools.external_helpers.license_generator.license_generator import create_license
-#
-#     EXTERNAL_HELPERS_LOADED = True
-# except ModuleNotFoundError as exc:
-#     print("External helpers not found. License manager tests will not run.")
-#     # EXTERNAL_HELPERS_LOADED = False
-#     EXTERNAL_HELPERS_LOADED = True
+try:
+    from tools.external_helpers.license_generator.license_generator import create_license
+
+    EXTERNAL_HELPERS_LOADED = True
+except ModuleNotFoundError as exc:
+    print("External helpers not found. License manager tests will not run.")
+    EXTERNAL_HELPERS_LOADED = True
 
 
 class LicenseManagerBaseTestSuite(CliStartedTestSuite):
