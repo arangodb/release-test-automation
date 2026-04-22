@@ -10,7 +10,13 @@ from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.license_manager_new_base_test_suite import LicenseManagerNewBaseTestSuite
 from license_manager_tests.base.single_server_base import LicenseManagerSingleServerBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase, TestMustBeSkipped, disable, run_before_each_testcase
+from test_suites_core.base_test_suite import (
+    testcase,
+    TestMustBeSkipped,
+    disable,
+    run_before_each_testcase,
+    run_before_suite,
+)
 
 # pylint: disable=import-error
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
@@ -60,10 +66,10 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.starter = self.runner.starter_instance
         self.lh = LicenseHelper(self.starter)
 
-    @run_before_each_testcase
+    @run_before_suite
     def download_operator_platform_tool(self):
         """Ensure operator platform tool is available"""
-        self.lh.download_operator_platform_tool()
+        LicenseHelper.download_operator_platform_tool()
 
     @step
     def recreate_deployment(self):
@@ -135,10 +141,19 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
     # @disable("re-enable when license generator is compatible with v. 3.12+")
     @testcase
     def test_05_generate_and_apply_license(self):
-        """Use operator platform tool to generate a new license key and apply the license"""
+        """Generate a new license key with operator platform tool and apply the license"""
         self.recreate_deployment()
         self.lh.generate_license_key()
         self.lh.apply_license()
-        result = self.lh.check_license()
+        result = self.lh.get_license_data()
+        assert result["json"]["status"] == "good"
+        assert result["json"]["grant"]["managed"]
+
+    @testcase
+    def test_06_activate_deployment(self):
+        """Use operator platform tool to activate deployment"""
+        self.recreate_deployment()
+        self.lh.activate_deployment()
+        result = self.lh.get_license_data()
         assert result["json"]["status"] == "good"
         assert result["json"]["grant"]["managed"]

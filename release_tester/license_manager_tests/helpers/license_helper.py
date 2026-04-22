@@ -1,4 +1,4 @@
-""" ArangoDB operator platform tool helper """
+""" ArangoDB operator platform tool and license helper """
 
 import requests
 import platform
@@ -16,15 +16,13 @@ AMD64_MACHINE_NAME = "amd64"
 CLIENT_ID = os.environ.get("CLIENT_ID", "client_id")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "client_secret")
 
+TOOL_PATH = f"{Path(__file__).parent.parent.resolve()}/operator_tool_binary/{TOOL_NAME}"
+
 
 class LicenseHelper:
     def __init__(self, starter_instance):
         self.starter_instance = starter_instance
-        self.machine = (
-            ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
-        )
         lm_tests_path = Path(__file__).parent.parent.resolve()
-        self.tool_path = f"{lm_tests_path}/operator_tool_binary/{TOOL_NAME}"
         self.inventory_path = f"{lm_tests_path}/inventory/inventory.json"
         self.license_key_path = f"{lm_tests_path}/license_key/license_key.txt"
 
@@ -50,35 +48,43 @@ class LicenseHelper:
     def run_command(command):
         return subprocess.run(shlex.split(command), capture_output=True, text=True)
 
-    def download_operator_platform_tool(self):
+    @staticmethod
+    def download_operator_platform_tool():
         """downloads operator platform tool for the current platform"""
-        if not Path(self.tool_path).exists():
+        if not Path(TOOL_PATH).exists():
             latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
             release_data = requests.get(latest_release_url).json()
-            asset_name = f"{TOOL_NAME}_{SUPPORTED_OS.lower()}_{self.machine}"
+            current_machine = (
+                ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
+            )
+            asset_name = f"{TOOL_NAME}_{SUPPORTED_OS.lower()}_{current_machine}"
             download_url = [
                 asset["browser_download_url"] for asset in release_data["assets"] if asset["name"] == asset_name
             ][0]
             response = requests.get(download_url, stream=True)
-            with open(self.tool_path, "wb") as f:
+            with open(TOOL_PATH, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
+        # ensure operator platform tool is executable
+        command = f"chmod +x {TOOL_PATH}"
+        LicenseHelper.run_command(command)
 
     def generate_license_key(self):
-        # ensure operator platform tool is executable
-        command = f"chmod +x {self.tool_path}"
-        LicenseHelper.run_command(command)
         # create inventory JSON
-        command = f'{self.tool_path} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
+        command = f'{TOOL_PATH} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
         LicenseHelper.run_command(command)
         # obtain deployment id
         response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header())
         deployment_id = response.json()["id"]
-        print(f"Deployment ID: {deployment_id}")
         # generate license key
-        command = f'{self.tool_path} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
+        command = f'{TOOL_PATH} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
         with open(self.license_key_path, "w") as f:
             f.write(LicenseHelper.run_command(command).stderr.strip())
+
+    def activate_deployment(self):
+        # activate deployment
+        command = f'{TOOL_PATH} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
+        LicenseHelper.run_command(command)
 
     def apply_license(self):
         if Path(self.license_key_path).exists():
@@ -87,6 +93,6 @@ class LicenseHelper:
                     f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header(), data=f'"{f.read()}"'
                 )
 
-    def check_license(self):
+    def get_license_data(self):
         response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
         return LicenseHelper.process_response(response)
