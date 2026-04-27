@@ -15,6 +15,9 @@ from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTe
 from license_manager_tests.leader_follower_new import LicenseManagerLeaderFollowerNewTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
 from license_manager_tests.single_server_new import LicenseManagerSingleServerNewTestSuite
+from license_manager_tests.single_server_managed_license import ManagedLicenseSingleServerTestSuite
+from license_manager_tests.leader_follower_managed_license import ManagedLicenseLeaderFollowerTestSuite
+from license_manager_tests.cluster_managed_license import ManagedLicenseClusterTestSuite
 from test_suites_core.base_test_suite import run_before_suite, run_after_suite, disable_if_false
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
@@ -34,6 +37,9 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
         LicenseManagerSingleServerNewTestSuite,
         LicenseManagerLeaderFollowerNewTestSuite,
         LicenseManagerClusterNewTestSuite,
+        ManagedLicenseSingleServerTestSuite,
+        ManagedLicenseLeaderFollowerTestSuite,
+        ManagedLicenseClusterTestSuite,
     ]
 
     def __init__(self, params: CliTestSuiteParameters):

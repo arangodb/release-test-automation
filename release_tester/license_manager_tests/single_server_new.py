@@ -14,13 +14,10 @@ from test_suites_core.base_test_suite import (
     testcase,
     TestMustBeSkipped,
     disable,
-    run_before_each_testcase,
-    run_before_suite,
 )
 
 # pylint: disable=import-error
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
-from license_manager_tests.helpers.license_helper import LicenseHelper
 
 
 class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, LicenseManagerSingleServerBaseTestSuite):
@@ -64,12 +61,6 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.runner.finish_setup()
         self.runner.starter_instance.detect_arangosh_instances(self.runner.starter_instance, self.runner.cfg.version)
         self.starter = self.runner.starter_instance
-        self.lh = LicenseHelper(self.starter)
-
-    @run_before_suite
-    def download_operator_platform_tool(self):
-        """Ensure operator platform tool is available"""
-        LicenseHelper.download_operator_platform_tool()
 
     @step
     def recreate_deployment(self):
@@ -137,23 +128,3 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.expire_license()
         self.sleep(12)
         self.check_readonly()
-
-    # @disable("re-enable when license generator is compatible with v. 3.12+")
-    @testcase
-    def test_05_generate_and_apply_license(self):
-        """Generate a new license key with operator platform tool and apply the license"""
-        self.recreate_deployment()
-        self.lh.generate_license_key()
-        self.lh.apply_license()
-        result = self.lh.get_license_data()
-        assert result["json"]["status"] == "good"
-        assert result["json"]["grant"]["managed"]
-
-    @testcase
-    def test_06_activate_deployment(self):
-        """Use operator platform tool to activate deployment"""
-        self.recreate_deployment()
-        self.lh.activate_deployment()
-        result = self.lh.get_license_data()
-        assert result["json"]["status"] == "good"
-        assert result["json"]["grant"]["managed"]

@@ -8,6 +8,8 @@ import os
 
 from pathlib import Path
 
+from reporting.reporting_utils import step
+
 TOOL_NAME = "arangodb_operator_platform"
 SUPPORTED_OS = "Linux"
 ARM64_MACHINE_NAMES = ["arm64", "aarch64"]
@@ -69,6 +71,7 @@ class LicenseHelper:
         command = f"chmod +x {TOOL_PATH}"
         LicenseHelper.run_command(command)
 
+    @step
     def generate_license_key(self):
         # create inventory JSON
         command = f'{TOOL_PATH} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
@@ -81,11 +84,13 @@ class LicenseHelper:
         with open(self.license_key_path, "w") as f:
             f.write(LicenseHelper.run_command(command).stderr.strip())
 
+    @step
     def activate_deployment(self):
         # activate deployment
         command = f'{TOOL_PATH} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
         LicenseHelper.run_command(command)
 
+    @step
     def apply_license(self):
         if Path(self.license_key_path).exists():
             with open(self.license_key_path, "r", encoding="utf-8") as f:
@@ -93,6 +98,7 @@ class LicenseHelper:
                     f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header(), data=f'"{f.read()}"'
                 )
 
+    @step
     def get_license_data(self):
         response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
         return LicenseHelper.process_response(response)
