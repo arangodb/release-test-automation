@@ -19,14 +19,13 @@ CLIENT_ID = os.environ.get("CLIENT_ID", "client_id")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "client_secret")
 
 TOOL_PATH = f"{Path(__file__).parent.parent.resolve()}/operator_tool_binary/{TOOL_NAME}"
+INVENTORY_PATH = f"{Path(__file__).parent.parent.resolve()}/inventory/inventory.json"
+LICENSE_KEY_PATH = f"{Path(__file__).parent.parent.resolve()}/license_key/license_key.txt"
 
 
 class LicenseHelper:
     def __init__(self, starter_instance):
         self.starter_instance = starter_instance
-        lm_tests_path = Path(__file__).parent.parent.resolve()
-        self.inventory_path = f"{lm_tests_path}/inventory/inventory.json"
-        self.license_key_path = f"{lm_tests_path}/license_key/license_key.txt"
 
     def _get_base_url(self):
         fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
@@ -73,32 +72,46 @@ class LicenseHelper:
 
     @step
     def generate_license_key(self):
+        """gather inventory and deployment data and generate a license key with operator platform tool"""
         # create inventory JSON
-        command = f'{TOOL_PATH} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
+        command = f'{TOOL_PATH} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {INVENTORY_PATH}'
         LicenseHelper.run_command(command)
         # obtain deployment id
         response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header())
         deployment_id = response.json()["id"]
         # generate license key
-        command = f'{TOOL_PATH} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
-        with open(self.license_key_path, "w") as f:
+        command = f'{TOOL_PATH} license generate --deployment.id "{deployment_id}" --inventory {INVENTORY_PATH} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
+        with open(LICENSE_KEY_PATH, "w") as f:
             f.write(LicenseHelper.run_command(command).stderr.strip())
 
     @step
     def activate_deployment(self):
+        """activate deployment with operator platform tool"""
         # activate deployment
         command = f'{TOOL_PATH} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
         LicenseHelper.run_command(command)
 
     @step
     def apply_license(self):
-        if Path(self.license_key_path).exists():
-            with open(self.license_key_path, "r", encoding="utf-8") as f:
+        """apply license using generated license key"""
+        if Path(LICENSE_KEY_PATH).exists():
+            with open(LICENSE_KEY_PATH, "r", encoding="utf-8") as f:
                 requests.put(
                     f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header(), data=f'"{f.read()}"'
                 )
 
     @step
     def get_license_data(self):
+        """obtain current license data"""
         response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
         return LicenseHelper.process_response(response)
+
+    @staticmethod
+    def cleanup():
+        if Path(INVENTORY_PATH).exists():
+            os.remove(INVENTORY_PATH)
+        if Path(LICENSE_KEY_PATH).exists():
+            os.remove(LICENSE_KEY_PATH)
+        # deleting operator platform tool after each test suite execution is suboptimal
+        # if Path(TOOL_PATH).exists():
+        #     os.remove(TOOL_PATH)
