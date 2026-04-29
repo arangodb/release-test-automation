@@ -15,8 +15,10 @@ SUPPORTED_OS = "Linux"
 ARM64_MACHINE_NAMES = ["arm64", "aarch64"]
 AMD64_MACHINE_NAME = "amd64"
 
-CLIENT_ID = os.environ.get("CLIENT_ID", "client_id")
-CLIENT_SECRET = os.environ.get("CLIENT_SECRET", "client_secret")
+DEFAULT_CLIENT_ID = "my-client-id"
+DEFAULT_CLIENT_SECRET = "111aaa22-333b-4ccc-d5dd-e678ffff9012"
+CLIENT_ID = os.environ.get("CLIENT_ID", DEFAULT_CLIENT_ID)
+CLIENT_SECRET = os.environ.get("CLIENT_SECRET", DEFAULT_CLIENT_SECRET)
 
 TOOL_PATH = f"{Path(__file__).parent.parent.resolve()}/operator_tool_binary/{TOOL_NAME}"
 INVENTORY_PATH = f"{Path(__file__).parent.parent.resolve()}/inventory/inventory.json"
@@ -70,8 +72,7 @@ class LicenseHelper:
         command = f"chmod +x {TOOL_PATH}"
         LicenseHelper.run_command(command)
 
-    @step
-    def generate_license_key(self):
+    def generate_license_key(self, client_id=CLIENT_ID, client_secret=CLIENT_SECRET):
         """gather inventory and deployment data and generate a license key with operator platform tool"""
         # create inventory JSON
         command = f'{TOOL_PATH} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {INVENTORY_PATH}'
@@ -80,15 +81,14 @@ class LicenseHelper:
         response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header())
         deployment_id = response.json()["id"]
         # generate license key
-        command = f'{TOOL_PATH} license generate --deployment.id "{deployment_id}" --inventory {INVENTORY_PATH} --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
+        command = f'{TOOL_PATH} license generate --deployment.id "{deployment_id}" --inventory {INVENTORY_PATH} --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
         with open(LICENSE_KEY_PATH, "w") as f:
             f.write(LicenseHelper.run_command(command).stderr.strip())
 
-    @step
-    def activate_deployment(self):
+    def activate_deployment(self, client_id=CLIENT_ID, client_secret=CLIENT_SECRET):
         """activate deployment with operator platform tool"""
         # activate deployment
-        command = f'{TOOL_PATH} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{CLIENT_ID}" --license.client.secret "{CLIENT_SECRET}"'
+        command = f'{TOOL_PATH} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
         LicenseHelper.run_command(command)
 
     @step
