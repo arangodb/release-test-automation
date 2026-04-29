@@ -29,8 +29,8 @@ class ManagedLicenseSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
         self.first_test = False
         self.lh = LicenseHelper(self.starter)
 
-    @testcase
-    def test_01_generate_and_apply_license(self):
+    @testcase("1. Generate a license key with operator platform tool and apply the license - Single server")
+    def test_generate_and_apply_license(self):
         """generate a new license key with operator platform tool and apply the license"""
         with step("generate a new license key with operator platform tool"):
             self.lh.generate_license_key()
@@ -41,8 +41,8 @@ class ManagedLicenseSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
         assert "deploymentId" in result["json"]["grant"]
         assert result["json"]["grant"]["managed"]
 
-    @testcase
-    def test_02_activate_deployment(self):
+    @testcase("2. Use operator platform tool to activate deployment - Single server")
+    def test_activate_deployment(self):
         """use operator platform tool to activate deployment"""
         with step("use operator platform tool to activate deployment"):
             self.lh.activate_deployment()
@@ -52,8 +52,8 @@ class ManagedLicenseSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
         assert "deploymentId" in result["json"]["grant"]
         assert result["json"]["grant"]["managed"]
 
-    @testcase
-    def test_03_negative_activate_deployment(self):
+    @testcase("3. Attempt to activate a deployment with incorrect client id and secret key - Single server")
+    def test_negative_activate_deployment(self):
         """attempt to activate a deployment with incorrect client id and secret key"""
         with step("use operator platform tool to activate deployment"):
             self.lh.activate_deployment(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
