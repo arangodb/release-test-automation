@@ -1,0 +1,1 @@
+inventory.json will be created here

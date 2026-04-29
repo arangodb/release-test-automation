@@ -10,7 +10,11 @@ from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.license_manager_new_base_test_suite import LicenseManagerNewBaseTestSuite
 from license_manager_tests.base.single_server_base import LicenseManagerSingleServerBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase, TestMustBeSkipped, disable
+from test_suites_core.base_test_suite import (
+    testcase,
+    TestMustBeSkipped,
+    disable,
+)
 
 # pylint: disable=import-error
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
@@ -83,10 +87,7 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.sleep(10)
         self.check_readonly()
         old_version = semver.VersionInfo.parse("3.12.7-99")
-        if (
-            self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < old_version
-            ):
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) < old_version:
             self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
         else:
             self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
@@ -108,10 +109,7 @@ class LicenseManagerSingleServerNewTestSuite(LicenseManagerNewBaseTestSuite, Lic
         self.check_logfiles_do_not_contain("d72fc", InstanceType.SINGLE)
         self.check_logfiles_do_not_contain("disk usage exceeded the free limit", InstanceType.SINGLE)
         old_version = semver.VersionInfo.parse("3.12.7-99")
-        if (
-            self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < old_version
-            ):
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) < old_version:
             self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
         else:
             self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)

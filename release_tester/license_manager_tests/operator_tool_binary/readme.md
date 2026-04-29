@@ -1,0 +1,1 @@
+arangodb_operator_platform binary will be downloaded here
