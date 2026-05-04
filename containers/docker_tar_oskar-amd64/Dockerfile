@@ -1,4 +1,4 @@
-from arangodb/ubuntubuildarangodb-311:6
+from arangodb/ubuntubuildarangodb-311:8
 MAINTAINER Wilfried Goesgens <willi@arangodb.com>
 
 ENV TZ=Europe/Berlin
