@@ -175,7 +175,7 @@ class Runner(ABC):
             self.upgrade_counter = 0
         self.is_foxx_supported = True
         for one_version in self.get_versions_concerned():
-            if one_version > "3.99.99":
+            if one_version.major < 4:
                 self.is_foxx_supported = False
 
     def get_versions_concerned(self):
