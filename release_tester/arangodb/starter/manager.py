@@ -1055,7 +1055,7 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
-                            self.cfg.version,
+                            self.cfg.semver,
                             self.enterprise,
                             jwt=jwt,
                         )
