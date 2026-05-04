@@ -29,23 +29,27 @@ class ManagedLicenseSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
         self.first_test = False
         self.lh = LicenseHelper(self.starter)
 
-    @testcase("1. Generate a license key with operator platform tool and apply the license - Single server")
+    @testcase("1. Attempt to generate a license key with incorrect client id and secret key - Single server")
+    def test_negative_generate_and_apply_license(self):
+        """attempt to generate a license key with incorrect client id and secret key"""
+        with step("generate a new license key with operator platform tool"):
+            self.lh.generate_license_key(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
+        license_key_file_content = LicenseHelper.get_license_key_file_content()
+        self.lh.apply_license()
+        result = self.lh.get_license_data()
+        assert "Error" in license_key_file_content
+        assert "401" in license_key_file_content
+        assert "unauthorized" in license_key_file_content
+        assert "diskUsage" in result["json"]
+        assert "license" not in result["json"]
+        assert "grant" not in result["json"]
+
+    @testcase("2. Generate a license key with operator platform tool and apply the license - Single server")
     def test_generate_and_apply_license(self):
         """generate a new license key with operator platform tool and apply the license"""
         with step("generate a new license key with operator platform tool"):
             self.lh.generate_license_key()
         self.lh.apply_license()
-        result = self.lh.get_license_data()
-        assert "license" in result["json"]
-        assert "licenseId" in result["json"]["grant"]
-        assert "deploymentId" in result["json"]["grant"]
-        assert result["json"]["grant"]["managed"]
-
-    @testcase("2. Use operator platform tool to activate deployment - Single server")
-    def test_activate_deployment(self):
-        """use operator platform tool to activate deployment"""
-        with step("use operator platform tool to activate deployment"):
-            self.lh.activate_deployment()
         result = self.lh.get_license_data()
         assert "license" in result["json"]
         assert "licenseId" in result["json"]["grant"]
@@ -61,3 +65,14 @@ class ManagedLicenseSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
         assert "diskUsage" in result["json"]
         assert "license" not in result["json"]
         assert "grant" not in result["json"]
+
+    @testcase("4. Use operator platform tool to activate deployment - Single server")
+    def test_activate_deployment(self):
+        """use operator platform tool to activate deployment"""
+        with step("use operator platform tool to activate deployment"):
+            self.lh.activate_deployment()
+        result = self.lh.get_license_data()
+        assert "license" in result["json"]
+        assert "licenseId" in result["json"]["grant"]
+        assert "deploymentId" in result["json"]["grant"]
+        assert result["json"]["grant"]["managed"]

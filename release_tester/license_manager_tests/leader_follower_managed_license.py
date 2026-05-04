@@ -28,7 +28,22 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
         self.first_test = False
         self.lh = LicenseHelper(self.starter)
 
-    @testcase("1. Generate a license key with operator platform tool and apply the license - Leader-Follower")
+    @testcase("1. Attempt to generate a license key with incorrect client id and secret key - Leader follower")
+    def test_negative_generate_and_apply_license(self):
+        """attempt to generate a license key with incorrect client id and secret key"""
+        with step("generate a new license key with operator platform tool"):
+            self.lh.generate_license_key(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
+        license_key_file_content = LicenseHelper.get_license_key_file_content()
+        self.lh.apply_license()
+        result = self.lh.get_license_data()
+        assert "Error" in license_key_file_content
+        assert "401" in license_key_file_content
+        assert "unauthorized" in license_key_file_content
+        assert "diskUsage" in result["json"]
+        assert "license" not in result["json"]
+        assert "grant" not in result["json"]
+
+    @testcase("2. Generate a license key with operator platform tool and apply the license - Leader follower")
     def test_generate_and_apply_license(self):
         """generate a new license key with operator platform tool and apply the license"""
         with step("generate a new license key with operator platform tool"):
@@ -40,7 +55,17 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
         assert "deploymentId" in result["json"]["grant"]
         assert result["json"]["grant"]["managed"]
 
-    @testcase("2. Use operator platform tool to activate deployment - Leader-Follower")
+    @testcase("3. Attempt to activate a deployment with incorrect client id and secret key - Leader follower")
+    def test_negative_activate_deployment(self):
+        """attempt to activate a deployment with incorrect client id and secret key"""
+        with step("use operator platform tool to activate deployment"):
+            self.lh.activate_deployment(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
+        result = self.lh.get_license_data()
+        assert "diskUsage" in result["json"]
+        assert "license" not in result["json"]
+        assert "grant" not in result["json"]
+
+    @testcase("4. Use operator platform tool to activate deployment - Leader follower")
     def test_activate_deployment(self):
         """use operator platform tool to activate deployment"""
         with step("use operator platform tool to activate deployment"):
@@ -50,13 +75,3 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
         assert "licenseId" in result["json"]["grant"]
         assert "deploymentId" in result["json"]["grant"]
         assert result["json"]["grant"]["managed"]
-
-    @testcase("3. Attempt to activate a deployment with incorrect client id and secret key - Leader-Follower")
-    def test_negative_activate_deployment(self):
-        """attempt to activate a deployment with incorrect client id and secret key"""
-        with step("use operator platform tool to activate deployment"):
-            self.lh.activate_deployment(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
-        result = self.lh.get_license_data()
-        assert "diskUsage" in result["json"]
-        assert "license" not in result["json"]
-        assert "grant" not in result["json"]

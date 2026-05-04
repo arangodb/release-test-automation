@@ -94,17 +94,26 @@ class LicenseHelper:
     @step
     def apply_license(self):
         """apply license using generated license key"""
-        if Path(LICENSE_KEY_PATH).exists():
-            with open(LICENSE_KEY_PATH, "r", encoding="utf-8") as f:
-                requests.put(
-                    f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header(), data=f'"{f.read()}"'
-                )
+        requests.put(
+            f"{self._get_base_url()}/_admin/license",
+            headers=self._get_auth_header(),
+            data=f'"{LicenseHelper.get_license_key_file_content()}"',
+        )
 
     @step
     def get_license_data(self):
         """obtain current license data"""
         response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
         return LicenseHelper.process_response(response)
+
+    @staticmethod
+    def get_license_key_file_content():
+        """get license key file content"""
+        license_key_file_content = ""
+        if Path(LICENSE_KEY_PATH).exists():
+            with open(LICENSE_KEY_PATH, "r", encoding="utf-8") as f:
+                license_key_file_content = f.read()
+        return license_key_file_content
 
     @staticmethod
     def cleanup():
