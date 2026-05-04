@@ -175,8 +175,15 @@ class Runner(ABC):
             self.upgrade_counter = 0
         self.is_foxx_supported = True
         for one_version in self.get_versions_concerned():
+            print(one_version)
+            print(one_version.major)
             if one_version.major < 4:
                 self.is_foxx_supported = False
+        print(self.is_foxx_supported)
+        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+        print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
 
     def get_versions_concerned(self):
         """get all versions that will be worked on"""
