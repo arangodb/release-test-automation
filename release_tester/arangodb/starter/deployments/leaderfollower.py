@@ -364,6 +364,7 @@ process.exit(0);
             [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
             deadline=deadline,
             progressive_timeout=progressive_timeout,
+            verbose=True,
         )
         if not ret[0]:
             if not self.cfg.verbose:
