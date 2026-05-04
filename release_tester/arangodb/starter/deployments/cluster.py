@@ -419,7 +419,7 @@ class Cluster(Runner):
                 for db_name, oneshard, count_offset in self.makedata_databases():
                     ret = starter_instance.arangosh.check_test_data(
                         "Cluster one node missing",
-                        True,
+                        self.is_foxx_supported,
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
