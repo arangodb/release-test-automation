@@ -1,6 +1,6 @@
 #!/bin/bash
 . ./jenkins/common/detect_podman.sh
-if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12"; then
+if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12" -o "$BASE_VERSION" == "4.0"; then
     DOCKER_SUFFIX=tar-oskarnew
 else
     DOCKER_SUFFIX=tar-oskar
