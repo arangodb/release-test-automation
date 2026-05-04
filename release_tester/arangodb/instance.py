@@ -142,6 +142,7 @@ class Instance(ABC):
         self.jwt = jwt
         self.source_instance = False
         self.name = ""
+        self.have_js = version.major < 4
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
@@ -412,7 +413,7 @@ class Instance(ABC):
                 try:
                     self.instance.send_signal(signal.SIGSEGV)
                 except Exception as ex:
-                    print(f"skipping {self.instance.pid} {ex.message}")
+                    print(f"skipping {self.instance.pid} {str(ex)}")
                     return
                 #gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
                 #print("generating core with PID:" + str(gcore.pid))
@@ -648,7 +649,7 @@ class ArangodInstance(Instance):
         return self.get_afo_state() == AfoServerState.LEADER
 
     def clean_hotbackup(self):
-        if self.instance_type == InstanceType.COORDINATOR:
+        if self.instance_type == InstanceType.COORDINATOR and self.have_js:
             shutil.rmtree(self.basedir / "data" / "js")
         elif self.instance_type in [
                 InstanceType.DBSERVER, InstanceType.SINGLE ,InstanceType.RESILIENT_SINGLE
