@@ -20,14 +20,16 @@ DEFAULT_CLIENT_SECRET = "111aaa22-333b-4ccc-d5dd-e678ffff9012"
 CLIENT_ID = os.environ.get("CLIENT_ID", DEFAULT_CLIENT_ID)
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET", DEFAULT_CLIENT_SECRET)
 
-TOOL_PATH = f"{Path(__file__).parent.parent.resolve()}/operator_tool_binary/{TOOL_NAME}"
-INVENTORY_PATH = f"{Path(__file__).parent.parent.resolve()}/inventory/inventory.json"
-LICENSE_KEY_PATH = f"{Path(__file__).parent.parent.resolve()}/license_key/license_key.txt"
+INVENTORY_FILE_NAME = "inventory.json"
+LICENSE_FILE_NAME = "license_key.txt"
 
 
 class LicenseHelper:
-    def __init__(self, starter_instance):
+    def __init__(self, starter_instance, lm_tests_dir_path):
         self.starter_instance = starter_instance
+        self.tool_path = f"{lm_tests_dir_path}/{TOOL_NAME}"
+        self.inventory_path = f"{lm_tests_dir_path}/{INVENTORY_FILE_NAME}"
+        self.license_key_path = f"{lm_tests_dir_path}/{LICENSE_FILE_NAME}"
 
     def _get_base_url(self):
         fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
@@ -52,9 +54,10 @@ class LicenseHelper:
         return subprocess.run(shlex.split(command), capture_output=True, text=True)
 
     @staticmethod
-    def download_operator_platform_tool():
+    def download_operator_platform_tool(lm_tests_dir_path):
         """downloads operator platform tool for the current platform"""
-        if not Path(TOOL_PATH).exists():
+        tool_path = f"{lm_tests_dir_path}/{TOOL_NAME}"
+        if not Path(tool_path).exists():
             latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
             release_data = requests.get(latest_release_url).json()
             current_machine = (
@@ -65,30 +68,30 @@ class LicenseHelper:
                 asset["browser_download_url"] for asset in release_data["assets"] if asset["name"] == asset_name
             ][0]
             response = requests.get(download_url, stream=True)
-            with open(TOOL_PATH, "wb") as f:
+            with open(tool_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
         # ensure operator platform tool is executable
-        command = f"chmod +x {TOOL_PATH}"
+        command = f"chmod +x {tool_path}"
         LicenseHelper.run_command(command)
 
     def generate_license_key(self, client_id=CLIENT_ID, client_secret=CLIENT_SECRET):
         """gather inventory and deployment data and generate a license key with operator platform tool"""
         # create inventory JSON
-        command = f'{TOOL_PATH} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {INVENTORY_PATH}'
+        command = f'{self.tool_path} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
         LicenseHelper.run_command(command)
         # obtain deployment id
         response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header())
         deployment_id = response.json()["id"]
         # generate license key
-        command = f'{TOOL_PATH} license generate --deployment.id "{deployment_id}" --inventory {INVENTORY_PATH} --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
-        with open(LICENSE_KEY_PATH, "w") as f:
+        command = f'{self.tool_path} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
+        with open(self.license_key_path, "w") as f:
             f.write(LicenseHelper.run_command(command).stderr.strip())
 
     def activate_deployment(self, client_id=CLIENT_ID, client_secret=CLIENT_SECRET):
         """activate deployment with operator platform tool"""
         # activate deployment
-        command = f'{TOOL_PATH} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
+        command = f'{self.tool_path} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
         LicenseHelper.run_command(command)
 
     @step
@@ -97,7 +100,7 @@ class LicenseHelper:
         requests.put(
             f"{self._get_base_url()}/_admin/license",
             headers=self._get_auth_header(),
-            data=f'"{LicenseHelper.get_license_key_file_content()}"',
+            data=f'"{self.get_license_key_file_content()}"',
         )
 
     @step
@@ -106,21 +109,23 @@ class LicenseHelper:
         response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
         return LicenseHelper.process_response(response)
 
-    @staticmethod
-    def get_license_key_file_content():
+    def get_license_key_file_content(self):
         """get license key file content"""
         license_key_file_content = ""
-        if Path(LICENSE_KEY_PATH).exists():
-            with open(LICENSE_KEY_PATH, "r", encoding="utf-8") as f:
+        if Path(self.license_key_path).exists():
+            with open(self.license_key_path, "r", encoding="utf-8") as f:
                 license_key_file_content = f.read()
         return license_key_file_content
 
     @staticmethod
-    def cleanup():
-        if Path(INVENTORY_PATH).exists():
-            os.remove(INVENTORY_PATH)
-        if Path(LICENSE_KEY_PATH).exists():
-            os.remove(LICENSE_KEY_PATH)
+    def cleanup(lm_tests_dir_path):
+        inventory_path = f"{lm_tests_dir_path}/{INVENTORY_FILE_NAME}"
+        license_key_path = f"{lm_tests_dir_path}/{LICENSE_FILE_NAME}"
+        if Path(inventory_path).exists():
+            os.remove(inventory_path)
+        if Path(license_key_path).exists():
+            os.remove(license_key_path)
         # deleting operator platform tool after each test suite execution is suboptimal
-        # if Path(TOOL_PATH).exists():
-        #     os.remove(TOOL_PATH)
+        # tool_path = f"{lm_tests_dir_path}/{TOOL_NAME}"
+        # if Path(tool_path).exists():
+        #     os.remove(tool_path)

@@ -22,26 +22,21 @@ class ManagedLicenseClusterTestSuite(LicenseManagerClusterBaseTestSuite, Managed
     def setup_cluster(self):
         """recreate a cluster deployment if needed and instantiate LicenseHelper"""
         if not self.first_test:  # we only want to recreate a deployment for 2nd and subsequent tests
-            self.runner.starter_shutdown()
-            self.runner.cleanup()
-            self.start_cluster()
+            self.recreate_deployment()
         self.first_test = False
-        self.lh = LicenseHelper(self.starter)
+        self.lh = LicenseHelper(self.starter, self.lm_tests_dir)
 
     @testcase("1. Attempt to generate a license key with incorrect client id and secret key - Cluster")
     def test_negative_generate_and_apply_license(self):
         """attempt to generate a license key with incorrect client id and secret key"""
         with step("generate a new license key with operator platform tool"):
             self.lh.generate_license_key(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
-        license_key_file_content = LicenseHelper.get_license_key_file_content()
+        license_key_file_content = self.lh.get_license_key_file_content()
         self.lh.apply_license()
-        result = self.lh.get_license_data()
-        assert "Error" in license_key_file_content
-        assert "401" in license_key_file_content
-        assert "unauthorized" in license_key_file_content
-        assert "diskUsage" in result["json"]
-        assert "license" not in result["json"]
-        assert "grant" not in result["json"]
+        result = self.lh.get_license_data()["json"]
+        assert all([s in license_key_file_content for s in ["Error", "401", "unauthorized"]])
+        assert not {"license", "grant"}.issubset(result.keys())
+        assert "diskUsage" in result
 
     @testcase("2. Generate a license key with operator platform tool and apply the license - Cluster")
     def test_generate_and_apply_license(self):
@@ -49,29 +44,26 @@ class ManagedLicenseClusterTestSuite(LicenseManagerClusterBaseTestSuite, Managed
         with step("generate a new license key with operator platform tool"):
             self.lh.generate_license_key()
         self.lh.apply_license()
-        result = self.lh.get_license_data()
-        assert "license" in result["json"]
-        assert "licenseId" in result["json"]["grant"]
-        assert "deploymentId" in result["json"]["grant"]
-        assert result["json"]["grant"]["managed"]
+        result = self.lh.get_license_data()["json"]
+        assert "license" in result
+        assert {"licenseId", "deploymentId"}.issubset(result["grant"].keys())
+        assert result["grant"]["managed"]
 
     @testcase("3. Attempt to activate a deployment with incorrect client id and secret key - Cluster")
     def test_negative_activate_deployment(self):
         """attempt to activate a deployment with incorrect client id and secret key"""
         with step("use operator platform tool to activate deployment"):
             self.lh.activate_deployment(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
-        result = self.lh.get_license_data()
-        assert "diskUsage" in result["json"]
-        assert "license" not in result["json"]
-        assert "grant" not in result["json"]
+        result = self.lh.get_license_data()["json"]
+        assert not {"license", "grant"}.issubset(result.keys())
+        assert "diskUsage" in result
 
     @testcase("4. Use operator platform tool to activate deployment - Cluster")
     def test_activate_deployment(self):
         """use operator platform tool to activate deployment"""
         with step("use operator platform tool to activate deployment"):
             self.lh.activate_deployment()
-        result = self.lh.get_license_data()
-        assert "license" in result["json"]
-        assert "licenseId" in result["json"]["grant"]
-        assert "deploymentId" in result["json"]["grant"]
-        assert result["json"]["grant"]["managed"]
+        result = self.lh.get_license_data()["json"]
+        assert "license" in result
+        assert {"licenseId", "deploymentId"}.issubset(result["grant"].keys())
+        assert result["grant"]["managed"]

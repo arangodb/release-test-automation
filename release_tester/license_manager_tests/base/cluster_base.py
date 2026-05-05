@@ -71,3 +71,9 @@ class LicenseManagerClusterBaseTestSuite(LicenseManagerBaseTestSuite):
             body,
         )
         assert 200 <= resp[0].status_code < 300, "Failed to write license to agency."
+
+    def recreate_deployment(self):
+        """recreate cluster deployment"""
+        self.runner.starter_shutdown()
+        self.runner.cleanup()
+        self.start_cluster()
