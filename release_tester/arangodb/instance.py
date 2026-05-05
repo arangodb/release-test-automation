@@ -39,6 +39,7 @@ LOG_BLACKLIST = [
     "2c0c6",  # -> extended names
     "de8f3",  # -> extended names
     "ee638",  # -> The createCollection request contains an illegal combination and will be rejected in the future: {"errorNum":10,"errorMessage":"Cannot have a different replicationFactor (1), than the leading collection (2)"}
+    "6843e",  # -> old arguments of 3.x no longer supported in 4.x
 ]
 LOG_MAINTAINER_BLACKLIST = [  # if we use the 'source'-Distribution, these are expected:
     "0458b",  # -> maintainer version binary
