@@ -292,7 +292,7 @@ class InstallerBase(ABC):
             self.cfg.log_dir,
             self.cfg.passvoid,
             True,
-            self.cfg.version,
+            self.cfg.semver,
             self.cfg.enterprise,
         )
         self.calculate_package_names()
@@ -595,7 +595,7 @@ class InstallerBase(ABC):
             basedir=(self.get_log_dir()),
             passvoid=self.cfg.passvoid,
             ssl=False,
-            version=self.cfg.version,
+            version=self.cfg.semver,
             enterprise=self.cfg.enterprise,
         )
 
