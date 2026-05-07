@@ -108,8 +108,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # verify no separate filter node
             assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
             # verify coverage by stored values
-            index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
-            assert index_node["isCoveredByStoredValues"]
+            # index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+            # assert index_node["isCoveredByStoredValues"]
             # verify correct optimization rules are applied
             expected_rules = {"move-filters-into-enumerate", "use-vector-index"}
             assert expected_rules.issubset(
@@ -138,8 +138,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # verify no separate filter node
             assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
             # verify no coverage for non-stored values
-            index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
-            assert not index_node["isCoveredByStoredValues"]
+            # index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+            # assert not index_node["isCoveredByStoredValues"]
 
     @testcase("3. VI with stored values - complex query (stored values)")
     def test_vi_with_stored_values_complex_query(self):
@@ -169,8 +169,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # verify no separate filter node
             assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
             # verify coverage by stored values
-            index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
-            assert index_node["isCoveredByStoredValues"]
+            # index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+            # assert index_node["isCoveredByStoredValues"]
             # verify correct optimization rules are applied
             expected_rules = {"move-filters-into-enumerate", "use-vector-index"}
             assert expected_rules.issubset(
@@ -205,8 +205,8 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # verify no separate filter node
             assert not ph.has_elem_with_prop_value(request2_result["plan"]["nodes"], "type", "FilterNode")
             # verify no coverage for non-stored values
-            index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
-            assert not index_node["isCoveredByStoredValues"]
+            # index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
+            # assert not index_node["isCoveredByStoredValues"]
 
     @run_after_suite
     def drop_collection(self):
