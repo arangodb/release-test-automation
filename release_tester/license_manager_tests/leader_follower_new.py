@@ -10,10 +10,13 @@ from arangodb.instance import InstanceType
 from arangodb.starter.deployments import make_runner
 from arangodb.starter.deployments.none import NoStarter
 from license_manager_tests.base.leader_follower_base import LicenseManagerLeaderFollowerBaseTestSuite
-
 from license_manager_tests.base.license_manager_new_base_test_suite import LicenseManagerNewBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase, disable, TestMustBeSkipped
+from test_suites_core.base_test_suite import (
+    testcase,
+    TestMustBeSkipped,
+    disable,
+)
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 
@@ -84,10 +87,7 @@ class LicenseManagerLeaderFollowerNewTestSuite(
         self.sleep(23)
         self.check_readonly()
         old_version = semver.VersionInfo.parse("3.12.7-99")
-        if (
-            self.new_version is not None
-            and semver.VersionInfo.parse(self.new_version) < old_version
-            ):
+        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) < old_version:
             self.check_logfiles_contain("f4b90", InstanceType.COORDINATOR)
         else:
             self.check_logfiles_contain("f4b91", InstanceType.COORDINATOR)
