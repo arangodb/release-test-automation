@@ -388,6 +388,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             ],
             args=args + ["--progress",
                          "true",
+                         "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
                          "--passvoid", self.cfg.passvoid,
                          '--testFoxx', 'true' if supports_foxx_tests else 'false',
                          ] + test_filter,
@@ -435,6 +436,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--progress', 'true',
                 '--oldVersion', self.old_version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
+                "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
                 '--passvoid', self.cfg.passvoid,
                 '--mixed', 'true' if mixed else 'false'
             ] + test_filter,
@@ -477,6 +479,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             args=args + [
                 '--progress', 'true',
                 '--oldVersion', self.old_version,
+                "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
                 '--passvoid', self.cfg.passvoid
             ] + test_filter,
