@@ -4,7 +4,7 @@
 from license_manager_tests.base.leader_follower_base import LicenseManagerLeaderFollowerBaseTestSuite
 from license_manager_tests.base.managed_license_base import ManagedLicenseBaseTestSuite
 from reporting.reporting_utils import step
-from test_suites_core.base_test_suite import testcase, run_before_each_testcase
+from test_suites_core.base_test_suite import testcase, run_before_each_testcase, disable
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from license_manager_tests.helpers.license_helper import LicenseHelper, DEFAULT_CLIENT_ID, DEFAULT_CLIENT_SECRET
 
@@ -15,15 +15,11 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
         self.suite_name = "Managed license test suite: Clean install"
-        self.first_test = True
 
     @run_before_each_testcase
     @step
     def setup_leader_follower(self):
-        """recreate a leader-follower deployment if needed and instantiate LicenseHelper"""
-        if not self.first_test:  # we only want to recreate a deployment for 2nd and subsequent tests
-            self.recreate_deployment()
-        self.first_test = False
+        """instantiate LicenseHelper"""
         self.lh = LicenseHelper(self.starter, self.lm_tests_dir)
 
     @testcase("1. Attempt to generate a license key with incorrect client id and secret key - Leader follower")
@@ -38,7 +34,17 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
         assert not {"license", "grant"}.issubset(result.keys())
         assert "diskUsage" in result
 
-    @testcase("2. Generate a license key with operator platform tool and apply the license - Leader follower")
+    @testcase("2. Attempt to activate a deployment with incorrect client id and secret key - Leader follower")
+    def test_negative_activate_deployment(self):
+        """attempt to activate a deployment with incorrect client id and secret key"""
+        with step("use operator platform tool to activate deployment"):
+            self.lh.activate_deployment(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
+        result = self.lh.get_license_data()["json"]
+        assert not {"license", "grant"}.issubset(result.keys())
+        assert "diskUsage" in result
+
+    @disable("re-enable when number of active deployments is reset")
+    @testcase("3. Generate a license key with operator platform tool and apply the license - Leader follower")
     def test_generate_and_apply_license(self):
         """generate a new license key with operator platform tool and apply the license"""
         with step("generate a new license key with operator platform tool"):
@@ -49,15 +55,7 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
         assert {"licenseId", "deploymentId"}.issubset(result["grant"].keys())
         assert result["grant"]["managed"]
 
-    @testcase("3. Attempt to activate a deployment with incorrect client id and secret key - Leader follower")
-    def test_negative_activate_deployment(self):
-        """attempt to activate a deployment with incorrect client id and secret key"""
-        with step("use operator platform tool to activate deployment"):
-            self.lh.activate_deployment(client_id=DEFAULT_CLIENT_ID, client_secret=DEFAULT_CLIENT_SECRET)
-        result = self.lh.get_license_data()["json"]
-        assert not {"license", "grant"}.issubset(result.keys())
-        assert "diskUsage" in result
-
+    @disable("re-enable when number of active deployments is reset")
     @testcase("4. Use operator platform tool to activate deployment - Leader follower")
     def test_activate_deployment(self):
         """use operator platform tool to activate deployment"""
