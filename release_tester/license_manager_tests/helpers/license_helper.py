@@ -19,6 +19,7 @@ DEFAULT_CLIENT_ID = "my-client-id"
 DEFAULT_CLIENT_SECRET = "111aaa22-333b-4ccc-d5dd-e678ffff9012"
 CLIENT_ID = os.environ.get("CLIENT_ID", DEFAULT_CLIENT_ID)
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET", DEFAULT_CLIENT_SECRET)
+MAX_ACTIVE_DEPLOYMENTS = "512"
 
 INVENTORY_FILE_NAME = "inventory.json"
 LICENSE_FILE_NAME = "license_key.txt"
@@ -92,7 +93,7 @@ class LicenseHelper:
         """activate deployment with operator platform tool"""
         # activate deployment
         command = f'{self.tool_path} license activate --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
-        LicenseHelper.run_command(command)
+        return LicenseHelper.run_command(command).stderr.strip()
 
     @step
     def apply_license(self):
@@ -125,7 +126,3 @@ class LicenseHelper:
             os.remove(inventory_path)
         if Path(license_key_path).exists():
             os.remove(license_key_path)
-        # deleting operator platform tool after each test suite execution is suboptimal
-        # tool_path = f"{lm_tests_dir_path}/{TOOL_NAME}"
-        # if Path(tool_path).exists():
-        #     os.remove(tool_path)
