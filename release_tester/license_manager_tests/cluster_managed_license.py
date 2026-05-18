@@ -25,7 +25,7 @@ class ManagedLicenseClusterTestSuite(LicenseManagerClusterBaseTestSuite, Managed
     @run_before_each_testcase
     @step
     def setup_cluster(self):
-        """recreate a cluster deployment if needed and instantiate LicenseHelper"""
+        """instantiate LicenseHelper and recreate cluster deployment if needed"""
         if not self.first_test:  # we only want to recreate a deployment for 2nd and subsequent tests
             self.recreate_deployment()
         self.first_test = False

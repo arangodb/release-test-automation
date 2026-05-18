@@ -25,7 +25,7 @@ class ManagedLicenseSingleServerTestSuite(LicenseManagerSingleServerBaseTestSuit
     @run_before_each_testcase
     @step
     def setup_single_server(self):
-        """instantiate LicenseHelper and recreate deployment if needed"""
+        """instantiate LicenseHelper and recreate single server deployment if needed"""
         if not self.first_test:  # we only want to recreate a deployment for 2nd and subsequent tests
             self.recreate_deployment()
         self.first_test = False

@@ -25,7 +25,7 @@ class ManagedLicenseLeaderFollowerTestSuite(LicenseManagerLeaderFollowerBaseTest
     @run_before_each_testcase
     @step
     def setup_leader_follower(self):
-        """recreate a leader-follower deployment if needed and instantiate LicenseHelper"""
+        """instantiate LicenseHelper and recreate leader follower deployment if needed"""
         if not self.first_test:  # we only want to recreate a deployment for 2nd and subsequent tests
             self.recreate_deployment()
         self.first_test = False
