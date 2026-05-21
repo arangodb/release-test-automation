@@ -33,6 +33,7 @@ DOCKER_ARGS=(
          --network="${DOCKER_NETWORK_NAME}" \
          --name="${DOCKER_NAME}" \
          --ulimit core=-1 \
+         --ulimit nofile=65536:65536 \
 # containerd         --rm \
          -v "$(pwd):/home/release-test-automation" \
          -v "$(pwd)/test_dir:/home/test_dir" \
