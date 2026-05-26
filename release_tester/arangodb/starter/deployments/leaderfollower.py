@@ -211,13 +211,13 @@ while (true) {{
         # self.after_backup_create_impl()
 
     @step
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests, supports_vector_index):
         """we want to see stuff is in sync!"""
         print("Checking whether the follower has caught up")
         if not self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"]):
             raise Exception("the follower would not catch up in time!")
         super().check_data_impl_sh(arangosh, supports_foxx_tests,
-                                   self.leader_starter_instance.supports_vector_index)
+                                   supports_vector_index)
 
     def starter_run_impl(self):
         self.leader_starter_instance.run_starter()
