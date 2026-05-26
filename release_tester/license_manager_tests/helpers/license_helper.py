@@ -68,7 +68,7 @@ class LicenseHelper:
             download_url = [
                 asset["browser_download_url"] for asset in release_data["assets"] if asset["name"] == asset_name
             ][0]
-            response = requests.get(download_url, stream=True)
+            response = requests.get(download_url, stream=True, timeout=60)
             with open(tool_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
