@@ -712,6 +712,7 @@ class Runner(ABC):
         deadline = 3600 if self.cfg.is_instrumented else 900
         progressive_timeout = 1600 if self.cfg.is_instrumented else 100
         supports_foxx_tests = self.starter_instances[0].supports_foxx_tests
+        supports_vector_index = self.starter_instances[0].supports_vector_index
         self.progress(True, "makedata instances")
         self.print_makedata_instances_table()
         args = [
@@ -733,6 +734,7 @@ class Runner(ABC):
                         arangosh.create_test_data(
                             self.name,
                             supports_foxx_tests,
+                            supports_vector_index,
                             args + ["--countOffset", str(count_offset)],
                             one_shard=one_shard,
                             database_name=db_name,
@@ -757,7 +759,9 @@ class Runner(ABC):
             raise Exception("didn't find makedata instances, no data created!")
 
     @step
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+    def check_data_impl_sh(self, arangosh,
+                           supports_foxx_tests,
+                           supports_vector_index):
         """check for data on the installation"""
         deadline = 1800 if self.cfg.is_instrumented else 900
         progressive_timeout = 1000 if self.cfg.is_instrumented else 25
@@ -767,6 +771,7 @@ class Runner(ABC):
                     arangosh.check_test_data(
                         self.name,
                         supports_foxx_tests,
+                        supports_vector_index,
                         args=["--countOffset", str(count_offset)] + self.checkdata_args,
                         database_name=db_name,
                         one_shard=one_shard,
@@ -798,7 +803,9 @@ class Runner(ABC):
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             frontend_found = True
             arangosh = starter.arangosh
-            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests)
+            self.check_data_impl_sh(arangosh,
+                                    starter.supports_foxx_tests,
+                                    starter.supports_vector_index)
         if not frontend_found:
             raise Exception("no frontend found.")
 

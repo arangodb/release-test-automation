@@ -178,6 +178,7 @@ class StarterManager:
         self.expect_instance_count = 1
         self.startupwait = 2
         self.supports_foxx_tests = is_foxx_supported
+        self.supports_vector_index = True
 
         self.upgradeprocess = None
 
@@ -202,6 +203,8 @@ class StarterManager:
                     "--args.coordinators.experimental-vector-index=true",
                     "--args.dbservers.experimental-vector-index=true",
                 ]
+        else:
+            self.supports_vector_index = False
         if self.cfg.semver > "3.12.8":
             self.default_starter_args += [
                 "--args.all.javascript.endpoints-allowlist=.*",

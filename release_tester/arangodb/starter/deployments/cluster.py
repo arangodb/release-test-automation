@@ -420,6 +420,7 @@ class Cluster(Runner):
                     ret = starter_instance.arangosh.check_test_data(
                         "Cluster one node missing",
                         self.is_foxx_supported,
+                        starter_instance.supports_vector_index,
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
