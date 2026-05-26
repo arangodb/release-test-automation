@@ -20,6 +20,7 @@ DEFAULT_CLIENT_SECRET = "111aaa22-333b-4ccc-d5dd-e678ffff9012"
 CLIENT_ID = os.environ.get("CLIENT_ID", DEFAULT_CLIENT_ID)
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET", DEFAULT_CLIENT_SECRET)
 MAX_ACTIVE_DEPLOYMENTS = "512"
+REQUEST_TIMEOUT = 60
 
 INVENTORY_FILE_NAME = "inventory.json"
 LICENSE_FILE_NAME = "license_key.txt"
@@ -60,7 +61,7 @@ class LicenseHelper:
         tool_path = f"{lm_tests_dir_path}/{TOOL_NAME}"
         if not Path(tool_path).exists():
             latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
-            release_data = requests.get(latest_release_url).json()
+            release_data = requests.get(latest_release_url, timeout=REQUEST_TIMEOUT).json()
             current_machine = (
                 ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
             )
@@ -68,7 +69,7 @@ class LicenseHelper:
             download_url = [
                 asset["browser_download_url"] for asset in release_data["assets"] if asset["name"] == asset_name
             ][0]
-            response = requests.get(download_url, stream=True)
+            response = requests.get(download_url, stream=True, timeout=REQUEST_TIMEOUT)
             with open(tool_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
@@ -82,7 +83,9 @@ class LicenseHelper:
         command = f'{self.tool_path} license inventory --arango.endpoint="{self._get_base_url()}" --arango.authentication Token --arango.token "{self._get_jwt_token()}" {self.inventory_path}'
         LicenseHelper.run_command(command)
         # obtain deployment id
-        response = requests.get(f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header())
+        response = requests.get(
+            f"{self._get_base_url()}/_admin/deployment/id", headers=self._get_auth_header(), timeout=REQUEST_TIMEOUT
+        )
         deployment_id = response.json()["id"]
         # generate license key
         command = f'{self.tool_path} license generate --deployment.id "{deployment_id}" --inventory {self.inventory_path} --license.client.id "{client_id}" --license.client.secret "{client_secret}"'
@@ -101,13 +104,16 @@ class LicenseHelper:
         requests.put(
             f"{self._get_base_url()}/_admin/license",
             headers=self._get_auth_header(),
+            timeout=REQUEST_TIMEOUT,
             data=f'"{self.get_license_key_file_content()}"',
         )
 
     @step
     def get_license_data(self):
         """obtain current license data"""
-        response = requests.get(f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header())
+        response = requests.get(
+            f"{self._get_base_url()}/_admin/license", headers=self._get_auth_header(), timeout=REQUEST_TIMEOUT
+        )
         return LicenseHelper.process_response(response)
 
     def get_license_key_file_content(self):
