@@ -7,7 +7,6 @@ from copy import copy, deepcopy
 from pathlib import Path
 
 import click
-import semver
 
 import tools.loghelper as lh
 from common_options import (
@@ -25,13 +24,13 @@ from tools.killall import list_all_processes
 from write_result_table import write_table
 import reporting.reporting_utils
 from arangodb.hot_backup_cfg import HotBackupCliCfg
-from arangodb.installers import EXECUTION_PLAN,  make_installer, InstallerBaseConfig, InstallerConfig
+from arangodb.installers import EXECUTION_PLAN, make_installer, InstallerBaseConfig, InstallerConfig
 
 
 class DownloadDummy:
     """mimic download class interface for source directory"""
 
-    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument disable=too-few-public-methods disable=invalid-name
     def __init__(
         self,
         bc: InstallerBaseConfig,
@@ -60,12 +59,14 @@ class DownloadDummy:
             force_one_shard=False,
             use_auto_certs=False,
             arangods=[],
+            mixed=False,
+            force_manual_upgrade=False,
         )
 
         self.inst = make_installer(self.cfg)
 
 
-# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
+# pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements disable=invalid-name
 def upgrade_package_test(
     bc: InstallerBaseConfig,
     bcs: InstallerBaseConfig,
@@ -118,7 +119,8 @@ def upgrade_package_test(
                     continue
                 enterprise_set.append(props.enterprise)
                 props.testrun_name = "test_" + props.testrun_name
-                if version_name == primary_version:
+                print(f" primary  {primary_version} == {version_name}")
+                if version_name == primary_version or version_name.find("-src") >= 0:
                     print(f"skipping source package download for {version_name}")
                     ver[props.directory_suffix] = DownloadDummy(
                         bcs,
@@ -136,7 +138,11 @@ def upgrade_package_test(
                     # if we don't upgrade, no need to download old.
                     continue
                 # Verify that all required packages are exist or can be downloaded
-                source = primary_dlstage if primary_version == version_name else other_source
+                if (primary_version == version_name or
+                    version_name.find("-src") >= 0) :
+                    source = primary_dlstage
+                else:
+                    source = other_source
                 res = Download(
                     bc,
                     dl_opts,
@@ -174,7 +180,7 @@ def upgrade_package_test(
             if props.directory_suffix not in editions:
                 continue
 
-            if props.minimum_supported_version > packages[primary_version][props.directory_suffix].cfg.semver:
+            if props.is_version_not_supported(packages[primary_version][props.directory_suffix].cfg.version):
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
@@ -187,7 +193,6 @@ def upgrade_package_test(
             print("launching test")
             results.append(
                 test_driver.run_test(
-                    "all",
                     params.base_cfg.starter_mode,
                     [packages[primary_version][props.directory_suffix].cfg.version],
                     props,
@@ -196,13 +201,14 @@ def upgrade_package_test(
 
     # STEP 3: Run upgrade tests
     if run_upgrade:
+        print("running upgrade tests")
         for scenario in upgrade_scenarios:
             for props in EXECUTION_PLAN:
                 if props.directory_suffix not in editions:
                     continue
                 skip = False
                 for version in scenario:
-                    if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                    if props.is_version_not_supported(version):
                         skip = True
                 if skip:
                     print(f"Skipping {str(props)}")
@@ -235,6 +241,7 @@ def upgrade_package_test(
 
     # STEP 4: Run other test suites
     if run_test_suites:
+        print("running test suites")
         for pair in upgrade_pairs:
             params.new_version = pair[0]
             params.old_version = pair[1]

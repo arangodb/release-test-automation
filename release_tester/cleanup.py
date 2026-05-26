@@ -48,6 +48,8 @@ def main(**kwargs):
     kwargs["cluster_nodes"] = 3
     kwargs["tarball_count_limit"] = 0
     kwargs["checkdata"] = False
+    kwargs["is_instrumented"] = False
+    kwargs["skip"] = False
 
     # pylint: disable=broad-except disable=bare-except
     versions = ["3.3.3"]
@@ -69,7 +71,7 @@ def main(**kwargs):
     test_driver = TestDriver(**kwargs)
     try:
         test_driver.set_r_limits()
-        test_driver.run_cleanup(RunProperties(enterprise, False, False), versions)
+        test_driver.run_cleanup(RunProperties(enterprise, False, False, False), versions)
     finally:
         test_driver.destructor()
 

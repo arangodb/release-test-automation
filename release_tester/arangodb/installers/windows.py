@@ -13,6 +13,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 class InstallerWin(InstallerBase, metaclass=ABCMeta):
     """inbetween class for windows specific utilities: debugger tests, etc."""
 
+    def supports_rolling_upgrade(self):
+        """ whether the starter can manage the upgrade on its own """
+        return False
+
     @step
     def install_debug_package_impl(self):
         """unpack the archive with pdb files"""

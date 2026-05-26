@@ -16,6 +16,7 @@ from arangodb.starter.deployments.runner import Runner
 import tools.loghelper as lh
 
 from reporting.reporting_utils import step
+from api_tests.test_suites.api_test_suite import APITestSuite
 
 
 class Single(Runner):
@@ -30,15 +31,13 @@ class Single(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "Single", 400, 500, True, 1
-            ),
+            RunnerProperties(rp, "Single", 400, 500, True, 1),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -48,8 +47,9 @@ class Single(Runner):
         self.backup_instance_count = 1
         self.success = False
 
-    def starter_prepare_env_impl(self):
-        opts = []
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
             self.create_tls_ca_cert()
             tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"
@@ -64,17 +64,18 @@ class Single(Runner):
                     "--host=localhost",
                 ]
             )
-            opts.append(f"--ssl.keyfile={tls_keyfile}")
+            more_opts.append(f"--ssl.keyfile={tls_keyfile}")
 
         self.starter_instance = StarterManager(
             self.cfg,
+            self.is_foxx_supported,
             self.basedir,
             "single",
             mode="single",
             port=1234,
             expect_instances=[InstanceType.SINGLE],
             jwt_str="single",
-            moreopts=opts,
+            moreopts=more_opts,
         )
         self.starter_instance.is_leader = True
 
@@ -105,10 +106,9 @@ class Single(Runner):
 
         if self.selenium:
             self.selenium.test_after_install()
-        #self.make_data()
+        # self.make_data()
         if self.selenium:
             self.selenium.test_setup()
-
         logging.info("Single setup successfully finished!")
 
     @step
@@ -202,3 +202,6 @@ class Single(Runner):
             self.starter_instance.arango_restore,
             self.starter_instance.all_instances[0],
         )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.starter_instance).run_api_tests()

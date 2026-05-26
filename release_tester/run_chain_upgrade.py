@@ -111,6 +111,7 @@ def main(**kwargs):
     else:
         upgrade_matrix = kwargs['upgrade_matrix']
 
+    print(f"will execute this upgrade matrix: {upgrade_matrix}")
     test_driver = TestDriver(**kwargs)
     try:
         results = upgrade_package_test(

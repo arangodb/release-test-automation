@@ -21,14 +21,18 @@ from arangodb.installers.depvar import RunnerProperties
 from arangodb.starter.manager import StarterManager
 from arangodb.starter.deployments.runner import Runner
 
+from api_tests.test_suites.api_test_suite import APITestSuite
+
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
+    "3126": semver.VersionInfo.parse("3.12.6"),
 }
 
 more_nodes_supported_starter = [
-    [ semver.VersionInfo.parse("3.11.8-99"),semver.VersionInfo.parse("3.11.99")],
-    [ semver.VersionInfo.parse("3.11.99"),semver.VersionInfo.parse("3.12.99")],
+    [semver.VersionInfo.parse("3.11.8-99"), semver.VersionInfo.parse("3.11.99")],
+    [semver.VersionInfo.parse("3.11.99"), semver.VersionInfo.parse("3.12.99")],
 ]
+
 
 def remove_node_x_from_json(starter_dir):
     """remove node X from setup.json"""
@@ -47,6 +51,7 @@ def remove_node_x_from_json(starter_dir):
     with open(path_to_cfg, "w", encoding="utf-8") as setup_file:
         json.dump(content, setup_file)
 
+
 class Cluster(Runner):
     """this launches a cluster setup"""
 
@@ -59,7 +64,7 @@ class Cluster(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         name = "CLUSTER" if not rp.force_one_shard else "FORCED_ONESHARD_CLUSTER"
         super().__init__(
@@ -87,8 +92,11 @@ class Cluster(Runner):
                 print("One deployment doesn't support starters with more nodes!")
                 self.props.cluster_nodes = 3
 
-    def starter_prepare_env_impl(self, sm=None):
+    def starter_prepare_env_impl(self, sm=None, more_opts=None):
         # pylint: disable=invalid-name
+        if more_opts is None:
+            more_opts = []
+
         def add_starter(name, port, opts, sm, hasAgency):
             agencyInstance = []
             if hasAgency:
@@ -98,6 +106,7 @@ class Cluster(Runner):
             self.starter_instances.append(
                 sm(
                     self.cfg,
+                    self.is_foxx_supported,
                     self.basedir,
                     name,
                     mode="cluster",
@@ -108,16 +117,16 @@ class Cluster(Runner):
                         InstanceType.COORDINATOR,
                         InstanceType.DBSERVER,
                     ],
-                    moreopts=opts,
+                    moreopts=opts + more_opts,
                 )
             )
 
         self.create_test_collection = (
             "create test collection",
             """
-db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
-db.testCollection.save({test: "document"})
-""",
+                db._create("testCollection",  { numberOfShards: 6, replicationFactor: 2});
+                db.testCollection.save({test: "document"})
+            """,
         )
         common_opts = []
         if self.props.replication2:
@@ -131,8 +140,8 @@ db.testCollection.save({test: "document"})
             common_opts += [
                 "--coordinators.cluster.force-one-shard=true",
                 "--dbservers.cluster.force-one-shard=true",
-                #"--coordinators.log.level=requests=trace",
-                #"--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
+                # "--coordinators.log.level=requests=trace",
+                # "--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
             ]
         else:
             common_opts += ["--args.all.cluster.default-replication-factor=2"]
@@ -200,7 +209,8 @@ db.testCollection.save({test: "document"})
             (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_shards_in_sync.js")),
             [],
             ["true"],
-            log_debug=True
+            verbose=True,
+            log_debug=True,
         )
         if not retval:
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
@@ -215,9 +225,10 @@ db.testCollection.save({test: "document"})
         self._check_for_shards_in_sync()
 
     def wait_for_restore_impl(self, backup_starter):
-        for starter in self.starter_instances:
-            for dbserver in starter.get_dbservers():
-                dbserver.detect_restore_restart()
+        if self.hot_backup:
+            for starter in self.starter_instances:
+                for dbserver in starter.get_dbservers():
+                    dbserver.detect_restore_restart()
         self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_impl(self):
@@ -236,12 +247,20 @@ db.testCollection.save({test: "document"})
         self.starter_instances[1].command_upgrade()
         if self.selenium:
             self.selenium.test_wait_for_upgrade()  # * 5s
-        self.starter_instances[1].wait_for_upgrade(300)
+        try:
+            self.starter_instances[1].wait_for_upgrade(300)
+        except TimeoutError as ex:
+            for node in self.starter_instances:
+                for instance in node.all_instances:
+                    if instance.instance_type == InstanceType.COORDINATOR:
+                        instance.crash_instance()
+            raise ex
         if self.cfg.stress_upgrade:
             bench_instances[0].wait()
             bench_instances[1].wait()
         for node in self.starter_instances:
             node.detect_instance_pids()
+        self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
@@ -268,11 +287,14 @@ db.testCollection.save({test: "document"})
                 # mitigate 3.6x agency shutdown issues:
                 self.cfg.version >= arangoversions['370'])
         self.progress(True, "step 3 - upgrade db-servers")
+        more_args = []
+        if self.cfg.version != arangoversions['3126']:
+            more_args = ['--cluster.upgrade=online']
         for node in self.starter_instances:
             node.upgrade_instances([
                 InstanceType.DBSERVER
             ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true'])
+                '--log.foreground-tty', 'true'] + more_args)
         self.progress(True, "step 4 - coordinator upgrade")
         # now the new cluster is running. we will now run the coordinator upgrades
         for node in self.starter_instances:
@@ -397,13 +419,14 @@ db.testCollection.save({test: "document"})
                 for db_name, oneshard, count_offset in self.makedata_databases():
                     ret = starter_instance.arangosh.check_test_data(
                         "Cluster one node missing",
-                        True,
+                        self.is_foxx_supported,
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
+                        mixed=self.mixed,
                         log_debug=True,
                         deadline=deadline,
-                        progressive_timeout=progressive_timeout
+                        progressive_timeout=progressive_timeout,
                     )
                     if not ret[0]:
                         raise Exception("check data failed in database %s :\n" % db_name + ret[1])
@@ -440,6 +463,7 @@ db.testCollection.save({test: "document"})
             moreopts.append(f"--ssl.keyfile={keyfile}")
         dead_instance = StarterManager(
             curr_cfg,
+            self.is_foxx_supported,
             Path("CLUSTER"),
             "nodeX",
             mode="cluster",
@@ -528,3 +552,6 @@ db.testCollection.save({test: "document"})
                 "--host=localhost",
             ]
         )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.starter_instances[0]).run_api_tests()

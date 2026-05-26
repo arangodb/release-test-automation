@@ -2,6 +2,8 @@
 """ base page object """
 import time
 import traceback
+import json
+import pathlib
 from datetime import datetime
 
 import tools.interact as ti
@@ -52,6 +54,12 @@ class BasePage:
         self.locator = None
         self.select = None
         self.current = None
+        self.is_one_sharded = True if str(cfg.base_test_dir).endswith('OS') else False
+        # external element locators
+        elements_json_path = f'{pathlib.Path(__file__).parent.resolve()}/elements.json'
+        self.elements_data = {}
+        with open(elements_json_path, 'r', encoding='utf-8') as file:
+            self.elements_data = json.load(file)
 
     def tprint(self, string):
         """print including timestamp relative to video start"""
@@ -321,8 +329,12 @@ class BasePage:
             raise Exception("UI-Test: ", locator, " locator was not found.")
         return self.locator
 
-    def switch_tab(self, locator):
-        """This method will change tab and close it and finally return to origin tab"""
+    def switch_tab_check(self, locator, check_title):
+        """
+        This method will change tab,
+        call check_title,
+        close it and
+        finally return to origin tab"""
         self.tprint("switching tab method \n")
         self.locator = locator
         self.locator.send_keys(Keys.CONTROL, Keys.RETURN)  # this will open new tab on top of current
@@ -330,10 +342,20 @@ class BasePage:
         time.sleep(8)
         title = self.webdriver.title
         self.tprint(f"Current page title: {title}\n")
-        time.sleep(10)
-        self.webdriver.close()  # closes the browser active window
-        self.webdriver.switch_to.window(self.webdriver.window_handles[0])
+        try:
+            check_title(title)
+            time.sleep(10)
+        finally:
+            self.webdriver.close()  # closes the browser active window
+            self.webdriver.switch_to.window(self.webdriver.window_handles[0])
         return title
+
+    def switch_tab(self, locator):
+        """This method will change tab and close it and finally return to origin tab"""
+        # pylint: disable=unused-argument
+        def dummy(title):
+            pass
+        return self.switch_tab_check(locator, dummy)
 
     def check_version_is_newer(self, compare_version):
         """check whether the version in the ui is the expected"""
@@ -489,7 +511,7 @@ class BasePage:
         return self.locator
 
     def locator_finder_by_select(self, locator_name, value):
-        """This method will used for finding all the locators in drop down menu with options"""
+        """This method is used for finding all the locators in drop down menu with options"""
         self.select = Select(self.webdriver.find_element(BY.ID, locator_name))
         self.select.select_by_index(value)
         if self.select is None:
@@ -551,6 +573,37 @@ class BasePage:
         if self.locator is None:
             raise Exception("UI-Test: ", locator_name, " locator was not found.")
         return self.locator
+
+    def locator_finder_by_css_selector(self, locator_name, timeout=10, benchmark=False):
+        """This method finds an element by its CSS Selector"""
+        if benchmark:
+            metrics_before = self.get_performance_metrics(self.webdriver)
+
+        self.locator = WebDriverWait(self.webdriver, timeout).until(
+            EC.presence_of_element_located((BY.CSS_SELECTOR, locator_name)),
+            message="UI-Test: UI element with '" + locator_name + "' css selector was not found.",
+        )
+        if self.locator is None:
+            raise Exception("UI-Test: ", locator_name, " locator was not found.")
+        if benchmark:
+            metrics_after = self.get_performance_metrics(self.webdriver)
+            self.collected_metrics.append(metrics_after)
+
+            evaluations_before = self.evaluate_performance_metrics(metrics_before)
+            evaluations_after = self.evaluate_performance_metrics(metrics_after)
+
+            self.tprint(f"Performance metrics: {metrics_before}")
+            self.tprint(f"Performance before finding locator {locator_name}: {evaluations_before}")
+
+            self.tprint(f"Performance metrics: {metrics_after}")
+            self.tprint(f"Performance after finding locator {locator_name}: {evaluations_after}")
+        return self.locator
+
+    def locator_finder_by_xpath_or_css_selector(self, locator_name, timeout=10, benchmark=False):
+        """This method determines whether locator is css selector or xpath expression and calls respective method"""
+        if '/' in locator_name:
+            return self.locator_finder_by_xpath(locator_name, timeout=timeout, benchmark=benchmark)
+        return self.locator_finder_by_css_selector(locator_name, timeout=timeout, benchmark=benchmark)
 
     # pylint: disable=too-many-arguments
     def check_expected_error_messages_for_analyzer(

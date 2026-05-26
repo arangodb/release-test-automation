@@ -12,17 +12,13 @@ from tools.option_group import OptionGroup
 
 from reporting.reporting_utils import step
 
-from arangodb.hot_backup_cfg import (
-    HotBackupCliCfg,
-    HotBackupProviderCfg,
-    HotBackupMode,
-    HB_PROVIDERS
-)
+from arangodb.hot_backup_cfg import HotBackupCliCfg, HotBackupProviderCfg, HotBackupMode, HB_PROVIDERS
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
 IS_MAC = platform.mac_ver()[0] != ""
 SYSTEM = platform.system()
 DISTRO = ""
+
 
 @dataclass
 class InstallerBaseConfig(OptionGroup):
@@ -45,6 +41,7 @@ class InstallerBaseConfig(OptionGroup):
     checkdata: bool
     is_instrumented: bool
 
+
 class InstallerFrontend:
     # pylint: disable=too-few-public-methods
     """class describing frontend instances"""
@@ -59,7 +56,7 @@ class InstallerConfig:
     """stores the baseline of this environment"""
 
     # pylint: disable=too-many-arguments disable=too-many-instance-attributes
-    # pylint: disable=too-many-locals disable=too-many-statements
+    # pylint: disable=too-many-locals disable=too-many-statements disable=invalid-name
     def __init__(
         self,
         version: str,
@@ -71,29 +68,28 @@ class InstallerConfig:
         force_one_shard: bool,
         use_auto_certs: bool,
         arangods: list,
+        mixed: bool,
+        force_manual_upgrade: bool,
     ):
         self.publicip = bc.publicip
         self.interactive = bc.interactive
         self.is_instrumented = bc.is_instrumented
         self.enterprise = enterprise
+        self.force_manual_upgrade = force_manual_upgrade
         self.encryption_at_rest = encryption_at_rest and enterprise
         self.zip_package = bc.zip_package
         self.src_testing = bc.src_testing
 
-        self.supports_rolling_upgrade = not IS_WINDOWS
         self.verbose = bc.verbose
         self.package_dir = bc.package_dir
-        self.have_system_service = False # TODO: re-enable not self.zip_package and self.src_testing
+        self.have_system_service = not self.zip_package and self.src_testing
         self.debug_package_is_installed = False
         self.client_package_is_installed = False
         self.server_package_is_installed = False
         self.stress_upgrade = bc.stress_upgrade
 
         self.deployment_mode = deployment_mode
-        self.do_install = self.deployment_mode in ["all", "install"]
-        self.do_uninstall = self.deployment_mode in ["all", "uninstall"]
-        self.do_system_test = self.deployment_mode in ["all", "system"] and self.have_system_service
-        self.do_starter_test = self.deployment_mode != "none" # in ["all", "tests"]
+
         self.install_prefix = Path("/")
 
         self.base_test_dir = bc.test_data_dir
@@ -143,6 +139,7 @@ class InstallerConfig:
         self.arangods = arangods
         self.check_locale = bc.check_locale
         self.checkdata = bc.checkdata
+        self.mixed = mixed
 
     def __repr__(self):
         return """
@@ -181,16 +178,12 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.interactive = other_cfg.interactive
             self.is_instrumented = other_cfg.is_instrumented
             self.enterprise = other_cfg.enterprise
+            self.force_manual_upgrade = other_cfg.force_manual_upgrade
             self.encryption_at_rest = other_cfg.encryption_at_rest
             self.zip_package = other_cfg.zip_package
             self.src_testing = other_cfg.src_testing
 
             self.deployment_mode = other_cfg.deployment_mode
-            self.do_install = other_cfg.do_install
-            self.do_uninstall = other_cfg.do_uninstall
-            self.do_system_test = other_cfg.do_system_test
-            self.do_starter_test = other_cfg.do_starter_test
-            self.supports_rolling_upgrade = other_cfg.supports_rolling_upgrade
             self.verbose = other_cfg.verbose
             self.package_dir = other_cfg.package_dir
             self.have_system_service = other_cfg.have_system_service
@@ -231,6 +224,7 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.skip = other_cfg.skip
             self.check_locale = other_cfg.check_locale
             self.checkdata = other_cfg.checkdata
+            self.mixed = other_cfg.mixed
         except AttributeError:
             # if the config.yml gave us a wrong value, we don't care.
             pass
@@ -317,6 +311,7 @@ def make_installer(install_config: InstallerConfig):
         return InstallerSource(install_config)
 
     if IS_WINDOWS:
+        install_config.force_manual_upgrade = True
         if install_config.zip_package:
             from arangodb.installers.zip import InstallerZip
 
@@ -362,63 +357,77 @@ class RunProperties:
     """bearer class for run properties"""
 
     # pylint: disable=too-many-function-args disable=too-many-arguments disable=too-many-instance-attributes
+    # pylint: disable=too-many-locals
     def __init__(
         self,
         enterprise: bool,
+        mixed: bool = False,
         force_dl: bool = True,
         encryption_at_rest: bool = False,
         ssl: bool = False,
         replication2: bool = False,
         force_one_shard: bool = False,
         create_oneshard_db: bool = False,
+        force_manual_upgrade: bool = False,
         testrun_name: str = "",
         directory_suffix: str = "",
+        only_zip_src: bool = False,
         minimum_supported_version: str = "3.5.0",
-        use_auto_certs: bool = True,
+        maximum_supported_version: str = "10.0.0",
+        use_auto_certs: bool = False,
         cluster_nodes: int = 3,
     ):
         """set the values for this testrun"""
         if (create_oneshard_db or force_one_shard) and not enterprise:
             raise Exception("--create-oneshard-db and --force-oneshard options are not supported in Community edition")
         self.enterprise = enterprise
+        self.mixed = mixed
         self.force_dl = force_dl
         self.encryption_at_rest = encryption_at_rest
         self.use_auto_certs = use_auto_certs
         self.ssl = ssl
+        self.force_manual_upgrade = force_manual_upgrade
         self.testrun_name = testrun_name
         self.directory_suffix = directory_suffix
         self.replication2 = replication2
         self.force_one_shard = force_one_shard
         self.create_oneshard_db = create_oneshard_db
         self.minimum_supported_version = semver.VersionInfo.parse(minimum_supported_version)
+        self.maximum_supported_version = semver.VersionInfo.parse(maximum_supported_version)
         self.cluster_nodes = cluster_nodes
+        self.only_zip_src = only_zip_src
+
+    def is_version_not_supported(self, version):
+        """ check whether this edition is supported in version """
+        ver = semver.VersionInfo.parse(version)
+        return not (self.maximum_supported_version > ver > self.minimum_supported_version)
 
     def set_kwargs(self, kwargs):
-        """ pick values from the commandline arguments that should override defaults"""
-        self.use_auto_certs = kwargs['use_auto_certs']
-        self.cluster_nodes = kwargs['cluster_nodes']
+        """pick values from the commandline arguments that should override defaults"""
+        self.use_auto_certs = kwargs["use_auto_certs"]
+        self.cluster_nodes = kwargs["cluster_nodes"]
 
     def __repr__(self):
-        return """{0.__class__.__name__}
-enterprise: {0.enterprise}
-encryption_at_rest: {0.encryption_at_rest}
-ssl: {0.ssl}
-replication2: {0.replication2}
-testrun_name: {0.testrun_name}
-directory_suffix: {0.directory_suffix}""".format(
+        return """Runner Scenario => {0.directory_suffix}
+  enterprise: {0.enterprise}
+  encryption_at_rest: {0.encryption_at_rest}
+  ssl: {0.ssl}
+  replication2: {0.replication2}
+  testrun_name: {0.testrun_name}""".format(
             self
         )
 
 
 # pylint: disable=too-many-function-args disable=line-too-long
 EXECUTION_PLAN = [
-    RunProperties(True, True, True, True, False, False, True, "Enterprise\nEnc@REST", "EE"),
-    RunProperties(True, True, True, True, False, True, False, "Enterprise\nforced OneShard", "OS"),
-    # RunProperties(True, True, True, True, True, False, True, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", "3.11.999"),
-    RunProperties(True, False, False, False, False, False, True, "Enterprise", "EP"),
-    # RunProperties(True, False, False, False, True, False, True, "Enterprise\nreplication v.2", "EPr2", "3.11.999"),
-    RunProperties(False, True, False, False, False, False, False, "Community", "C"),
-    # RunProperties(False, True, False, False, True, False, False, "Community\nreplication v.2", "Cr2", "3.11.999"),
+    RunProperties(False, False, True, False, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
+    RunProperties(False, True, True, False, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
+    RunProperties(True, False, True, True, True, False, False, True, False, "Enterprise\nEnc@REST", "EE"),
+    RunProperties(True, False, True, True, True, False, True, False, False, "Enterprise\nforced OneShard", "OS"),
+    # RunProperties(True, False, True, True, True, True, False, True, False, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", False, "3.11.999"),
+    RunProperties(True, False, False, False, False, False, False, True, False, "Enterprise", "EP"),
+    # RunProperties(True, False, False, False, False, True, False, True, False, "Enterprise\nreplication v.2", "EPr2", False, "3.11.999"),
+    RunProperties(True, False, False, False, False, False, False, True, True, "Enterprise\nManualUpgrade", "EPM"),
 ]
 
 
@@ -428,11 +437,13 @@ def create_config_installer_set(
     base_config: InstallerBaseConfig,
     deployment_mode: str,
     run_properties: RunProperties,
+    force_manual_upgrade: bool,
 ):
     """creates sets of configs and installers"""
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     res = []
 
+    ep = run_properties.enterprise
     for one_version in versions:
         one_cfg = copy.deepcopy(base_config)
         if str(one_version).find("src") >= 0:
@@ -440,16 +451,20 @@ def create_config_installer_set(
             one_cfg.src_testing = True
         install_config = InstallerConfig(
             str(one_version),
-            run_properties.enterprise,
+            ep,
             run_properties.encryption_at_rest,
             one_cfg,
             deployment_mode,
             run_properties.ssl,
             run_properties.force_one_shard,
             run_properties.use_auto_certs,
-            base_config.arangods
+            base_config.arangods,
+            run_properties.mixed,
+            force_manual_upgrade or run_properties.force_manual_upgrade,
         )
         installer = make_installer(install_config)
         installer.calculate_package_names()
         res.append([install_config, installer])
+        if run_properties.mixed:
+            ep = True
     return res

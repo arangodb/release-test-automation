@@ -95,12 +95,14 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
+ - `--force-manual-upgrade` instead of utilizing starter rolling upgrade, use RTA code to upgrade.
  - `--zip` switches from system packages to the tar.gz/zip package for the respective platform.
  - `--src` switches to [Source directory](#source-installer) logic
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.
@@ -151,10 +153,12 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
+ - `--force-manual-upgrade` instead of utilizing starter rolling upgrade, use RTA code to upgrade.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
@@ -193,6 +197,7 @@ Supported Parameters:
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -212,6 +217,7 @@ Supported Parameters:
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -225,6 +231,7 @@ Supported Parameters:
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--verbose` if specified more logging is done
  - `--alluredir` - directory to save test results in allure format (default = allure-results)
  - `--clean-alluredir/--do-not-clean-alluredir` - clean allure directory before running tests (default = True)
@@ -302,6 +309,7 @@ Supported Parameters:
  - `--[no-]encryption-at-rest` turn on encryption at rest for Enterprise packages
  - `--create-oneshard-db/--do-not-create-oneshard-db` create a single-sharded database and run all makedata tests in it in addition to the _system DB 
  - `--force-oneshard/--do-not-force-oneshard` command ArangoDB to use only single-sharded database
+ - `--force-manual-upgrade` instead of utilizing starter rolling upgrade, use RTA code to upgrade.
  - `--package-dir` The directory where you downloaded the nsis .exe / deb / rpm [/ dmg WIP]
  - `--enterprise-magic` specify your secret enterprise download key here.
  - `--[new|old]-source [public|nightlypublic|[ftp|http]:stage1|[ftp|http]:[stage2|stage2-rta]]`
@@ -317,6 +325,7 @@ Supported Parameters:
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--publicip` the IP of your system - used instead of `localhost` to compose the interacitve URLs.
  - `--verbose` if specified more logging is done
@@ -703,6 +712,7 @@ Supported Parameters:
  - `--[no-]interactive` (false if not invoked through a tty) whether at some point the execution should be paused for the user to execute manual tests with provided the SUT
  - `--[no-]check_locale` (true by default) whether the locale should be revalidated
  - `--[no-]checkdata` (true by default) whether makedata/checkdata should be ran
+ - `--[no-]mixed` (false by default) should an upgrade community -> enterprise be attempted
  - `--test-data-dir` - the base directory where the tests starter instances should be created in (defaults to `/tmp/`)
  - `--mode [_all_|install|uninstall|tests]`
    - `all` (default) is intended to run the full flow. This is the production flow.

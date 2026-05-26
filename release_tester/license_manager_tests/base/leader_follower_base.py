@@ -72,3 +72,9 @@ class LicenseManagerLeaderFollowerBaseTestSuite(LicenseManagerBaseTestSuite):
             self.runner.follower_starter_instance.cfg, self.runner.leader_starter_instance.cfg.version
         )
         self.starter = self.runner.leader_starter_instance
+
+    def recreate_deployment(self):
+        """recreate leader follower deployment"""
+        self.runner.starter_shutdown()
+        self.runner.cleanup()
+        self.start_leader_follower()

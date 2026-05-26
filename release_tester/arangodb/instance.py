@@ -8,6 +8,7 @@ import os
 import platform
 import re
 import shutil
+import signal
 import time
 from abc import abstractmethod, ABC
 from enum import IntEnum
@@ -20,6 +21,7 @@ import psutil
 import requests
 from beautifultable import BeautifulTable
 from requests.auth import HTTPBasicAuth
+from siteconfig import detect_san_file
 from tools.asciiprint import print_progress as progress
 from tools.utils import COLUMN_CACHE_ARGUMENT, is_column_cache_supported
 
@@ -36,6 +38,8 @@ LOG_BLACKLIST = [
     "3e342",  # -> option has been renamed
     "2c0c6",  # -> extended names
     "de8f3",  # -> extended names
+    "ee638",  # -> The createCollection request contains an illegal combination and will be rejected in the future: {"errorNum":10,"errorMessage":"Cannot have a different replicationFactor (1), than the leading collection (2)"}
+    "6843e",  # -> old arguments of 3.x no longer supported in 4.x
 ]
 LOG_MAINTAINER_BLACKLIST = [  # if we use the 'source'-Distribution, these are expected:
     "0458b",  # -> maintainer version binary
@@ -94,6 +98,7 @@ class AfoServerState(IntEnum):
     CHALLENGE_ONGOING = 3
     STARTUP_MAINTENANCE = 4
     NOT_CONNECTED = 5
+    UNAUTHORIZED = 6
 
 
 class Instance(ABC):
@@ -137,6 +142,8 @@ class Instance(ABC):
         self.logfiles = []
         self.jwt = jwt
         self.source_instance = False
+        self.name = ""
+        self.have_js = version.major < 4
         logging.debug("creating {0.type_str} instance: {0.name}".format(self))
 
     def get_structure(self):
@@ -184,20 +191,39 @@ class Instance(ABC):
         """retrieve the pw to connect to this instance"""
         return self.passvoid
 
+    def detect_san_files(self):
+        """ check whether we have a SAN report from an instrumented run """
+        filename = detect_san_file(self.name, self.pid)
+        print(f"detected filename: {filename}")
+        if filename:
+            attach.file(
+                filename,
+                "Log file(name: {name}, PID:{pid}, port: {port}, type: {type})".format(
+                    name=str(filename), pid=self.pid, port=self.port, type=self.type_str
+                ),
+                AttachmentType.TEXT,
+            )
+            raise Exception("SAN report found in " + str(filename))
+
+
     def detect_gone(self):
         """revalidate that the managed process is actualy dead"""
+        gone = False
         try:
             # we expect it to be dead anyways!
-            return self.instance.wait(3) is None
+            gone = self.instance.wait(3) is None
         except psutil.TimeoutExpired:
-            return False
+            gone = False
         except AttributeError:
             # logging.error("was supposed to be dead, but I don't have an instance? "
             #              + repr(self))
-            return True
+            gone = True
         except psutil.AccessDenied:
-            return True
-        return True
+            gone = True
+
+        if gone:
+            self.detect_san_files()
+        return gone
 
     @abstractmethod
     def get_essentials(self):
@@ -246,8 +272,10 @@ class Instance(ABC):
         """launch instance without starter with additional arguments"""
         self.load_starter_instance_control_file()
         command = [str(sbin_dir / self.instance_string)] + self.instance_arguments[1:] + moreargs
-        dos_old_install_prefix_fwd = str(old_install_prefix).replace("\\", "/")
-        dos_new_install_prefix_fwd = str(new_install_prefix).replace("\\", "/")
+        old_install_prefix = str(old_install_prefix) + os.sep
+        new_install_prefix = str(new_install_prefix) + os.sep
+        dos_old_install_prefix_fwd = old_install_prefix.replace("\\", "/")
+        dos_new_install_prefix_fwd = new_install_prefix.replace("\\", "/")
 
         is_cache_supported = is_column_cache_supported(current_version) and enterprise
         # in 'command' list arguments and values are splitted
@@ -376,23 +404,32 @@ class Instance(ABC):
     def crash_instance(self):
         """send SIG-11 to instance..."""
         if self.instance:
-            # try:
-            print(self.instance.status())
+            try:
+                print(self.instance.status())
+            except Exception as ex:
+                print(f"NOT generating coredump for {str(self.instance.pid)} \n {ex}")
+                return
             if self.instance.status() == psutil.STATUS_RUNNING or self.instance.status() == psutil.STATUS_SLEEPING:
                 print("generating coredump for " + str(self.instance))
-                gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
-                print("generating core with PID:" + str(gcore.pid))
-                gcore.wait()
-                print(
-                    "Killing {0} instance PID:[{1}] {3}".format(
-                        self.type_str, self.instance.pid, self.instance.cmdline()
-                    )
-                )
-                self.instance.kill()
+                try:
+                    self.instance.send_signal(signal.SIGSEGV)
+                except Exception as ex:
+                    print(f"skipping {self.instance.pid} {str(ex)}")
+                    return
+                #gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
+                #print("generating core with PID:" + str(gcore.pid))
+                #gcore.wait()
+                #print(
+                #    "Killing {0} instance PID:[{1}] {3}".format(
+                #        self.type_str, self.instance.pid, self.instance.cmdline()
+                #    )
+                #)
+                #self.instance.send_signal(signal.SIGSEGV)
+                #self.instance.kill()
                 self.instance.wait()
                 self.add_logfile_to_report()
             else:
-                print("NOT generating coredump for " + str(self.instance))
+                print(f"NOT generating coredump for {str(self.instance)}")
             self.instance = None
         else:
             logging.info("I'm already dead, jim!" + str(repr(self)))
@@ -522,6 +559,7 @@ class ArangodInstance(Instance):
     ):
         super().__init__(typ, port, basedir, localhost, publicip, passvoid, "arangod", ssl, version, enterprise, jwt)
         self.is_system = is_system
+        self.name = "arangod"
 
     def __repr__(self):
         # raise Exception("blarg")
@@ -612,7 +650,7 @@ class ArangodInstance(Instance):
         return self.get_afo_state() == AfoServerState.LEADER
 
     def clean_hotbackup(self):
-        if self.instance_type == InstanceType.COORDINATOR:
+        if self.instance_type == InstanceType.COORDINATOR and self.have_js:
             shutil.rmtree(self.basedir / "data" / "js")
         elif self.instance_type in [
                 InstanceType.DBSERVER, InstanceType.SINGLE ,InstanceType.RESILIENT_SINGLE
@@ -685,7 +723,11 @@ class ArangodInstance(Instance):
             if body_json["errorNum"] == 503:
                 return AfoServerState.STARTUP_MAINTENANCE
             raise Exception("afo_state: unsupported error code in " + str(reply.content))
-        raise Exception("afo_state: unsupportet HTTP-Status code " + str(reply.status_code) + str(reply))
+        if reply.status_code == 401:
+            body_json = json.loads(reply.content)
+            print("afo_state: http Unauthorized with: " + str(reply.content))
+            return AfoServerState.UNAUTHORIZED
+        raise Exception("afo_state: unsupported HTTP-Status code " + str(reply.status_code) + str(reply))
 
     def detect_restore_restart(self):
         """has the server restored their backup restored and is back up"""

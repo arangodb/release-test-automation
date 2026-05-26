@@ -5,6 +5,7 @@ import time
 from arangodb.starter.deployments import RunProperties, RunnerProperties
 from arangodb.starter.deployments.dc2dc import Dc2Dc
 
+
 class Dc2DcEndurance(Dc2Dc):
     """this launches two clusters in dc2dc mode"""
 
@@ -17,15 +18,13 @@ class Dc2DcEndurance(Dc2Dc):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "DC2DC_endurance", 0, 4500, True, 12
-            ),
+            RunnerProperties(rp, "DC2DC_endurance", 0, 4500, True, 12),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -59,3 +58,6 @@ class Dc2DcEndurance(Dc2Dc):
                 raise Exception("failed to get the sync status")
             time.sleep(10)
             count += 1
+
+    def run_api_tests_impl(self):
+        pass

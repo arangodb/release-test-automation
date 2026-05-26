@@ -58,6 +58,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
             base_config=self.base_cfg,
             deployment_mode="all",
             run_properties=self.run_props,
+            force_manual_upgrade=False,
         )
         self.installer = self.installer_set[0][1]
         ent = "Enterprise" if self.run_props.enterprise else "Community"
@@ -210,6 +211,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
         """Debug arangod executable by attaching debugger to a running process (Windows)"""
         starter = StarterManager(
             basecfg=self.installer.cfg,
+            is_foxx_supported=True,
             install_prefix=Path(DebuggerTestSuite.STARTER_DIR),
             instance_prefix="single",
             expect_instances=[InstanceType.SINGLE],

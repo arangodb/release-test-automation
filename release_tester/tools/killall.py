@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """ tiny utility to kill all arangodb related processes """
-import logging
-import time
 import json
+import logging
+import platform
+import time
 
 # import platform
 import collections
@@ -10,6 +11,8 @@ import collections
 from reporting.reporting_utils import step
 import psutil
 from allure_commons._allure import attach
+
+IS_WINDOWS = platform.win32_ver()[0] != ""
 
 # yes, we catch all.
 # pylint: disable=broad-except
@@ -189,20 +192,35 @@ def list_all_processes():
 def gather_process_thread_statistics(p):
     """ gather the statistics of one process and all its threads """
     ret = {}
-    ret['process'] = [{
-        'time': time.ctime(),
-        'pid': p.pid,
-        'ppid': p.ppid(),
-        'cmdline': p.cmdline(),
-        'name': p.name(),
-        'percent': p.cpu_percent(),
-        'iocounters': p.io_counters(),
-        'ctxSwitches': p.num_ctx_switches(),
-        'numfds': p.num_fds(),
-        'cpu_times': p.cpu_times(),
-        'meminfo': p.memory_full_info(),
-        'netcons': p.connections()
-    }]
+    if IS_WINDOWS:
+        ret['process'] = [{
+            'time': time.ctime(),
+            'pid': p.pid,
+            'ppid': p.ppid(),
+            'cmdline': p.cmdline(),
+            'name': p.name(),
+            'percent': p.cpu_percent(),
+            'iocounters': p.io_counters(),
+            'ctxSwitches': p.num_ctx_switches(),
+            'cpu_times': p.cpu_times(),
+            'meminfo': p.memory_full_info(),
+            'netcons': p.connections()
+        }]
+    else:
+        ret['process'] = [{
+            'time': time.ctime(),
+            'pid': p.pid,
+            'ppid': p.ppid(),
+            'cmdline': p.cmdline(),
+            'name': p.name(),
+            'percent': p.cpu_percent(),
+            'iocounters': p.io_counters(),
+            'ctxSwitches': p.num_ctx_switches(),
+            'numfds': p.num_fds(),
+            'cpu_times': p.cpu_times(),
+            'meminfo': p.memory_full_info(),
+            'netcons': p.connections()
+        }]
     for t in p.threads():
         ret[ t.id ] = { 'user': t.user_time, 'sys': t.system_time}
     return ret

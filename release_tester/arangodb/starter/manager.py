@@ -54,6 +54,7 @@ class StarterManager:
     def __init__(
         self,
         basecfg,
+        is_foxx_supported,
         install_prefix,
         instance_prefix,
         expect_instances,
@@ -65,6 +66,7 @@ class StarterManager:
         self.expect_instances = expect_instances
         self.expect_instances.sort()
         self.cfg = copy.deepcopy(basecfg)
+        self.old_version = self.cfg.version
         self.default_starter_args = self.cfg.default_starter_args.copy()
         if moreopts is None:
             self.moreopts = []
@@ -72,7 +74,7 @@ class StarterManager:
             self.moreopts = moreopts
         # if self.cfg.verbose:
         self.moreopts += ["--log.verbose=true"]
-        # self.moreopts += ['--all.log', 'startup=debug']
+        self.moreopts += ['--all.log', 'startup=trace']
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
@@ -93,14 +95,9 @@ class StarterManager:
 
         if self.cfg.hot_backup_supported and self.cfg.semver.prerelease is not None and self.cfg.semver.minor >= 9:
             self.moreopts += [
-                "--all.rclone.argument=--log-level=DEBUG",
-                "--all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
+                "--args.all.rclone.argument=--log-level=DEBUG",
+                "--args.all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
             ]
-        if self.cfg.semver > "3.12.4":
-            self.moreopts += [
-                "--all.experimental-vector-index=true",
-            ]
-        print(self.moreopts)
         # directories
         self.raw_basedir = install_prefix
         self.old_install_prefix = self.cfg.install_prefix
@@ -180,7 +177,7 @@ class StarterManager:
         self.coordinator = None  # meaning - port
         self.expect_instance_count = 1
         self.startupwait = 2
-        self.supports_foxx_tests = True
+        self.supports_foxx_tests = is_foxx_supported
 
         self.upgradeprocess = None
 
@@ -188,6 +185,30 @@ class StarterManager:
         self.enterprise = self.cfg.enterprise
         self.pid = None
         self.ppid = None
+
+        self.is_running = False
+        self.add_version_dependend_args()
+        print(self.moreopts)
+        print(self.default_starter_args)
+
+    def add_version_dependend_args(self):
+        if self.cfg.semver > "3.12.4":
+            if self.mode != "cluster":
+                self.default_starter_args += [
+                    "--args.all.experimental-vector-index=true",
+                ]
+            else:
+                self.default_starter_args += [
+                    "--args.coordinators.experimental-vector-index=true",
+                    "--args.dbservers.experimental-vector-index=true",
+                ]
+        if self.cfg.semver > "3.12.8":
+            self.default_starter_args += [
+                "--args.all.javascript.endpoints-allowlist=.*",
+                "--args.all.javascript.environment-variables-allowlist=.*",
+                "--args.all.javascript.startup-options-allowlist=.*",
+                "--args.all.javascript.files-allowlist=.*"
+            ]
 
     def _get_arguments(self):
         return (
@@ -671,20 +692,24 @@ class StarterManager:
         # since we can't overwrite open files:
         old_version = self.cfg.version
         self.default_starter_args = new_install_cfg.default_starter_args.copy()
+        self.add_version_dependend_args()
         self.enterprise = new_install_cfg.enterprise
         self.replace_binary_setup_for_upgrade(new_install_cfg)
-        with step("kill the starter processes of the old version"):
-            logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
-            self.kill_instance()
+        with step(f"kill the starter processes of the old version (port {self.starter_port})"):
+            if self.instance is None:
+                logging.error("StarterManager: don't have an instance!!")
+            else:
+                logging.info("StarterManager: Killing my instance [%s]", str(self.instance.pid))
+                self.kill_instance()
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
-            with step("replace the starter binary with a new one," + " this has not yet spawned any children"):
+            with step(f"replace the starter binary with a new one, (port {self.starter_port})this has not yet spawned any children"):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
         self.cfg = new_install_cfg
         self.arangosh = None
-        self.detect_arangosh_instances(new_install_cfg, old_version)
+        self.detect_arangosh_instances(new_install_cfg, self.old_version)
 
     @step
     def kill_specific_instance(self, which_instances):
@@ -705,8 +730,8 @@ class StarterManager:
                         instance.kill_instance()
                     instance.launch_manual_from_instance_control_file(
                         self.cfg.sbin_dir,
-                        self.old_install_prefix,
-                        self.cfg.install_prefix,
+                        str(self.old_install_prefix),
+                        str(self.cfg.install_prefix),
                         self.cfg.version,
                         self.enterprise,
                         moreargs,
@@ -865,6 +890,7 @@ class StarterManager:
         """
         assert version is not None
         self.cfg.version = version
+        self.add_version_dependend_args()
         args = [self.cfg.bin_dir / "arangodb"] + self.hotbackup_args + self.default_starter_args + self.arguments
         if moreargs is not None:
             args.extend(moreargs)
@@ -888,9 +914,13 @@ class StarterManager:
         frontends = self.get_frontends()
         for frontend in frontends:
             # we abuse this function:
+            count = 0
             while frontend.get_afo_state() != AfoServerState.LEADER:
                 progress(".")
-                time.sleep(0.1)
+                time.sleep(0.5)
+                count += 1
+                if count > 240:
+                    raise Exception("system did not become available in 2 minutes!")
 
     @step
     def execute_frontend(self, cmd, verbose=True):
@@ -1025,7 +1055,7 @@ class StarterManager:
                             Path(root) / name,
                             self.passvoid,
                             self.cfg.ssl,
-                            self.cfg.version,
+                            self.cfg.semver,
                             self.enterprise,
                             jwt=jwt,
                         )
@@ -1073,7 +1103,7 @@ class StarterManager:
             )
 
         self.show_all_instances()
-        self.detect_arangosh_instances(self.cfg, self.cfg.version)
+        self.detect_arangosh_instances(self.cfg, self.old_version)
 
     @step
     def detect_fatal_errors(self):
@@ -1332,7 +1362,7 @@ class StarterNonManager(StarterManager):
 
     @step
     def detect_instances(self):
-        self.detect_arangosh_instances(self.cfg, self.cfg.version)
+        self.detect_arangosh_instances(self.cfg, self.old_version)
 
     @step
     def detect_instance_pids(self):

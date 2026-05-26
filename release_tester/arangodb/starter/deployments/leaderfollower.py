@@ -16,6 +16,7 @@ import tools.loghelper as lh
 from tools.asciiprint import print_progress as progress
 
 from reporting.reporting_utils import step
+from api_tests.test_suites.api_test_suite import APITestSuite
 
 
 class LeaderFollower(Runner):
@@ -30,15 +31,13 @@ class LeaderFollower(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "LeaderFollower", 400, 500, False, 2
-            ),
+            RunnerProperties(rp, "LeaderFollower", 400, 500, False, 2),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -134,7 +133,9 @@ while (true) {{
             ),
         }
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         leader_opts = []
         follower_opts = []
         if self.cfg.ssl and not self.cfg.use_auto_certs:
@@ -168,26 +169,46 @@ while (true) {{
 
         self.leader_starter_instance = StarterManager(
             self.cfg,
+            self.is_foxx_supported,
             self.basedir,
             "leader",
             mode="single",
             port=1234,
             expect_instances=[InstanceType.SINGLE],
             jwt_str="leader",
-            moreopts=leader_opts,
+            moreopts=leader_opts + more_opts,
         )
         self.leader_starter_instance.is_leader = True
 
         self.follower_starter_instance = StarterManager(
             self.cfg,
+            self.is_foxx_supported,
             self.basedir,
             "follower",
             mode="single",
             port=2345,
             expect_instances=[InstanceType.SINGLE],
             jwt_str="follower",
-            moreopts=follower_opts,
+            moreopts=follower_opts + more_opts,
         )
+
+    @step
+    def restore_everything(self, path):
+        """restore a dump to the installation"""
+        # self.before_backup_create_impl()
+        self.restore_everything_from_dump(self.leader_starter_instance, path)
+        has_js = self.cfg.semver.major < 4
+        if has_js:
+            self.wait_for_self_heal(self.leader_starter_instance)
+        self.wait_for_restore_impl(self.leader_starter_instance)
+        if has_js:
+            self.follower_starter_instance.arangosh.run_command((
+                "trigger self heal",
+                """
+            print(arango.POST_RAW("/_api/foxx/_local/heal", ""));
+            """))
+            self.wait_for_self_heal(self.follower_starter_instance)
+        # self.after_backup_create_impl()
 
     @step
     def check_data_impl_sh(self, arangosh, supports_foxx_tests):
@@ -263,6 +284,8 @@ process.exit(0);
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
+        if not self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"]):
+            raise Exception("the follower would not catch up in time!")
         if not self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
             while tries:
                 if self.follower_starter_instance.execute_frontend(self.checks["checkReplJS"]):
@@ -332,8 +355,8 @@ process.exit(0);
         """run the replication fuzzing test"""
         logging.info("running the replication fuzzing test")
         # add instace where makedata will be run on
-        deadline=500000 if self.cfg.is_instrumented else 1000
-        progressive_timeout=1000 if self.cfg.is_instrumented else 100
+        deadline = 500000 if self.cfg.is_instrumented else 1000
+        progressive_timeout = 1000 if self.cfg.is_instrumented else 100
         self.tcp_ping_all_nodes()
         ret = self.leader_starter_instance.arangosh.run_in_arangosh(
             (self.cfg.test_data_dir / Path("tests/js/server/replication/fuzz/replication-fuzz-global.js")),
@@ -341,6 +364,7 @@ process.exit(0);
             [self.follower_starter_instance.get_frontend().get_public_url("root:%s@" % self.passvoid)],
             deadline=deadline,
             progressive_timeout=progressive_timeout,
+            verbose=True,
         )
         if not ret[0]:
             if not self.cfg.verbose:
@@ -381,3 +405,6 @@ process.exit(0);
             self.leader_starter_instance.arango_restore,
             self.leader_starter_instance.all_instances[0],
         )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.leader_starter_instance).run_api_tests()

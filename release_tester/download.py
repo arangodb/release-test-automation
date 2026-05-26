@@ -103,6 +103,8 @@ class Download:
                 self.remote_host = "nas01.arangodb.biz"
             elif source in ["http:stage2-rta"]:
                 self.remote_host = "storage.googleapis.com"
+            elif source in ["http:stage1-rta"]:
+                self.remote_host = "storage.googleapis.com"
             elif source in ["http:stage2"]:
                 self.remote_host = "download.arangodb.com"
             else:
@@ -118,7 +120,9 @@ class Download:
             ssl=False,
             force_one_shard=False,
             use_auto_certs=False,
-            arangods=arangods
+            arangods=arangods,
+            mixed=False,
+            force_manual_upgrade=False,
         )
 
         self.inst = make_installer(self.cfg)
@@ -158,8 +162,11 @@ class Download:
     def calculate_package_names(self):
         """guess where to locate the packages"""
         self.inst.calculate_package_names()
+        full_version = "v{major}.{minor}.{patch}".format(**self.cfg.semver.to_dict())
+        if self.cfg.semver.prerelease is not None:
+            full_version += "." + self.cfg.semver.prerelease
         self.params = {
-            "full_version": "v{major}.{minor}.{patch}".format(**self.cfg.semver.to_dict()),
+            "full_version": full_version,
             "major_version": "arangodb{major}{minor}".format(**self.cfg.semver.to_dict()),
             "bare_major_version": "{major}.{minor}".format(**self.cfg.semver.to_dict()),
             "remote_package_dir": self.inst.remote_package_dir,
@@ -179,6 +186,12 @@ class Download:
                 **self.params
             ),
             "ftp:stage2": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
+                **self.params
+            ),
+            "http:hotfix": "/{enterprise_magic}/hotfixes/{full_version}/packages/{enterprise}/{remote_package_dir}/".format(
+                **self.params
+            ),
+            "http:stage1-rta": "/stage1/{full_version}/release/packages/{enterprise}/{remote_package_dir}/".format(
                 **self.params
             ),
             "http:stage2-rta": "/stage2/{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
@@ -201,6 +214,8 @@ class Download:
             "http:stage2": self.acquire_stage2_http,
             "ftp:stage1": self.acquire_stage1_ftp,
             "ftp:stage2": self.acquire_stage2_ftp,
+            "http:hotfix": self.acquire_live,
+            "http:stage1-rta": self.acquire_live_rta,
             "http:stage2-rta": self.acquire_live_rta,
             "nightlypublic": self.acquire_live,
             "public": self.acquire_live,
@@ -297,7 +312,7 @@ class Download:
                "dir": directory.replace('//','/').replace('//', '/'),
                "pkg": package}
         )
-        self._acquire_live(url, package, local_dir, force)
+        self._acquire_live(url, package, local_dir, force, "LIVE")
 
     def acquire_live_rta(self, directory, package, local_dir, force):
         """download live files via http"""
@@ -306,41 +321,42 @@ class Download:
                "dir": directory.replace('//','/').replace('//', '/'),
                "pkg": package}
         )
-        self._acquire_live(url, package, local_dir, force)
+        self._acquire_live(url, package, local_dir, force, "RTA-LIVE")
 
-    def _acquire_live(self, url, package, local_dir, force):
+    def _acquire_live(self, url, package, local_dir, force, which):
         out = local_dir / package
         exists = out.exists()
         if exists and not force:
-            print("LIVE: not overwriting {file} since not forced to overwrite!".format(**{"file": str(out)}))
+            print(f"{which}: not overwriting {str(out)} since not forced to overwrite!")
             return
-        print("LIVE: downloading " + str(url))
+        print(f"{which}: downloading {str(url)}")
         retry = 0
         while retry < 99:
             try:
                 res = requests.get(url, timeout=120)
                 retry = 100
             except requests.exceptions.ConnectionError as ex:
-                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                print(f"{which}: failed to download {url} try {retry} - {ex} - retrying.")
                 retry += 1
             except requests.exceptions.ChunkedEncodingError as ex:
-                print(f"failed to download {url} try {retry} - {ex} - retrying.")
+                print(f"{which}: failed to download {url} try {retry} - {ex} - retrying.")
                 retry += 1
         if res.status_code == 200:
             print(
-                "LIVE: writing {size} kbytes to {existing}{file}".format(
+                "{which}: writing {size} kbytes to {existing}{file}".format(
                     **{
                         "size": str(len(res.content) / 1024),
                         "file": str(out),
                         "existing": "existing " if exists else "",
+                        "which": which,
                     }
                 )
             )
             out.write_bytes(res.content)
         else:
             raise Exception(
-                "LIVE: failed to download {url} - {error} - {msg}".format(
-                    **{"url": url, "error": res.status_code, "msg": res.text}
+                "{which}: failed to download {url} - {error} - {msg}".format(
+                    **{"url": url, "error": res.status_code, "msg": res.text, "which": which}
                 )
             )
 

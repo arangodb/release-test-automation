@@ -36,6 +36,7 @@ class InstallerBase(ABC):
     installer_type: str
 
     def __init__(self, cfg: InstallerConfig):
+        self.force_manual_upgrade = cfg.force_manual_upgrade
         self.arangods = cfg.arangods
         self.machine = platform.machine()
         self.arango_binaries = []
@@ -60,6 +61,10 @@ class InstallerBase(ABC):
         self.cli_executor = ArangoCLIprogressiveTimeoutExecutor(self.cfg, self.instance)
         self.core_glob = "**/*core"
         self.copy_for_result = True
+
+    def supports_rolling_upgrade(self):
+        """ whether the starter can manage the upgrade on its own """
+        return True
 
     def reset_version(self, version):
         """re-configure the version we work with"""
@@ -287,7 +292,7 @@ class InstallerBase(ABC):
             self.cfg.log_dir,
             self.cfg.passvoid,
             True,
-            self.cfg.version,
+            self.cfg.semver,
             self.cfg.enterprise,
         )
         self.calculate_package_names()
@@ -430,7 +435,7 @@ class InstallerBase(ABC):
                     False,
                     True,
                     "1.0.0",
-                    "4.0.0",
+                    "3.12.99",
                     [],
                     "c++",
                 )
@@ -590,7 +595,7 @@ class InstallerBase(ABC):
             basedir=(self.get_log_dir()),
             passvoid=self.cfg.passvoid,
             ssl=False,
-            version=self.cfg.version,
+            version=self.cfg.semver,
             enterprise=self.cfg.enterprise,
         )
 

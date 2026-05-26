@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import platform
+import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.base import InstallerArchive
 
@@ -73,12 +74,14 @@ class InstallerSource(InstallerArchive):
         self.cfg.dbdir = self.cfg.bin_dir
         self.cfg.appdir = self.cfg.bin_dir
         self.cfg.cfgdir = self.test_dir / "etc" / "relative"
+        self.has_js = self.cfg.semver.major < 4
         js_dir = str(self.test_dir / "js")
         js_enterprise = []
         js_enterprise_server = []
         if self.cfg.enterprise:
             js_enterprise = ["--javascript.module-directory", str(self.test_dir / "enterprise" / "js")]
-            js_enterprise_server = ["--all.javascript.module-directory", str(self.test_dir / "enterprise" / "js")]
+            if self.has_js:
+                js_enterprise_server = ["--all.javascript.module-directory", str(self.test_dir / "enterprise" / "js")]
         self.cfg.default_backup_args = [
             "-c",
             str(self.cfg.cfgdir / "arangobackup.conf"),
@@ -91,8 +94,10 @@ class InstallerSource(InstallerArchive):
         ] + js_enterprise
         self.cfg.default_starter_args = [
             "--server.arangod=" + str(self.cfg.real_sbin_dir / "arangod"),
-            "--server.js-dir=" + js_dir,
-        ] + js_enterprise_server
+        ]
+        if self.has_js:
+            self.cfg.default_starter_args += ["--server.js-dir=" + js_dir]
+        self.cfg.default_starter_args += js_enterprise_server
         self.cfg.default_imp_args = [
             "-c",
             str(self.cfg.cfgdir / "arangoimport.conf"),

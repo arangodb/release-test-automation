@@ -6,7 +6,6 @@ from pathlib import Path
 import sys
 
 import click
-import semver
 
 import reporting.reporting_utils
 from common_options import (
@@ -32,14 +31,7 @@ from arangodb.installers import EXECUTION_PLAN, InstallerBaseConfig
 
 # pylint: disable=too-many-arguments disable=too-many-locals disable=too-many-branches, disable=too-many-statements
 def package_test(
-    dl_opts: DownloadOptions,
-    new_version,
-    new_dlstage,
-    git_version,
-    editions,
-    run_test_suites,
-    test_driver,
-    kwargs
+    dl_opts: DownloadOptions, new_version, new_dlstage, git_version, editions, run_test_suites, test_driver, kwargs
 ):
     """process fetch & tests"""
 
@@ -67,7 +59,8 @@ def package_test(
         props = deepcopy(init_props)
         if props.directory_suffix not in editions:
             continue
-        if semver.VersionInfo.parse(new_version) < props.minimum_supported_version:
+        if props.is_version_not_supported(new_version):
+            print(f"skipping {repr(props)}")
             continue
         props.set_kwargs(kwargs)
         dl_opt = deepcopy(dl_opts)
@@ -104,7 +97,11 @@ def package_test(
                 }
             ]
         )
-        results.append(test_driver.run_test("all", "all", [dl_new.cfg.version], props))
+        results.append(test_driver.run_test("all", [dl_new.cfg.version], props))
+
+    if dl_new is None:
+        print("no suites found")
+        return 1
 
     if run_test_suites:
         results.append(

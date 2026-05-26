@@ -311,6 +311,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         result_line_handler=default_line_result,
         deadline=1000,
         progressive_timeout=100,
+        verbose=False,
         log_debug=False,
     ):
         """mimic runInArangosh testing.js behaviour"""
@@ -344,7 +345,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 progressive_timeout=progressive_timeout,
                 result_line_handler=result_line_handler,
                 process_control=True,
-                verbose=self.cfg.verbose,
+                verbose=self.cfg.verbose or verbose,
                 deadline=deadline,
                 log_debug=log_debug,
             )
@@ -357,6 +358,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     def create_test_data(
         self,
         testname,
+        supports_foxx_tests,
         args=None,
         result_line_handler=default_line_result,
         progressive_timeout=100,
@@ -384,7 +386,12 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 "setting up test data",
                 self.cfg.test_data_dir.resolve() / "makedata.js",
             ],
-            args=args + ["--progress", "true", "--passvoid", self.cfg.passvoid] + test_filter,
+            args=args + ["--progress",
+                         "true",
+                         "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
+                         "--passvoid", self.cfg.passvoid,
+                         '--testFoxx', 'true' if supports_foxx_tests else 'false',
+                         ] + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
             deadline=deadline,
@@ -400,6 +407,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         args=None,
         one_shard: bool = False,
         database_name: str = "_system",
+        mixed: bool = False,
         result_line_handler=default_line_result,
         log_debug=False,
         deadline=900,
@@ -428,7 +436,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--progress', 'true',
                 '--oldVersion', self.old_version,
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
-                '--passvoid', self.cfg.passvoid
+                "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
+                '--passvoid', self.cfg.passvoid,
+                '--mixed', 'true' if mixed else 'false'
             ] + test_filter,
             # fmt: on
             progressive_timeout=progressive_timeout,
@@ -440,7 +450,16 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
-    def clear_test_data(self, testname, args=None, result_line_handler=default_line_result):
+    def clear_test_data(
+            self,
+            testname,
+            supports_foxx_tests,
+            args=None,
+            progressive_timeout=100,
+            deadline=900,
+            one_shard: bool = False,
+            database_name: str = "_system",
+            result_line_handler=default_line_result):
         """flush the testdata from the instance again"""
         if args is None:
             args = []
@@ -456,11 +475,17 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             cmd=[
                 "cleaning up test data",
                 self.cfg.test_data_dir.resolve() / "cleardata.js",
-            ]
-            + test_filter,
-            args=args + ["--progress", "true"],
-            progressive_timeout=5,
+            ],
+            args=args + [
+                '--progress', 'true',
+                '--oldVersion', self.old_version,
+                "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
+                '--testFoxx', 'true' if supports_foxx_tests else 'false',
+                '--passvoid', self.cfg.passvoid
+            ] + test_filter,
+            progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
+            deadline=deadline,
         )
 
         return ret

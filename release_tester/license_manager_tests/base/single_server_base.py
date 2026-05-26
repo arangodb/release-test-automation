@@ -68,3 +68,9 @@ class LicenseManagerSingleServerBaseTestSuite(LicenseManagerBaseTestSuite):
         self.starter.respawn_instance(version)
         self.starter.detect_instances()
         self.wait()
+
+    def recreate_deployment(self):
+        """recreate single server deployment"""
+        self.runner.starter_shutdown()
+        self.runner.cleanup()
+        self.start_single_server()

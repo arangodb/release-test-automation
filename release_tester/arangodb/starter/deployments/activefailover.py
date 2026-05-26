@@ -3,6 +3,7 @@
 import logging
 import sys
 import time
+import re
 from pathlib import Path
 
 import requests
@@ -16,6 +17,9 @@ from arangodb.starter.deployments.runner import Runner
 from arangodb.starter.manager import StarterManager
 from tools.asciiprint import print_progress as progress
 from tools.interact import prompt_user
+import tools.loghelper as lh
+
+from api_tests.test_suites.api_test_suite import APITestSuite
 
 
 class ActiveFailover(Runner):
@@ -31,15 +35,13 @@ class ActiveFailover(Runner):
         selenium,
         selenium_driver_args,
         selenium_include_suites,
-        rp: RunProperties
+        rp: RunProperties,
     ):
         super().__init__(
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "ActiveFailOver", 500, 600, True, 3
-            ),
+            RunnerProperties(rp, "ActiveFailOver", 500, 600, True, 3),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -49,6 +51,20 @@ class ActiveFailover(Runner):
         self.leader = None
         self.success = True
         self.backup_instance_count = 1
+
+    def _check_for_shards_in_sync(self):
+        """wait for all shards to be in sync"""
+        lh.subsubsection("wait for all shards to be in sync - Jamming")
+        retval = self.starter_instances[0].arangosh.run_in_arangosh(
+            (self.cfg.test_data_dir / Path("tests/js/server/cluster/wait_for_repl_catchup.js")),
+            [],
+            ["true"],
+            verbose=True,
+            log_debug=True,
+        )
+        if not retval:
+            raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
+        print("all in sync.")
 
     def detect_leader(self):
         """find out the leader node"""
@@ -67,7 +83,9 @@ class ActiveFailover(Runner):
                 self.follower_nodes.append(node)
             node.set_passvoid("leader", node.is_leader)
 
-    def starter_prepare_env_impl(self):
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
         # fmt: off
         node1_opts = ['--args.all.log.level=replication=debug']
         node2_opts = ['--args.all.log.level=replication=debug', '--starter.join', '127.0.0.1:9528']
@@ -120,6 +138,7 @@ class ActiveFailover(Runner):
             self.starter_instances.append(
                 StarterManager(
                     self.cfg,
+                    self.is_foxx_supported,
                     self.basedir,
                     name,
                     mode="activefailover",
@@ -129,7 +148,7 @@ class ActiveFailover(Runner):
                         InstanceType.RESILIENT_SINGLE,
                     ],
                     jwt_str="afo",
-                    moreopts=opts,
+                    moreopts=opts + more_opts,
                 )
             )
 
@@ -208,7 +227,8 @@ class ActiveFailover(Runner):
             self.selenium.test_setup()
 
     def wait_for_restore_impl(self, backup_starter):
-        backup_starter.wait_for_restore()
+        if self.hot_backup:
+            backup_starter.wait_for_restore()
         self.leader = None
         retry = True
         time.sleep(5)  # Make shaky leader less viable.
@@ -231,6 +251,7 @@ class ActiveFailover(Runner):
         # release from maintainance mode according to
         # https://www.arangodb.com/docs/3.7/programs-arangobackup-limitations.html#active-failover-special-limitations
         self.leader.maintainance(False, InstanceType.RESILIENT_SINGLE)
+        self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
@@ -316,13 +337,11 @@ class ActiveFailover(Runner):
             args = []
             if self.old_installer.semver <= semver.VersionInfo.parse("3.11.11"):
                 # we know AFO 3.11.11 and older is broken here:
-                args = ['--skip', '802_']
+                args = ["--skip", "802_"]
                 self.checkdata_args = args
             ret = curr_leader.arangosh.check_test_data(
-                "checking active failover new leader node",
-                True,
-                 args,
-                log_debug=True)
+                "checking active failover new leader node", True, args, log_debug=True
+            )
             if not ret[0]:
                 raise Exception("check data failed " + ret[1])
 
@@ -338,8 +357,13 @@ class ActiveFailover(Runner):
         self.set_frontend_instances()
 
         if self.selenium:
-            # cfg = self.new_cfg if self.new_cfg else self.cfg
-            self.set_selenium_instances()
+            curr_leader_local_url = curr_leader.get_frontend().get_local_url("")
+            curr_leader_port = int(re.search("(?<=:)\d{4}", curr_leader_local_url).group())
+            resilient_instance = [
+                x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE
+            ][0]
+            resilient_instance.port = curr_leader_port
+            self.set_new_selenium_instances(resilient_instance)
             self.selenium.test_jam_attempt()
 
         prompt_user(
@@ -413,3 +437,17 @@ please revalidate the UI states on the new leader; you should see *one* follower
             [x for x in self.leader.all_instances if x.instance_type == InstanceType.RESILIENT_SINGLE][0],
             self.new_cfg,
         )
+
+    def set_new_selenium_instances(self, new_leader_instance):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.leader.arango_importer,
+            self.leader.arango_restore,
+            new_leader_instance,
+            self.new_cfg,
+        )
+
+    def run_api_tests_impl(self):
+        self.detect_leader()
+        self.api_tests_failed = not APITestSuite(self.leader).run_api_tests()

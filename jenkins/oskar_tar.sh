@@ -1,6 +1,6 @@
 #!/bin/bash
 . ./jenkins/common/detect_podman.sh
-if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12"; then
+if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12" -o "$BASE_VERSION" == "4.0"; then
     DOCKER_SUFFIX=tar-oskarnew
 else
     DOCKER_SUFFIX=tar-oskar
@@ -104,11 +104,14 @@ if test -n "${SAN}"; then
 fi
 # we need --init since our upgrade leans on zombies not happening:
 $DOCKER run \
+        --ulimit nofile=65536 \
+        --ulimit core=9999999999999 \
        "${DOCKER_ARGS[@]}" \
        --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
        --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
        --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
        --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
+       --env="OPENBLAS_NUM_THREADS=${OPENBLAS_NUM_THREADS}" \
        --env="OMP_TOOL_LIBRARIES=${OMP_TOOL_LIBRARIES}" \
        --env="ARCHER_OPTIONS=${ARCHER_OPTIONS}" \
        \

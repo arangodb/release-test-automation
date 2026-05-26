@@ -177,6 +177,12 @@ def ui_test_suite_filtering_options():
             multiple=True,
             help="List of UI test suite names to run.",
         )(function)
+        function = click.option(
+            "--buckets",
+            default="1/0",
+            type=click.STRING,
+            help="List of UI test suite names to run.",
+        )(function)
         return function
 
     return inner_func
@@ -194,7 +200,7 @@ def very_common_options(support_multi_version=False):
         package_dir = Path("/tmp/")
     package_dir = get_default_path_value("WORKSPACE", "package_cache", package_dir)
 
-    defver = get_default_value("NEW_VERSION", "", "3.10.0-nightly")
+    defver = get_default_value("NEW_VERSION", "", "3.12.0-nightly")
     if support_multi_version:
         defver = [defver]
 
@@ -230,9 +236,21 @@ def very_common_options(support_multi_version=False):
             help="Enterprise or community?",
         )(function)
         function = click.option(
+            "--mixed/--no-mixed",
+            is_flag=True,
+            default=False,
+            help="community to Enterprise mixed upgrade path?",
+        )(function)
+        function = click.option(
             "--package-dir",
             default=package_dir,
             help="directory to down/load the packages from/to.",
+        )(function)
+        function = click.option(
+            "--force-manual-upgrade",
+            is_flag=True,
+            default=False,
+            help="switch from rolling starter to manual RTA implemented upgrade",
         )(function)
         function = zip_common_options(function)
         return function
@@ -258,7 +276,7 @@ def common_options(
     def inner_func(function):
 
         if support_old:
-            defver = get_default_value("OLD_VERSION", "", "3.9-nightly")
+            defver = get_default_value("OLD_VERSION", "", "3.11.0-nightly")
             if support_multi_version:
                 defver = [defver]
             function = click.option(
@@ -411,6 +429,8 @@ def download_options(default_source="public", double_source=False, other_source=
         "ftp:stage1",
         "ftp:stage2",
         "http:stage2",
+        "http:hotfix",
+        "http:stage1-rta",
         "http:stage2-rta",
         "nightlypublic",
         "public",

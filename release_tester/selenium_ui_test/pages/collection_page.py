@@ -215,7 +215,7 @@ class CollectionPage(NavigationBarPage):
             select_create_collection_sitem = self.locator_finder_by_id(select_create_collection_id, benchmark=True)
 
         select_create_collection_sitem.click()
-        time.sleep(1)
+        time.sleep(3)
 
         self.tprint("Selecting new collection name \n")
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
@@ -225,7 +225,7 @@ class CollectionPage(NavigationBarPage):
 
         select_new_collection_name_sitem.click()
         select_new_collection_name_sitem.send_keys(name)
-        time.sleep(1)
+        time.sleep(3)
 
         self.tprint(f'Selecting collection type for {name} \n')
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
@@ -240,10 +240,10 @@ class CollectionPage(NavigationBarPage):
                 chosen_type = "//*[text()='Edge']"
                 chosen_type_sitem = self.locator_finder_by_xpath(chosen_type)
                 chosen_type_sitem.click()
-                time.sleep(1)
+                time.sleep(3)
         else:
             self.locator_finder_by_select("new-collection-type", doc_type)
-        time.sleep(1)
+        time.sleep(3)
 
         if is_cluster:
             if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
@@ -272,21 +272,26 @@ class CollectionPage(NavigationBarPage):
                     self.tprint("Might be failed due to forced-one-shard option is enabled, need a fix \n")
                     self.tprint(str(e))
             else:
-                self.tprint(f"selecting number of Shards for the {name} \n")
-                shards = "new-collection-shards"
-                shards_sitem = self.locator_finder_by_id(shards)
-                shards_sitem.click()
-                shards_sitem.clear()
-                shards_sitem.send_keys(9)
-                time.sleep(2)
+                if self.is_one_sharded:
+                    print("We're in one sharded mode - skipping shards related options...")
+                    time.sleep(2)
+                else:
+                    self.tprint(f"selecting number of Shards for the {name} \n")
+                    time.sleep(15)
+                    shards = "new-collection-shards"
+                    shards_sitem = self.locator_finder_by_id(shards)
+                    shards_sitem.click()
+                    shards_sitem.clear()
+                    shards_sitem.send_keys(9)
+                    time.sleep(2)
 
-                self.tprint(f"selecting number of replication factor for {name} \n")
-                rf = "new-replication-factor"
-                rf_sitem = self.locator_finder_by_id(rf)
-                rf_sitem.click()
-                rf_sitem.clear()
-                rf_sitem.send_keys(3)
-                time.sleep(2)
+                    self.tprint(f"selecting number of replication factor for {name} \n")
+                    rf = "new-replication-factor"
+                    rf_sitem = self.locator_finder_by_id(rf)
+                    rf_sitem.click()
+                    rf_sitem.clear()
+                    rf_sitem.send_keys(3)
+                    time.sleep(2)
 
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.99"):
             if not is_cluster:
@@ -1255,8 +1260,11 @@ class CollectionPage(NavigationBarPage):
     def select_settings_tab(self, is_cluster, check=False):
         """Selecting settings tab from the collection submenu"""
         self.click_submenu_entry("Settings")
-        time.sleep(10)
+        # selecting Settings tab can occasionally lead to never-ending content loading - code below prevents it
+        time.sleep(5)
+        self.webdriver.refresh()
         self.wait_for_ajax()
+        time.sleep(15)
         if check:
             if not is_cluster:
                 select_settings_name_textbox_sitem = self.locator_finder_by_xpath(self.select_settings_name_textbox_id)
@@ -1278,7 +1286,7 @@ class CollectionPage(NavigationBarPage):
             select_load_index_into_memory_sitem = self.locator_finder_by_xpath(self.select_load_index_into_memory_id)
             select_load_index_into_memory_sitem.click()
             time.sleep(2)
-        self.wait_for_ajax()
+        # self.wait_for_ajax()
 
     def ace_set_value_x(self, locator, query, check=False):
         """take a string and adjacent locator argument of ace-editor and execute the query"""
@@ -1470,11 +1478,15 @@ class CollectionPage(NavigationBarPage):
 
     def select_delete_collection(self, expec_fail=False):
         """Deleting Collection from settings tab"""
+        self.wait_for_ajax()
+        time.sleep(2)
         delete_collection_sitem = self.locator_finder_by_xpath(self.delete_collection_id, expec_fail=expec_fail)
         delete_collection_sitem.click()
-        time.sleep(1)
+        time.sleep(2)
         delete_collection_confirm_sitem = self.locator_finder_by_xpath(self.delete_collection_confirm_id)
         delete_collection_confirm_sitem.click()
+        self.wait_for_ajax()
+        time.sleep(2)
 
     def select_edge_collection_upload(self):
         """selecting Edge collection for data uploading"""
@@ -1546,11 +1558,11 @@ class CollectionPage(NavigationBarPage):
                 raise Exception("FAIL: Unexpected error occurred!") from ex
 
     def delete_collection(self, collection_name, collection_locator, is_cluster):
-        """This method will delete all the collection"""
+        """This method deletes the collection identified by its name"""
         self.tprint(f"Deleting {collection_name} collection started \n")
-        self.webdriver.refresh()
-        self.wait_for_ajax()
         self.navbar_goto("collections")
+        self.webdriver.refresh() # this is where we can get occasionally logged out
+        self.wait_for_ajax()
 
         # changing the default collection locator according to the >= v3.12.x
         if self.current_package_version() >= semver.VersionInfo.parse("3.11.100"):
@@ -1572,7 +1584,7 @@ class CollectionPage(NavigationBarPage):
             self.select_delete_collection()
 
             self.tprint(f"Deleting {collection_name} collection Completed \n")
-            self.webdriver.refresh()
+            # self.webdriver.refresh()
         except (TimeoutException, AttributeError):
             self.tprint("TimeoutException occurred! \n")
             self.tprint("Info: Collection has already been deleted or never created. \n")
@@ -1581,5 +1593,8 @@ class CollectionPage(NavigationBarPage):
         except Exception as ex:
             traceback.print_exc()
             raise Exception("Critical Error occurred and need manual inspection!! \n") from ex
+        # this is to 'stabilise' the FE app after collection deletion (otherwise we may get logged out)
+        self.navbar_goto("users")
         self.webdriver.refresh()
         self.wait_for_ajax()
+        time.sleep(20)

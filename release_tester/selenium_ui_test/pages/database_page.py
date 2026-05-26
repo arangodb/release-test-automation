@@ -89,10 +89,14 @@ class DatabasePage(NavigationBarPage):
                     else:
                         pass
                 else:
-                    self.tprint(f"selecting sharded option from drop down using index for {db_name}\n")
-                    select_sharded_db = "newSharding"
-                    self.locator_finder_by_select(select_sharded_db, index)
-                    time.sleep(1)
+                    if self.is_one_sharded:
+                        self.tprint("We're in one shard mode - skipping shard type selection...")
+                        time.sleep(3)
+                    else:
+                        self.tprint(f"selecting sharded option from drop down using index for {db_name}\n")
+                        time.sleep(10)
+                        select_sharded_db = "newSharding"
+                        self.locator_finder_by_select(select_sharded_db, index)
             else:
                 self.tprint(f"Skipped for Community or < v3.11.99 for {db_name}\n")
 

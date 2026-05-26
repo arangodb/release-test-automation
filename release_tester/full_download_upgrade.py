@@ -8,7 +8,6 @@ from pathlib import Path
 import traceback
 
 import click
-import semver
 
 import tools.loghelper as lh
 from arangodb.hot_backup_cfg import HotBackupCliCfg
@@ -62,7 +61,18 @@ def upgrade_package_test(
     community_packages_are_present = False
     count = 0
     for _props in EXECUTION_PLAN:
-        if props.directory_suffix not in editions:
+        if _props.directory_suffix not in editions:
+            continue
+        skip = False
+        if _props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
+            print("Zip: skipping.")
+            skip = True
+        for version in [new_version, old_version]:
+            if _props.is_version_not_supported(version):
+                print(f"skipping for {version}")
+                skip = True
+        if skip:
+            print(f"\n** Skipping {repr(_props)}\n")
             continue
         props = deepcopy(_props)
         props.set_kwargs(kwargs)
@@ -85,7 +95,7 @@ def upgrade_package_test(
             test_driver.base_config,
             dl_opt,
             new_version,
-            props.enterprise,
+            props.enterprise if not props.mixed else True,
             new_dlstage,
             versions,
             fresh_versions,
@@ -100,13 +110,6 @@ def upgrade_package_test(
 
             this_test_dir = test_dir / props.directory_suffix
             test_driver.reset_test_data_dir(this_test_dir)
-            skip = False
-            for version in [new_version, old_version]:
-                if semver.VersionInfo.parse(version) < props.minimum_supported_version:
-                    skip = True
-            if skip:
-                print(f"Skipping {str(props)}")
-                continue
             results.append(test_driver.run_upgrade([dl_old.cfg.version, dl_new.cfg.version], props))
             versions.append([dl_new.cfg.version, dl_old.cfg.version])
             if props.enterprise:

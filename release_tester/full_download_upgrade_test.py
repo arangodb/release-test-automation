@@ -7,7 +7,6 @@ from copy import deepcopy
 from pathlib import Path
 
 import click
-import semver
 
 import tools.loghelper as lh
 from arangodb.hot_backup_cfg import HotBackupCliCfg
@@ -40,7 +39,7 @@ def upgrade_package_test(
     run_test,
     run_test_suites,
     test_driver,
-    kwargs
+    kwargs,
 ):
     """process fetch & tests"""
 
@@ -72,6 +71,8 @@ def upgrade_package_test(
             for default_props in EXECUTION_PLAN:
                 props = deepcopy(default_props)
                 if props.directory_suffix not in editions:
+                    continue
+                if props.is_version_not_supported(version_name):
                     continue
                 props.set_kwargs(kwargs)
                 dl_opt = deepcopy(dl_opts)
@@ -108,12 +109,12 @@ def upgrade_package_test(
         for default_props in EXECUTION_PLAN:
             if default_props.directory_suffix not in editions:
                 continue
+            if default_props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
+                print("skipping " + str(default_props))
+                continue
             props = deepcopy(default_props)
             props.set_kwargs(kwargs)
             if props.directory_suffix not in editions:
-                continue
-
-            if packages[primary_version][props.directory_suffix].cfg.semver < props.minimum_supported_version:
                 continue
 
             props.testrun_name = "test_" + props.testrun_name
@@ -136,7 +137,6 @@ def upgrade_package_test(
             )
             results.append(
                 test_driver.run_test(
-                    "all",
                     params.base_cfg.starter_mode,
                     [packages[primary_version][props.directory_suffix].cfg.version],
                     props,
@@ -147,6 +147,9 @@ def upgrade_package_test(
     for scenario in upgrade_scenarios:
 
         for default_props in EXECUTION_PLAN:
+            if default_props.only_zip_src and not ( kwargs["zip_package"] or kwargs["src_testing"]):
+                print("skipping " + str(default_props))
+                continue
             props = deepcopy(default_props)
             props.set_kwargs(kwargs)
 
@@ -155,7 +158,7 @@ def upgrade_package_test(
 
             skip = False
             for version in scenario:
-                if semver.VersionInfo.parse(version) < props.minimum_supported_version:
+                if props.is_version_not_supported(version):
                     skip = True
             if skip:
                 print(f"Skipping {str(props)}")

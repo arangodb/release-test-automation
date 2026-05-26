@@ -75,7 +75,7 @@ class TestDriver:
         os.chdir(kwargs["test_data_dir"])
 
         self.sitecfg = SiteConfig("")
-        kwargs['is_instrumented'] = self.sitecfg.is_instrumented()
+        kwargs["is_instrumented"] = self.sitecfg.is_instrumented()
         kwargs["base_config"].is_instrumented = self.sitecfg.is_instrumented()
         self.use_monitoring = kwargs["monitoring"]
         if self.use_monitoring:
@@ -92,6 +92,7 @@ class TestDriver:
         kwargs["base_config"].package_dir = kwargs["package_dir"]
 
         self.base_config = kwargs["base_config"]
+        self.force_manual_upgrade = kwargs["force_manual_upgrade"]
         self.arangods = []
         self.base_config.arangods = self.arangods
 
@@ -100,9 +101,24 @@ class TestDriver:
 
         self.selenium = kwargs["selenium"]
         self.selenium_driver_args = kwargs["selenium_driver_args"]
-        self.selenium_include_suites = (
-            [] if "ui_include_test_suites" not in kwargs else kwargs["ui_include_test_suites"]
-        )
+
+        self.selenium_include_suites = []
+        self.bucket_count = 1
+        self.bucket_no = 0
+        if "buckets" in kwargs:
+            (self.bucket_count, self.bucket_no) = kwargs["buckets"].split("/")
+            self.bucket_count = int(self.bucket_count)
+            self.bucket_no = int(self.bucket_no)
+        if "ui_include_test_suites" in kwargs:
+            suites = kwargs["ui_include_test_suites"]
+            if self.bucket_count != 1:
+                if len(suites) != self.bucket_count:
+                    raise Exception(f"buckets need to be the same count {self.bucket_count}  as {suites}")
+                self.selenium_include_suites = [suites[self.bucket_no]]
+                print(f"Chosen bucket from tests: {self.selenium_include_suites}")
+            else:
+                self.selenium_include_suites = suites
+            print(f"filtering for {self.selenium_include_suites} {self.bucket_count} {self.bucket_no}")
         init_allure(
             results_dir=kwargs["alluredir"], clean=kwargs["clean_alluredir"], zip_package=self.base_config.zip_package
         )
@@ -175,7 +191,7 @@ class TestDriver:
         if self.installer_type:
             return self.installer_type
         installers = create_config_installer_set(
-            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False)
+            ["3.3.3"], self.base_config, "all", RunProperties(False, False, False, False), False
         )
         self.installer_type = installers[0][1].installer_type.split(" ")[0].replace(".", "")
         return self.installer_type
@@ -196,7 +212,7 @@ class TestDriver:
         """main"""
         if versions is None:
             versions = ["3.3.3"]
-        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties)
+        installer_set = create_config_installer_set(versions, self.base_config, "all", run_properties, False)
         inst = installer_set[0][1]
         if inst.calc_config_file_name().is_file():
             inst.load_config()
@@ -237,7 +253,9 @@ class TestDriver:
         lh.section("startup")
         results = []
         for runner_type in STARTER_MODES[self.base_config.starter_mode]:
-            installers = create_config_installer_set(versions, self.base_config, "all", run_props)
+            installers = create_config_installer_set(
+                versions, self.base_config, "all", run_props, self.force_manual_upgrade
+            )
             # pylint: disable=unused-variable
             old_inst = installers[0][1]
             new_inst = installers[1][1]
@@ -315,8 +333,15 @@ class TestDriver:
                             one_result["messages"].append("\n" + str(ex))
                             one_result["progress"] += runner.get_progress()
                             runner.take_screenshot()
-                            if runner.agency:
-                                runner.agency.acquire_dump()
+                            try:
+                                if runner.agency:
+                                    runner.agency.acquire_dump()
+                            except Exception as aex:
+                                testcase.context.statusDetails = StatusDetails(message=str(aex),
+                                                                               trace="".join(
+                                                                                   traceback.TracebackException.from_exception(
+                                                                                       aex).format()))
+                            print("failed to acquire agency dump! Ignoring")
                             runner.search_for_warnings()
                             runner.quit_selenium()
                             kill_all_processes()
@@ -407,7 +432,6 @@ class TestDriver:
     # fmt: off
     # pylint: disable=too-many-arguments disable=too-many-locals
     def run_test(self,
-                 test_mode,
                  deployment_mode,
                  versions: list,
                  run_props: RunProperties):
@@ -415,23 +439,20 @@ class TestDriver:
         """ main """
         results = []
 
-        do_install = test_mode in ["all", "install"]
-        do_uninstall = test_mode in ["all", "uninstall"]
-        do_tests = test_mode in ["all", "tests"]
 
         installers = create_config_installer_set(
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.force_manual_upgrade,
         )
         lh.section("configuration")
         print(
             """
-        mode: {mode}
         {cfg_repr}
         """.format(
-                **{"mode": str(test_mode), "cfg_repr": repr(installers[0][0])}
+                **{"cfg_repr": repr(installers[0][0])}
             )
         )
 
@@ -481,13 +502,6 @@ class TestDriver:
                         )
                         runner.cleanup()
                         continue
-                    # install on first run:
-                    runner.do_install = (count == 1) and do_install
-                    # only uninstall after the last test:
-                    must_uninstall_after_this_run = (count == len(
-                        STARTER_MODES[deployment_mode]))
-                    runner.do_uninstall = must_uninstall_after_this_run and do_uninstall
-                    runner.do_starter_test = do_tests
 
                     try:
                         runner.run()
@@ -501,8 +515,15 @@ class TestDriver:
                         one_result["messages"].append(str(ex))
                         one_result["progress"] += runner.get_progress()
                         runner.take_screenshot()
-                        if runner.agency:
-                            runner.agency.acquire_dump()
+                        try:
+                            if runner.agency:
+                                runner.agency.acquire_dump()
+                        except Exception as aex:
+                            testcase.context.statusDetails = StatusDetails(message=str(aex),
+                                                                           trace="".join(
+                                                                               traceback.TracebackException.from_exception(
+                                                                                   aex).format()))
+                            print("failed to acquire agency dump! Ignoring")
                         runner.search_for_warnings()
                         runner.quit_selenium()
                         kill_all_processes()
@@ -513,12 +534,11 @@ class TestDriver:
                                                                        trace="".join(
                                                                            traceback.TracebackException.from_exception(
                                                                                ex).format()))
-                        if must_uninstall_after_this_run and do_uninstall:
-                            lh.section("uninstall on error")
-                            installers[0][1].un_install_debug_package()
-                            installers[0][1].un_install_server_package()
-                            installers[0][1].cleanup_system()
-                            lh.section("uninstall on error")
+                        lh.section("uninstall on error")
+                        installers[0][1].un_install_debug_package()
+                        installers[0][1].un_install_server_package()
+                        installers[0][1].cleanup_system()
+                        lh.section("uninstall on error")
                         if self.abort_on_error:
                             raise ex
                         traceback.print_exc()
@@ -540,6 +560,10 @@ class TestDriver:
                         one_result[
                             "messages"].append(
                             f'The following UI tests failed: {", ".join(failed_test_names)}. See allure report for details.')
+
+                    if runner.api_tests_failed:
+                        one_result["success"] = False
+                        one_result["messages"].append('One or more API tests failed. See API tests results table and allure report for details.')
                     results.append(one_result)
                     kill_all_processes()
                     count += 1
@@ -578,7 +602,8 @@ class TestDriver:
             versions,
             self.base_config,
             deployment_mode,
-            run_props
+            run_props,
+            self.force_manual_upgrade
         )
         lh.section("configuration")
         print(
