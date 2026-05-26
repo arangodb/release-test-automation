@@ -427,7 +427,10 @@ class ClusterPerf(Cluster):
         arangosh = starter.arangosh
         if self.cfg.checkdata:
             arangosh.check_test_data(
-                "xx", supports_foxx_tests=True, args=makedata_job_params["args"], result_line_handler=result_line
+                "xx", supports_foxx_tests=True,
+                supports_vector_index=frontends[0].supports_vector_index,
+                args=makedata_job_params["args"],
+                result_line_handler=result_line
             )
 
     def _restore_defined_hb(self, frontends, all_backups, makedata_job_params):
@@ -464,9 +467,13 @@ class ClusterPerf(Cluster):
         if self.scenario.system_makedata:
             super().make_data_impl()
 
-    def check_data_impl_sh(self, arangosh, supports_foxx_tests):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests,
+                           supports_vector_index):
         if self.scenario.system_makedata:
-            super().check_data_impl_sh(arangosh, supports_foxx_tests)
+            super().check_data_impl_sh(arangosh,
+                                       supports_foxx_tests,
+                                       supports_vector_index
+                                       )
 
     def check_data_impl(self):
         if self.scenario.system_makedata:
