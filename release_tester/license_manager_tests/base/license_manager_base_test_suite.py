@@ -79,7 +79,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             return True, None
 
     def init_child_class(self, child_class):
-        """initialise the child class"""
+        """initialize the child class"""
         return child_class(self.params)
 
     @run_after_suite
@@ -89,7 +89,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
             self.runner.starter_shutdown()
         kill_all_processes()
 
-    @collect_crash_data
+    # @collect_crash_data - disabled as it doesn't always work correctly with other setup/teardown logic
     def save_data_dir(self):
         """save data dir and logs in case a test failed"""
         kill_all_processes()

@@ -189,15 +189,15 @@ class BaseTestSuite(metaclass=MetaTestSuite):
         return len(self.get_own_testcases()) > 0
 
     def get_run_before_suite_methods(self):
-        """list methods that are marked to be ran before test suite"""
+        """list methods that are marked to be run before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_before_suite")]
 
     def get_run_after_suite_methods(self):
-        """list methods that are marked to be ran before test suite"""
+        """list methods that are marked to be run before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_after_suite")]
 
     def get_run_before_each_testcase_methods(self):
-        """list methods that are marked to be ran before test suite"""
+        """list methods that are marked to be run before test suite"""
         return [getattr(self, attr) for attr in dir(self) if hasattr(getattr(self, attr), "run_before_each_testcase")]
 
     def get_run_after_each_testcase_methods(self):
