@@ -486,8 +486,8 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--oldVersion', self.old_version,
                 "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
-                '--passvoid', self.cfg.passvoid
                 '--testVector', 'true' if supports_vector_index else 'false',
+                '--passvoid', self.cfg.passvoid
             ] + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
