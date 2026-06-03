@@ -282,6 +282,11 @@ process.exit(0);
         self.makedata_instances.append(self.leader_starter_instance)
 
     @step
+    def after_makedata_check(self):
+        logging.info("Leader follower testing makedata on follower")
+        self.makedata_instances.append(self.follower_starter_instance)
+
+    @step
     def test_setup_impl(self):
         logging.info("testing the leader/follower setup")
         tries = 30
@@ -306,13 +311,21 @@ process.exit(0);
         # assert that data has been replicated
         self.follower_starter_instance.arangosh.read_only = True
         self.follower_starter_instance.supports_foxx_tests = False
-        logging.info("Leader follower testing makedata on follower")
-        self.makedata_instances.append(self.follower_starter_instance)
         # self.make_data()
         if self.selenium:
             self.selenium.test_setup()
 
         logging.info("Leader follower setup successfully finished!")
+
+    @step
+    def check_data_impl(self):
+        """check for data on the installation"""
+        for starter in self.makedata_instances:
+            assert starter.arangosh, "check: this starter doesn't have an arangosh!"
+            arangosh = starter.arangosh
+            self.check_data_impl_sh(arangosh,
+                                    starter.supports_foxx_tests,
+                                    starter.supports_vector_index)
 
     @step
     def upgrade_arangod_version_impl(self):
