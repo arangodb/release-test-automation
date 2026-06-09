@@ -1,5 +1,6 @@
 """ API tests request helper """
 import requests
+import copy
 
 from reporting.reporting_utils import step, attach_http_request_to_report, attach_http_response_to_report
 
@@ -47,3 +48,8 @@ def update_request_data(request_data, parameter_1, parameter_2=""):
             request_data["endpoint"].replace(FIRST_PARAM, parameter_1).replace(SECOND_PARAM, parameter_2)
         )
     return request_data
+
+
+def clone_request_data(request_data):
+    """clone the request data"""
+    return copy.deepcopy(request_data)

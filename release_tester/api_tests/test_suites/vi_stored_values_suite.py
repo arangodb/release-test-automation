@@ -83,7 +83,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
         doc_count = request_result["json"]["count"] if request_result["code"] in HTTP_OK_CODES else NUMBER_OF_DOCS
         self.rp = str(int(doc_count / 2))
 
-    @testcase("1. VI with stored values - simple query (stored values)")
+    @testcase("1.1 VI with stored values - simple query (stored values)")
     def test_vi_with_stored_values_simple_query(self):
         """simple query with stored values"""
 
@@ -116,7 +116,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
                 set(request2_result["plan"]["rules"])
             ), f"expected rules: {expected_rules} were not applied!"
 
-    @testcase("2. VI with stored values - simple query (non-stored values)")
+    @testcase("1.2 VI with stored values - simple query (non-stored values)")
     def test_vi_with_stored_values_simple_query_non_stored_values(self):
         """simple query with non-stored values filtering"""
 
@@ -141,7 +141,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             # index_node = ph.find_elem_by_prop_value(request2_result["plan"]["nodes"], "type", "EnumerateNearVectorNode")
             # assert not index_node["isCoveredByStoredValues"]
 
-    @testcase("3. VI with stored values - complex query (stored values)")
+    @testcase("1.3 VI with stored values - complex query (stored values)")
     def test_vi_with_stored_values_complex_query(self):
         """complex query with stored values filtering"""
 
@@ -177,7 +177,7 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
                 set(request2_result["plan"]["rules"])
             ), f"expected rules: {expected_rules} were not applied!"
 
-    @testcase("4. VI with stored values - complex query (non-stored values)")
+    @testcase("1.4 VI with stored values - complex query (non-stored values)")
     def test_vi_with_stored_values_complex_query_non_stored_values(self):
         """complex query with non-stored values filtering"""
 
