@@ -34,7 +34,6 @@ class VersionedAPITestSuite(APITestSuite):
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request_result = self.execute_request(request_data)["json"]
-        print(request_result)
         # verify response contains info on supported, deprecated and requested APIs
         assert {"apiVersions", "deprecatedApiVersions", "requestedApiVersion"}.issubset(request_result.keys())
         # verify correct supported and requested API versions are returned depending on Arango version
@@ -58,8 +57,6 @@ class VersionedAPITestSuite(APITestSuite):
         request2_data = rh.update_request_data(request2_data, "")
         request1_result = self.execute_request(request1_data)
         request2_result = self.execute_request(request2_data)
-        print(request1_result)
-        print(request2_result)
         # verify response codes are in 20x range for both requests
         assert request1_result["code"] in HTTP_OK_CODES
         assert request2_result["code"] in HTTP_OK_CODES
