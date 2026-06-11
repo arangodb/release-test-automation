@@ -203,6 +203,22 @@
         "Accept": "application/json"
       },
       "payload": {}
+    },
+    "test_api_v1_in_arango_3_12": {
+      "endpoint": "$1/_api/user",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_v0_in_arango_4": {
+      "endpoint": "$1/_api/user",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
     }
   }
 }

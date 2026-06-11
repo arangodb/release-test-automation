@@ -18,7 +18,7 @@ A1_API_VERSION = "v1"
 
 
 class VersionedAPITestSuite(APITestSuite):
-    """API Tests - versioned api tests"""
+    """API Tests - Versioned api tests"""
 
     def __init__(self, starter_instance):
         super().__init__(starter_instance)
@@ -60,6 +60,32 @@ class VersionedAPITestSuite(APITestSuite):
         # verify response codes are in 20x range for both requests
         assert request1_result["code"] in HTTP_OK_CODES
         assert request2_result["code"] in HTTP_OK_CODES
+
+    @testcase("2.3 Versioned API - API version v1 is not supported in Arango 3.12.8+")
+    def test_api_v1_in_arango_3_12(self):
+        """v1 API is not supported in Arango 3.12.8+"""
+
+        if self.current_version < A1_API_ARANGO_VERSION:
+            request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
+            request_data = rh.update_request_data(
+                request_data, VersionedAPITestSuite.get_api_version_prefix(A1_API_VERSION)
+            )
+            request_result = self.execute_request(request_data)
+            # verify response codes is 404 (Not found)
+            assert request_result["code"] == 404
+
+    @testcase("2.4 Versioned API - API version v0 is not supported in Arango 4.0.0+")
+    def test_api_v0_in_arango_4(self):
+        """v0 API is not supported in Arango 4.0.0+"""
+
+        if self.current_version >= A1_API_ARANGO_VERSION:
+            request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
+            request_data = rh.update_request_data(
+                request_data, VersionedAPITestSuite.get_api_version_prefix(A0_API_VERSION)
+            )
+            request_result = self.execute_request(request_data)
+            # verify response codes is 404 (Not found)
+            assert request_result["code"] == 404
 
     def get_supported_api_versions(self):
         request_data = self.requests_data["get_api_version"]
