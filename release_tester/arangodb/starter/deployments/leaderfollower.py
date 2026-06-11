@@ -100,8 +100,10 @@ var connectToFollower = function() {{
 }};
 
 let state = {{}};
+let count = 0;
 var printed = false;
 state.lastLogTick = replication.logger.state().state.lastUncommittedLogTick;
+let lastAppliedContinuousTick = 0;
 
 connectToFollower();
 while (true) {{
@@ -117,17 +119,32 @@ while (true) {{
     break;
   }}
 
+  if (followerState.state.lastAppliedContinuousTick - lastAppliedContinuousTick !== 0) {{
+    // as long as the counter is still moving, keep waiting.
+    internal.sleep(1);
+    count += 1;
+    print(`Skipping: followerState.state.lastAppliedContinuousTick - lastAppliedContinuousTick !== 0)`);
+    lastAppliedContinuousTick = followerState.state.lastAppliedContinuousTick;
+    continue;
+  }}
+  lastAppliedContinuousTick = followerState.state.lastAppliedContinuousTick;
+
+
   if (compareTicks(followerState.state.lastAppliedContinuousTick, state.lastLogTick) >= 0 ||
       compareTicks(followerState.state.lastProcessedContinuousTick, state.lastLogTick) >= 0) {{ // ||
     print("follower has caught up. state.lastLogTick:", state.lastLogTick, "followerState.lastAppliedContinuousTick:", followerState.state.lastAppliedContinuousTick, "followerState.lastProcessedContinuousTick:", followerState.state.lastProcessedContinuousTick);
     break;
   }}
 
-  if (!printed) {{
-    print("waiting for follower to catch up");
-    printed = true;
+  if (count % 10 === 0) {{
+    print(followerState);
   }}
-  internal.wait(0.5, false);
+  internal.sleep(1);
+  count += 1;
+  if (count > 120) {{
+    print(`${{Date()}}giving up to wait - maybe its good anyways?`);
+    break;
+  }}
 }}
             """,
             ),
@@ -250,7 +267,7 @@ require("@arangodb/replication").setupReplicationGlobal({
     endpoint: "%s://127.0.0.1:%s",
     username: "root",
     password: "%s",
-    verbose: false,
+    verbose: true,
     includeSystem: true,
     incremental: true,
     autoResync: true
@@ -336,6 +353,7 @@ process.exit(0);
             node.command_upgrade()
             node.wait_for_upgrade()
             node.wait_for_upgrade_done_in_starter_log()
+            self.leader_starter_instance.execute_frontend(self.checks["waitForReplState"])
             node.detect_instances()
             node.wait_for_version_reply()
         if self.selenium:
