@@ -219,6 +219,15 @@
         "Accept": "application/json"
       },
       "payload": {}
+    },
+    "test_api_openapi_doc": {
+      "endpoint": "$1/openapi.json",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
     }
   }
 }

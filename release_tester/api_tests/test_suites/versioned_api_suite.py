@@ -11,10 +11,10 @@ from test_suites_core.base_test_suite import testcase, run_before_suite, run_aft
 
 HTTP_OK_CODES = [200, 201, 202]
 MIN_ARANGO_VERSION = VersionInfo.parse("3.12.8")
-A0_API_ARANGO_VERSION = VersionInfo.parse("3.12.8")
-A1_API_ARANGO_VERSION = VersionInfo.parse("4.0.0")
-A0_API_VERSION = "v0"
-A1_API_VERSION = "v1"
+V0_API_ARANGO_VERSION = VersionInfo.parse("3.12.8")
+V1_API_ARANGO_VERSION = VersionInfo.parse("4.0.0")
+V0_API_VERSION = "v0"
+V1_API_VERSION = "v1"
 
 
 class VersionedAPITestSuite(APITestSuite):
@@ -37,12 +37,12 @@ class VersionedAPITestSuite(APITestSuite):
         # verify response contains info on supported, deprecated and requested APIs
         assert {"apiVersions", "deprecatedApiVersions", "requestedApiVersion"}.issubset(request_result.keys())
         # verify correct supported and requested API versions are returned depending on Arango version
-        if self.current_version < A1_API_ARANGO_VERSION:
-            assert request_result["apiVersions"] == [A0_API_VERSION]
-            assert request_result["requestedApiVersion"] == A0_API_VERSION
+        if self.current_version < V1_API_ARANGO_VERSION:
+            assert request_result["apiVersions"] == [V0_API_VERSION]
+            assert request_result["requestedApiVersion"] == V0_API_VERSION
         else:
-            assert request_result["apiVersions"] == [A1_API_VERSION, A0_API_VERSION]
-            assert request_result["requestedApiVersion"] == A1_API_VERSION
+            assert request_result["apiVersions"] == [V1_API_VERSION]
+            assert request_result["requestedApiVersion"] == V1_API_VERSION
 
     @testcase("2.2 Versioned API - API paths with and without API prefix are supported")
     def test_api_paths_with_wo_prefix(self):
@@ -50,9 +50,9 @@ class VersionedAPITestSuite(APITestSuite):
 
         request1_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request2_data = rh.clone_request_data(request1_data)
-        latest_api_version = self.get_supported_api_versions()[0]
+        supported_api_version = self.get_supported_api_versions()[0]
         request1_data = rh.update_request_data(
-            request1_data, VersionedAPITestSuite.get_api_version_prefix(latest_api_version)
+            request1_data, VersionedAPITestSuite.get_api_version_prefix(supported_api_version)
         )
         request2_data = rh.update_request_data(request2_data, "")
         request1_result = self.execute_request(request1_data)
@@ -65,10 +65,10 @@ class VersionedAPITestSuite(APITestSuite):
     def test_api_v1_in_arango_3_12(self):
         """v1 API is not supported in Arango 3.12.8+"""
 
-        if self.current_version < A1_API_ARANGO_VERSION:
+        if self.current_version < V1_API_ARANGO_VERSION:
             request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
             request_data = rh.update_request_data(
-                request_data, VersionedAPITestSuite.get_api_version_prefix(A1_API_VERSION)
+                request_data, VersionedAPITestSuite.get_api_version_prefix(V1_API_VERSION)
             )
             request_result = self.execute_request(request_data)
             # verify response codes is 404 (Not found)
@@ -78,14 +78,34 @@ class VersionedAPITestSuite(APITestSuite):
     def test_api_v0_in_arango_4(self):
         """v0 API is not supported in Arango 4.0.0+"""
 
-        if self.current_version >= A1_API_ARANGO_VERSION:
+        if self.current_version >= V1_API_ARANGO_VERSION:
             request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
             request_data = rh.update_request_data(
-                request_data, VersionedAPITestSuite.get_api_version_prefix(A0_API_VERSION)
+                request_data, VersionedAPITestSuite.get_api_version_prefix(V0_API_VERSION)
             )
             request_result = self.execute_request(request_data)
             # verify response codes is 404 (Not found)
             assert request_result["code"] == 404
+
+    @testcase("2.5 Versioned API - OpenAPI documentation")
+    def test_api_openapi_doc(self):
+        """OpenAPI documentation"""
+
+        request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
+        supported_api_version = self.get_supported_api_versions()[0]
+        request_data = rh.update_request_data(
+            request_data, VersionedAPITestSuite.get_api_version_prefix(supported_api_version)
+        )
+        request_result = self.execute_request(request_data)
+        # verify response codes is in 20x range
+        assert request_result["code"] in HTTP_OK_CODES
+        # verify API version prefix in paths
+        paths = request_result["json"]["paths"].keys()
+        api_version_prefix = VersionedAPITestSuite.get_api_version_prefix(supported_api_version)
+        if self.current_version < V1_API_ARANGO_VERSION:
+            assert all([(not str(path).startswith(api_version_prefix)) for path in paths])
+        else:
+            assert all([str(path).startswith(api_version_prefix) for path in paths])
 
     def get_supported_api_versions(self):
         request_data = self.requests_data["get_api_version"]
