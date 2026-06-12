@@ -744,9 +744,9 @@ class Runner(ABC):
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
                             print(exc.execution_result[1])
-                        for starter in self.makedata_instances:
-                            for arangod in starter.all_instances:
-                                arangod.crash_instance()
+                        #for starter in self.makedata_instances:
+                        #    for arangod in starter.all_instances:
+                        #        arangod.crash_instance()
 
                         self.ask_continue_or_exit(
                             f"make_data failed for {self.name} in database {db_name} with {str(exc)}",
