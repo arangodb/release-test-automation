@@ -38,12 +38,9 @@ class VersionedAPITestSuite(APITestSuite):
         # verify response contains info on supported, deprecated and requested APIs
         assert {"apiVersions", "deprecatedApiVersions", "requestedApiVersion"}.issubset(request_result.keys())
         # verify correct supported and requested API versions are returned depending on Arango version
-        if self.current_version < V1_API_ARANGO_VERSION:
-            assert request_result["apiVersions"] == [V0_API_VERSION]
-            assert request_result["requestedApiVersion"] == V0_API_VERSION
-        else:
-            assert request_result["apiVersions"] == [V1_API_VERSION]
-            assert request_result["requestedApiVersion"] == V1_API_VERSION
+        expected_api_version = V0_API_VERSION if self.current_version < V1_API_ARANGO_VERSION else V1_API_VERSION
+        assert request_result["apiVersions"] == [expected_api_version]
+        assert request_result["requestedApiVersion"] == expected_api_version
 
     @testcase("2.2 Versioned API - API paths with and without API prefix are supported")
     def test_api_paths_with_wo_prefix(self):
@@ -104,9 +101,9 @@ class VersionedAPITestSuite(APITestSuite):
         paths = request_result["json"]["paths"].keys()
         api_version_prefix = VersionedAPITestSuite.get_api_version_prefix(supported_api_version)
         if self.current_version < V1_API_ARANGO_VERSION:
-            assert all([(not str(path).startswith(api_version_prefix)) for path in paths])
+            assert all(((not str(path).startswith(api_version_prefix)) for path in paths))
         else:
-            assert all([str(path).startswith(api_version_prefix) for path in paths])
+            assert all((str(path).startswith(api_version_prefix) for path in paths))
 
     @testcase("2.6 Versioned API - Experimental API (Activities)")
     def test_api_experimental_api(self):
