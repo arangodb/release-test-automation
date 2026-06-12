@@ -228,6 +228,14 @@
         "Content-Type": "application/json"
       },
       "payload": {}
+    },
+    "test_api_experimental_api": {
+      "endpoint": "$1/_admin/activities",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
     }
   }
 }

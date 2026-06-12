@@ -15,6 +15,7 @@ V0_API_ARANGO_VERSION = VersionInfo.parse("3.12.8")
 V1_API_ARANGO_VERSION = VersionInfo.parse("4.0.0")
 V0_API_VERSION = "v0"
 V1_API_VERSION = "v1"
+EXPERIMENTAL_API_VERSION = "experimental"
 
 
 class VersionedAPITestSuite(APITestSuite):
@@ -106,6 +107,19 @@ class VersionedAPITestSuite(APITestSuite):
             assert all([(not str(path).startswith(api_version_prefix)) for path in paths])
         else:
             assert all([str(path).startswith(api_version_prefix) for path in paths])
+
+    @testcase("2.6 Versioned API - Experimental API (Activities)")
+    def test_api_experimental_api(self):
+        """experimental API - activities"""
+
+        request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
+        request_data = rh.update_request_data(
+            request_data, VersionedAPITestSuite.get_api_version_prefix(EXPERIMENTAL_API_VERSION)
+        )
+        request_result = self.execute_request(request_data)
+        # verify response codes is in 20x range
+        assert request_result["code"] in HTTP_OK_CODES
+        assert "activities" in request_result["json"].keys()
 
     def get_supported_api_versions(self):
         request_data = self.requests_data["get_api_version"]
