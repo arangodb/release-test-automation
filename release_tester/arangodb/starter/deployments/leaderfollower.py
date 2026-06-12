@@ -337,12 +337,14 @@ process.exit(0);
     @step
     def check_data_impl(self):
         """check for data on the installation"""
+        count = 0;
         for starter in self.makedata_instances:
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             arangosh = starter.arangosh
             self.check_data_impl_sh(arangosh,
-                                    starter.supports_foxx_tests,
+                                    starter.supports_foxx_tests and count == 0,
                                     starter.supports_vector_index)
+            count += 1
 
     @step
     def upgrade_arangod_version_impl(self):
