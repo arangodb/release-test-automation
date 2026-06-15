@@ -1,6 +1,8 @@
 #!/bin/bash
 set
 . ./jenkins/common/detect_podman.sh
+
+
 if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12" -o "$BASE_VERSION" == "4.0"; then
     DOCKER_SUFFIX=tar-oskarnew
 else
@@ -29,12 +31,23 @@ GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
 if test -z "$GIT_VERSION"; then
     GIT_VERSION=$VERSION
 fi
-if test -z "$OLD_VERSION"; then
-    OLD_VERSION=3.12.0-src
-fi
-if test -z "$NEW_VERSION"; then
-    NEW_VERSION="$(sed -e "s;-devel;;" "$(pwd)/../ArangoDB/ARANGO-VERSION")-src"
-fi
+
+
+mkdir -p arangoversions
+OLD_VERSION_FULL=$(cat "../${ARANGODB_OLD_BRANCH}/ARANGO-VERSION")
+
+NEW_VERSION_FULL=$(cat "../ArangoDB/ARANGO-VERSION")
+
+OLD_VERSION=$(echo "${OLD_VERSION_FULL}" |sed "s;-.*;-src;")
+NEW_VERSION=$(echo "${NEW_VERSION_FULL}" |sed "s;-.*;-src;")
+
+
+ln -s "../../${ARANGODB_OLD_BRANCH}/" "arangoversions/E_${OLD_VERSION_FULL}"
+ln -s "../../${ARANGODB_OLD_BRANCH}/" "arangoversions/E_${OLD_VERSION}"
+ln -s "../../ArangoDB/" "arangoversions/E_${NEW_VERSION_FULL}"
+ln -s "../../ArangoDB/" "arangoversions/E_${NEW_VERSION}"
+
+
 if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
@@ -44,15 +57,9 @@ if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   RTA_ARGS+=(--force)
 fi
 
-if test -z "$UPGRADE_MATRIX"; then
-    UPGRADE_MATRIX="${OLD_VERSION}:${NEW_VERSION}"
-fi
+UPGRADE_MATRIX="${OLD_VERSION}:${NEW_VERSION}"
 
-if test -n "$SOURCE"; then
-    RTA_ARGS+=(--other-source "src")
-else
-    RTA_ARGS+=(--remote-host 172.17.4.0)
-fi
+RTA_ARGS+=(--other-source "local")
 if test "RUN_TEST"; then
     RTA_ARGS+=(--run-test)
 else    
@@ -64,7 +71,7 @@ else
     RTA_ARGS+=(--no-run-upgrade)
 fi
 if test -z "${RTA_EDITION}"; then
-    RTA_EDITION='C'
+    RTA_EDITION='EP'
 fi
 IFS=',' read -r -a EDITION_ARR <<< "${RTA_EDITION}"
 for one_edition in "${EDITION_ARR[@]}"; do
