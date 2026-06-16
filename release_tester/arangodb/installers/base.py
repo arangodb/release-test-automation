@@ -427,19 +427,19 @@ class InstallerBase(ABC):
                )
            )
 
-            self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_bin_dir,
-                    "arangobench",
-                    "arangobench.*",  #  - stress test tool",
-                    False,
-                    True,
-                    "1.0.0",
-                    "3.12.99",
-                    [],
-                    "c++",
-                )
-            )
+#            self.arango_binaries.append(
+#                BinaryDescription(
+#                    self.cfg.real_bin_dir,
+#                    "arangobench",
+#                    "arangobench.*",  #  - stress test tool",
+#                    False,
+#                    True,
+#                    "1.0.0",
+#                    "3.12.99",
+#                    [],
+#                    "c++",
+#                )
+#            )
 
             self.arango_binaries.append(
                 BinaryDescription(
