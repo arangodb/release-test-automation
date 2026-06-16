@@ -33,7 +33,6 @@ if test -z "$GIT_VERSION"; then
 fi
 
 
-mkdir -p arangoversions
 OLD_VERSION_FULL=$(cat "../${ARANGODB_OLD_BRANCH}/ARANGO-VERSION")
 
 NEW_VERSION_FULL=$(cat "../ArangoDB/ARANGO-VERSION")
@@ -41,16 +40,14 @@ NEW_VERSION_FULL=$(cat "../ArangoDB/ARANGO-VERSION")
 OLD_VERSION=$(echo "${OLD_VERSION_FULL}" |sed "s;-.*;-src;")
 NEW_VERSION=$(echo "${NEW_VERSION_FULL}" |sed "s;-.*;-src;")
 
+PACKAGE_CACHE="$(pwd)/arangoversions/"
+mkdir -p "${PACKAGE_CACHE}"
+ln -s "../../../work/${ARANGODB_OLD_BRANCH}/" "${PACKAGE_CACHE}/E_${OLD_VERSION_FULL}"
+ln -s "../../../work/${ARANGODB_OLD_BRANCH}/" "${PACKAGE_CACHE}/E_${OLD_VERSION}"
+ln -s "../../../work/ArangoDB/" "${PACKAGE_CACHE}/E_${NEW_VERSION_FULL}"
+ln -s "../../../work/ArangoDB/" "${PACKAGE_CACHE}/E_${NEW_VERSION}"
 
-ln -s "../../${ARANGODB_OLD_BRANCH}/" "arangoversions/E_${OLD_VERSION_FULL}"
-ln -s "../../${ARANGODB_OLD_BRANCH}/" "arangoversions/E_${OLD_VERSION}"
-ln -s "../../ArangoDB/" "arangoversions/E_${NEW_VERSION_FULL}"
-ln -s "../../ArangoDB/" "arangoversions/E_${NEW_VERSION}"
 
-
-if test -z "${PACKAGE_CACHE}"; then
-    PACKAGE_CACHE="$(pwd)/package_cache/"
-fi
 
 RTA_ARGS=()
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
@@ -59,7 +56,7 @@ fi
 
 UPGRADE_MATRIX="${OLD_VERSION}:${NEW_VERSION}"
 
-RTA_ARGS+=(--other-source "local")
+RTA_ARGS+=(--other-source "source")
 if test "RUN_TEST"; then
     RTA_ARGS+=(--run-test)
 else    
@@ -98,6 +95,8 @@ DOCKER_ARGS+=(
        -v "$(pwd)/../../:/oskar"
        -v "$(pwd)/../:/work"
        -v "$(pwd)/../ArangoDB/utils:/utils"
+       -v "$(pwd)/../:/home/release-test-automation/work"
+       -v "$(pwd)/../:/home/work"
        --env=BASE_DIR=/oskar
 )
 
