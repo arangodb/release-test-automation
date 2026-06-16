@@ -7,7 +7,7 @@ import api_tests.helpers.request_helper as rh
 from semver import VersionInfo
 
 from api_tests.test_suites.api_test_suite import APITestSuite
-from test_suites_core.base_test_suite import testcase, run_before_suite, run_after_suite, run_before_each_testcase
+from test_suites_core.base_test_suite import testcase
 
 HTTP_OK_CODES = [200, 201, 202]
 MIN_ARANGO_VERSION = VersionInfo.parse("3.12.8")
@@ -116,12 +116,15 @@ class VersionedAPITestSuite(APITestSuite):
         request_result = self.execute_request(request_data)
         # verify response codes is in 20x range
         assert request_result["code"] in HTTP_OK_CODES
+        # verify response payload
         assert "activities" in request_result["json"].keys()
 
     def get_supported_api_versions(self):
+        """get supported API versions"""
         request_data = self.requests_data["get_api_version"]
         return self.execute_request(request_data)["json"]["apiVersions"]
 
     @staticmethod
     def get_api_version_prefix(api_version):
+        """get API version prefix"""
         return f"/_arango/{api_version}"
