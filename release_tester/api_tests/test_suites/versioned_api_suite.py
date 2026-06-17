@@ -19,7 +19,7 @@ EXPERIMENTAL_API_VERSION = "experimental"
 
 
 class VersionedAPITestSuite(APITestSuite):
-    """API Tests - Versioned api tests"""
+    """API Tests - versioned api tests"""
 
     def __init__(self, starter_instance):
         super().__init__(starter_instance)
