@@ -1,0 +1,157 @@
+#!/bin/bash
+set
+. ./jenkins/common/detect_podman.sh
+
+
+if test "$BASE_VERSION" == devel -o "$BASE_VERSION" == "3.12" -o "$BASE_VERSION" == "4.0"; then
+    DOCKER_SUFFIX=tar-oskarnew
+else
+    DOCKER_SUFFIX=tar-oskar
+fi
+ALLURE_DIR="$(pwd)/allure-results"
+if test -n "$WORKSPACE"; then
+    ALLURE_DIR="${WORKSPACE}/allure-results"
+fi
+if test ! -d "${ALLURE_DIR}"; then 
+    mkdir -p "${ALLURE_DIR}"
+fi
+
+cat /proc/sys/kernel/core_pattern
+ARCH="-$(uname -m)"
+
+if test "${ARCH}" == "-x86_64"; then
+    ARCH="-amd64"
+else
+    ARCH="-arm64v8"
+fi
+
+VERSION=$(cat VERSION.json)
+git status
+GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
+if test -z "$GIT_VERSION"; then
+    GIT_VERSION=$VERSION
+fi
+
+
+OLD_VERSION_FULL=$(cat "../${ARANGODB_OLD_BRANCH}/ARANGO-VERSION")
+
+NEW_VERSION_FULL=$(cat "../ArangoDB/ARANGO-VERSION")
+
+OLD_VERSION=$(echo "${OLD_VERSION_FULL}" |sed "s;-.*;-src;")
+NEW_VERSION=$(echo "${NEW_VERSION_FULL}" |sed "s;-.*;-src;")
+
+PACKAGE_CACHE="$(pwd)/arangoversions/"
+mkdir -p "${PACKAGE_CACHE}"
+ln -s "../../../work/${ARANGODB_OLD_BRANCH}/" "${PACKAGE_CACHE}/E_${OLD_VERSION_FULL}"
+ln -s "../../../work/${ARANGODB_OLD_BRANCH}/" "${PACKAGE_CACHE}/E_${OLD_VERSION}"
+ln -s "../../../work/ArangoDB/" "${PACKAGE_CACHE}/E_${NEW_VERSION_FULL}"
+ln -s "../../../work/ArangoDB/" "${PACKAGE_CACHE}/E_${NEW_VERSION}"
+
+
+
+RTA_ARGS=()
+if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
+  RTA_ARGS+=(--force)
+fi
+
+UPGRADE_MATRIX="${OLD_VERSION}:${NEW_VERSION}"
+
+RTA_ARGS+=(--other-source "source")
+if test "RUN_TEST"; then
+    RTA_ARGS+=(--run-test)
+else    
+    RTA_ARGS+=(--no-run-test)
+fi
+if test "RUN_UPGRADE"; then
+    RTA_ARGS+=(--run-upgrade)
+else    
+    RTA_ARGS+=(--no-run-upgrade)
+fi
+if test -z "${RTA_EDITION}"; then
+    RTA_EDITION='EP'
+fi
+IFS=',' read -r -a EDITION_ARR <<< "${RTA_EDITION}"
+for one_edition in "${EDITION_ARR[@]}"; do
+    RTA_ARGS+=(--edition "${one_edition}")
+done
+
+. ./jenkins/common/setup_docker.sh
+
+. ./jenkins/common/set_max_map_count.sh
+
+. ./jenkins/common/setup_selenium.sh
+# . ./jenkins/common/evaluate_force.sh
+. ./jenkins/common/load_git_submodules.sh
+
+. ./jenkins/common/launch_minio.sh
+
+. ./jenkins/common/register_cleanup_trap.sh
+
+# scoop all but the docker bridge and localhost, pick the first...
+PUBLIC_IP=$(ip address |grep 'inet ' |grep -v 'br-' |grep -v '127.0.0'  |head -n 1|sed -e "s;.*inet ;;" -e "s;/.*;;")
+
+DOCKER_ARGS+=(
+       -e HOST_SYMBOLIZER_URL="http://${PUBLIC_IP}:43210"
+       -v "$(pwd)/../../:/oskar"
+       -v "$(pwd)/../:/work"
+       -v "$(pwd)/../ArangoDB/utils:/utils"
+       -v "$(pwd)/../:/home/release-test-automation/work"
+       -v "$(pwd)/../:/home/work"
+       --env=BASE_DIR=/oskar
+)
+
+if test -n "${COVERAGE}"; then
+  DOCKER_ARGS+=(-e "COVERAGE=${COVERAGE}")
+fi
+if test -n "${SAN}"; then
+    DOCKER_ARGS+=(
+        -e "SAN=${SAN}"
+        -e "SAN_MODE=${SAN_MODE}"
+    )
+fi
+# we need --init since our upgrade leans on zombies not happening:
+$DOCKER run \
+        --ulimit nofile=65536 \
+        --ulimit core=9999999999999 \
+       "${DOCKER_ARGS[@]}" \
+       --env="ASAN_OPTIONS=${ASAN_OPTIONS}" \
+       --env="LSAN_OPTIONS=${LSAN_OPTIONS}" \
+       --env="UBSAN_OPTIONS=${UBSAN_OPTIONS}" \
+       --env="TSAN_OPTIONS=${TSAN_OPTIONS}" \
+       --env="OPENBLAS_NUM_THREADS=${OPENBLAS_NUM_THREADS}" \
+       --env="OMP_TOOL_LIBRARIES=${OMP_TOOL_LIBRARIES}" \
+       --env="ARCHER_OPTIONS=${ARCHER_OPTIONS}" \
+       \
+       --env="LLVM_PROFILE_FILE=${LLVM_PROFILE_FILE}" \
+       --env="LCOV_PREFIX_STRIP=${LCOV_PREFIX_STRIP}" \
+       --env="CLANG_VERSION=${CLANG_VERSION}" \
+       \
+       --pid=host \
+       \
+       "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
+       \
+       /home/release-test-automation/release_tester/mixed_download_upgrade_test.py \
+       --upgrade-matrix "${UPGRADE_MATRIX}" \
+       --new-version "${NEW_VERSION}" \
+       --do-not-run-test-suites \
+       "${RTA_ARGS[@]}" \
+       "${@}"
+result=$?
+
+# don't need docker stop $DOCKER_TAR_NAME
+CLEANUP_DOCKER_ARGS=(
+    -v "$(pwd)/../../:/oskar"
+)
+CLEANUP_PARAMS=(
+    /oskar/work/
+)
+. ./jenkins/common/cleanup_ownership.sh
+. ./jenkins/common/gather_coredumps.sh
+. ./jenkins/common/gather_sanfiles.sh
+
+if test "${result}" -eq "0"; then
+    echo "OK"
+else
+    echo "FAILED ${DOCKER_SUFFIX}!"
+    exit 1
+fi

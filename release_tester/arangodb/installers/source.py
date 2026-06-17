@@ -28,7 +28,10 @@ class InstallerSource(InstallerArchive):
         if self.cfg.enterprise:
             sub_dir = "E_" + sub_dir
         # Oskar integration: pick the base_dir
-        if "BASE_DIR" in os.environ:
+        subdir = self.cfg.package_dir / sub_dir
+        if subdir.exists() and subdir.is_symlink():
+            self.test_dir = subdir.resolve()
+        elif "BASE_DIR" in os.environ:
             self.test_dir = Path(os.environ["BASE_DIR"])
             oskar_dir = self.test_dir / "work" / "ArangoDB"
             if oskar_dir.exists():

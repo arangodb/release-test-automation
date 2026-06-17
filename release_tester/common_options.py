@@ -435,6 +435,7 @@ def download_options(default_source="public", double_source=False, other_source=
         "nightlypublic",
         "public",
         "local",
+        "source",
     ]
 
     def inner_func(function):
