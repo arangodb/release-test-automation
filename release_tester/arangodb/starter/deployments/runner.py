@@ -386,6 +386,14 @@ class Runner(ABC):
         self.tcp_ping_all_nodes()
         self.create_non_backup_data()
         taken_backups = self.list_backup()
+        work_backup = ""
+        for one_backup in taken_backups:
+            print(one_backup)
+            if one_backup.startswith(self.backup_name):
+                work_backup = one_backup
+        if work_backup == "":
+            raise Exception("backup {self.backup_name} not found in {taken_backups}")
+        self.upload_backup(work_backup)
         backup_no = len(taken_backups) - 1
         self.upload_backup(taken_backups[backup_no])
         self.tcp_ping_all_nodes()
@@ -400,6 +408,7 @@ class Runner(ABC):
         backups = self.list_backup()
         if backups[len(backups) - 1] != self.backup_name:
             raise Exception("downloaded backup has different name? " + str(backups))
+        self.clear_data_impl()
         self.before_backup()
         self.restore_backup(backups[len(backups) - 1])
         self.tcp_ping_all_nodes()
@@ -415,12 +424,13 @@ class Runner(ABC):
         """test hotbackup after upgrade: general"""
         self.check_data_impl()
         backups = self.list_backup()
+        n_backups = len(backups)
         self.upload_backup(backups[0])
         self.tcp_ping_all_nodes()
         self.delete_backup(backups[0])
         self.tcp_ping_all_nodes()
         backups = self.list_backup()
-        if len(backups) != 0:
+        if len(backups) != n_backups - 1:
             raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
         self.download_backup(self.backup_name)
         self.validate_local_backup(self.backup_name)
