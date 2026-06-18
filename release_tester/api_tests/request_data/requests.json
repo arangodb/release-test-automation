@@ -178,5 +178,64 @@
         }
       }
     }
+  },
+  "VersionedAPITestSuite": {
+    "get_api_version": {
+      "endpoint": "/_api/version",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_arango_version_mapping": {
+      "endpoint": "/_api/version",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_paths_with_wo_prefix": {
+      "endpoint": "$1/_api/user",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_v1_in_arango_3_12": {
+      "endpoint": "$1/_api/user",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_v0_in_arango_4": {
+      "endpoint": "$1/_api/user",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_openapi_doc": {
+      "endpoint": "$1/openapi.json",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "test_api_experimental_api": {
+      "endpoint": "$1/_admin/activities",
+      "method": "get",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "payload": {}
+    }
   }
 }
