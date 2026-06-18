@@ -364,12 +364,13 @@ class Runner(ABC):
                     self.check_data_impl()
                     self.progress(False, "TESTING HOTBACKUP AFTER UPGRADE")
                     backups = self.list_backup()
+                    n_backups = len(backups)
                     self.upload_backup(backups[0])
                     self.tcp_ping_all_nodes()
                     self.delete_backup(backups[0])
                     self.tcp_ping_all_nodes()
                     backups = self.list_backup()
-                    if len(backups) != 0:
+                    if len(backups) != n_backups - 1:
                         raise Exception("expected backup to be gone, " "but its still there: " + str(backups))
                     self.download_backup(self.backup_name)
                     self.validate_local_backup(self.backup_name)
@@ -933,8 +934,8 @@ class Runner(ABC):
                             self.name,
                             starter.supports_foxx_tests,
                             args=["--countOffset", str(count_offset)],
-                            database_name=db_name,
                             one_shard=one_shard,
+                            database_name=db_name,
                             deadline=deadline,
                             progressive_timeout=progressive_timeout,
                         )
