@@ -954,8 +954,8 @@ class Runner(ABC):
                                 )
                 print("Done cleanup")
                 return
-        if not frontend_found:
-            raise Exception("no frontend found.")
+            if not frontend_found:
+                raise Exception("no frontend found.")
 
     @step
     def create_non_backup_data(self):
