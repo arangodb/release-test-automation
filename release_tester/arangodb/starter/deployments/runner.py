@@ -923,33 +923,35 @@ class Runner(ABC):
         if self.has_makedata_data:
             print(self.makedata_instances)
             for starter in self.makedata_instances:
-                if not starter.is_leader:
-                    continue
-                assert starter.arangosh, "check: this starter doesn't have an arangosh!"
-                frontend_found = True
-                for db_name, one_shard, count_offset in self.makedata_databases()[::-1]:
-                    print(db_name, one_shard, count_offset)
-                    try:
-                        starter.arangosh.clear_test_data(
-                            self.name,
-                            starter.supports_foxx_tests,
-                            args=["--countOffset", str(count_offset)],
-                            one_shard=one_shard,
-                            database_name=db_name,
-                            deadline=deadline,
-                            progressive_timeout=progressive_timeout,
-                        )
-                    except CliExecutionException as exc:
-                        print("cleardata failed!")
-                        print(exc)
-                        if not self.cfg.verbose:
-                            print(exc.execution_result[1])
-                            self.ask_continue_or_exit(
-                                f"check_data has failed for {self.name} in database {db_name} with {exc}",
-                                exc.execution_result[1],
-                                False,
-                                exc,
+                assert starter.arangosh, "make: this starter doesn't have an arangosh!"
+                arangosh = starter.arangosh
+                # must be writabe that the setup may not have already data
+                if not arangosh.read_only:  # and not self.has_makedata_data:
+                    for db_name, one_shard, count_offset in self.makedata_databases():
+                    frontend_found = True
+                    for db_name, one_shard, count_offset in self.makedata_databases()[::-1]:
+                        print(db_name, one_shard, count_offset)
+                        try:
+                            starter.arangosh.clear_test_data(
+                                self.name,
+                                starter.supports_foxx_tests,
+                                args=["--countOffset", str(count_offset)],
+                                one_shard=one_shard,
+                                database_name=db_name,
+                                deadline=deadline,
+                                progressive_timeout=progressive_timeout,
                             )
+                        except CliExecutionException as exc:
+                            print("cleardata failed!")
+                            print(exc)
+                            if not self.cfg.verbose:
+                                print(exc.execution_result[1])
+                                self.ask_continue_or_exit(
+                                    f"check_data has failed for {self.name} in database {db_name} with {exc}",
+                                    exc.execution_result[1],
+                                    False,
+                                    exc,
+                                )
                 print("Done cleanup")
                 return
         if not frontend_found:
