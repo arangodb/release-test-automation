@@ -112,6 +112,7 @@ class Runner(ABC):
         self.api_tests_failed = False
         self.old_installer = old_inst
         self.new_installer = new_inst
+        self.empty_backup_name = None
         self.backup_name = None
         self.hot_backup = (
             cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
@@ -927,7 +928,6 @@ class Runner(ABC):
                 arangosh = starter.arangosh
                 # must be writabe that the setup may not have already data
                 if not arangosh.read_only:  # and not self.has_makedata_data:
-                    for db_name, one_shard, count_offset in self.makedata_databases():
                     frontend_found = True
                     for db_name, one_shard, count_offset in self.makedata_databases()[::-1]:
                         print(db_name, one_shard, count_offset)
