@@ -644,6 +644,7 @@ class Cluster(Runner):
         self.remove_server_from_agency(terminated_dbserver_uuid)
         self.backup_instance_count -= 1
         self.makedata_instances = self.get_running_starters()
+        self._check_for_shards_in_sync()
 
     @step
     def test_hotbackup_after_upgrade_impl(self):
