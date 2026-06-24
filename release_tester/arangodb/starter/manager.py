@@ -101,6 +101,7 @@ class StarterManager:
             ]
         # directories
         self.raw_basedir = install_prefix
+        self.instance_prefix = instance_prefix
         self.old_install_prefix = self.cfg.install_prefix
         self.name = str(install_prefix / instance_prefix)  # this is magic with the name function.
         self.basedir = self.cfg.base_test_dir / install_prefix / instance_prefix
@@ -1337,6 +1338,9 @@ class StarterManager:
         dbserver = self.get_dbserver()
         self.kill_instance()
         dbserver.terminate_instance()
+        dbserver.move_directory_to(
+            self.cfg.base_test_dir /
+            f"{self.raw_basedir}_{self.instance_prefix}_{dbserver.instance_string}")
         self.all_instances.remove(dbserver)
         self.moreopts.append("--cluster.start-dbserver=false")
         self.run_starter()

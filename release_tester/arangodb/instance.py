@@ -883,6 +883,7 @@ class ArangodInstance(Instance):
             try:
                 self.instance = psutil.Process(self.pid)
             except psutil.NoSuchProcess:
+                tries -= 1
                 logging.info("process for PID:%d already gone? retrying.", self.pid)
                 time.sleep(1)
                 self.pid = 0  # a previous log run? retry.
@@ -928,6 +929,10 @@ class ArangodInstance(Instance):
         structure["id"] = self.get_uuid()
         return structure
 
+    def move_directory_to(self, target_dir):
+        """ move all database related directories out of the way """
+        print(f"moving my instance directory {self.basedir} to {target_dir}")
+        self.basedir.rename(target_dir)
 
 class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
