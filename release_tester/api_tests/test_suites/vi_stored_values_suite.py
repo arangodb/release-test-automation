@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """test suite for vector index with stored values verification"""
 import inspect
+from time import sleep
 
 import api_tests.helpers.request_helper as rh
 import api_tests.helpers.payload_helper as ph
@@ -16,6 +17,11 @@ MIN_ARANGO_VERSION = VersionInfo.parse("3.12.7")
 MAKE_DATA_COLLECTION = "c_vector_sv_0"
 RTA_COLLECTION = "c_vector_sv_rta"
 NUMBER_OF_DOCS = 4000
+# trainingState is exposed from 3.12.9 on.
+ARANGO_WITH_INDEX_TRAINING_VERSION = VersionInfo.parse("3.12.9")
+# From 3.12.10 / 4.0 on an untrained vector index falls back to linear scan, so
+# queries work without waiting for training to finish.
+ARANGO_WITH_LINEAR_SCAN_VERSION = VersionInfo.parse("3.12.10")
 
 
 class VectorIndexStoredValuesTestSuite(APITestSuite):
@@ -51,6 +57,31 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             request_data = rh.update_request_data(request_data, self.collection)
             response_codes.append(self.execute_request(request_data)["code"])
             self.setup_ok = all([code in HTTP_OK_CODES for code in response_codes])
+        # Up to 3.12.9 the index must be trained before it can answer queries;
+        # from 3.12.10 / 4.0 on untrained indexes fall back to linear scan, so no
+        # wait is needed.
+        if (
+            ARANGO_WITH_INDEX_TRAINING_VERSION <= self.current_version < ARANGO_WITH_LINEAR_SCAN_VERSION
+            and self.setup_ok
+        ):
+            request_data = self.requests_data["get_collection_indexes"]
+            request_data = rh.update_request_data(request_data, self.collection)
+            number_of_attempts = 120
+            polling_interval = 1
+            counter = 0
+            while counter < number_of_attempts:
+                request_result = self.execute_request(request_data)["json"]
+                vector_indexes = [index for index in request_result["indexes"] if index["type"] == "vector"]
+                if len(vector_indexes) == 0:
+                    sleep(polling_interval)
+                    counter += 1
+                    continue
+                if vector_indexes[0]["trainingState"] == "ready":
+                    break
+                sleep(polling_interval)
+                counter += 1
+            else:
+                self.setup_ok = False
 
     @run_before_each_testcase
     def get_number_of_docs_in_collection(self):
