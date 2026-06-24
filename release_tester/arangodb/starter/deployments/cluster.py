@@ -405,8 +405,12 @@ class Cluster(Runner):
             terminate_instance = 1
             survive_instance = 2
 
+        instances = self.starter_instances[terminate_instance].get_dbservers()
+        if (len(instances) == 0):
+            terminate_instance = 3
+            instances = self.starter_instances[terminate_instance].get_dbservers()
         logging.info("stopping instance %d" % terminate_instance)
-        uuid = self.starter_instances[terminate_instance].get_dbservers()[0].get_uuid()
+        uuid = instances[0].get_uuid()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
