@@ -1380,6 +1380,29 @@ class Runner(ABC):
             struct["arangods"].extend(starter["arangods"])
         os.environ["INSTANCEINFO"] = json.dumps(struct)
 
+    def wait_for_agency_job(self, job_id, timeout, jobMessage):
+        """ wait for the agency to finish a job """
+        count = 0;
+        while (True):
+            if count > timeout:
+                raise Exception(f"FAILED to ${jobMessage} TIMEOUT");
+            time.sleep(0.1);
+            reply = self.get_running_starters()[0].send_request(
+                InstanceType.COORDINATOR,
+                requests.get,
+                f"/_admin/cluster/queryAgencyJob?id={jobId}")
+            print(reply[0].content)
+            if reply[0].status_code in (200, 404):
+                body_json = json.loads(reply[0].content)
+                if body_json['status'] == 'Failed':
+                    msg = f"FAILED {jobMessage} - {body_json}";
+                    print(f"{msg} - {body_json}");
+                    return False;
+                if body_json['status'] == 'Finished':
+                    print(f"DONE ${jobMessage} {body_json}");
+                    return True;
+            count += 1
+
     def remove_server_from_agency(self, server_uuid, deadline=150):
         """remove server from the agency"""
         if self.agency is None:
@@ -1394,7 +1417,17 @@ class Runner(ABC):
                 "/_admin/cluster/removeServer",
                 body,
             )
+            # print(reply)
+            # print(reply[0].content)
+            # print(reply[0].status_code)
+            # print('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
             if reply[0].status_code in (200, 404):
+                #body_json = json.loads(reply[0].content)
+                #print(body_json)
+                #print(body_json['id'])
+                #self.wait_for_agency_job(body_json['id'],
+                #                         100,
+                #                         f"remove {server_uuid} from the agency!")
                 return
             else:
                 time.sleep(5)
