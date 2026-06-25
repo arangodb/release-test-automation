@@ -52,9 +52,13 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             request_data = rh.update_request_data(request_data, self.collection)
             request_data["payload"] = tdh.create_documents_with_vector_field(NUMBER_OF_DOCS)
             response_codes.append(self.execute_request(request_data)["code"])
-            # create vector index with stored values
+            # create vector index with stored values; only build it in the
+            # background from 3.12.10 / 4.0 on, where background training actually
+            # completes and untrained indexes already answer queries. On older
+            # versions a background build never reaches the "ready" state.
             request_data = self.requests_data["create_vector_index_with_stored_values"]
             request_data = rh.update_request_data(request_data, self.collection)
+            request_data["payload"]["inBackground"] = self.current_version >= ARANGO_WITH_LINEAR_SCAN_VERSION
             response_codes.append(self.execute_request(request_data)["code"])
             self.setup_ok = all([code in HTTP_OK_CODES for code in response_codes])
         # Up to 3.12.9 the index must be trained before it can answer queries;

@@ -40,7 +40,6 @@
       "payload": {
         "name": "vector_l2_stored_values",
         "type": "vector",
-        "inBackground": true,
         "fields": [
           "vector"
         ],
