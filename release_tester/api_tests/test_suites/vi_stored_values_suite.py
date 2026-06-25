@@ -17,7 +17,11 @@ MIN_ARANGO_VERSION = VersionInfo.parse("3.12.7")
 MAKE_DATA_COLLECTION = "c_vector_sv_0"
 RTA_COLLECTION = "c_vector_sv_rta"
 NUMBER_OF_DOCS = 4000
+# trainingState is exposed from 3.12.9 on.
 ARANGO_WITH_INDEX_TRAINING_VERSION = VersionInfo.parse("3.12.9")
+# From 3.12.10 / 4.0 on an untrained vector index falls back to linear scan, so
+# queries work without waiting for training to finish.
+ARANGO_WITH_LINEAR_SCAN_VERSION = VersionInfo.parse("3.12.10")
 
 
 class VectorIndexStoredValuesTestSuite(APITestSuite):
@@ -48,13 +52,22 @@ class VectorIndexStoredValuesTestSuite(APITestSuite):
             request_data = rh.update_request_data(request_data, self.collection)
             request_data["payload"] = tdh.create_documents_with_vector_field(NUMBER_OF_DOCS)
             response_codes.append(self.execute_request(request_data)["code"])
-            # create vector index with stored values
+            # create vector index with stored values; only build it in the
+            # background from 3.12.10 / 4.0 on, where background training actually
+            # completes and untrained indexes already answer queries. On older
+            # versions a background build never reaches the "ready" state.
             request_data = self.requests_data["create_vector_index_with_stored_values"]
             request_data = rh.update_request_data(request_data, self.collection)
+            request_data["payload"]["inBackground"] = self.current_version >= ARANGO_WITH_LINEAR_SCAN_VERSION
             response_codes.append(self.execute_request(request_data)["code"])
             self.setup_ok = all([code in HTTP_OK_CODES for code in response_codes])
-        # we need to ensure that vector index has been trained
-        if self.current_version >= ARANGO_WITH_INDEX_TRAINING_VERSION and self.setup_ok:
+        # Up to 3.12.9 the index must be trained before it can answer queries;
+        # from 3.12.10 / 4.0 on untrained indexes fall back to linear scan, so no
+        # wait is needed.
+        if (
+            ARANGO_WITH_INDEX_TRAINING_VERSION <= self.current_version < ARANGO_WITH_LINEAR_SCAN_VERSION
+            and self.setup_ok
+        ):
             request_data = self.requests_data["get_collection_indexes"]
             request_data = rh.update_request_data(request_data, self.collection)
             number_of_attempts = 120
