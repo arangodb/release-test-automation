@@ -55,7 +55,7 @@ class InstallerDeb(InstallerLinux):
 
         if semdict["prerelease"]:
             if semdict["prerelease"].startswith("nightly"):
-                semdict["prerelease"] = "~~{nprerelease}".format(**semdict)
+                semdict["prerelease"] = "~~{prerelease}".format(**semdict)
             elif semdict["prerelease"].startswith("alpha"):
                 semdict["prerelease"] = "~{prerelease}".format(**semdict)
             elif semdict["prerelease"].startswith("beta"):
