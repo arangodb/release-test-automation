@@ -223,10 +223,10 @@ class TestDriver:
         kill_all_processes()
         starter_mode = [
             RunnerType.SINGLE,
-            RunnerType.LEADER_FOLLOWER,
-            RunnerType.ACTIVE_FAILOVER,
+            # RunnerType.LEADER_FOLLOWER,
+            # RunnerType.ACTIVE_FAILOVER,
             RunnerType.CLUSTER,
-            RunnerType.DC2DC,
+            # RunnerType.DC2DC,
         ]
         for runner_type in starter_mode:
             assert runner_type

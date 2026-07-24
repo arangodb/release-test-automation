@@ -90,7 +90,8 @@ class Download:
         print("package directory: " + str(options.package_dir))
         print("verbose: " + str(options.verbose))
         self.options = options
-        self.is_nightly = semver.VersionInfo.parse(version).prerelease == "nightly"
+        ver = semver.VersionInfo.parse(version)
+        self.is_nightly = ver.prerelease and ver.prerelease.find("nightly") >= 0
         self.source = source
         if not self.is_nightly and self.source == "nightlypublic":
             self.source = "public"
@@ -201,6 +202,11 @@ class Download:
                 **self.params
             ),
             "nightlypublic": "{nightly}/{bare_major_version}/{packages}/{enterprise}/{remote_package_dir}/{path_architecture}".format(
+                **self.params
+            ).replace(
+                "///", "/"
+            ),
+            "nightlypublicsourceinfo": "{nightly}/{bare_major_version}/".format(
                 **self.params
             ).replace(
                 "///", "/"
@@ -381,14 +387,15 @@ class Download:
         if self.source == "local":
             return ""
         source_info_fn = "sourceInfo.json"
-        self.funcs[self.source](self.directories[self.source], source_info_fn, Path(self.options.package_dir), True)
+        self.funcs[self.source](self.directories['nightlypublicsourceinfo'], source_info_fn, Path(self.options.package_dir), True)
         text = (Path(self.options.package_dir) / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]
         val = json.loads(text)
         val["GIT_VERSION"] = git_version
         version = val["VERSION"].replace("-devel", "")
-        self.inst.reset_version(version + "-nightly" if self.is_nightly else "")
+        nightly = val["VERSION"][val["VERSION"].find("-"):]
+        self.inst.reset_version(version)
         self.cfg.reset_version(self.inst.cfg.version)
         self.calculate_package_names()
         return json.dumps(val)

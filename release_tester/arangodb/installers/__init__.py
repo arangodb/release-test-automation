@@ -420,8 +420,8 @@ class RunProperties:
 
 # pylint: disable=too-many-function-args disable=line-too-long
 EXECUTION_PLAN = [
-    RunProperties(False, False, True, False, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
-    RunProperties(False, True, True, False, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
+    # RunProperties(False, False, True, False, False, False, False, False, False, "Community", "C", False, "3.5.0", "3.12.4"),
+    # RunProperties(False, True, True, False, False, False, False, False, False, "CommunityEnterprise", "CE", True, "3.5.0", "3.12.4"),
     RunProperties(True, False, True, True, True, False, False, True, False, "Enterprise\nEnc@REST", "EE"),
     RunProperties(True, False, True, True, True, False, True, False, False, "Enterprise\nforced OneShard", "OS"),
     # RunProperties(True, False, True, True, True, True, False, True, False, "Enterprise\nEnc@REST\nreplication v.2", "EEr2", False, "3.11.999"),

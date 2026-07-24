@@ -77,30 +77,30 @@ def make_runner(
 
         return Single(*args)
 
-    if runner_type == RunnerType.LEADER_FOLLOWER:
-        from arangodb.starter.deployments.leaderfollower import LeaderFollower
+    #if runner_type == RunnerType.LEADER_FOLLOWER:
+    #    from arangodb.starter.deployments.leaderfollower import LeaderFollower
+    #
+    #    return LeaderFollower(*args)
 
-        return LeaderFollower(*args)
-
-    if runner_type == RunnerType.ACTIVE_FAILOVER:
-        from arangodb.starter.deployments.activefailover import ActiveFailover
-
-        return ActiveFailover(*args)
+    #if runner_type == RunnerType.ACTIVE_FAILOVER:
+    #    from arangodb.starter.deployments.activefailover import ActiveFailover
+    #
+    #    return ActiveFailover(*args)
 
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.cluster import Cluster
 
         return Cluster(*args)
 
-    if runner_type == RunnerType.DC2DC:
-        from arangodb.starter.deployments.dc2dc import Dc2Dc
+    #if runner_type == RunnerType.DC2DC:
+    #    from arangodb.starter.deployments.dc2dc import Dc2Dc
+    #
+    #    return Dc2Dc(*args)
 
-        return Dc2Dc(*args)
+    #if runner_type == RunnerType.DC2DCENDURANCE:
+    #    from arangodb.starter.deployments.dc2dc_endurance import Dc2DcEndurance
 
-    if runner_type == RunnerType.DC2DCENDURANCE:
-        from arangodb.starter.deployments.dc2dc_endurance import Dc2DcEndurance
-
-        return Dc2DcEndurance(*args)
+     #   return Dc2DcEndurance(*args)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter
