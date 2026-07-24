@@ -417,11 +417,27 @@ class Cluster(Runner):
         if self.cfg.checkdata:
             for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
                 for db_name, oneshard, count_offset in self.makedata_databases():
-                    ret = starter_instance.arangosh.check_test_data(
+                    ret = starter_instance.arangosh.wait_test_data(
                         "Cluster one node missing",
                         self.is_foxx_supported,
                         starter_instance.supports_vector_index,
                         ["--disabledDbserverUUID", uuid, "--countOffset", str(count_offset)],
+                        oneshard,
+                        db_name,
+                        mixed=self.mixed,
+                        log_debug=True,
+                        deadline=deadline,
+                        progressive_timeout=progressive_timeout,
+                    )
+                    if not ret[0]:
+                        raise Exception("check data failed in database %s :\n" % db_name + ret[1])
+            for starter_instance in [self.starter_instances[0], self.starter_instances[survive_instance]]:
+                for db_name, oneshard, count_offset in self.makedata_databases():
+                    ret = starter_instance.arangosh.check_test_data(
+                        "Cluster one node missing",
+                        self.is_foxx_supported,
+                        starter_instance.supports_vector_index,
+                        ["--countOffset", str(count_offset)],
                         oneshard,
                         db_name,
                         mixed=self.mixed,

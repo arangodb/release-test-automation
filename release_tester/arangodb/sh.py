@@ -454,6 +454,58 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return ret
 
     @step
+    def wait_test_data(
+        self,
+        testname,
+        supports_foxx_tests,
+        supports_vector_index,
+        args=None,
+        one_shard: bool = False,
+        database_name: str = "_system",
+        mixed: bool = False,
+        result_line_handler=default_line_result,
+        log_debug=False,
+        deadline=900,
+        progressive_timeout=25
+    ):
+        """check back the testdata in the instance"""
+        if args is None:
+            args = []
+        args = [database_name] + args
+        if one_shard:
+            args += ["--singleShard", "true"]
+        if testname:
+            logging.info("checking test data for {0}".format(testname))
+        else:
+            logging.info("checking test data")
+
+        test_filter = []
+        if self.cfg.test != "":
+            test_filter = ["--test", self.cfg.test]
+        if self.cfg.skip != "":
+            test_filter += ["--skip", self.cfg.skip]
+        ret = self.run_script_monitored(
+            cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
+            # fmt: off
+            args=args + [
+                '--progress', 'true',
+                '--oldVersion', self.old_version,
+                '--testFoxx', 'true' if supports_foxx_tests else 'false',
+                '--testVector', 'true' if supports_vector_index else 'false',
+                "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
+                '--passvoid', self.cfg.passvoid,
+                '--mixed', 'true' if mixed else 'false'
+            ] + test_filter,
+            # fmt: on
+            progressive_timeout=progressive_timeout,
+            result_line_handler=result_line_handler,
+            verbose=self.cfg.verbose or log_debug,
+            log_debug=log_debug,
+            deadline=deadline,
+        )
+        return ret
+
+    @step
     def clear_test_data(
             self,
             testname,
