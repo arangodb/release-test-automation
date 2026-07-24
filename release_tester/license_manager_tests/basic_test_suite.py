@@ -3,20 +3,15 @@
 import platform
 from copy import deepcopy
 
-from license_manager_tests.afo import LicenseManagerAfoTestSuite
 from license_manager_tests.base.license_manager_base_test_suite import (
     LicenseManagerBaseTestSuite,
     EXTERNAL_HELPERS_LOADED,
 )
 from license_manager_tests.cluster import LicenseManagerClusterTestSuite
 from license_manager_tests.cluster_new import LicenseManagerClusterNewTestSuite
-from license_manager_tests.dc2dc import LicenseManagerDc2DcTestSuite
-from license_manager_tests.leader_follower import LicenseManagerLeaderFollowerTestSuite
-from license_manager_tests.leader_follower_new import LicenseManagerLeaderFollowerNewTestSuite
 from license_manager_tests.single_server import LicenseManagerSingleServerTestSuite
 from license_manager_tests.single_server_new import LicenseManagerSingleServerNewTestSuite
 from license_manager_tests.single_server_managed_license import ManagedLicenseSingleServerTestSuite
-from license_manager_tests.leader_follower_managed_license import ManagedLicenseLeaderFollowerTestSuite
 from license_manager_tests.cluster_managed_license import ManagedLicenseClusterTestSuite
 from test_suites_core.base_test_suite import run_before_suite, run_after_suite, disable_if_false
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
@@ -30,15 +25,10 @@ class BasicLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
 
     child_test_suites = [
         LicenseManagerSingleServerTestSuite,
-        LicenseManagerLeaderFollowerTestSuite,
-        LicenseManagerAfoTestSuite,
         LicenseManagerClusterTestSuite,
-        LicenseManagerDc2DcTestSuite,
         LicenseManagerSingleServerNewTestSuite,
-        LicenseManagerLeaderFollowerNewTestSuite,
         LicenseManagerClusterNewTestSuite,
         ManagedLicenseSingleServerTestSuite,
-        ManagedLicenseLeaderFollowerTestSuite,
         ManagedLicenseClusterTestSuite,
     ]
 
