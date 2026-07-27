@@ -13,7 +13,6 @@ from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
-IS_MAC = platform.mac_ver()[0] != ""
 
 
 

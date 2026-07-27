@@ -15,7 +15,6 @@ from reporting.reporting_utils import step
 from arangodb.hot_backup_cfg import HotBackupCliCfg, HotBackupProviderCfg, HotBackupMode, HB_PROVIDERS
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
-IS_MAC = platform.mac_ver()[0] != ""
 SYSTEM = platform.system()
 DISTRO = ""
 
@@ -325,11 +324,6 @@ def make_installer(install_config: InstallerConfig):
         from arangodb.installers.tar import InstallerTAR
 
         return InstallerTAR(install_config)
-
-    if IS_MAC:
-        from arangodb.installers.mac import InstallerMac
-
-        return InstallerMac(install_config)
 
     if SYSTEM in ["linux", "Linux"]:
         dist = DISTRO

@@ -3,10 +3,7 @@
  Count the sockets in use on the system.
  On mac use the suspect processes as permission workaround
  """
-import platform
 import psutil
-
-IS_MAC = platform.mac_ver()[0] != ""
 
 INTERESTING_SOCKETS = [
     psutil.CONN_FIN_WAIT1,
@@ -26,28 +23,7 @@ def get_socket_count():
     """ get the number of sockets lingering destruction """
     # pylint: disable=too-many-nested-blocks disable=too-many-branches
     counter = 0
-    if IS_MAC:
-        # Mac would need root for all sockets, so we just look
-        # for arangods and their ports, which works without.
-        try:
-            for proc in psutil.process_iter(['pid', 'name']):
-                if proc.name() in ['arangod', 'arangosh']:
-                    try:
-                        for socket in psutil.Process(proc.pid).connections():
-                            if socket.status in INTERESTING_SOCKETS:
-                                counter += 1
-                    except psutil.ZombieProcess:
-                        pass
-                    except psutil.NoSuchProcess:
-                        pass
-        except ProcessLookupError:
-            pass
-        except psutil.ZombieProcess:
-            pass
-        except psutil.NoSuchProcess:
-            pass
-    else:
-        for socket in psutil.net_connections(kind='inet'):
-            if socket.status in INTERESTING_SOCKETS:
-                counter += 1
+    for socket in psutil.net_connections(kind='inet'):
+        if socket.status in INTERESTING_SOCKETS:
+            counter += 1
     return counter

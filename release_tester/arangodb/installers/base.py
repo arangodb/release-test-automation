@@ -50,7 +50,6 @@ class InstallerBase(ABC):
         self.reset_version(cfg.version)
         self.check_stripped = True
         self.check_symlink = True
-        self.check_notarized = False
         self.server_package = ""
         self.debug_package = ""
         self.client_package = ""
@@ -553,7 +552,7 @@ class InstallerBase(ABC):
         for binary in self.arango_binaries:
             progress("S" if binary.stripped else "s")
             binary.check_installed(
-                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, self.check_notarized, False
+                self.semver, self.cfg.enterprise, self.check_stripped, self.check_symlink, False
             )
         print("\nran file commands with PID:" + str(FILE_PIDS) + "\n")
         FILE_PIDS = []

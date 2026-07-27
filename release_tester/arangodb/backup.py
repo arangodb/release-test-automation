@@ -17,7 +17,6 @@ import tools.loghelper as lh
 from arangodb.hot_backup_cfg import HotBackupMode, HotBackupProviders
 from arangodb.async_client import ArangoCLIprogressiveTimeoutExecutor, make_default_params
 
-from siteconfig import IS_MAC
 
 HB_2_RCLONE_TYPE = {
     HotBackupMode.DISABLED: "disabled",
@@ -28,8 +27,6 @@ HB_2_RCLONE_TYPE = {
 }
 
 DEFAULT_PROGRESSIVE_TIMEOUT = 20
-if IS_MAC:
-    DEFAULT_PROGRESSIVE_TIMEOUT = 40
 
 
 class HotBackupConfig:

@@ -21,18 +21,7 @@ for var in ['TSAN_OPTIONS', 'ASAN_OPTIONS', 'UBSAN_OPTIONS']:
 
 IS_ARM = platform.processor() == "arm" or platform.processor() == "aarch64"
 IS_WINDOWS = platform.win32_ver()[0] != ""
-IS_MAC = platform.mac_ver()[0] != ""
-IS_LINUX = not IS_MAC and not IS_WINDOWS
-if IS_MAC:
-    # Put us to the performance cores:
-    # https://apple.stackexchange.com/questions/443713
-    from os import setpriority
-
-    PRIO_DARWIN_THREAD = 0b0011
-    PRIO_DARWIN_PROCESS = 0b0100
-    PRIO_DARWIN_BG = 0x1000
-    setpriority(PRIO_DARWIN_PROCESS, 0, 0)
-
+IS_LINUX = not IS_WINDOWS
 
 def sigint_boomerang_handler(signum, frame):
     """do the right thing to behave like linux does"""
@@ -141,14 +130,6 @@ class SiteConfig:
             self.timeout *= 4
         self.no_threads = psutil.cpu_count()
         self.available_slots = round(self.no_threads * 2)  # logical=False)
-        if IS_MAC and platform.processor() == "arm":
-            if psutil.cpu_count() == 8:
-                self.no_threads = 6  # M1 mac mini only has 4 performance cores
-                self.available_slots = 10
-            if psutil.cpu_count() == 20:
-                self.no_threads = 16  # M2 mac studio only has 16 performance cores
-                self.available_slots = 14
-                self.timeout *= 2
         if IS_WINDOWS:
             self.max_load = self.no_threads * 0.5
             self.max_load1 = self.no_threads * 0.6

@@ -40,8 +40,6 @@ def run_upgrade(
     lh.section("startup")
 
     for runner_type in STARTER_MODES[starter_mode]:
-        if not run_props.enterprise and runner_type == RunnerType.DC2DC:
-            continue
         # pylint: disable=too-many-function-args
         installers = create_config_installer_set(
             [old_version, new_version],
