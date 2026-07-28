@@ -468,16 +468,16 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         deadline=900,
         progressive_timeout=25
     ):
-        """check back the testdata in the instance"""
+        """wait for back the instance to become completed again"""
         if args is None:
             args = []
         args = [database_name] + args
         if one_shard:
             args += ["--singleShard", "true"]
         if testname:
-            logging.info("checking test data for {0}".format(testname))
+            logging.info("waiting for test data {0}".format(testname))
         else:
-            logging.info("checking test data")
+            logging.info("waiting for test data")
 
         test_filter = []
         if self.cfg.test != "":
@@ -485,7 +485,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         if self.cfg.skip != "":
             test_filter += ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
-            cmd=["checking test data integrity", self.cfg.test_data_dir.resolve() / "checkdata.js"],
+            cmd=["waiting for SUT to become stable again", self.cfg.test_data_dir.resolve() / "waitdata.js"],
             # fmt: off
             args=args + [
                 '--progress', 'true',
