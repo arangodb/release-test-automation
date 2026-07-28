@@ -826,6 +826,57 @@ class Runner(ABC):
             raise Exception("no frontend found.")
 
     @step
+    def wait_data_impl_sh(self, arangosh,
+                          supports_foxx_tests,
+                          supports_vector_index):
+        """wait for data on the installation"""
+        deadline = 1800 if self.cfg.is_instrumented else 900
+        progressive_timeout = 1000 if self.cfg.is_instrumented else 25
+        if self.has_makedata_data:
+            for db_name, one_shard, count_offset in self.makedata_databases():
+                try:
+                    arangosh.wait_test_data(
+                        self.name,
+                        supports_foxx_tests,
+                        supports_vector_index,
+                        args=["--countOffset", str(count_offset)] + self.checkdata_args,
+                        database_name=db_name,
+                        one_shard=one_shard,
+                        mixed=self.mixed,
+                        deadline=deadline,
+                        progressive_timeout=progressive_timeout,
+                    )
+                except CliExecutionException as exc:
+                    if not self.cfg.verbose:
+                        print(exc.execution_result[1])
+                    self.ask_continue_or_exit(
+                        f"check_data has failed for {self.name} in database {db_name} with {exc} - {exc.message}",
+                        exc.execution_result[1],
+                        False,
+                        exc,
+                    )
+
+    @step
+    def wait_data_impl(self):
+        """check for data on the installation"""
+        if not self.cfg.checkdata:
+            print("skipping waitdata")
+            return
+
+        frontend_found = False
+        for starter in self.makedata_instances:
+            if not starter.is_leader:
+                continue
+            assert starter.arangosh, "check: this starter doesn't have an arangosh!"
+            frontend_found = True
+            arangosh = starter.arangosh
+            self.wait_data_impl_sh(arangosh,
+                                   starter.supports_foxx_tests,
+                                   starter.supports_vector_index)
+        if not frontend_found:
+            raise Exception("no frontend found.")
+
+    @step
     def dump_everything(self, name):
         """create a dump of the installation"""
         progressive_timeout = 1600 if self.cfg.is_instrumented else 100

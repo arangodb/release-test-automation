@@ -30,36 +30,10 @@ def init(
 
         return Single(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
 
-    if runner_type == RunnerType.LEADER_FOLLOWER:
-        from arangodb.starter.deployments.selenium_deployments.leaderfollower import (
-            LeaderFollower,
-        )
-
-        return LeaderFollower(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
-
-    if runner_type == RunnerType.ACTIVE_FAILOVER:
-        from arangodb.starter.deployments.selenium_deployments.activefailover import (
-            ActiveFailover,
-        )
-
-        return ActiveFailover(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
-
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.selenium_deployments.cluster import Cluster
 
         return Cluster(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
-
-    if runner_type == RunnerType.DC2DC:
-        from arangodb.starter.deployments.selenium_deployments.dc2dc import Dc2Dc
-
-        return Dc2Dc(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
-
-    if runner_type == RunnerType.DC2DCENDURANCE:
-        from arangodb.starter.deployments.selenium_deployments.dc2dc_endurance import (
-            Dc2DcEndurance,
-        )
-
-        return Dc2DcEndurance(selenium_args, properties, testrun_name, ssl, selenium_include_suites)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.selenium_deployments.none import NoStarter

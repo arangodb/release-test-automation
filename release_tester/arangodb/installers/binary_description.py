@@ -23,12 +23,6 @@ FILE_EXTENSION = ""
 if IS_WINDOWS:
     FILE_EXTENSION = ".exe"
 
-
-IS_MAC = False
-if platform.mac_ver()[0]:
-    IS_MAC = True
-
-
 PROP_NAMES = {
     "Comments": "@binary_version",
     "InternalName": "@binary",
@@ -87,20 +81,6 @@ class BinaryDescription:
         """.format(
             self
         )
-
-    def _validate_notarization(self, enterprise):
-        """check whether this binary is notarized"""
-        if not enterprise and self.enterprise:
-            return
-        if IS_MAC:
-            cmd = ["codesign", "--verify", "--verbose", str(self.path)]
-            check_strings = [b"valid on disk", b"satisfies its Designated Requirement"]
-            with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
-                (_, codesign_str) = proc.communicate()
-                if proc.returncode:
-                    raise Exception("codesign exited nonzero " + str(cmd) + "\n" + str(codesign_str))
-                if codesign_str.find(check_strings[0]) < 0 or codesign_str.find(check_strings[1]) < 0:
-                    raise Exception("codesign didn't find signature: " + str(codesign_str))
 
     def _binary(self, string):
         """should be our name"""
@@ -172,15 +152,13 @@ class BinaryDescription:
 
     # pylint: disable=too-many-arguments
     @step
-    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_notarized, check_license_info):
+    def check_installed(self, version, enterprise, check_stripped, check_symlink, check_license_info):
         """check all attributes of this file in reality"""
         attach(str(self), "file info")
         if version > self.version_max or version < self.version_min:
             self.check_path(enterprise, False)
             return
         self._validate_windows_attributes(version, enterprise)
-        if check_notarized:
-            self._validate_notarization(enterprise)
         self.check_path(enterprise)
         if not enterprise and self.enterprise:
             # checks do not need to continue in this case
@@ -256,10 +234,7 @@ class BinaryDescription:
     def check_stripped(self):
         """check whether this file is stripped (or not)"""
         is_stripped = True
-        if IS_MAC:
-            print("")
-            # is_stripped = self.check_stripped_mac()
-        elif IS_WINDOWS:
+        if IS_WINDOWS:
             is_stripped = self.check_stripped_windows()
         else:
             is_stripped = self.check_stripped_linux()

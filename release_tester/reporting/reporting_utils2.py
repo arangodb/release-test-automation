@@ -25,7 +25,7 @@ def generate_suite_name(properties: RunProperties, versions: list, runner_type, 
             package_type = "deb/rpm/nsis/dmg"
     if len(versions) == 1:
         test_suite_name = (
-            "ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (repl v{}){}{} (clean install)".format(
+            "ArangoDB v.{} ({}) ({} package) (enc@rest: {}) (SSL: {}) (repl v{}){}{} (clean install){}".format(
                 str(versions[0]),
                 edition,
                 package_type,
@@ -40,7 +40,7 @@ def generate_suite_name(properties: RunProperties, versions: list, runner_type, 
     else:
         versions_str = " -> ".join(list(map(lambda v: "v. " + str(v), versions)))
         test_suite_name = (
-            "ArangoDB ({}) ({} package) upgrade sequence: {} (enc@rest: {}) (SSL: {}) (repl v{}){}{}".format(
+            "ArangoDB ({}) ({} package) upgrade sequence: {} (enc@rest: {}) (SSL: {}) (repl v{}){}{}{}".format(
                 edition,
                 package_type,
                 versions_str,

@@ -59,22 +59,13 @@ class Download:
         lh.section("configuration")
         if force_os != "":
             if force_os == "windows":
-                tar.MACVER= [False]
                 tar.WINVER= True
                 installer.IS_WINDOWS = True
-                installer.IS_MAC = False
-            elif force_os == "mac":
-                tar.MACVER=[True]
-                tar.WINVER= False
-                installer.IS_MAC = True
-                installer.IS_WINDOWS = False
             else:
-                tar.MACVER= [False]
                 tar.WINVER=False
                 installer.SYSTEM = "linux"
                 installer.DISTRO = force_os
                 installer.IS_WINDOWS = False
-                installer.IS_MAC = False
         self.launch_dir = Path.cwd()
         if "WORKSPACE" in os.environ:
             self.launch_dir = Path(os.environ["WORKSPACE"])
@@ -394,7 +385,6 @@ class Download:
         val = json.loads(text)
         val["GIT_VERSION"] = git_version
         version = val["VERSION"].replace("-devel", "")
-        nightly = val["VERSION"][val["VERSION"].find("-"):]
         self.inst.reset_version(version)
         self.cfg.reset_version(self.inst.cfg.version)
         self.calculate_package_names()

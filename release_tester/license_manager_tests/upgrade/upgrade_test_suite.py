@@ -4,10 +4,7 @@ import platform
 
 from license_manager_tests.base.license_manager_base_test_suite import LicenseManagerBaseTestSuite, \
     EXTERNAL_HELPERS_LOADED
-from license_manager_tests.upgrade.afo import LicenseManagerAfoUpgradeTestSuite
 from license_manager_tests.upgrade.cluster import LicenseManagerClusterUpgradeTestSuite
-from license_manager_tests.upgrade.dc2dc import LicenseManagerDc2DcUpgradeTestSuite
-from license_manager_tests.upgrade.leader_follower import LicenseManagerLeaderFollowerUpgradeTestSuite
 from license_manager_tests.upgrade.single_server import LicenseManagerSingleServerUpgradeTestSuite
 from test_suites_core.base_test_suite import disable_if_false
 
@@ -20,10 +17,7 @@ class UpgradeLicenseManagerTestSuite(LicenseManagerBaseTestSuite):
 
     child_test_suites = [
         LicenseManagerSingleServerUpgradeTestSuite,
-        LicenseManagerLeaderFollowerUpgradeTestSuite,
         LicenseManagerClusterUpgradeTestSuite,
-        LicenseManagerAfoUpgradeTestSuite,
-        LicenseManagerDc2DcUpgradeTestSuite,
     ]
 
     def set_license(self, license_str):

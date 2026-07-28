@@ -13,7 +13,6 @@ from arangodb.installers import InstallerConfig, RunProperties
 from reporting.reporting_utils import step
 
 IS_WINDOWS = platform.win32_ver()[0] != ""
-IS_MAC = platform.mac_ver()[0] != ""
 
 
 
@@ -42,26 +41,6 @@ def make_runner(
 
     logging.debug("Factory for Runner of type: {0}".format(str(runner_type)))
     msg = ""
-    if runner_type == RunnerType.ACTIVE_FAILOVER and installer_set[len(installer_set) - 1][
-        1
-    ].cfg.semver > semver.VersionInfo.parse("3.11.99"):
-        runner_type = RunnerType.NONE
-        msg = "Active failover not supported for these versions"
-
-    if runner_type == RunnerType.DC2DC:
-        if not installer_set[len(installer_set) - 1][1].cfg.enterprise:
-            runner_type = RunnerType.NONE
-            msg = "DC2DC deployment is not supported in community edition."
-        elif IS_WINDOWS:
-            runner_type = RunnerType.NONE
-            msg = "DC2DC deployment is not supported on Windows."
-        elif IS_MAC:
-            runner_type = RunnerType.NONE
-            msg = "DC2DC deployment is not supported on MacOS."
-        elif installer_set[len(installer_set) - 1][1].cfg.semver > semver.VersionInfo.parse("3.11.99"):
-            runner_type = RunnerType.NONE
-            msg = "DC2DC deployment not supported on version 3.12 and newer."
-
     args = (
         runner_type,
         abort_on_error,
@@ -77,30 +56,11 @@ def make_runner(
 
         return Single(*args)
 
-    #if runner_type == RunnerType.LEADER_FOLLOWER:
-    #    from arangodb.starter.deployments.leaderfollower import LeaderFollower
-    #
-    #    return LeaderFollower(*args)
-
-    #if runner_type == RunnerType.ACTIVE_FAILOVER:
-    #    from arangodb.starter.deployments.activefailover import ActiveFailover
-    #
-    #    return ActiveFailover(*args)
-
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.cluster import Cluster
 
         return Cluster(*args)
 
-    #if runner_type == RunnerType.DC2DC:
-    #    from arangodb.starter.deployments.dc2dc import Dc2Dc
-    #
-    #    return Dc2Dc(*args)
-
-    #if runner_type == RunnerType.DC2DCENDURANCE:
-    #    from arangodb.starter.deployments.dc2dc_endurance import Dc2DcEndurance
-
-     #   return Dc2DcEndurance(*args)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter

@@ -11,7 +11,6 @@ from arangodb.installers.base import InstallerArchive
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
-MACVER = platform.mac_ver()
 WINVER = platform.win32_ver()
 
 
@@ -25,14 +24,9 @@ class InstallerTAR(InstallerArchive):
             self.basedir = Path(os.environ["WORKSPACE_TMP"])
         cfg.localhost = "localhost"
         self.extension = "tar.gz"
-        if MACVER[0]:
-            self.remote_package_dir = "MacOSX"
-            self.operating_system = "macos"
-            self.installer_type = ".tar.gz MacOS"
-        else:
-            self.remote_package_dir = "Linux"
-            self.operating_system = "linux"
-            self.installer_type = ".tar.gz Linux"
+        self.remote_package_dir = "Linux"
+        self.operating_system = "linux"
+        self.installer_type = ".tar.gz Linux"
 
         self.architecture = ""
         self.dash = "-"
@@ -86,8 +80,6 @@ class InstallerTAR(InstallerArchive):
         self.cfg.appdir = self.cfg.install_prefix  # n/A
         self.cfg.dbdir = self.cfg.install_prefix  # n/A
         self.cfg.log_dir = self.cfg.install_prefix  # n/A
-        if MACVER[0] and self.cfg.semver > semver.VersionInfo.parse("3.10.99"):
-            self.server_package = None
 
     def calculate_installation_dirs(self):
         self.cfg.bin_dir = self.test_dir / "bin"
