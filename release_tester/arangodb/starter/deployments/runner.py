@@ -276,6 +276,7 @@ class Runner(ABC):
                 self.empty_backup_name = self.create_backup("empty_" + self.name)
 
             self.make_data()
+            self.wait_data_impl()
             self.after_makedata_check()
             self.check_data_impl()
             if self.selenium:
