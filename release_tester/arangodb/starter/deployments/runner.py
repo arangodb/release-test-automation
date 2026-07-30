@@ -583,7 +583,7 @@ class Runner(ABC):
 
     @step
     def finish_setup(self):
-        """not finish the setup"""
+        """now finish the setup"""
         self.progress(True, "{0} - finish setup".format(str(self.name)))
         self.finish_setup_impl()
 
