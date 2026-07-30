@@ -603,6 +603,7 @@ class Cluster(Runner):
 
         with step("step 4: remove old db server"):
             self.remove_starter_dbserver(old_servers[0])
+            self.wait_data_impl()
 
         with step("step 5: create another backup"):
             self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server", False)
