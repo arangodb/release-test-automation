@@ -390,6 +390,7 @@ class Cluster(Runner):
             self.selenium.test_wait_for_upgrade()  # * 5s
 
     def _jam_stop_one_db_server(self):
+        self.wait_data_impl()
         agency_leader = self.agency.get_leader()
         terminate_instance = 2
         survive_instance = 1
