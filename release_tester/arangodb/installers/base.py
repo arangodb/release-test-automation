@@ -739,6 +739,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
         """Tar installer is the same way we did for installing."""
         self.install_server_package()
         self.calculate_installation_dirs()
+        self.check_installed_files()
 
     @abstractmethod
     def calculate_installation_dirs(self):
