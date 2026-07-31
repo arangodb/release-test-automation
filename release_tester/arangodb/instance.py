@@ -816,6 +816,9 @@ class ArangodInstance(Instance):
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
 
             messages = ""
+            fs = self.logfile.stat().st_size / 1024 / 1024
+            if (fs > 5):
+                print(f"large logfile: {str(self.logfile)} - {fs}MB")
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
