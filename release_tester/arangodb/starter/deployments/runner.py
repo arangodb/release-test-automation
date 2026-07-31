@@ -530,7 +530,7 @@ class Runner(ABC):
         """see whether we have a selenium success"""
         if not self.selenium:
             return True
-        return self.selenium.success
+        return self.selenium.success and runner.api_tests_failed
 
     @step
     def quit_selenium(self):
