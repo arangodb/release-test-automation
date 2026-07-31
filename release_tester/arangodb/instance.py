@@ -657,6 +657,7 @@ class ArangodInstance(Instance):
             backup_dir = self.basedir / "data" / "backups"
             if backup_dir.exists():
                 for path in backup_dir.iterdir():
+                    print(f"cleaning up backup {str(path)}")
                     shutil.rmtree(path / "views")
                     shutil.rmtree(path / "engine_rocksdb")
 
