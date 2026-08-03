@@ -1215,7 +1215,7 @@ class Runner(ABC):
                     for path in self.cfg.log_dir.glob("arangod.log*"):
                         shutil.copyfile(path, self.cfg.base_test_dir / self.basedir / path.name)
             archive = shutil.make_archive(filename, "7zip", self.cfg.base_test_dir, self.basedir)
-            attach.file(archive, "test dir archive", "application/x-7z-compressed", "7z")
+            attach.file(archive, "test_dir_archive.7z", "application/x-7z-compressed", "7z")
         else:
             print("test basedir doesn't exist, won't create report tar")
         reporting.reporting_utils.TARBALL_COUNT += 1
