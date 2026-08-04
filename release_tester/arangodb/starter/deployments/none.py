@@ -24,7 +24,9 @@ class NoStarter(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(rp, "none", 0, 1, False, 1),
+            RunnerProperties(
+                rp, "none", 0, 1, False, 1
+            ),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
