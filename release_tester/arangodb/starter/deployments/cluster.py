@@ -632,6 +632,7 @@ class Cluster(Runner):
             new_starter2.run_starter_and_wait()
             self.backup_instance_count += 1
             self.makedata_instances = self.get_running_starters()
+            self.wait_data_impl()
 
         with step("step 10: create non-backup data"):
             self.create_non_backup_data()
@@ -651,6 +652,7 @@ class Cluster(Runner):
 
         with step("step 13: remove old db server"):
             self.remove_starter_dbserver(old_servers[1])
+            self.wait_data_impl()
 
         with step("step 14: create non-backup data"):
             self._check_for_shards_in_sync()
