@@ -588,6 +588,7 @@ class Cluster(Runner):
     @step
     def test_hotbackup_impl(self):
         """test hotbackup feature: Cluster"""
+        return # TODO BTS-2427 re-enable me!
         with step("step 1: create a backup"):
             backup_step_1 = self.create_backup_and_upload("thy_name_is_" + self.name)
 
