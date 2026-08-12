@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import time
 
+import requests
 import semver
 
 from reporting.reporting_utils import step
@@ -224,6 +225,41 @@ class Cluster(Runner):
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
         print("all in sync.")
 
+    def _wait_for_agency_job(self, job_id, timeout, job_message, expect_state='Finished'):
+        """ wait for an agency job """
+        count = 0
+        while True:
+            if count > timeout:
+                raise Exception(f"agency job {job_id} didn't reach state {expect_state} in time {job_message}")
+            reply = self.get_running_starters()[0].send_request(
+                InstanceType.COORDINATOR,
+                requests.get,
+                f'/_admin/cluster/queryAgencyJob?id={job_id}')
+            body_json = json.loads(reply[0].content)
+            if expect_state != body_json['status'] == 'Failed':
+                return False
+            if body_json['status'] == expect_state:
+                return True
+            time.sleep(1)
+            count += 1
+
+    def _resign_leadership(self, uuid):
+        """ resign a dbserver from shard leaderships """
+        while True:
+            while True:
+                reply = self.get_running_starters()[0].send_request(
+                    InstanceType.COORDINATOR,
+                    requests.post,
+                    '/_admin/cluster/resignLeadership',
+                    { "server": uuid, "undoMoves": False })
+                if reply[0].status_code != 500 :
+                    print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].body}")
+                    break
+                body_json = json.loads(reply[0].content)
+                if self._wait_for_agency_job(body_json['id'], 1000,
+                                             f"resign ${uuid} from leadership"):
+                    return
+
     def test_setup_impl(self):
         if self.selenium:
             self.selenium.test_setup()
@@ -408,11 +444,13 @@ class Cluster(Runner):
             survive_instance = 2
 
         instances = self.starter_instances[terminate_instance].get_dbservers()
-        if (len(instances) == 0):
+        if len(instances) == 0:
             terminate_instance = 3
             instances = self.starter_instances[terminate_instance].get_dbservers()
+
         logging.info("stopping instance %d" % terminate_instance)
         uuid = instances[0].get_uuid()
+        self._resign_leadership(uuid)
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
