@@ -586,10 +586,10 @@ class Cluster(Runner):
         self.api_tests_failed = not APITestSuite(self.starter_instances[0]).run_api_tests()
 
     # pylint: disable=too-many-statements
-    @step
-    def test_hotbackup_impl(self):
+    # @step
+    # TODO BTS-2427 re-enable me!
+    def __disabled__test_hotbackup_impl(self):
         """test hotbackup feature: Cluster"""
-        return # TODO BTS-2427 re-enable me!
         with step("step 1: create a backup"):
             backup_step_1 = self.create_backup_and_upload("thy_name_is_" + self.name)
 
