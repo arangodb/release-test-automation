@@ -152,7 +152,8 @@ class Cluster(Runner):
         port = 9528
         count = 0
         # we need 2 additional nodes for hotbackup testing
-        full_node_count = self.props.cluster_nodes + 2 if self.hot_backup else self.props.cluster_nodes
+        full_node_count = self.props.cluster_nodes
+        # TODO BTS-2427: + 2 if self.hot_backup else self.props.cluster_nodes
         for this_node in list(range(1, full_node_count + 1)):
             node = []
             node_opts.append(node)
