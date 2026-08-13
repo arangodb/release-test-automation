@@ -253,7 +253,7 @@ class Cluster(Runner):
                     '/_admin/cluster/resignLeadership',
                     { "server": uuid, "undoMoves": False })
                 if reply[0].status_code != 500 :
-                    print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].body}")
+                    print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].content}")
                     break
                 body_json = json.loads(reply[0].content)
                 if self._wait_for_agency_job(body_json['id'], 1000,
