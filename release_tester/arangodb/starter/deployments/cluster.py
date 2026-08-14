@@ -265,7 +265,7 @@ class Cluster(Runner):
                     requests.post,
                     '/_admin/cluster/resignLeadership',
                     f'{{ "server": "{uuid}", "undoMoves": false }}')
-                if reply[0].status_code != 500 :
+                if reply[0].status_code != 202 :
                     print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].content}")
                     break
                 body_json = json.loads(reply[0].content)
@@ -463,7 +463,7 @@ class Cluster(Runner):
 
         logging.info("stopping instance %d" % terminate_instance)
         uuid = instances[0].get_uuid()
-        self._resign_leadership(self._get_short_name(uuid))
+        self._resign_leadership(uuid) # self._get_short_name(uuid))
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
