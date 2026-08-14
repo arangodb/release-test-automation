@@ -225,6 +225,19 @@ class Cluster(Runner):
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
         print("all in sync.")
 
+    def _get_short_name(self, uuid):
+        """ use cluster health to get the shortname from one server """
+        reply = self.get_running_starters()[0].send_request(
+            InstanceType.COORDINATOR,
+            requests.get,
+            '/_admin/cluster/health')
+        if reply[0].status_code != 200:
+            raise Exception(f"failed to get the UUID for {uuid}: {reply[0].content}")
+        body_json = json.loads(reply[0].content)
+        if not uuid in body_json['Health'].keys():
+            raise Exception(f"failed to find the UUID for {uuid} in the health state: {reply[0].content}")
+        return body_json['Health'][uuid]['ShortName']
+
     def _wait_for_agency_job(self, job_id, timeout, job_message, expect_state='Finished'):
         """ wait for an agency job """
         count = 0
@@ -450,7 +463,7 @@ class Cluster(Runner):
 
         logging.info("stopping instance %d" % terminate_instance)
         uuid = instances[0].get_uuid()
-        self._resign_leadership(uuid)
+        self._resign_leadership(self._get_short_name(uuid))
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
