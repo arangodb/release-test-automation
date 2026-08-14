@@ -251,7 +251,7 @@ class Cluster(Runner):
                     InstanceType.COORDINATOR,
                     requests.post,
                     '/_admin/cluster/resignLeadership',
-                    { "server": uuid, "undoMoves": False })
+                    f'{{ "server": "{uuid}", "undoMoves": False }}')
                 if reply[0].status_code != 500 :
                     print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].content}")
                     break
