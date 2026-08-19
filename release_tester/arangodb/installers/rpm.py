@@ -79,15 +79,16 @@ class InstallerRPM(InstallerLinux):
         version = "{major}.{minor}.{patch}".format(**semdict)
 
         desc = {
+            "mv": semdict["major"],
             "ep": enterprise,
             "cfg": version,
             "ver": package_version,
             "arch": architecture,
         }
 
-        self.server_package = "arangodb3{ep}-{cfg}-{ver}.{arch}.rpm".format(**desc)
-        self.client_package = "arangodb3{ep}-client-{cfg}-{ver}.{arch}.rpm".format(**desc)
-        self.debug_package = "arangodb3{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm".format(**desc)
+        self.server_package = "arangodb{mv}{ep}-{cfg}-{ver}.{arch}.rpm".format(**desc)
+        self.client_package = "arangodb{mv}{ep}-client-{cfg}-{ver}.{arch}.rpm".format(**desc)
+        self.debug_package = "arangodb{mv}{ep}-debuginfo-{cfg}-{ver}.{arch}.rpm".format(**desc)
 
     @step
     def start_service(self):

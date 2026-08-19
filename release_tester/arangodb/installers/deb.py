@@ -73,15 +73,16 @@ class InstallerDeb(InstallerLinux):
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
 
         desc = {
+            "mv": semdict["major"],
             "ep": enterprise,
             "cfg": version,
             "ver": package_version,
             "arch": architecture,
         }
 
-        self.server_package = "arangodb3{ep}_{cfg}-{ver}_{arch}.deb".format(**desc)
-        self.client_package = "arangodb3{ep}-client_{cfg}-{ver}_{arch}.deb".format(**desc)
-        self.debug_package = "arangodb3{ep}-dbg_{cfg}-{ver}_{arch}.deb".format(**desc)
+        self.server_package = "arangodb{mv}{ep}_{cfg}-{ver}_{arch}.deb".format(**desc)
+        self.client_package = "arangodb{mv}{ep}-client_{cfg}-{ver}_{arch}.deb".format(**desc)
+        self.debug_package = "arangodb{mv}{ep}-dbg_{cfg}-{ver}_{arch}.deb".format(**desc)
 
     def start_service(self):
         startserver = pexpect.spawnu("service arangodb3 start")

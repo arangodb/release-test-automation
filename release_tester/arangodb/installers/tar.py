@@ -54,6 +54,7 @@ class InstallerTAR(InstallerArchive):
         version = "{major}.{minor}.{patch}{prerelease}".format(**semdict)
 
         self.desc = {
+            "mv": semdict["major"],
             "ep": enterprise,
             "ver": version,
             "os": self.operating_system,
@@ -64,14 +65,14 @@ class InstallerTAR(InstallerArchive):
         print(self.desc)
         self.debug_package = None
 
-        self.server_package = "arangodb3{ep}-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
-        self.client_package = "arangodb3{ep}-client-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
-        self.cfg.client_install_prefix = self.basedir / "arangodb3{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
-        self.cfg.server_install_prefix = self.basedir / "arangodb3{ep}-{arch}{dashus}{ver}".format(**self.desc)
+        self.server_package = "arangodb{mv}{ep}-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
+        self.client_package = "arangodb{mv}{ep}-client-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
+        self.cfg.client_install_prefix = self.basedir / "arangodb{mv}{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
+        self.cfg.server_install_prefix = self.basedir / "arangodb{mv}{ep}-{arch}{dashus}{ver}".format(**self.desc)
         if self.cfg.client_package_is_installed:
-            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-client-{os}{dashus}{ver}{arch}".format(**self.desc)
+            self.cfg.install_prefix = self.basedir / "arangodb{mv}{ep}-client-{os}{dashus}{ver}{arch}".format(**self.desc)
         else:
-            self.cfg.install_prefix = self.basedir / "arangodb3{ep}-{os}{dashus}{ver}{arch}".format(**self.desc)
+            self.cfg.install_prefix = self.basedir / "arangodb{mv}{ep}-{os}{dashus}{ver}{arch}".format(**self.desc)
         self.cfg.bin_dir = self.cfg.install_prefix / "bin"
         self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
