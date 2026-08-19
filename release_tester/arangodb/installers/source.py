@@ -3,7 +3,6 @@
 import os
 from pathlib import Path
 import platform
-import semver
 from arangodb.sh import ArangoshExecutor
 from arangodb.installers.base import InstallerArchive
 
