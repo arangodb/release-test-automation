@@ -54,7 +54,7 @@ class InstallerSource(InstallerArchive):
         self.check_stripped = False
         self.check_symlink = False
         self.cfg.have_system_service = False
-        self.arangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
+        self.arangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version, "")
         self.copy_for_result = False
         self.hot_backup = self.cfg.enterprise
         self.cfg.sublaunch_pwd = self.test_dir

@@ -531,7 +531,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version, "")
 
         self.progress(True, "self test after installation")
         if inst.cfg.have_system_service:
