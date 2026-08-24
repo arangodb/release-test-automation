@@ -20,10 +20,11 @@ ON_POSIX = "posix" in sys.builtin_module_names
 class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    def __init__(self, config, connect_instance, old_version):
+    def __init__(self, config, connect_instance, old_version, jwt):
         self.read_only = False
         super().__init__(config, connect_instance)
         self.old_version = old_version
+        self.jwt = jwt
 
     # pylint: disable=too-many-arguments
     def run_command(
@@ -217,8 +218,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return res
 
     @step
-    def js_set_passvoid(self, user, passvoid):
+    def js_set_passvoid(self, user, passvoid, jwt):
         """connect to the instance, and set a passvoid for the user"""
+        self.jwt = jwt
         js_set_passvoid_str = f"""
         if (!arango.isConnected()) {{
           throw new Error('connecting the database failed');
@@ -495,8 +497,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
                 '--testVector', 'true' if supports_vector_index else 'false',
                 "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
-                '--passvoid', self.cfg.passvoid,
-                '--mixed', 'true' if mixed else 'false'
+                #'--passvoid', self.cfg.passvoid,
+                '--mixed', 'true' if mixed else 'false',
+                '--server.jwt-token', self.jwt
             ] + test_filter,
             # fmt: on
             progressive_timeout=progressive_timeout,
