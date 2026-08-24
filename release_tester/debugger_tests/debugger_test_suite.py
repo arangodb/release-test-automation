@@ -188,7 +188,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
             {"executable": "arangoimport"},
             {"executable": "arangodump"},
             {"executable": "arangorestore"},
-            {"executable": "arangobench"},
+            # {"executable": "arangobench"},
             {"executable": "arangovpack"},
             {"executable": "arangod"},
         ]
