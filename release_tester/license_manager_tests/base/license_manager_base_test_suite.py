@@ -195,7 +195,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
                 ("delete collection", 'db._drop("checkReadOnlyMode");'), True, expect_to_fail=False
             )
             raise Exception("The system is not in read-only mode.") from exc
-        assert (search_msg in result[1]), "Expected error message not found in arangosh output."
+        assert (search_msg in result[1]), f"Expected error message '{search_msg} not found in arangosh output. {result[1]}"
 
     @step
     def check_not_readonly(self):

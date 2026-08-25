@@ -408,7 +408,7 @@ class Cluster(Runner):
             survive_instance = 2
 
         instances = self.starter_instances[terminate_instance].get_dbservers()
-        if (len(instances) == 0):
+        if len(instances) == 0:
             terminate_instance = 3
             instances = self.starter_instances[terminate_instance].get_dbservers()
         logging.info("stopping instance %d" % terminate_instance)

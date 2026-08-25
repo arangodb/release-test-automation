@@ -68,6 +68,8 @@ class InstallerSource(InstallerArchive):
             self.cfg.bin_dir = self.cfg.bin_dir / "RelWithDebInfo"
         self.cfg.sbin_dir = self.test_dir / "build" / "bin"
         self.cfg.real_bin_dir = self.cfg.bin_dir
+        self.cfg.client_bin_dir = self.cfg.bin_dir
+        self.cfg.client_real_bin_dir = self.cfg.bin_dir
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
         print(self.cfg.bin_dir)
         if not self.cfg.bin_dir.exists():

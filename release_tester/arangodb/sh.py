@@ -42,7 +42,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         """run a command in arangosh"""
         title = f"run a command in arangosh: {cmd[0]}"
         with step(title):
-            executable = self.cfg.bin_dir / "arangosh"
+            executable = self.cfg.client_bin_dir / "arangosh"
             arangosh_args = self.cfg.default_arangosh_args + [
                 "--log.level",
                 "v8=debug",
@@ -154,7 +154,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd += ["--"] + args
 
         return self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangosh",
+            self.cfg.client_bin_dir / "arangosh",
             run_cmd,
             use_default_auth=not use_jwt,
             params=make_default_params(verbose, cmd[0]),
@@ -176,7 +176,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # pylint: disable=R0913 disable=R0902
         """testing.js wrapper"""
         args = [
-            self.cfg.bin_dir / "arangosh",
+            self.cfg.client_bin_dir / "arangosh",
             "-c",
             str(self.cfg.cfgdir / "arangosh.conf"),
             "--log.level",
@@ -192,7 +192,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         ]
         run_cmd = args + ["--", testcase, "--testOutput", directory] + testing_args
         return self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangosh",
+            self.cfg.client_bin_dir / "arangosh",
             run_cmd,
             progressive_timeout,
             default_line_result,

@@ -166,7 +166,7 @@ class BinaryDescription:
         if check_stripped:
             self.check_stripped()
         if check_symlink:
-            self.check_symlink()
+            self.check_symlink(version)
         if check_license_info:
             self.check_license_info()
 
@@ -246,9 +246,13 @@ class BinaryDescription:
                 raise Exception("expected " + str(self.path) + " not to be stripped, but it is stripped")
 
     @step
-    def check_symlink(self):
+    def check_symlink(self, version):
         """check whether the file exists and is a symlink (if)"""
         for link in self.symlink:
+            if isinstance(link, list):
+                if version > semver.VersionInfo.parse(link[1]):
+                    continue
+                link = link[0]
             if not link.is_symlink():
                 raise Exception("{0} is not a symlink".format(str(link)))
 

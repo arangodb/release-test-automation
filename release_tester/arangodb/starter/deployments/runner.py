@@ -546,7 +546,7 @@ class Runner(ABC):
         """see whether we have a selenium success"""
         if not self.selenium:
             return True
-        return self.selenium.success and runner.api_tests_failed
+        return self.selenium.success and self.api_tests_failed
 
     @step
     def quit_selenium(self):
@@ -1432,27 +1432,27 @@ class Runner(ABC):
             struct["arangods"].extend(starter["arangods"])
         os.environ["INSTANCEINFO"] = json.dumps(struct)
 
-    def wait_for_agency_job(self, job_id, timeout, jobMessage):
+    def wait_for_agency_job(self, job_id, timeout, job_message):
         """ wait for the agency to finish a job """
-        count = 0;
+        count = 0
         while (True):
             if count > timeout:
-                raise Exception(f"FAILED to ${jobMessage} TIMEOUT");
-            time.sleep(0.1);
+                raise Exception(f"FAILED to ${job_message} TIMEOUT")
+            time.sleep(0.1)
             reply = self.get_running_starters()[0].send_request(
                 InstanceType.COORDINATOR,
                 requests.get,
-                f"/_admin/cluster/queryAgencyJob?id={jobId}")
+                f"/_admin/cluster/queryAgencyJob?id={job_id}")
             print(reply[0].content)
             if reply[0].status_code in (200, 404):
                 body_json = json.loads(reply[0].content)
                 if body_json['status'] == 'Failed':
-                    msg = f"FAILED {jobMessage} - {body_json}";
-                    print(f"{msg} - {body_json}");
-                    return False;
+                    msg = f"FAILED {job_message} - {body_json}"
+                    print(f"{msg} - {body_json}")
+                    return False
                 if body_json['status'] == 'Finished':
-                    print(f"DONE ${jobMessage} {body_json}");
-                    return True;
+                    print(f"DONE ${job_message} {body_json}")
+                    return True
             count += 1
 
     def remove_server_from_agency(self, server_uuid, deadline=150):
@@ -1505,9 +1505,6 @@ class Runner(ABC):
     @abstractmethod
     def run_api_tests_impl(self):
         """run api tests on this deployment"""
-    def makedata_databases(self):
-        """return a list of databases that makedata tests must be run in"""
-        return [["_system", self.props.force_one_shard, 0]] + self.custom_databases.copy()
 
     def get_running_starters(self):
         """get list of running starters"""

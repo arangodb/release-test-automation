@@ -35,7 +35,9 @@ class InstallerDeb(InstallerLinux):
         cfg.install_prefix = Path("/")
         cfg.bin_dir = cfg.install_prefix / "usr" / "bin"
         cfg.sbin_dir = cfg.install_prefix / "usr" / "sbin"
+        cfg.client_bin_dir = cfg.bin_dir
         cfg.real_bin_dir = cfg.bin_dir
+        cfg.client_real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
         cfg.localhost = "localhost"
 

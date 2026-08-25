@@ -189,7 +189,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             return False
 
         success, output, _, error_found = self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangobackup",
+            self.cfg.client_bin_dir / "arangobackup",
             run_cmd,
             params=make_default_params(self.cfg.verbose and not silent, "arangobackup"),
             progressive_timeout=progressive_timeout,

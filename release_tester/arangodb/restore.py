@@ -31,7 +31,7 @@ class ArangoRestoreExecutor(ArangoCLIprogressiveTimeoutExecutor):
         )
 
         return self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangorestore",
+            self.cfg.client_bin_dir / "arangorestore",
             more_args=run_cmd,
             params=make_default_params(verbose, "restoring"),
             progressive_timeout=progressive_timeout,
