@@ -13,7 +13,7 @@ from arangodb.installers import create_config_installer_set
 from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import (
     run_after_suite,
-    collect_crash_data,
+    # collect_crash_data,
 )
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
@@ -170,6 +170,21 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
     @step
     def check_readonly(self):
         """check that system is in read-only mode"""
+        mv = semver.VersionInfo.parse("3.12.11")
+
+        new_error = (
+            self.new_version is not None
+            and (
+                semver.VersionInfo.parse(self.new_version) > mv
+            )
+        ) or (
+            self.old_version is not None
+            and (
+                semver.VersionInfo.parse(self.old_version) > mv
+            )
+        )
+        search_msg = ("ArangoError 1004: Server is in read-only mode"
+                      if new_error else "ArangoError 11: cannot create collection" )
         try:
             result = self.starter.arangosh.run_command(
                 ("try to create collection", 'db._create("checkReadOnlyMode");'), True, expect_to_fail=True
@@ -180,9 +195,7 @@ class LicenseManagerBaseTestSuite(CliStartedTestSuite):
                 ("delete collection", 'db._drop("checkReadOnlyMode");'), True, expect_to_fail=False
             )
             raise Exception("The system is not in read-only mode.") from exc
-        assert (
-            "ArangoError 11: cannot create collection" in result[1]
-        ), "Expected error message not found in arangosh output."
+        assert (search_msg in result[1]), "Expected error message not found in arangosh output."
 
     @step
     def check_not_readonly(self):
