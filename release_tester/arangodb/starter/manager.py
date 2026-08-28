@@ -99,6 +99,7 @@ class StarterManager:
                 "--args.all.rclone.argument=--log-level=DEBUG",
                 "--args.all.rclone.argument=--log-file=@ARANGODB_SERVER_DIR@/rclone.log",
             ]
+        self.moreopts += ["--all.server.external-rbac-service", "http://127.0.0.1:8000"]
         # directories
         self.raw_basedir = install_prefix
         self.instance_prefix = instance_prefix

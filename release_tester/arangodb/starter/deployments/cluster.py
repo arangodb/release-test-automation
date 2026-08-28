@@ -78,7 +78,7 @@ class Cluster(Runner):
         )
         # self.cfg.frontends = []
         self.starter_instances = []
-        self.jwtdatastr = str(timestamp())
+        self.jwt_str = (str(timestamp())* 5)[:32]
         self.create_test_collection = ""
         self.min_replication_factor = 2
         if self.props.cluster_nodes > 3:
@@ -111,7 +111,7 @@ class Cluster(Runner):
                     self.basedir,
                     name,
                     mode="cluster",
-                    jwt_str=self.jwtdatastr,
+                    jwt_str=self.jwt_str,
                     port=port,
                     expect_instances=agencyInstance
                     + [

@@ -30,6 +30,7 @@ import tools.loghelper as lh
 from tools.ulimits import detect_file_ulimit
 from tools.locales import detect_locale
 from tools.diskfree import check_diskfree
+from tools.rbac_dummy import spawn_rbac_dummy_thread, shutdown_rbac_dummy_thread
 from reporting.reporting_utils import step
 
 from arangodb.agency import Agency
@@ -232,7 +233,7 @@ class Runner(ABC):
             detect_file_ulimit()
             if self.cfg.check_locale:
                 detect_locale()
-
+        spawn_rbac_dummy_thread(self.jwt_str, 8000)
         versions_count = len(self.installers)
         is_single_test = versions_count == 1
         bound = 1 if is_single_test else versions_count - 1
@@ -352,6 +353,7 @@ class Runner(ABC):
                 if is_uninstall_now:
                     self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
             finally:
+                shutdown_rbac_dummy_thread()
                 if self.selenium:
                     ui_test_results_table = BeautifulTable(maxwidth=160)
                     for result in self.selenium.test_results:
