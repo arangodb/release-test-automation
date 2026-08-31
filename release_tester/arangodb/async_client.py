@@ -282,7 +282,8 @@ deadline_signal: {0.deadline_signal}""".format(
             run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
             if use_default_auth:
                 run_cmd += ["--server.username", str(self.cfg.username)]
-                # run_cmd += ["--server.password", passvoid]
+                #run_cmd += ["--server.password", ""]
+                run_cmd += ["--server.password", passvoid]
 
         run_cmd += more_args
         ret = self.run_monitored(executeable,

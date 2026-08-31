@@ -34,6 +34,7 @@ from reporting.reporting_utils2 import generate_suite_name
 from siteconfig import SiteConfig
 from test_suites.misc.binary_test_suite import BinaryComplianceTestSuite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
+from tools.rbac_dummy import shutdown_rbac_dummy_thread
 from tools.killall import kill_all_processes
 
 HAVE_SAN = False
@@ -338,7 +339,8 @@ class TestDriver:
                                                                                trace="".join(
                                                                                    traceback.TracebackException.from_exception(
                                                                                        aex).format()))
-                            print("failed to acquire agency dump! Ignoring")
+                                print("failed to acquire agency dump! Ignoring")
+                            shutdown_rbac_dummy_thread()
                             runner.search_for_warnings()
                             runner.quit_selenium()
                             kill_all_processes()
@@ -405,6 +407,7 @@ class TestDriver:
                             raise ex
                         traceback.print_exc()
                         kill_all_processes()
+                        shutdown_rbac_dummy_thread()
                         if runner:
                             try:
                                 runner.cleanup()
@@ -521,6 +524,7 @@ class TestDriver:
                                                                                traceback.TracebackException.from_exception(
                                                                                    aex).format()))
                             print("failed to acquire agency dump! Ignoring")
+                        shutdown_rbac_dummy_thread()
                         runner.search_for_warnings()
                         runner.quit_selenium()
                         kill_all_processes()
@@ -654,6 +658,7 @@ class TestDriver:
                 "trace": "".join(traceback.TracebackException.from_exception(ex).format()),
                 "progress": "",
             })
+            shutdown_rbac_dummy_thread()
         if len(frontends) == 0:
             kill_all_processes()
         return results

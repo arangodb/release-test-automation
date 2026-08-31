@@ -119,7 +119,8 @@ class Runner(ABC):
         self.hot_backup = (
             cfg.hot_backup_supported and properties.supports_hotbackup and self.old_installer.supports_hot_backup()
         )
-        self.dump_restore = not self.hot_backup
+        self.hot_backup = False #TODO
+        self.dump_restore = False # TODO not self.hot_backup
         self.backup_instance_count = 3
         # starter instances that make_data wil run on
         # maybe it would be better to work directly on
@@ -1212,6 +1213,7 @@ class Runner(ABC):
     @step
     def zip_test_dir(self):
         """💾 store the test directory for later analysis"""
+        return #TODO
         if reporting.reporting_utils.TARBALL_COUNT >= reporting.reporting_utils.TARBALL_LIMIT:
             print("skipping creation of test dir archive: limit for the number of archives is reached")
             return
