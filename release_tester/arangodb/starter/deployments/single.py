@@ -48,6 +48,7 @@ class Single(Runner):
         self.starter_instance = None
         self.backup_instance_count = 1
         self.success = False
+        self.jwt_str = ("single" * 10)[:32]
 
     def starter_prepare_env_impl(self, more_opts=None):
         if more_opts is None:
@@ -76,7 +77,7 @@ class Single(Runner):
             mode="single",
             port=1234,
             expect_instances=[InstanceType.SINGLE],
-            jwt_str="single",
+            jwt_str=self.jwt_str,
             moreopts=more_opts,
         )
         self.starter_instance.is_leader = True

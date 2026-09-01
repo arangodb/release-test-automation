@@ -147,7 +147,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
     # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """manages one arangobackup instance"""
 
-    def __init__(self, config, name, raw_install_prefix, connect_instance, cfg):
+    def __init__(self, config, name, raw_install_prefix, connect_instance, cfg, jwt):
         super().__init__(config, connect_instance)
 
         # directories
@@ -159,6 +159,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         if not self.backup_dir.exists():
             self.backup_dir.mkdir(parents=True)
         self.cfg = cfg
+        self.jwt = jwt
 
     # pylint: disable=too-many-arguments
     @step
@@ -172,7 +173,11 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
         run_cmd = copy.deepcopy(self.cfg.default_backup_args)
         if self.cfg.verbose:
             run_cmd += ["--log.level=debug"]
-        run_cmd += arguments
+        jwt_command = []
+        #if self.jwt:
+        #    jwt_command = [ '--server.jwt-token', self.jwt ]
+
+        run_cmd += jwt_command + arguments
         lh.log_cmd(arguments, not silent)
 
         def inspect_line_result(wait, line, params):
