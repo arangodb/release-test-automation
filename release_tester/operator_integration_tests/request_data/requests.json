@@ -1,0 +1,99 @@
+{
+  "collections": {
+    "list_collections": {
+      "endpoint": "/_api/collection",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    }
+  },
+  "users": {
+    "create_user": {
+      "endpoint": "/_api/user",
+      "method": "post",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "user": "$1",
+        "passwd": "$1"
+      }
+    }
+  },
+  "policy management": {
+    "create_policy": {
+      "endpoint": "/_management/permissions/policy/#1",
+      "method": "post",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "item": {
+          "statements": [
+            {
+              "effect":"$1",
+              "actions":["$2"],
+              "resources":["$3"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "role management": {
+    "create_role": {
+      "endpoint": "/_management/permissions/role/#1",
+      "method": "post",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "item": {
+          "policies": [
+            "$1",
+            "$2"
+          ]
+        }
+      }
+    }
+  },
+  "role binding management": {
+    "create_role_binding": {
+      "endpoint": "/_management/permissions/user/#1/role/#2",
+      "method": "post",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "scope": {
+          "statements": [
+            {
+              "effect":"$1",
+              "actions":["$2"],
+              "resources":["$3"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "integration api - authentication": {
+    "validate_token": {
+      "endpoint": "/_integration/authn/v1/validate",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "token": "$1"
+      }
+    }
+  }
+}
