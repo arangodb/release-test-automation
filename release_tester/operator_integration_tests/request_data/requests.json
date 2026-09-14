@@ -121,6 +121,49 @@
           ]
         }
       }
+    },
+    "list_roles": {
+      "endpoint": "/_management/permissions/role",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "get_role_info": {
+      "endpoint": "/_management/permissions/role/#1",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "update_role": {
+      "endpoint": "/_management/permissions/role/#1",
+      "method": "put",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "item": {
+          "policies": [
+            "$1",
+            "$2"
+          ]
+        }
+      }
+    },
+    "delete_role": {
+      "endpoint": "/_management/permissions/role/#1",
+      "method": "delete",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
     }
   },
   "management api - role binding": {
@@ -142,6 +185,43 @@
           ]
         }
       }
+    },
+    "list_role_bindings": {
+      "endpoint": "/_management/permissions/user/#1/role",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "update_role_binding": {
+      "endpoint": "/_management/permissions/user/#1/role/#2",
+      "method": "put",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "scope": {
+          "statements": [
+            {
+              "effect":"$1",
+              "actions":["$2"],
+              "resources":["$3"]
+            }
+          ]
+        }
+      }
+    },
+    "delete_role_binding": {
+      "endpoint": "/_management/permissions/user/#1/role/#2",
+      "method": "delete",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
     }
   },
   "integration api - authentication": {

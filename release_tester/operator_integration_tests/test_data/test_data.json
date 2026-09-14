@@ -27,13 +27,13 @@
   "role bindings": {
     "db-reader": {
       "effect": "Allow",
-      "actions": "*",
-      "resources": "*"
+      "actions": ["*"],
+      "resources": ["*"]
     },
     "db-writer": {
       "effect": "Allow",
-      "actions": "*",
-      "resources": "*"
+      "actions": ["*"],
+      "resources": ["*"]
     }
   }
 }
