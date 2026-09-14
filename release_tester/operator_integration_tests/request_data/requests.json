@@ -24,7 +24,21 @@
       }
     }
   },
-  "policy management": {
+  "management api - permission validation": {
+    "validate_permissions": {
+      "endpoint": "/_management/permissions/validate",
+      "method": "post",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "action":"$1",
+        "resource":"$2"
+      }
+    }
+  },
+  "management api - policy": {
     "create_policy": {
       "endpoint": "/_management/permissions/policy/#1",
       "method": "post",
@@ -43,9 +57,55 @@
           ]
         }
       }
+    },
+    "list_policies": {
+      "endpoint": "/_management/permissions/policy",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "get_policy_info": {
+      "endpoint": "/_management/permissions/policy/#1",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "update_policy": {
+      "endpoint": "/_management/permissions/policy/#1",
+      "method": "put",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "item": {
+          "statements": [
+            {
+              "effect":"$1",
+              "actions":["$2"],
+              "resources":["$3"]
+            }
+          ]
+        }
+      }
+    },
+    "delete_policy": {
+      "endpoint": "/_management/permissions/policy/#1",
+      "method": "delete",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
     }
   },
-  "role management": {
+  "management api - role": {
     "create_role": {
       "endpoint": "/_management/permissions/role/#1",
       "method": "post",
@@ -63,7 +123,7 @@
       }
     }
   },
-  "role binding management": {
+  "management api - role binding": {
     "create_role_binding": {
       "endpoint": "/_management/permissions/user/#1/role/#2",
       "method": "post",

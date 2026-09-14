@@ -1,0 +1,39 @@
+{
+  "policies": {
+    "read-db" : {
+      "effect": "Allow",
+      "actions": ["db:Read"],
+      "resources": ["db:*"]
+    },
+    "use-api": {
+      "effect": "Allow",
+      "actions": ["db:UseApiVersion"],
+      "resources": ["db:apiversion:v0"]
+    },
+    "write-db" : {
+      "effect": "Allow",
+      "actions": ["db:Write"],
+      "resources": ["db:*"]
+    }
+  },
+  "roles": {
+    "db-reader": {
+      "policies": ["read-db", "use-api"]
+    },
+    "db-writer": {
+      "policies": ["write-db", "use-api"]
+    }
+  },
+  "role bindings": {
+    "db-reader": {
+      "effect": "Allow",
+      "actions": "*",
+      "resources": "*"
+    },
+    "db-writer": {
+      "effect": "Allow",
+      "actions": "*",
+      "resources": "*"
+    }
+  }
+}
