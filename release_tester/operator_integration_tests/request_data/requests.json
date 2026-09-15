@@ -234,6 +234,104 @@
       "payload": {
         "token": "$1"
       }
+    },
+    "get_user_identity": {
+      "endpoint": "/_integration/authn/v1/identity",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "do_login": {
+      "endpoint": "/_integration/authn/v1/login",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "credentials": {
+          "username": "$1",
+          "password": "$2"
+        }
+      }
+    },
+    "do_logout": {
+      "endpoint": "/_integration/authn/v1/logout",
+      "method": "get",
+      "headers": {
+        "Authorization": "Bearer !",
+        "Content-Type": "application/json"
+      },
+      "payload": {}
+    },
+    "create_token": {
+      "endpoint": "/_integration/authn/v1/createToken",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "user": "$1",
+        "ttl": "3600"
+      }
+    }
+  },
+  "integration api - authorization": {
+    "evaluate_user_permission": {
+      "endpoint": "/_integration/authorization/v1/evaluate",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "user": "$1",
+        "roles": ["$2"],
+        "action": "db:Read",
+        "resource": "db:*"
+      }
+    },
+    "evaluate_user_permissions": {
+      "endpoint": "/_integration/authorization/v1/evaluate-many",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "user": "$1",
+        "roles": ["$2"],
+        "items": [
+          {"action": "db:Read", "resource": "db:*"},
+          {"action": "db:UseApiVersion", "resource": "db:apiversion:v0"}
+        ]
+      }
+    },
+    "evaluate_token_permission": {
+      "endpoint": "/_integration/authorization/v1/evaluate-token",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "token": "$1",
+        "action": "db:Read",
+        "resource": "db:*"
+      }
+    },
+    "evaluate_token_permissions": {
+      "endpoint": "/_integration/authorization/v1/evaluate-token-many",
+      "method": "post",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload": {
+        "token": "$1",
+        "items": [
+          {"action": "db:Read", "resource": "db:*"},
+          {"action": "db:UseApiVersion", "resource": "db:apiversion:v0"}
+        ]
+      }
     }
   }
 }
