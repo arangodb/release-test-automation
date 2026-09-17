@@ -2,13 +2,14 @@ from copy import deepcopy
 
 from operator_integration_tests.base.operator_integration_base import OperatorIntegrationBaseTestSuite
 from operator_integration_tests.single_server import OperatorIntegrationSingleServerTestSuite
+from operator_integration_tests.cluster import OperatorIntegrationClusterTestSuite
 from test_suites_core.base_test_suite import run_before_suite, run_after_suite
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 
 
 class OperatorIntegrationTestSuite(OperatorIntegrationBaseTestSuite):
 
-    child_test_suites = [OperatorIntegrationSingleServerTestSuite]
+    child_test_suites = [OperatorIntegrationSingleServerTestSuite, OperatorIntegrationClusterTestSuite]
 
     def __init__(self, params: CliTestSuiteParameters):
         local_params = deepcopy(params)

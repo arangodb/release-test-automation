@@ -75,7 +75,7 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
 
     @run_after_suite
     def teardown_suite(self):
-        """License manager base test suite: teardown"""
+        """Operator integration base test suite: teardown"""
         if self.runner:
             self.runner.starter_shutdown()
         kill_all_processes()

@@ -1,9 +1,8 @@
 # pylint: disable=duplicate-code
-"""Operator integration tests: single server (base)"""
+"""Operator integration tests: cluster (base)"""
 
 import shlex
 import subprocess
-from time import sleep
 
 import operator_integration_tests.helpers.general_helper as gh
 
@@ -19,23 +18,23 @@ from test_suites_core.base_test_suite import run_before_suite, run_after_suite
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
 
 RBAC_SERVICE_GATEWAY = "http://127.0.0.1:9192"
-STARTER_LAUNCH_DELAY = 10
+STARTER_LAUNCH_DELAY = 15
 
 
-class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSuite):
-    """Operator integration tests: single server (base class)"""
+class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
+    """Operator integration tests: cluster (base class)"""
 
     @run_before_suite
     def start(self):
-        """start a single server setup before running tests"""
-        self.start_single_server()
+        """start a local cluster setup before running tests"""
+        self.start_cluster()
 
     # pylint: disable=attribute-defined-outside-init
     @step
-    def start_single_server(self):
-        """start a single server setup"""
+    def start_cluster(self):
+        """start a local cluster setup"""
         self.runner = make_runner(
-            runner_type=RunnerType.SINGLE,
+            runner_type=RunnerType.CLUSTER,
             abort_on_error=False,
             installer_set=self.installer_set,
             selenium_worker="none",
@@ -48,9 +47,9 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
             ),
         )
         self.runner.starter_prepare_env()
-        self.starter = self.runner.starter_instance
+        self.starter = self.runner.starter_instances[0]
         starter_args = [
-            "--starter.mode single",
+            "--starter.local",
             f"--starter.data-dir {self.starter.basedir}",
             f"--auth.jwt-secret {self.jwt_dir / '-'}",
             "--starter.host 127.0.0.1",
