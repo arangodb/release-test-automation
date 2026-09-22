@@ -53,6 +53,7 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
         self.operator_dir = self.base_cfg.test_data_dir / OPERATOR_DIR
         self.operator_dir.mkdir(parents=False, exist_ok=True)
         self.rbh = RBACHelper(self.operator_dir, self.jwt_dir)
+        self.build_operator()
 
     def _check_versions_eligible(self):
         """Check that test suite is compatible with ArangoDB versions that are being tested.
@@ -72,6 +73,9 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
     def create_jwt_secret(self):
         with open(f"{self.jwt_dir}/-", "w") as f:
             f.write(secrets.token_hex(32))
+
+    def build_operator(self):
+        RBACHelper.build_operator(self.operator_dir)
 
     @run_after_suite
     def teardown_suite(self):

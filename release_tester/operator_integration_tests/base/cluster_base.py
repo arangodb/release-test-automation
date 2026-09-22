@@ -67,10 +67,7 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
 
     @run_before_suite
     def start_operator_services(self):
-        """download operator binaries and start operator (RBAC) services"""
-        RBACHelper.download_operator_binaries(self.operator_dir)
-        RBACHelper.copy_operator_binary(self.operator_dir)
-        # RBACHelper.copy_operator_integration_binary(self.operator_dir)
+        """start operator (RBAC) services"""
         self.rbh.start_operator_services(self.arangod_url)
 
     @run_after_suite

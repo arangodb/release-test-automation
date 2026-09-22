@@ -62,7 +62,6 @@ class RBACHelper:
 
     @staticmethod
     def run_command(command):
-        # return subprocess.Popen(shlex.split(command))
         return subprocess.Popen(shlex.split(command), text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     @staticmethod
@@ -70,72 +69,41 @@ class RBACHelper:
         return subprocess.run(shlex.split(command), capture_output=True, text=True)
 
     @staticmethod
-    def download_operator_binaries(operator_dir_path):
-        """downloads operator integration tool for the current platform"""
-        tool_path = f"{operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
+    def build_operator(operator_dir_path):
+        """builds operator in container and copies binaries to specified folder"""
+        tool_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
         if not Path(tool_path).exists():
             latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
             release_data = requests.get(latest_release_url, timeout=REQUEST_TIMEOUT).json()
+            operator_version = release_data["tarball_url"].split("/")[-1]
+            print(f"Latest operator release is '{operator_version}' ...")
             current_machine = (
                 ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
             )
-            asset_name = f"{OPERATOR_INTEGRATION_TOOL_NAME}_{SUPPORTED_OS.lower()}_{current_machine}"
-            download_url = [
-                asset["browser_download_url"] for asset in release_data["assets"] if asset["name"] == asset_name
-            ][0]
-            response = requests.get(download_url, stream=True, timeout=REQUEST_TIMEOUT)
-            with open(tool_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=1024):
-                    f.write(chunk)
-        # ensure operator platform tool is executable
-        command = f"chmod +x {tool_path}"
-        RBACHelper.run_simple_command(command)
-
-    @staticmethod
-    def copy_operator_binary(operator_dir_path):
-        """unzips and copies operator tool for the current platform to work directory"""
-        tool_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
-        if not Path(tool_path).exists():
-            current_machine = (
-                ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
+            make_target = "bin" if current_machine == AMD64_MACHINE_NAME else "bin-all"
+            docker_build_command = f"docker build --build-arg USERNAME=$(whoami) --build-arg OPERATOR_VER={operator_version} -t kube-operator:rta ."
+            print("about to build operator image...")
+            subprocess.run(
+                docker_build_command, shell=True, cwd=f"{Path(__file__).parent.parent.resolve()}/operator_docker/"
             )
-            bin_name = f"{OPERATOR_TOOL_NAME}_{current_machine}"
-            operator_dir_path = f"{Path(__file__).parent.parent.resolve()}/operator_bin/"
-            operator_tool_path = f"{operator_dir_path}{bin_name}"
-            with ZipFile(f"{operator_tool_path}.zip", "r") as zip_file:
-                zip_file.extractall(path=operator_dir_path)
-                shutil.move(operator_tool_path, tool_path)
-        # ensure operator platform tool is executable
-        command = f"chmod +x {tool_path}"
-        RBACHelper.run_simple_command(command)
-
-    @staticmethod
-    def copy_operator_integration_binary(operator_dir_path):
-        """unzips and copies operator tool for the current platform to work directory"""
-        tool_path = f"{operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
-        if not Path(tool_path).exists():
-            current_machine = (
-                ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
-            )
-            bin_name = f"{OPERATOR_INTEGRATION_TOOL_NAME}_{current_machine}"
-            operator_dir_path = f"{Path(__file__).parent.parent.resolve()}/operator_bin/"
-            operator_tool_path = f"{operator_dir_path}{bin_name}"
-            with ZipFile(f"{operator_tool_path}.zip", "r") as zip_file:
-                zip_file.extractall(path=operator_dir_path)
-                shutil.move(operator_tool_path, tool_path)
-        # ensure operator platform tool is executable
-        command = f"chmod +x {tool_path}"
-        RBACHelper.run_simple_command(command)
+            docker_run_command = f"docker run -it -e COMMAND={make_target} kube-operator:rta"
+            print("about to build operator in container...")
+            subprocess.run(docker_run_command, shell=True)
+            print("about to copy binaries from container...")
+            docker_cp_command_1 = f"docker cp $(docker ps -alq):/app/kube-arangodb-{operator_version}/bin/{SUPPORTED_OS.lower()}/{current_machine}/{OPERATOR_TOOL_NAME} {operator_dir_path}"
+            subprocess.run(docker_cp_command_1, shell=True)
+            docker_cp_command_2 = f"docker cp $(docker ps -alq):/app/kube-arangodb-{operator_version}/bin/{SUPPORTED_OS.lower()}/{current_machine}/{OPERATOR_INTEGRATION_TOOL_NAME} {operator_dir_path}"
+            subprocess.run(docker_cp_command_2, shell=True)
 
     @step
     def start_operator_services(self, arangod_url):
-        start_sidecar_command = f'{self.sidecar_tool_path} sidecar --arangodb.endpoint="{arangod_url}" --sidecar.auth="{self.jwt_dir_path}" --sidecar.auth.mode="{SIDECAR_AUTH_MODE}" --sidecar.address="{SIDECAR_GRPC}" --sidecar.gateway.address="{SIDECAR_GATEWAY}" --sidecar.health.address="{SIDECAR_HEALTH}" --sidecar.unix.enabled=false --log.level="trace"'  # > {self.operator_dir_path / "sidecar.log"}'
+        start_sidecar_command = f'{self.sidecar_tool_path} sidecar --arangodb.endpoint="{arangod_url}" --sidecar.auth="{self.jwt_dir_path}" --sidecar.auth.mode="{SIDECAR_AUTH_MODE}" --sidecar.address="{SIDECAR_GRPC}" --sidecar.gateway.address="{SIDECAR_GATEWAY}" --sidecar.health.address="{SIDECAR_HEALTH}" --sidecar.unix.enabled=false --log.level="trace"'
         print("starting the authorization sidecar...")
         self.auth_sidecar = RBACHelper.run_command(start_sidecar_command)
         sleep(5)
         print("starting the authorization integration service...")
         os.environ["CENTRAL_INTEGRATION_SERVICE_ADDRESS"] = SIDECAR_GRPC
-        start_integration_svc_command = f'{self.integration_tool_path} --database.auth="{self.jwt_dir_path}" --integration.authorization.v1 --integration.authorization.v1.type="{INTEGRATION_SVC_MODE}" --integration.authentication.v1 --integration.authentication.v1.path="{self.jwt_dir_path}" --services.address="{INTEGRATION_GRPC}" --services.gateway.address="{INTEGRATION_GATEWAY}"'  # > {self.operator_dir_path / "integration.log"}'
+        start_integration_svc_command = f'{self.integration_tool_path} --database.auth="{self.jwt_dir_path}" --integration.authorization.v1 --integration.authorization.v1.type="{INTEGRATION_SVC_MODE}" --integration.authentication.v1 --integration.authentication.v1.path="{self.jwt_dir_path}" --services.address="{INTEGRATION_GRPC}" --services.gateway.address="{INTEGRATION_GATEWAY}"'
         self.auth_integration_svc = RBACHelper.run_command(start_integration_svc_command)
         sleep(5)
 
