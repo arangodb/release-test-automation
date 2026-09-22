@@ -4,7 +4,7 @@ ARG OPERATOR_VER="1.4.5"
 ARG USERNAME=rta
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-ARG COMMAND="bin-all"
+ENV COMMAND="bin-all"
 
 RUN apt-get update && apt-get install make
 WORKDIR /app
