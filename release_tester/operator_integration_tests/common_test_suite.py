@@ -40,6 +40,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
         if self.user_name is None:
             self.user_name = gh.generate_username()
             # create new regular user
+            print(f"creating test user '{self.user_name}'...")
             request_data = self.requests_data["users"]["create_user"]
             request_data = rh.update_request_data(
                 request_data, payload_param_1=self.user_name, payload_param_2=self.user_name, auth_token=self.su_token
@@ -48,13 +49,14 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
             # create user token
             self.user_token = self.rbh.generate_token(USER_TYPES[1], user_name=self.user_name)
             # create test data
+            print("creating test data...")
             response_codes = []
             user = self.user_name
             policy_1 = "read-db"
             policy_2 = "use-api"
             role = "db-reader"
             # create default policies
-            print(f"Creating '{policy_1}' and '{policy_2}' policies...")
+            print(f"creating default '{policy_1}' and '{policy_2}' policies...")
             request_data_1 = self.requests_data["management api - policy"]["create_policy"]
             request_data_2 = rh.clone_request_data(request_data_1)
             request_data_1 = rh.update_request_data(
@@ -76,7 +78,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
             response_codes.append(rh.execute_request(request_data_1, self.rbh.sidecar_url)["code"])
             response_codes.append(rh.execute_request(request_data_2, self.rbh.sidecar_url)["code"])
             # create default role
-            print(f"Creating '{role}' containing '{policy_1}' and '{policy_2}' policies...")
+            print(f"creating default '{role}' containing '{policy_1}' and '{policy_2}' policies...")
             request_data = self.requests_data["management api - role"]["create_role"]
             request_data = rh.update_request_data(
                 request_data,
@@ -87,7 +89,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
             )
             response_codes.append(rh.execute_request(request_data, self.rbh.sidecar_url)["code"])
             # create default role binding
-            print(f"Binding '{role}' role to '{user}'...")
+            print(f"binding default '{role}' role to test user '{user}'...")
             request_data = self.requests_data["management api - role binding"]["create_role_binding"]
             request_data = rh.update_request_data(
                 request_data,
@@ -103,7 +105,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
             gh.delay_execution()
             self.test_setup_ok = all([code in HTTP_OK_CODES for code in response_codes])
             print(
-                f"{'>>> Test data created successfully' if self.test_setup_ok else '!!! Error while test data creation'}"
+                f"{'test data created successfully...' if self.test_setup_ok else '!!! error while test data creation !!!'}"
             )
 
     def test_management_user_permissions_validation(self):

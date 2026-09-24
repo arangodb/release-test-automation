@@ -19,7 +19,7 @@ from test_suites_core.base_test_suite import run_before_suite, run_after_suite
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
 
 RBAC_SERVICE_GATEWAY = "http://127.0.0.1:9192"
-STARTER_LAUNCH_DELAY = 10
+STARTER_LAUNCH_DELAY = 15
 
 
 class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSuite):
@@ -49,6 +49,7 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
         )
         self.runner.starter_prepare_env()
         self.starter = self.runner.starter_instance
+        print("starting single server...")
         starter_args = [
             "--starter.mode single",
             f"--starter.data-dir {self.starter.basedir}",
@@ -63,7 +64,7 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
         self.starter.instance = subprocess.Popen(
             shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
-        print("starter instance:", self.starter.instance.pid)
+        print(f"starter instance PID: << {self.starter.instance.pid} >>")
         gh.delay_execution(STARTER_LAUNCH_DELAY)
 
     @run_before_suite
