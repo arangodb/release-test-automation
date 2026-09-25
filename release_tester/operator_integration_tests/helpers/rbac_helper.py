@@ -92,7 +92,7 @@ class RBACHelper:
                 # capture_output=True,
                 # text=True,
             )
-            docker_run_command = f"docker run -it -e COMMAND={make_target} kube-operator:rta"
+            docker_run_command = f"docker run -it --network=host -e COMMAND={make_target} kube-operator:rta"
             print("building the operator in container...")
             subprocess.run(docker_run_command, shell=True) # , capture_output=True, text=True)
             print(f"copying the operator binaries from container to '{operator_dir_path}' dir...")
