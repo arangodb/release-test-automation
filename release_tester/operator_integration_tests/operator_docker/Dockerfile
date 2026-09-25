@@ -9,11 +9,11 @@ ENV COMMAND="bin-all"
 RUN apt-get update && apt-get install make
 WORKDIR /app
 ADD "https://github.com/arangodb/kube-arangodb/archive/refs/tags/$OPERATOR_VER.tar.gz" /app
-RUN tar -xzf "$OPERATOR_VER.tar.gz" --no-same-owner --one-top-level=/app && rm "$OPERATOR_VER.tar.gz"
+RUN tar -xzf "$OPERATOR_VER.tar.gz" --one-top-level=/app && rm "$OPERATOR_VER.tar.gz"
 # Create the non-root user
-RUN groupadd --gid $USER_GID $USERNAME && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
-RUN chown $USERNAME:$USERNAME /app -R
-USER $USERNAME
+#RUN groupadd --gid $USER_GID $USERNAME && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+#RUN chown $USERNAME:$USERNAME /app -R
+#USER $USERNAME
 
 WORKDIR "/app/kube-arangodb-$OPERATOR_VER"
 CMD make $COMMAND
