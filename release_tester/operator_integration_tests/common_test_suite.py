@@ -78,7 +78,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
             response_codes.append(rh.execute_request(request_data_1, self.rbh.sidecar_url)["code"])
             response_codes.append(rh.execute_request(request_data_2, self.rbh.sidecar_url)["code"])
             # create default role
-            print(f"creating default '{role}' containing '{policy_1}' and '{policy_2}' policies...")
+            print(f"creating default '{role}' role containing '{policy_1}' and '{policy_2}' policies...")
             request_data = self.requests_data["management api - role"]["create_role"]
             request_data = rh.update_request_data(
                 request_data,
