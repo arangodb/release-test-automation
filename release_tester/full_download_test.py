@@ -76,9 +76,6 @@ def package_test(
             git_version,
         )
 
-        if not dl_new.is_different() and not dl_opts.force:
-            print("we already tested this version. bye.")
-            sys.exit(0)
         dl_new.get_packages(dl_new.is_different())
         if props.enterprise:
             enterprise_packages_are_present = True
