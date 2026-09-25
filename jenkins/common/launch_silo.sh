@@ -2,7 +2,7 @@ ${DOCKER} run -d \
        -p 9000:9000 \
        -p 9001:9001 \
        --network=$DOCKER_NETWORK_NAME \
-       --name silo11 \
+       --name silo1 \
        -v "$(pwd)/test_dir/silodata:/data" \
        -e "SILO_ROOT_USER=silo" \
        -e "SILO_ROOT_PASSWORD=silo123" \
