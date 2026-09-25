@@ -4,8 +4,8 @@ ${DOCKER} run -d \
        --network=$DOCKER_NETWORK_NAME \
        --name silo1 \
        -v "$(pwd)/test_dir/silodata:/data" \
-       -e "SILO_ROOT_USER=silo" \
-       -e "SILO_ROOT_PASSWORD=silo123" \
+       -e "MINIO_ROOT_USER=silo" \
+       -e "MINIO_ROOT_PASSWORD=silo12345" \
        pgsty/silo server /data --console-address ":9001" || exit 1
 TRAP_CLEANUP=(
     "${DOCKER} kill silo1"
