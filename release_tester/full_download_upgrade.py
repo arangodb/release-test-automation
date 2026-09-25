@@ -101,9 +101,6 @@ def upgrade_package_test(
             fresh_versions,
             git_version,
         )
-        if not dl_new.is_different() or not dl_old.is_different():
-            print("we already tested this version. bye.")
-            return 0
         try:
             dl_old.get_packages(dl_old.is_different())
             dl_new.get_packages(dl_new.is_different())

@@ -135,6 +135,7 @@ class Download:
         self.new_version_states = new_version_states
         self.version_content = None
         self.version_content = None
+        self.fresh_content = None
         if self.is_nightly:
             self.version_state_id = version + "_sourceInfo.log"
             if self.version_state_id in self.existing_version_states:
@@ -144,6 +145,13 @@ class Download:
 
     def is_different(self):
         """whether we would download a new package or not"""
+        exists = True
+        for package in self.packages:
+            if not (Path(self.options.package_dir) / package).exists():
+                exists = False
+        if exists:
+            print('have a package')
+            return False
         return (
             self.source == "local"
             or not self.version_content
@@ -357,7 +365,7 @@ class Download:
                 )
             )
 
-    def get_packages(self, force):
+    def get_packages(self, force=False):
         """download all packages for this version from the specified package source"""
         ret = []
         self.packages = []
@@ -369,16 +377,22 @@ class Download:
             self.packages.append(self.inst.debug_package)
 
         for package in self.packages:
-            self.funcs[self.source](self.directories[self.source], package, Path(self.options.package_dir), force)
+            self.funcs[self.source](self.directories[self.source], package,
+                                    Path(self.options.package_dir), force)
             ret.append(Path(self.options.package_dir) / package)
         return ret
 
     def get_version_info(self, git_version):
-        """download the nightly sourceInfo.json file, calculate more precise version of the packages"""
+        """
+        download the nightly sourceInfo.json file, calculate more precise
+        version of the packages
+        """
         if self.source == "local":
             return ""
         source_info_fn = "sourceInfo.json"
-        self.funcs[self.source](self.directories['nightlypublicsourceinfo'], source_info_fn, Path(self.options.package_dir), True)
+        self.funcs[self.source](self.directories['nightlypublicsourceinfo'],
+                                source_info_fn, Path(self.options.package_dir),
+                                True)
         text = (Path(self.options.package_dir) / source_info_fn).read_text()
         while text[0] != "{":
             text = text[1:]
