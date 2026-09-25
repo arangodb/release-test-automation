@@ -52,9 +52,9 @@ class HotBackupConfig:
 
         if (
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
-            and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
+            and self.hb_provider_cfg.provider == HotBackupProviders.SILO
         ):
-            endpoint = "http://minio1:9000"
+            endpoint = "http://silo1:9000"
             if 'ENDPOINT' in os.environ:
                 endpoint = os.environ['ENDPOINT']
             self.name = "S3"
@@ -62,7 +62,7 @@ class HotBackupConfig:
             config["provider"] = "minio"
             config["env_auth"] = "false"
             config["access_key_id"] = "minio"
-            config["secret_access_key"] = "minio123"
+            config["secret_access_key"] = "silo12345"
             config["endpoint"] = endpoint
             config["region"] = "us-east-1"
         elif (

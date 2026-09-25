@@ -3,7 +3,7 @@ if test "$CHOWN" != "false"; then
            -v "/tmp:/tmp" \
            -v "$(pwd)/test_dir:/home/test_dir" \
            -v "${ALLURE_DIR}:/home/allure-results" \
-           -v "$(pwd)/test_dir/miniodata:/data" \
+           -v "$(pwd)/test_dir/silodata:/data" \
            "${CLEANUP_DOCKER_ARGS[@]}" \
            --rm \
            "${DOCKER_NAMESPACE}${DOCKER_TAG}" \
