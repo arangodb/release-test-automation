@@ -84,16 +84,17 @@ class RBACHelper:
             make_target = "bin" if current_machine == AMD64_MACHINE_NAME else "bin-all"
             docker_build_command = f"docker build --build-arg USERNAME=$(whoami) --build-arg OPERATOR_VER={operator_version} -t kube-operator:rta ."
             print("building the operator image...")
+            print(f"{Path(__file__).parent.parent.resolve()}/operator_docker/")
             subprocess.run(
                 docker_build_command,
                 shell=True,
                 cwd=f"{Path(__file__).parent.parent.resolve()}/operator_docker/",
-                capture_output=True,
-                text=True,
+                # capture_output=True,
+                # text=True,
             )
             docker_run_command = f"docker run -it -e COMMAND={make_target} kube-operator:rta"
             print("building the operator in container...")
-            subprocess.run(docker_run_command, shell=True, capture_output=True, text=True)
+            subprocess.run(docker_run_command, shell=True) # , capture_output=True, text=True)
             print(f"copying the operator binaries from container to '{operator_dir_path}' dir...")
             docker_cp_command_1 = f"docker cp $(docker ps -alq):/app/kube-arangodb-{operator_version}/bin/{SUPPORTED_OS.lower()}/{current_machine}/{OPERATOR_TOOL_NAME} {operator_dir_path}"
             subprocess.run(docker_cp_command_1, shell=True)
