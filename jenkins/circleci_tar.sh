@@ -80,7 +80,9 @@ done
 
 . ./jenkins/common/setup_selenium.sh
 # . ./jenkins/common/evaluate_force.sh
-. ./jenkins/common/load_git_submodules.sh
+# . ./jenkins/common/load_git_submodules.sh
+ssh -o StrictHostKeyChecking=no -T git@github.com
+git submodule init && git submodule update || exit 1
 
 . ./jenkins/common/launch_minio.sh
 
