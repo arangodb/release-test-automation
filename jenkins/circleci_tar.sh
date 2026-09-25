@@ -84,7 +84,7 @@ done
 ssh -o StrictHostKeyChecking=no -T git@github.com
 git submodule init && git submodule update || exit 1
 
-. ./jenkins/common/launch_minio.sh
+. ./jenkins/common/launch_silo.sh
 
 . ./jenkins/common/register_cleanup_trap.sh
 
