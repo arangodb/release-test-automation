@@ -82,7 +82,7 @@ class RBACHelper:
                 ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
             )
             make_target = "bin" if current_machine == AMD64_MACHINE_NAME else "bin-all"
-            docker_build_command = f"docker build --build-arg USERNAME=$(whoami) --build-arg OPERATOR_VER={operator_version} -t kube-operator:rta ."
+            docker_build_command = f"docker build --network=host --build-arg USERNAME=$(whoami) --build-arg OPERATOR_VER={operator_version} -t kube-operator:rta ."
             print("building the operator image...")
             print(f"{Path(__file__).parent.parent.resolve()}/operator_docker/")
             subprocess.run(
