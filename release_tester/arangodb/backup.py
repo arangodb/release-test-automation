@@ -59,9 +59,9 @@ class HotBackupConfig:
                 endpoint = os.environ['ENDPOINT']
             self.name = "S3"
             config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
-            config["provider"] = "minio"
+            config["provider"] = "Minio"
             config["env_auth"] = "false"
-            config["access_key_id"] = "minio"
+            config["access_key_id"] = "silo"
             config["secret_access_key"] = "silo12345"
             config["endpoint"] = endpoint
             config["region"] = "us-east-1"
