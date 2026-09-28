@@ -27,7 +27,7 @@ class HotBackupMode(Enum):
 class HotBackupProviders(Enum):
     """list of cloud storage providers"""
 
-    MINIO = 0
+    SILO = 0
     AWS = 1
     GCE = 2
     AZURE = 3
@@ -48,7 +48,7 @@ HB_MODES = {
 }
 
 HB_PROVIDERS = {
-    "minio": HotBackupProviders.MINIO,
+    "silo": HotBackupProviders.SILO,
     "aws": HotBackupProviders.AWS,
     "gce": HotBackupProviders.GCE,
     "azure": HotBackupProviders.AZURE,
@@ -61,7 +61,7 @@ class HotBackupProviderCfg:
     ALLOWED_PROVIDERS = {
         HotBackupMode.DISABLED: [],
         HotBackupMode.DIRECTORY: [],
-        HotBackupMode.S3BUCKET: [HotBackupProviders.MINIO, HotBackupProviders.AWS],
+        HotBackupMode.S3BUCKET: [HotBackupProviders.SILO, HotBackupProviders.AWS],
         HotBackupMode.GCS: [HotBackupProviders.GCE],
         HotBackupMode.AZUREBLOBSTORAGE: [HotBackupProviders.AZURE],
     }
@@ -69,7 +69,7 @@ class HotBackupProviderCfg:
     HB_PROVIDER_DEFAULT = {
         HotBackupMode.DISABLED: None,
         HotBackupMode.DIRECTORY: None,
-        HotBackupMode.S3BUCKET: HotBackupProviders.MINIO,
+        HotBackupMode.S3BUCKET: HotBackupProviders.SILO,
         HotBackupMode.GCS: HotBackupProviders.GCE,
         HotBackupMode.AZUREBLOBSTORAGE: HotBackupProviders.AZURE,
     }
