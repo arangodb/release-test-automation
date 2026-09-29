@@ -16,8 +16,8 @@ from reporting.reporting_utils import step
 from test_suites_core.base_test_suite import run_before_suite, run_after_suite
 
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
+from operator_integration_tests.helpers.rbac_helper import RBAC_SERVICE_GATEWAY
 
-RBAC_SERVICE_GATEWAY = "http://127.0.0.1:9192"
 STARTER_LAUNCH_DELAY = 10
 CLUSTER_LAUNCH_DELAY = 20
 
