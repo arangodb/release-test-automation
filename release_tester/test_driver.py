@@ -29,6 +29,7 @@ from license_manager_tests.upgrade.upgrade_test_suite import UpgradeLicenseManag
 from overload_thread import spawn_overload_watcher_thread, shutdown_overload_watcher_thread
 from package_installation_tests.community_package_installation_test_suite import CommunityPackageInstallationTestSuite
 from package_installation_tests.enterprise_package_installation_test_suite import EnterprisePackageInstallationTestSuite
+from operator_integration_tests.test_suites import OperatorIntegrationTestSuite
 from reporting.reporting_utils import RtaTestcase, AllureTestSuiteContext, init_allure
 from reporting.reporting_utils2 import generate_suite_name
 from siteconfig import SiteConfig
@@ -58,6 +59,7 @@ FULL_TEST_SUITE_LIST = [
     UpgradeLicenseManagerTestSuite,
     DebuggerTestSuite,
     BinaryComplianceTestSuite,
+    OperatorIntegrationTestSuite,
 ]
 
 
@@ -334,10 +336,10 @@ class TestDriver:
                                 if runner.agency:
                                     runner.agency.acquire_dump()
                             except Exception as aex:
-                                testcase.context.statusDetails = StatusDetails(message=str(aex),
-                                                                               trace="".join(
-                                                                                   traceback.TracebackException.from_exception(
-                                                                                       aex).format()))
+                                testcase.context.statusDetails = StatusDetails(
+                                    message=str(aex),
+                                    trace="".join(traceback.TracebackException.from_exception(aex).format()),
+                                )
                             print("failed to acquire agency dump! Ignoring")
                             runner.search_for_warnings()
                             runner.quit_selenium()

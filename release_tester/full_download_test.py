@@ -123,6 +123,7 @@ def package_test(
                         "DebuggerTestSuite",
                         "BasicLicenseManagerTestSuite",
                         "BinaryComplianceTestSuite",
+                        "OperatorIntegrationTestSuite",
                     ),
                     params=params,
                 )
