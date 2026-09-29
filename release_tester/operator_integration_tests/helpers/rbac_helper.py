@@ -73,7 +73,7 @@ class RBACHelper:
         """builds operator in container and copies binaries to specified folder"""
         tool_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
         if not Path(tool_path).exists():
-            print("arangodb operator binaries were not found locally - need to build them...")
+            print("arangodb operator binaries were not found locally - we need to build them...")
             latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
             release_data = requests.get(latest_release_url, timeout=REQUEST_TIMEOUT).json()
             operator_version = release_data["tarball_url"].split("/")[-1]
@@ -85,7 +85,6 @@ class RBACHelper:
             docker_file = "ci.Dockerfile" if "JOB_NAME" in os.environ else "local.Dockerfile"
             docker_build_command = f"docker build --file={docker_file} --network=host --build-arg USERNAME=$(whoami) --build-arg OPERATOR_VER={operator_version} -t kube-operator:rta ."
             print("building the operator image...")
-            print(f"{Path(__file__).parent.parent.resolve()}/operator_docker/")
             subprocess.run(
                 docker_build_command,
                 shell=True,
