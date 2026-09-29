@@ -1,9 +1,7 @@
 FROM golang:1.26.8-trixie
 
 ARG OPERATOR_VER="1.4.5"
-ARG USERNAME=rta
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USERNAME="rta"
 ENV COMMAND="bin-all"
 
 RUN apt-get update && apt-get install make
