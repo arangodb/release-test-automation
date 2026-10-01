@@ -20,6 +20,7 @@ class OperatorIntegrationTestSuite(OperatorIntegrationBaseTestSuite):
     def install_package(self):
         """install server package"""
         self.installer.install_server_package()
+        self.installer.stop_service()
 
     @run_after_suite
     def uninstall_package(self):
