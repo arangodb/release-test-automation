@@ -69,7 +69,7 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
         starter_args.extend(self.get_rbac_starter_params())
         command = f"{self.starter.cfg.bin_dir / 'arangodb'} {' '.join(starter_args)}"
         self.starter.instance = subprocess.Popen(
-            shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            shlex.split(command) #, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         print(f"starter instance PID: << {self.starter.instance.pid} >> ")
         gh.delay_execution(CLUSTER_LAUNCH_DELAY)
