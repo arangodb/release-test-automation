@@ -62,7 +62,7 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
         ]
         command = f"{self.starter.cfg.bin_dir / 'arangodb'} {' '.join(starter_args)}"
         self.starter.instance = subprocess.Popen(
-            shlex.split(command) #, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         print(f"starter instance PID: << {self.starter.instance.pid} >>")
         gh.delay_execution(STARTER_LAUNCH_DELAY)

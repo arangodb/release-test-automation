@@ -120,9 +120,9 @@ def package_test(
             results.append(
                 test_driver.run_test_suites(
                     include_suites=(
-                        # "DebuggerTestSuite",
-                        # "BasicLicenseManagerTestSuite",
-                        # "BinaryComplianceTestSuite",
+                        "DebuggerTestSuite",
+                        "BasicLicenseManagerTestSuite",
+                        "BinaryComplianceTestSuite",
                         "OperatorIntegrationTestSuite",
                     ),
                     params=params,
