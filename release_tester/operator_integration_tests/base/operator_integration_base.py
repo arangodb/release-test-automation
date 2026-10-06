@@ -64,7 +64,7 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
         """Check that test suite is compatible with ArangoDB versions that are being tested.
         If not, disable test suite.
         """
-        if self.new_version is not None and self.current_version <= semver.VersionInfo.parse("3.12.11"):
+        if self.new_version is not None and self.current_version < semver.VersionInfo.parse("3.12.11"):
             return False, "This test suite is only applicable to versions 3.12.11 and higher"
         else:
             return True, None
