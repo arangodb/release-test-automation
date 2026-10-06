@@ -488,7 +488,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
         with step("evaluate multiple sets of permissions for a given user token - /evaluate-token-many"):
             request_data = self.requests_data["integration api - authorization"]["evaluate_token_permissions"]
             request_data = rh.update_request_data(
-                request_data, payload_param_1=self.user_token, payload_param_3=self.api_version
+                request_data, payload_param_1=self.user_token, payload_param_2=self.api_version
             )
             request_result = rh.execute_request(request_data, self.rbh.integration_url)
             assert request_result["code"] == 200

@@ -329,7 +329,7 @@
         "token": "$1",
         "items": [
           {"action": "db:Read", "resource": "db:*"},
-          {"action": "db:UseApiVersion", "resource": "db:apiversion:$3"}
+          {"action": "db:UseApiVersion", "resource": "db:apiversion:$2"}
         ]
       }
     }
