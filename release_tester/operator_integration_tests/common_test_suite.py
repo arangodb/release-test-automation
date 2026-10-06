@@ -34,6 +34,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
         self.user_name = None
         self.user_token = None
         self.test_setup_ok = True
+        self.set_api_version_in_test_data()
 
     def create_test_user_and_create_test_data(self):
         """Create user, generate user token and create test data"""
@@ -71,7 +72,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
                 request_data_2,
                 payload_param_1="Allow",
                 payload_param_2="db:UseApiVersion",
-                payload_param_3="db:apiversion:v0",
+                payload_param_3=f"db:apiversion:{self.api_version}",
                 endpoint_param_1=policy_2,
                 auth_token=self.su_token,
             )
@@ -466,7 +467,9 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
         with step("evaluate multiple sets of permissions for a given user/role combination -  /evaluate-many"):
             role = "db-reader"
             request_data = self.requests_data["integration api - authorization"]["evaluate_user_permissions"]
-            request_data = rh.update_request_data(request_data, payload_param_1=self.user_name, payload_param_2=role)
+            request_data = rh.update_request_data(
+                request_data, payload_param_1=self.user_name, payload_param_2=role, payload_param_3=self.api_version
+            )
             request_result = rh.execute_request(request_data, self.rbh.integration_url)
             assert request_result["code"] == 200
             assert request_result["json"]["message"] == "Access Granted"
@@ -484,7 +487,9 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
 
         with step("evaluate multiple sets of permissions for a given user token - /evaluate-token-many"):
             request_data = self.requests_data["integration api - authorization"]["evaluate_token_permissions"]
-            request_data = rh.update_request_data(request_data, payload_param_1=self.user_token)
+            request_data = rh.update_request_data(
+                request_data, payload_param_1=self.user_token, payload_param_3=self.api_version
+            )
             request_result = rh.execute_request(request_data, self.rbh.integration_url)
             assert request_result["code"] == 200
             assert request_result["json"]["message"] == "Access Granted"
@@ -507,3 +512,9 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
                 request_data = self.requests_data["management api - policy"]["delete_policy"]
                 request_data = rh.update_request_data(request_data, endpoint_param_1=policy, auth_token=self.su_token)
                 rh.execute_request(request_data, self.rbh.sidecar_url)
+
+    def set_api_version_in_test_data(self):
+        policy = "use-api"
+        self.test_data["policies"][policy]["resources"][0] = self.test_data["policies"][policy]["resources"][0].replace(
+            "vX", self.api_version
+        )
