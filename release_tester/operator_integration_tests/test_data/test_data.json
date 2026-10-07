@@ -8,7 +8,7 @@
     "use-api": {
       "effect": "Allow",
       "actions": ["db:UseApiVersion"],
-      "resources": ["db:apiversion:vX"]
+      "resources": ["db:apiversion:$1"]
     },
     "write-db" : {
       "effect": "Allow",
