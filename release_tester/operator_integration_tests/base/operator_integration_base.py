@@ -15,6 +15,9 @@ from operator_integration_tests.helpers.rbac_helper import RBACHelper
 
 JWT_DIR = "jwt"
 OPERATOR_DIR = "operator"
+V1_API_ARANGO_VERSION = semver.VersionInfo.parse("4.0.0")
+V0_API_VERSION = "v0"
+V1_API_VERSION = "v1"
 
 
 class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
@@ -23,6 +26,7 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
     # pylint: disable=too-many-instance-attributes disable=too-many-boolean-expressions
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
+        self.current_version = semver.VersionInfo.parse(self.new_version.split("-")[0])
         eligible, reason = self._check_versions_eligible()
         if not eligible:
             self.__class__.is_disabled = True
@@ -46,6 +50,7 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
         self.parent_test_suite_name = (
             f"Operator integration test suite: ArangoDB v. {str(self.new_version)} ({self.installer.installer_type})"
         )
+        self.api_version = V1_API_VERSION if self.current_version >= V1_API_ARANGO_VERSION else V0_API_VERSION
         # create JWT secret and operator binaries folders
         self.jwt_dir = self.base_cfg.test_data_dir / JWT_DIR
         self.jwt_dir.mkdir(parents=False, exist_ok=True)
@@ -59,9 +64,7 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
         """Check that test suite is compatible with ArangoDB versions that are being tested.
         If not, disable test suite.
         """
-        if self.new_version is not None and semver.VersionInfo.parse(self.new_version) <= semver.VersionInfo.parse(
-            "3.12.11"
-        ):
+        if self.new_version is not None and self.current_version < semver.VersionInfo.parse("3.12.11"):
             return False, "This test suite is only applicable to versions 3.12.11 and higher"
         else:
             return True, None
