@@ -621,8 +621,8 @@ class Cluster(Runner):
             backups = self.list_backup()
             if backup_step_1 not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_step_1)
-            self.tcp_ping_all_nodes()
+            if self.restore_backup([backup_step_1], 0):
+                self.tcp_ping_all_nodes()
 
         with step("step 8: check data"):
             self.check_data_impl()
@@ -646,8 +646,8 @@ class Cluster(Runner):
             backups = self.list_backup()
             if backup_step_3 not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_step_3)
-            self.tcp_ping_all_nodes()
+            if self.restore_backup([backup_step_3], 0):
+                self.tcp_ping_all_nodes()
 
         with step("step 12: check data"):
             self.check_data_impl()
@@ -684,8 +684,8 @@ class Cluster(Runner):
             if latest_backup not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
         with step("step 3: restore backup"):
-            self.restore_backup(latest_backup)
-            self.tcp_ping_all_nodes()
+            if self.restore_backup([latest_backup], 0):
+                self.tcp_ping_all_nodes()
         # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
         with step("step 4: delete backups"):
             self.delete_all_backups()
