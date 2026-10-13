@@ -35,7 +35,7 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
     def start_cluster(self):
         """start a local cluster setup"""
         self.runner = make_runner(
-            runner_type=RunnerType.CLUSTER,
+            runner_type=RunnerType.CLUSTER_RBAC,
             abort_on_error=False,
             installer_set=self.installer_set,
             selenium_worker="none",
@@ -48,9 +48,9 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
             ),
         )
         self.runner.starter_prepare_env()
+        self.runner.starter_run()
+        self.runner.finish_setup()
         self.starter = self.runner.starter_instances[0]
-        print("starting local cluster...")
-        self.start_local_cluster()  # or self.start_single_starter_local_cluster()
 
     @run_before_suite
     def start_operator_services(self):
@@ -65,6 +65,7 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
     def start_single_starter_local_cluster(self):
         """start local test cluster using a single starter"""
 
+        print("starting local test cluster...")
         starter_args = ["--starter.local", f"--starter.data-dir {self.starter.basedir}", "--starter.host 127.0.0.1"]
         starter_args.extend(self.get_rbac_starter_params())
         command = f"{self.starter.cfg.bin_dir / 'arangodb'} {' '.join(starter_args)}"
@@ -77,6 +78,7 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
     def start_local_cluster(self):
         """start local cluster with 3 starters"""
 
+        print("starting local cluster...")
         starter_path = f"{self.starter.cfg.bin_dir / 'arangodb'}"
         starter_1, starter_2, starter_3 = self.runner.starter_instances
         starter_1_args = [f"--starter.data-dir {starter_1.basedir}"]
