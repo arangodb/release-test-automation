@@ -15,7 +15,6 @@ from reporting.reporting_utils import step
 IS_WINDOWS = platform.win32_ver()[0] != ""
 
 
-
 # pylint: disable=import-outside-toplevel disable=too-many-arguments disable=too-many-locals disable=too-many-function-args disable=too-many-branches
 @step
 def make_runner(
@@ -48,7 +47,7 @@ def make_runner(
         selenium_worker,
         selenium_driver_args,
         selenium_include_suites,
-        runner_properties
+        runner_properties,
     )
 
     if runner_type == RunnerType.SINGLE:
@@ -56,11 +55,20 @@ def make_runner(
 
         return Single(*args)
 
+    if runner_type == RunnerType.SINGLE_RBAC:
+        from arangodb.starter.deployments.single_rbac import SingleRBAC
+
+        return SingleRBAC(*args)
+
     if runner_type == RunnerType.CLUSTER:
         from arangodb.starter.deployments.cluster import Cluster
 
         return Cluster(*args)
 
+    if runner_type == RunnerType.CLUSTER_RBAC:
+        from arangodb.starter.deployments.cluster_rbac import ClusterRBAC
+
+        return ClusterRBAC(*args)
 
     if runner_type == RunnerType.NONE:
         from arangodb.starter.deployments.none import NoStarter
