@@ -117,7 +117,7 @@ class RBACHelper:
 
     @staticmethod
     def download_or_build_operator(operator_dir_path):
-        """downloads operator platform tool for the current platform"""
+        """downloads and/or builds operator binaries for the current platform"""
         operator_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
         operator_integration_path = f"{operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
         if not Path(operator_path).exists() and not Path(operator_integration_path).exists():
