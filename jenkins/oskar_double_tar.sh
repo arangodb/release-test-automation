@@ -83,7 +83,7 @@ done
 # . ./jenkins/common/evaluate_force.sh
 . ./jenkins/common/load_git_submodules.sh
 
-. ./jenkins/common/launch_minio.sh
+. ./jenkins/common/launch_silo.sh
 
 . ./jenkins/common/register_cleanup_trap.sh
 

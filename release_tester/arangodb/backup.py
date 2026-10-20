@@ -52,17 +52,17 @@ class HotBackupConfig:
 
         if (
             self.hb_provider_cfg.mode == HotBackupMode.S3BUCKET
-            and self.hb_provider_cfg.provider == HotBackupProviders.MINIO
+            and self.hb_provider_cfg.provider == HotBackupProviders.SILO
         ):
-            endpoint = "http://minio1:9000"
+            endpoint = "http://silo1:9000"
             if 'ENDPOINT' in os.environ:
                 endpoint = os.environ['ENDPOINT']
             self.name = "S3"
             config["type"] = HB_2_RCLONE_TYPE[self.hb_provider_cfg.mode]
-            config["provider"] = "minio"
+            config["provider"] = "Minio"
             config["env_auth"] = "false"
-            config["access_key_id"] = "minio"
-            config["secret_access_key"] = "minio123"
+            config["access_key_id"] = "silo"
+            config["secret_access_key"] = "silo12345"
             config["endpoint"] = endpoint
             config["region"] = "us-east-1"
         elif (
@@ -189,7 +189,7 @@ class HotBackupManager(ArangoCLIprogressiveTimeoutExecutor):
             return False
 
         success, output, _, error_found = self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangobackup",
+            self.cfg.client_bin_dir / "arangobackup",
             run_cmd,
             params=make_default_params(self.cfg.verbose and not silent, "arangobackup"),
             progressive_timeout=progressive_timeout,

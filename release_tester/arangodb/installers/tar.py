@@ -67,23 +67,32 @@ class InstallerTAR(InstallerArchive):
 
         self.server_package = "arangodb{mv}{ep}-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
         self.client_package = "arangodb{mv}{ep}-client-{os}{dashus}{ver}{arch}.{ext}".format(**self.desc)
-        self.cfg.client_install_prefix = self.basedir / "arangodb{mv}{ep}-client-{arch}{dashus}{ver}".format(**self.desc)
-        self.cfg.server_install_prefix = self.basedir / "arangodb{mv}{ep}-{arch}{dashus}{ver}".format(**self.desc)
-        if self.cfg.client_package_is_installed:
-            self.cfg.install_prefix = self.basedir / "arangodb{mv}{ep}-client-{os}{dashus}{ver}{arch}".format(**self.desc)
+        self.cfg.client_install_prefix = self.basedir / "arangodb{mv}{ep}-client-{os}{dashus}{ver}{arch}".format(**self.desc)
+        self.cfg.server_install_prefix = self.basedir / "arangodb{mv}{ep}-{os}{dashus}{ver}{arch}".format(**self.desc)
+
+        if self.cfg.client_package_is_installed and self.cfg.semver.major < 4:
+            self.cfg.install_prefix = self.cfg.client_install_prefix
         else:
-            self.cfg.install_prefix = self.basedir / "arangodb{mv}{ep}-{os}{dashus}{ver}{arch}".format(**self.desc)
+            self.cfg.install_prefix = self.cfg.server_install_prefix
         self.cfg.bin_dir = self.cfg.install_prefix / "bin"
+        self.cfg.client_bin_dir = self.cfg.bin_dir
         self.cfg.sbin_dir = self.cfg.install_prefix / "usr" / "sbin"
         self.cfg.real_bin_dir = self.cfg.install_prefix / "usr" / "bin"
+        self.cfg.client_real_bin_dir = self.cfg.real_bin_dir
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
         self.cfg.cfgdir = self.cfg.install_prefix  # n/A
         self.cfg.appdir = self.cfg.install_prefix  # n/A
         self.cfg.dbdir = self.cfg.install_prefix  # n/A
         self.cfg.log_dir = self.cfg.install_prefix  # n/A
+        if self.cfg.semver.major >= 4:
+            self.cfg.client_bin_dir = self.cfg.client_install_prefix / "bin"
+            self.cfg.client_real_bin_dir = self.cfg.client_install_prefix / "usr" / "bin"
 
     def calculate_installation_dirs(self):
         self.cfg.bin_dir = self.test_dir / "bin"
         self.cfg.sbin_dir = self.test_dir / "usr" / "sbin"
         self.cfg.real_bin_dir = self.test_dir / "usr" / "bin"
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
+        if self.cfg.semver.major >= 4:
+            self.cfg.client_bin_dir = self.cfg.client_install_prefix / "bin"
+            self.cfg.client_real_bin_dir = self.cfg.client_install_prefix / "usr" / "bin"

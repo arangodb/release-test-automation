@@ -119,6 +119,8 @@ class InstallerConfig:
         self.log_dir = Path()
         self.bin_dir = Path()
         self.real_bin_dir = Path()
+        self.client_bin_dir = Path()
+        self.client_real_bin_dir = Path()
         self.sbin_dir = Path()
         self.real_sbin_dir = Path()
         self.dbdir = Path()
@@ -212,6 +214,8 @@ sublaunch pwd = {0.sublaunch_pwd}
             self.log_dir = other_cfg.log_dir
             self.bin_dir = other_cfg.bin_dir
             self.real_bin_dir = other_cfg.real_bin_dir
+            self.client_bin_dir = other_cfg.client_bin_dir
+            self.client_real_bin_dir = other_cfg.client_real_bin_dir
             self.sbin_dir = other_cfg.sbin_dir
             self.real_sbin_dir = other_cfg.real_sbin_dir
             self.dbdir = other_cfg.dbdir
@@ -259,12 +263,18 @@ sublaunch pwd = {0.sublaunch_pwd}
         if other.bin_dir is None:
             raise Exception("bin_dir: must not copy in None!")
         self.bin_dir = other.bin_dir
+        if other.client_bin_dir is None:
+            raise Exception("client_bin_dir: must not copy in None!")
+        self.client_bin_dir = other.client_bin_dir
         if other.sbin_dir is None:
             raise Exception("sbin_dir: must not copy in None!")
         self.sbin_dir = other.sbin_dir
         if other.real_bin_dir is None:
             raise Exception("real_bin_dir: must not copy in None!")
         self.real_bin_dir = other.real_bin_dir
+        if other.client_real_bin_dir is None:
+            raise Exception("client_real_bin_dir: must not copy in None!")
+        self.client_real_bin_dir = other.client_real_bin_dir
         if other.real_sbin_dir is None:
             raise Exception("real_sbin_dir: must not copy in None!")
         self.real_sbin_dir = other.real_sbin_dir

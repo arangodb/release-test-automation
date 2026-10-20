@@ -75,7 +75,9 @@ class InstallerBase(ABC):
         """install the server package to the system"""
         self.install_server_package_impl()
         self.cfg.server_package_is_installed = True
-        self.calculate_file_locations()
+        self.calculate_file_locations(False)
+        if self.cfg.semver.major >= 4:
+            self.install_client_package()
 
     @step
     def copy_binaries(self):
@@ -112,7 +114,7 @@ class InstallerBase(ABC):
         """install the client package to the system"""
         self.install_client_package_impl()
         self.cfg.client_package_is_installed = True
-        self.calculate_file_locations()
+        self.calculate_file_locations(True)
 
     @step
     def un_install_client_package(self):
@@ -171,7 +173,7 @@ class InstallerBase(ABC):
         """install a new version of the client package to the system"""
         self.upgrade_client_package_impl()
         self.cfg.client_package_is_installed = True
-        self.calculate_file_locations()
+        self.calculate_file_locations(True)
         old_installer.cfg.client_package_is_installed = False
 
     def uninstall_everything(self):
@@ -347,29 +349,33 @@ class InstallerBase(ABC):
         )
 
     @step
-    def calculate_file_locations(self):
+    def calculate_file_locations(self, is_client):
         """set the global location of files"""
         # files present in both server and client packages
         self.calculate_package_names()
         self.arango_binaries = []
-        if self.cfg.client_package_is_installed or self.cfg.server_package_is_installed:
+        calculate_client_files = ((
+            self.cfg.server_package_is_installed and
+            semver.compare(self.cfg.version, "3.12.99") > 0) or
+            is_client)
+        if calculate_client_files:
             self.arango_binaries.append(
                 BinaryDescription(
-                    self.cfg.real_bin_dir,
+                    self.cfg.client_real_bin_dir,
                     "arangosh",
                     "arangosh - commandline client",
                     False,
                     True,
                     "1.0.0",
                     "4.0.0",
-                    [self.cfg.real_bin_dir / ("arangoinspect" + FILE_EXTENSION)],
+                    [[self.cfg.real_bin_dir / ("arangoinspect" + FILE_EXTENSION), "3.12.99"]],
                     "c++",
                 )
             )
 
             self.arango_binaries.append(
                BinaryDescription(
-                   self.cfg.real_bin_dir,
+                   self.cfg.client_real_bin_dir,
                    "arangoexport",
                    "arangoexport - data exporter",
                    False,
@@ -383,21 +389,21 @@ class InstallerBase(ABC):
 
             self.arango_binaries.append(
                 BinaryDescription(
-                    self.cfg.real_bin_dir,
+                    self.cfg.client_real_bin_dir,
                     "arangoimport",
                     "arangoimport - data importer",
                     False,
                     True,
                     "1.0.0",
                     "4.0.0",
-                    [self.cfg.real_bin_dir / ("arangoimp" + FILE_EXTENSION)],
+                    [[self.cfg.client_real_bin_dir / ("arangoimp" + FILE_EXTENSION), "3.12.99"]],
                     "c++",
                 )
             )
 
             self.arango_binaries.append(
                BinaryDescription(
-                   self.cfg.real_bin_dir,
+                   self.cfg.client_real_bin_dir,
                    "arangodump",
                    "arangodump - data and configuration dumping tool",
                    False,
@@ -411,7 +417,7 @@ class InstallerBase(ABC):
 
             self.arango_binaries.append(
                BinaryDescription(
-                   self.cfg.real_bin_dir,
+                   self.cfg.client_real_bin_dir,
                    "arangorestore",
                    "arangrestore - data and configuration restoration tool",
                    False,
@@ -425,7 +431,7 @@ class InstallerBase(ABC):
 
 #            self.arango_binaries.append(
 #                BinaryDescription(
-#                    self.cfg.real_bin_dir,
+#                    self.cfg.client_real_bin_dir,
 #                    "arangobench",
 #                    "arangobench.*",  #  - stress test tool",
 #                    False,
@@ -439,7 +445,7 @@ class InstallerBase(ABC):
 
             self.arango_binaries.append(
                 BinaryDescription(
-                    self.cfg.real_bin_dir,
+                    self.cfg.client_real_bin_dir,
                     "arangovpack",
                     "arangovpack - VelocyPack formatter",
                     False,
@@ -454,7 +460,7 @@ class InstallerBase(ABC):
             # enterprise
             self.arango_binaries.append(
                 BinaryDescription(
-                    self.cfg.real_bin_dir,
+                    self.cfg.client_real_bin_dir,
                     "arangobackup",
                     "arangobackup - hot backup tool",
                     True,
@@ -467,7 +473,7 @@ class InstallerBase(ABC):
             )
 
         # files only present in server package
-        if self.cfg.server_package_is_installed:
+        if self.cfg.server_package_is_installed and not is_client:
             self.arango_binaries.append(
                 BinaryDescription(
                     self.cfg.real_sbin_dir,
@@ -481,21 +487,6 @@ class InstallerBase(ABC):
                         self.cfg.real_sbin_dir / "arango-init-database",
                         self.cfg.real_sbin_dir / "arango-secure-installation",
                     ],
-                    "c++",
-                )
-            )
-
-            # symlink only for MMFILES
-            self.arango_binaries.append(
-                BinaryDescription(
-                    self.cfg.real_sbin_dir,
-                    "arangod",
-                    "ArangoDB - the native multi-model NoSQL database",
-                    False,
-                    True,
-                    "1.0.0",
-                    "3.6.0",
-                    [self.cfg.real_bin_dir / ("arango-dfdb" + FILE_EXTENSION)],
                     "c++",
                 )
             )
@@ -698,8 +689,10 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
         cfg.have_system_service = False
         cfg.install_prefix = self.basedir
         cfg.bin_dir = None
+        cfg.client_bin_dir = None
         cfg.sbin_dir = None
         cfg.real_bin_dir = None
+        cfg.client_real_bin_dir = None
         cfg.real_sbin_dir = None
 
         cfg.log_dir = Path()
@@ -770,7 +763,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
         self.cfg.server_package_is_installed = True
         self.cfg.install_prefix = self.cfg.server_install_prefix
         self.calculate_installation_dirs()
-        self.calculate_file_locations()
+        self.calculate_file_locations(False)
 
     @step
     def install_client_package_impl(self):
@@ -793,7 +786,7 @@ class InstallerArchive(InstallerBase, metaclass=ABCMeta):
         self.cfg.client_package_is_installed = True
         self.cfg.install_prefix = self.cfg.client_install_prefix
         self.calculate_installation_dirs()
-        self.calculate_file_locations()
+        self.calculate_file_locations(True)
 
     @step
     def un_install_server_package_impl(self):

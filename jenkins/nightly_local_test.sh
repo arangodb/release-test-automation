@@ -26,7 +26,7 @@ MODE=native
 . "${RTA_DIR}/jenkins/common/setup_selenium.sh"
 . "${RTA_DIR}/jenkins/common/evaluate_force.sh"
 . "${RTA_DIR}/jenkins/common/load_git_submodules.sh"
-. "${RTA_DIR}/jenkins/common/launch_minio.sh"
+. "${RTA_DIR}/jenkins/common/launch_silo.sh"
 . "${RTA_DIR}/jenkins/common/register_cleanup_trap.sh"
 
 "${RTA_DIR}/release_tester/full_download_test.py" \

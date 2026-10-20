@@ -6,6 +6,8 @@ import logging
 import sys
 from pathlib import Path
 
+import semver
+
 import tools.errorhelper as eh
 from arangodb.async_client import (
     ArangoCLIprogressiveTimeoutExecutor,
@@ -20,10 +22,11 @@ ON_POSIX = "posix" in sys.builtin_module_names
 class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
     """configuration"""
 
-    def __init__(self, config, connect_instance, old_version):
+    def __init__(self, config, connect_instance, old_version, jwt):
         self.read_only = False
         super().__init__(config, connect_instance)
         self.old_version = old_version
+        self.jwt = jwt
 
     # pylint: disable=too-many-arguments
     def run_command(
@@ -39,7 +42,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         """run a command in arangosh"""
         title = f"run a command in arangosh: {cmd[0]}"
         with step(title):
-            executable = self.cfg.bin_dir / "arangosh"
+            executable = self.cfg.client_bin_dir / "arangosh"
             arangosh_args = self.cfg.default_arangosh_args + [
                 "--log.level",
                 "v8=debug",
@@ -119,6 +122,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         verbose=True,
         expect_to_fail=False,
         log_debug=False,
+        use_jwt=False,
     ):
         # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=too-many-statements disable=too-many-branches disable=too-many-locals
         """
@@ -131,7 +135,10 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         else:
             process_control = []
         # fmt: off
-        run_cmd = self.cfg.default_arangosh_args + [
+        jwt_command = []
+        if use_jwt:
+            jwt_command = [ '--server.jwt-token', self.jwt ]
+        run_cmd = self.cfg.default_arangosh_args + jwt_command + [
             "--log.level", "v8=debug",
             "--javascript.module-directory", self.cfg.test_data_dir.resolve(),
         ] + process_control + [
@@ -147,9 +154,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             run_cmd += ["--"] + args
 
         return self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangosh",
+            self.cfg.client_bin_dir / "arangosh",
             run_cmd,
-            use_default_auth=True,
+            use_default_auth=not use_jwt,
             params=make_default_params(verbose, cmd[0]),
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
@@ -169,7 +176,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         # pylint: disable=R0913 disable=R0902
         """testing.js wrapper"""
         args = [
-            self.cfg.bin_dir / "arangosh",
+            self.cfg.client_bin_dir / "arangosh",
             "-c",
             str(self.cfg.cfgdir / "arangosh.conf"),
             "--log.level",
@@ -185,7 +192,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         ]
         run_cmd = args + ["--", testcase, "--testOutput", directory] + testing_args
         return self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangosh",
+            self.cfg.client_bin_dir / "arangosh",
             run_cmd,
             progressive_timeout,
             default_line_result,
@@ -217,8 +224,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         return res
 
     @step
-    def js_set_passvoid(self, user, passvoid):
+    def js_set_passvoid(self, user, passvoid, jwt):
         """connect to the instance, and set a passvoid for the user"""
+        self.jwt = jwt
         js_set_passvoid_str = f"""
         if (!arango.isConnected()) {{
           throw new Error('connecting the database failed');
@@ -496,12 +504,13 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--testVector', 'true' if supports_vector_index else 'false',
                 "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
                 '--passvoid', self.cfg.passvoid,
-                '--mixed', 'true' if mixed else 'false'
+                '--mixed', 'true' if mixed else 'false',
             ] + test_filter,
             # fmt: on
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
             verbose=self.cfg.verbose or log_debug,
+            use_jwt=self.cfg.semver > semver.VersionInfo.parse("3.12.0"),
             log_debug=log_debug,
             deadline=deadline,
         )

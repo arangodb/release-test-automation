@@ -31,8 +31,10 @@ class InstallerRPM(InstallerLinux):
 
         cfg.install_prefix = Path("/")
         cfg.bin_dir = cfg.install_prefix / "usr" / "bin"
+        cfg.client_bin_dir = cfg.bin_dir
         cfg.sbin_dir = cfg.install_prefix / "usr" / "sbin"
         cfg.real_bin_dir = cfg.bin_dir
+        cfg.client_real_bin_dir = cfg.bin_dir
         cfg.real_sbin_dir = cfg.sbin_dir
         cfg.localhost = "localhost"
 
@@ -219,7 +221,7 @@ class InstallerRPM(InstallerLinux):
         self.start_service()
         self.instance.detect_pid(1)  # should be owned by init
 
-        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
+        pwcheckarangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version, "")
         if not pwcheckarangosh.js_version_check():
             logging.error(
                 "Version Check failed - probably setting the default random password didn't work! %s",

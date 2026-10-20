@@ -482,11 +482,12 @@ class StarterManager:
         """set the passvoid to the managed instance"""
         if write_to_server:
             print("Provisioning passvoid " + passvoid)
-            self.arangosh.js_set_passvoid("root", passvoid)
+            self.arangosh.js_set_passvoid("root", passvoid, self.jwt_header)
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         else:
             if self.arangosh:
                 self.arangosh.cfg.passvoid = passvoid
+                self.arangosh.jwt = self.jwt_header
             self.passvoidfile.write_text(passvoid, encoding="utf-8")
         self.passvoid = passvoid
         for i in self.all_instances:
@@ -1144,7 +1145,7 @@ class StarterManager:
         if self.arangosh is None:
             config.port = self.get_frontend_port()
             config.passvoid = self.passvoid
-            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version)
+            self.arangosh = ArangoshExecutor(config, self.get_frontend(), old_version, self.jwt_header)
             self.arango_importer = ArangoImportExecutor(config, self.get_frontend())
             self.arango_restore = ArangoRestoreExecutor(config, self.get_frontend())
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())

@@ -31,7 +31,7 @@ class ArangoDumpExecutor(ArangoCLIprogressiveTimeoutExecutor):
         )
 
         return self.run_arango_tool_monitored(
-            self.cfg.bin_dir / "arangodump",
+            self.cfg.client_bin_dir / "arangodump",
             more_args=run_cmd,
             params=make_default_params(verbose, "dumping"),
             progressive_timeout=progressive_timeout,

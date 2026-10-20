@@ -59,7 +59,7 @@ class ArangoBenchManager:
     def launch(self, testcase_no, moreopts=None):
         """run arangobench"""
         testcase = BENCH_TODOS[testcase_no]
-        arguments = [self.cfg.real_bin_dir / "arangobench"] + self.moreopts
+        arguments = [self.cfg.client_real_bin_dir / "arangobench"] + self.moreopts
         if moreopts is not None:
             arguments.extend(moreopts)
         for key in testcase.keys():

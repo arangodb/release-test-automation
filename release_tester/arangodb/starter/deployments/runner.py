@@ -15,6 +15,7 @@ import sys
 import time
 import psutil
 import py7zr
+import semver
 
 import reporting.reporting_utils
 from allure_commons._allure import attach
@@ -274,7 +275,8 @@ class Runner(ABC):
                 self.custom_databases.append(["system_oneshard_makedata", True, 1])
             if self.hot_backup:
                 self.progress(False, "TESTING empty HOTBACKUP")
-                self.empty_backup_name = self.create_backup("empty_" + self.name)
+                self.empty_backup_name = self.create_backup(
+                    "empty_" + self.name + "X" + self.cfg.version + "X")
 
             self.make_data()
             self.wait_data_impl()
@@ -382,7 +384,8 @@ class Runner(ABC):
     @step
     def test_hotbackup_impl(self):
         """test hotbackup feature: general implementation"""
-        self.backup_name = self.create_backup("thy_name_is_" + self.name)
+        self.backup_name = self.create_backup(
+            "thy_name_is_" + self.name + "X" + self.cfg.version + "X")
         self.validate_local_backup(self.backup_name)
         self.tcp_ping_all_nodes()
         self.create_non_backup_data()
@@ -411,13 +414,13 @@ class Runner(ABC):
             raise Exception("downloaded backup has different name? " + str(backups))
         self.clear_data_impl()
         self.before_backup()
-        self.restore_backup(backups[len(backups) - 1])
-        self.tcp_ping_all_nodes()
-        self.after_backup()
-        time.sleep(20)  # TODO fix
-        self.check_data_impl()
-        if not self.check_non_backup_data():
-            raise Exception("data created after backup is still there??")
+        if self.restore_backup(backups, len(backups) - 1):
+            self.tcp_ping_all_nodes()
+            self.after_backup()
+            time.sleep(20)  # TODO fix
+            self.check_data_impl()
+            if not self.check_non_backup_data():
+                raise Exception("data created after backup is still there??")
         self.create_non_backup_data()
 
     @step
@@ -441,11 +444,11 @@ class Runner(ABC):
             raise Exception("downloaded backup has different name? " + str(backups))
         time.sleep(20)  # TODO fix
         self.before_backup()
-        self.restore_backup(backups[0])
-        self.tcp_ping_all_nodes()
-        self.after_backup()
-        if not self.check_non_backup_data():
-            raise Exception("data created after backup is still there??")
+        if self.restore_backup(backups, 0):
+            self.tcp_ping_all_nodes()
+            self.after_backup()
+            if not self.check_non_backup_data():
+                raise Exception("data created after backup is still there??")
         self.delete_backup(backups[0])
         self.tcp_ping_all_nodes()
         backups = self.list_backup()
@@ -531,7 +534,7 @@ class Runner(ABC):
         if inst.check_service_up():
             inst.stop_service()
         inst.start_service()
-        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version)
+        sys_arangosh = ArangoshExecutor(inst.cfg, inst.instance, self.cfg.version, "")
 
         self.progress(True, "self test after installation")
         if inst.cfg.have_system_service:
@@ -546,7 +549,7 @@ class Runner(ABC):
         """see whether we have a selenium success"""
         if not self.selenium:
             return True
-        return self.selenium.success and runner.api_tests_failed
+        return self.selenium.success and self.api_tests_failed
 
     @step
     def quit_selenium(self):
@@ -1124,15 +1127,24 @@ class Runner(ABC):
             backup_starter.wait_for_restore()
 
     @step
-    def restore_backup(self, name):
+    def restore_backup(self, all_names, index):
         """restore the named hotbackup to the installation"""
+        before_ver = semver.VersionInfo.parse("3.99.99")
+        name = all_names[index]
+        parts = name.split("X")
+        if len(parts) == 3:
+            version = semver.VersionInfo.parse(parts[1])
+            if self.cfg.version > before_ver:
+                if version < before_ver:
+                    print(f"will not restore {all_names[index]} - its no longer supported in {self.cfg.version}")
+                    return False
         for starter in self.makedata_instances:
             if not starter.is_leader:
                 continue
             assert starter.hb_instance, "restore backup: this starter doesn't have an hb instance!"
             starter.hb_instance.restore(name)
             self.wait_for_restore_impl(starter)
-            return
+            return True
         raise Exception("no frontend found.")
 
     @step
@@ -1432,27 +1444,27 @@ class Runner(ABC):
             struct["arangods"].extend(starter["arangods"])
         os.environ["INSTANCEINFO"] = json.dumps(struct)
 
-    def wait_for_agency_job(self, job_id, timeout, jobMessage):
+    def wait_for_agency_job(self, job_id, timeout, job_message):
         """ wait for the agency to finish a job """
-        count = 0;
+        count = 0
         while (True):
             if count > timeout:
-                raise Exception(f"FAILED to ${jobMessage} TIMEOUT");
-            time.sleep(0.1);
+                raise Exception(f"FAILED to ${job_message} TIMEOUT")
+            time.sleep(0.1)
             reply = self.get_running_starters()[0].send_request(
                 InstanceType.COORDINATOR,
                 requests.get,
-                f"/_admin/cluster/queryAgencyJob?id={jobId}")
+                f"/_admin/cluster/queryAgencyJob?id={job_id}")
             print(reply[0].content)
             if reply[0].status_code in (200, 404):
                 body_json = json.loads(reply[0].content)
                 if body_json['status'] == 'Failed':
-                    msg = f"FAILED {jobMessage} - {body_json}";
-                    print(f"{msg} - {body_json}");
-                    return False;
+                    msg = f"FAILED {job_message} - {body_json}"
+                    print(f"{msg} - {body_json}")
+                    return False
                 if body_json['status'] == 'Finished':
-                    print(f"DONE ${jobMessage} {body_json}");
-                    return True;
+                    print(f"DONE ${job_message} {body_json}")
+                    return True
             count += 1
 
     def remove_server_from_agency(self, server_uuid, deadline=150):
@@ -1505,9 +1517,6 @@ class Runner(ABC):
     @abstractmethod
     def run_api_tests_impl(self):
         """run api tests on this deployment"""
-    def makedata_databases(self):
-        """return a list of databases that makedata tests must be run in"""
-        return [["_system", self.props.force_one_shard, 0]] + self.custom_databases.copy()
 
     def get_running_starters(self):
         """get list of running starters"""

@@ -54,7 +54,7 @@ class InstallerSource(InstallerArchive):
         self.check_stripped = False
         self.check_symlink = False
         self.cfg.have_system_service = False
-        self.arangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version)
+        self.arangosh = ArangoshExecutor(self.cfg, self.instance, self.cfg.version, "")
         self.copy_for_result = False
         self.hot_backup = self.cfg.enterprise
         self.cfg.sublaunch_pwd = self.test_dir
@@ -68,6 +68,8 @@ class InstallerSource(InstallerArchive):
             self.cfg.bin_dir = self.cfg.bin_dir / "RelWithDebInfo"
         self.cfg.sbin_dir = self.test_dir / "build" / "bin"
         self.cfg.real_bin_dir = self.cfg.bin_dir
+        self.cfg.client_bin_dir = self.cfg.bin_dir
+        self.cfg.client_real_bin_dir = self.cfg.bin_dir
         self.cfg.real_sbin_dir = self.cfg.sbin_dir
         print(self.cfg.bin_dir)
         if not self.cfg.bin_dir.exists():
