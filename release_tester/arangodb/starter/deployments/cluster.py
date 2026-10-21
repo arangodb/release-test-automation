@@ -464,6 +464,7 @@ class Cluster(Runner):
         logging.info("stopping instance %d" % terminate_instance)
         uuid = instances[0].get_uuid()
         self._resign_leadership(uuid) # self._get_short_name(uuid))
+        self._check_for_shards_in_sync()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
