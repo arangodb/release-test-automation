@@ -115,6 +115,51 @@ class RBACHelper:
             docker_cp_command_2 = f"docker cp {docker_cp_path}{OPERATOR_INTEGRATION_TOOL_NAME} {operator_dir_path}"
             subprocess.run(docker_cp_command_2, shell=True)
 
+    @staticmethod
+    def download_or_build_operator(operator_dir_path):
+        """downloads and/or builds operator binaries for the current platform"""
+        operator_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
+        operator_integration_path = f"{operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
+        if not Path(operator_path).exists() and not Path(operator_integration_path).exists():
+            print("arangodb operator binaries were not found locally - we need to download and/or build them...")
+            latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
+            release_data = requests.get(latest_release_url, timeout=REQUEST_TIMEOUT).json()
+            operator_version = release_data["tarball_url"].split("/")[-1]
+            print(f"latest operator release is '{operator_version}'")
+            current_machine = (
+                ARM64_MACHINE_NAMES[0] if platform.machine().lower() in ARM64_MACHINE_NAMES else AMD64_MACHINE_NAME
+            )
+            for operator_tool in [OPERATOR_TOOL_NAME, OPERATOR_INTEGRATION_TOOL_NAME]:
+                asset_name = f"{operator_tool}_{SUPPORTED_OS.lower()}_{current_machine}"
+                download_url = [
+                    asset["browser_download_url"] for asset in release_data["assets"] if asset["name"] == asset_name
+                ]
+                if len(download_url) > 0:
+                    response = requests.get(download_url[0], stream=True, timeout=REQUEST_TIMEOUT)
+                    with open(f"{operator_dir_path}/{operator_tool}", "wb") as f:
+                        for chunk in response.iter_content(chunk_size=1024):
+                            f.write(chunk)
+                    # ensure operator binary is executable
+                    command = f"chmod +x {operator_dir_path}/{operator_tool}"
+                    RBACHelper.run_command(command)
+            # if arangodb_operator wasn't downloaded we need to build it
+            if not Path(operator_path).exists():
+                docker_create_args = [
+                    f"public.ecr.aws/arangodb-ci/release/cache/arangodb/kube-arangodb-enterprise:{operator_version}",
+                ]
+                docker_create_command = f"docker create {' '.join(docker_create_args)}"
+                print("creating the operator container...")
+                subprocess.run(
+                    docker_create_command,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                )
+                print(f"copying the operator binary from container to '{operator_dir_path}' dir...")
+                docker_cp_path = "$(docker ps -alq):/usr/bin/arangodb_operator"
+                docker_cp_command = f"docker cp {docker_cp_path} {operator_dir_path}"
+                subprocess.run(docker_cp_command, shell=True)
+
     @step
     def start_operator_services(self, arangod_url):
         sidecar_args = [

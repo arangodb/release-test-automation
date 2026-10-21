@@ -35,7 +35,7 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
     def start_single_server(self):
         """start a single server setup"""
         self.runner = make_runner(
-            runner_type=RunnerType.SINGLE,
+            runner_type=RunnerType.SINGLE_RBAC,
             abort_on_error=False,
             installer_set=self.installer_set,
             selenium_worker="none",
@@ -48,7 +48,23 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
             ),
         )
         self.runner.starter_prepare_env()
+        self.runner.starter_run()
+        self.runner.finish_setup()
+        self.runner.starter_instance.detect_arangosh_instances(self.runner.starter_instance, self.runner.cfg.version)
         self.starter = self.runner.starter_instance
+
+    @run_before_suite
+    def start_operator_services(self):
+        """start operator (RBAC) services"""
+        arangod_url = f"http://{self.publicip}:{self.starter.starter_port + 1}"
+        self.rbh.start_operator_services(arangod_url)
+
+    @run_after_suite
+    def stop_operator_services(self):
+        """stop operator (RBAC) services"""
+        self.rbh.stop_operator_services()
+
+    def start_single_server_via_starter(self):
         print("starting single server...")
         starter_args = [
             "--starter.mode single",
@@ -66,13 +82,3 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
         )
         print(f"starter instance PID: << {self.starter.instance.pid} >>")
         gh.delay_execution(STARTER_LAUNCH_DELAY)
-
-    @run_before_suite
-    def start_operator_services(self):
-        """start operator (RBAC) services"""
-        self.rbh.start_operator_services(self.arangod_url)
-
-    @run_after_suite
-    def stop_operator_services(self):
-        """stop operator (RBAC) services"""
-        self.rbh.stop_operator_services()
