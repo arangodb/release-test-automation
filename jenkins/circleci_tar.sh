@@ -72,7 +72,6 @@ if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
-
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   RTA_ARGS+=(--force)
 fi
