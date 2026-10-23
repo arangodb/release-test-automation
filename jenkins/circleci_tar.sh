@@ -40,12 +40,6 @@ while [[ $# -gt 0 ]]; do
             NEW_VERSION="$1"
             shift
             ;;
-        --selenium)
-            RTA_ARGS+=("$1" "$2")
-            SELENIUM=true
-            shift
-            shift
-            ;;
         --checkdata|--run-upgrade|--no-*)
             RTA_ARGS+=("$1")
             shift
