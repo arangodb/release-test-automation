@@ -27,7 +27,7 @@ if test -z "${WORK}"; then
 fi
 
 RTA_ARGS=()
-
+SELENIUM=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         --old-version)
@@ -38,6 +38,12 @@ while [[ $# -gt 0 ]]; do
         --new-version)
             shift
             NEW_VERSION="$1"
+            shift
+            ;;
+        --selenium)
+            RTA_ARGS+=("$1" "$2")
+            SELENIUM=true
+            shift
             shift
             ;;
         --checkdata|--run-upgrade|--no-*)

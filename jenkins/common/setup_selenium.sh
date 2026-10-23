@@ -1,5 +1,5 @@
 argv=$@
-if [[ ${argv[@]} =~ "--selenium" ]]; then
+if [[ ${argv[@]} =~ "--selenium" or "${SELENIUM}" == "true" ]]; then
     sed -e "s;@RTAROOT@;$(pwd);g" < "$(pwd)/selenoid_config/browsers.json.in" > "$(pwd)/selenoid_config/browsers.json"
     cat "$(pwd)/selenoid_config/browsers.json"
     ${DOCKER} pull "${REGISTRY_URL}aerokube/selenoid"
