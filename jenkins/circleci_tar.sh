@@ -26,6 +26,36 @@ if test -z "${WORK}"; then
     WORK="/work"
 fi
 
+RTA_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --old-version)
+            shift
+            OLD_VERSION="$1"
+            shift
+            ;;
+        --new-version)
+            shift
+            NEW_VERSION="$1"
+            shift
+            ;;
+        --checkdata|--run-upgrade|--no-*)
+            RTA_ARGS+=("$1")
+            shift
+            ;;
+        --*)
+            RTA_ARGS+=("$1" "$2")
+            shift
+            shift
+            ;;
+        *)
+            echo "Unknown option $1"
+            exit 1
+            ;;
+    esac
+done
+
 VERSION=$(cat VERSION.json)
 git status
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
@@ -42,7 +72,6 @@ if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
-RTA_ARGS=()
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   RTA_ARGS+=(--force)
 fi
@@ -113,8 +142,7 @@ $DOCKER run \
        --upgrade-matrix "${UPGRADE_MATRIX}" \
        --new-version "${NEW_VERSION}" \
        --do-not-run-test-suites \
-       "${RTA_ARGS[@]}" \
-       "${@}"
+       "${RTA_ARGS[@]}"
 result=$?
 
 # don't need docker stop $DOCKER_TAR_NAME
