@@ -40,12 +40,12 @@ while [[ $# -gt 0 ]]; do
             NEW_VERSION="$1"
             shift
             ;;
-        --no-*|--checkdata|--run-upgrade)
-            RTA_ARGS=+=("$1")
+        --checkdata|--run-upgrade|--no-*)
+            RTA_ARGS+=("$1")
             shift
             ;;
         --*)
-            RTA_ARGS=+=("$1" "$2")
+            RTA_ARGS+=("$1" "$2")
             shift
             shift
             ;;
