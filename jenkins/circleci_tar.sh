@@ -26,8 +26,8 @@ if test -z "${WORK}"; then
     WORK="/work"
 fi
 
-RTA_ARGS=()
-SELENIUM=""
+RTA_ARGS=()   # defaults derived from the environment
+CLI_ARGS=()   # caller-supplied arguments - passed last, so they override the defaults
 while [[ $# -gt 0 ]]; do
     case $1 in
         --old-version)
@@ -41,13 +41,17 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --checkdata|--run-upgrade|--no-*)
-            RTA_ARGS+=("$1")
+            CLI_ARGS+=("$1")
             shift
             ;;
         --*)
-            RTA_ARGS+=("$1" "$2")
+            # option with value(s): consume everything up to the next --option
+            CLI_ARGS+=("$1")
             shift
-            shift
+            while [[ $# -gt 0 && $1 != --* ]]; do
+                CLI_ARGS+=("$1")
+                shift
+            done
             ;;
         *)
             echo "Unknown option $1"
@@ -85,14 +89,14 @@ if test -n "$SOURCE"; then
 else
     RTA_ARGS+=(--remote-host 172.17.4.0)
 fi
-if test "RUN_TEST"; then
+if test "${RUN_TEST:-true}" != "false"; then
     RTA_ARGS+=(--run-test)
-else    
+else
     RTA_ARGS+=(--no-run-test)
 fi
-if test "RUN_UPGRADE"; then
+if test "${RUN_UPGRADE:-true}" != "false"; then
     RTA_ARGS+=(--run-upgrade)
-else    
+else
     RTA_ARGS+=(--no-run-upgrade)
 fi
 if test -z "${RTA_EDITION}"; then
@@ -142,7 +146,8 @@ $DOCKER run \
        --upgrade-matrix "${UPGRADE_MATRIX}" \
        --new-version "${NEW_VERSION}" \
        --do-not-run-test-suites \
-       "${RTA_ARGS[@]}"
+       "${RTA_ARGS[@]}" \
+       "${CLI_ARGS[@]}"
 result=$?
 
 # don't need docker stop $DOCKER_TAR_NAME
