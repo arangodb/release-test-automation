@@ -13,5 +13,5 @@ $DOCKER pull $DOCKER_TAR_TAG || exit
 DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskar:$(cat containers/this_version.txt)
 $DOCKER pull $DOCKER_TAR_TAG || exit
 
-DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskar-new:$(cat containers/this_version.txt)
+DOCKER_TAR_TAG=arangodb/release-test-automation-tar-oskarnew:$(cat containers/this_version.txt)
 $DOCKER pull $DOCKER_TAR_TAG || exit
