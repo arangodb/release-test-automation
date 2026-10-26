@@ -18,7 +18,6 @@ mss
 distro
 dataclasses
 statsd
-wexpect; platform_system == "Windows"
 docker; platform_system == "Linux"
 py7zr
 paramiko
