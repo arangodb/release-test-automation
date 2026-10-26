@@ -49,7 +49,7 @@ def create_arangod_dump(installer, starter_dir: str, dump_file_dir: str):
                 attach(str(procdump_err), "procdump stderr")
                 success_string = "Dump 1 complete"
                 filename_regex = re.compile(
-                    r"^(\[\d{2}:\d{2}:\d{2}\] Dump 1 initiated: )(?P<filename>.*)$", re.MULTILINE
+                    r"^\[\d{2}:\d{2}:\d{2}\]\s*Dump 1 initiated: (?P<filename>.*?)\r?$", re.MULTILINE
                 )
                 match = re.search(filename_regex, procdump_str)
                 if procdump_str.find(success_string) < 0 or not match:
@@ -79,7 +79,9 @@ def create_arangosh_dump(installer, dump_file_dir: str):
             attach(procdump_str, "procdump sdtout")
             attach(str(procdump_err), "procdump stderr")
             success_string = "Dump 1 complete"
-            filename_regex = re.compile(r"^(\[\d{2}:\d{2}:\d{2}\] Dump 1 initiated: )(?P<filename>.*)$", re.MULTILINE)
+            # procdump 12.2 prints "[HH:MM:SS]Dump 1 initiated: ..." without a space after the time stamp
+            # (older versions had one), and the output is CRLF-terminated: keep no trailing CR in the name.
+            filename_regex = re.compile(r"^\[\d{2}:\d{2}:\d{2}\]\s*Dump 1 initiated: (?P<filename>.*?)\r?$", re.MULTILINE)
             match = re.search(filename_regex, procdump_str)
             if procdump_str.find(success_string) < 0 or not match:
                 raise Exception("procdump wasn't able to create a dump file: " + procdump_str)
@@ -103,7 +105,9 @@ def create_dump_for_exe(exe_file: str, dump_file_dir: str):
             attach(procdump_str, "procdump sdtout")
             attach(str(procdump_err), "procdump stderr")
             success_string = "Dump 1 complete"
-            filename_regex = re.compile(r"^(\[\d{2}:\d{2}:\d{2}\] Dump 1 initiated: )(?P<filename>.*)$", re.MULTILINE)
+            # procdump 12.2 prints "[HH:MM:SS]Dump 1 initiated: ..." without a space after the time stamp
+            # (older versions had one), and the output is CRLF-terminated: keep no trailing CR in the name.
+            filename_regex = re.compile(r"^\[\d{2}:\d{2}:\d{2}\]\s*Dump 1 initiated: (?P<filename>.*?)\r?$", re.MULTILINE)
             match = re.search(filename_regex, procdump_str)
             if procdump_str.find(success_string) < 0 or not match:
                 raise Exception("procdump wasn't able to create a dump file: " + procdump_str)
