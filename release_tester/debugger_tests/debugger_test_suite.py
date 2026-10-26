@@ -2,8 +2,8 @@
 """Debug symbols test suite"""
 # pylint: disable=import-error
 import platform
-import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import semver
@@ -30,10 +30,7 @@ from test_suites_core.base_test_suite import (
 from test_suites_core.cli_test_suite import CliStartedTestSuite, CliTestSuiteParameters
 from tools.killall import kill_all_processes
 
-# pylint: disable=used-before-assignment
 OS_IS_WINDOWS = bool(platform.win32_ver()[0])
-if OS_IS_WINDOWS:
-    import wexpect
 
 
 class DebuggerTestSuite(CliStartedTestSuite):
@@ -49,7 +46,13 @@ class DebuggerTestSuite(CliStartedTestSuite):
     DUMP_FILES_DIR = TEST_DATA_DIR / "dumps"
     STARTER_DIR = TEST_DATA_DIR / "starter"
 
-    CDB_PROMPT = re.compile(r"^\d{1,3}:\d{1,3}>", re.MULTILINE)
+    @staticmethod
+    def run_cdb(cmd, timeout):
+        """Run cdb non-interactively: print the stack ("k") and quit ("q"), return the output.
+        cdb used to be driven through its prompt with wexpect, which hangs forever on Python 3.14
+        (every RTA Windows run stalled in this suite until the job timeout)."""
+        result = subprocess.run(cmd + ["-c", "k;q"], capture_output=True, text=True, timeout=timeout, check=False)
+        return result.stdout + result.stderr
 
     def __init__(self, params: CliTestSuiteParameters):
         super().__init__(params)
@@ -169,14 +172,9 @@ class DebuggerTestSuite(CliStartedTestSuite):
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-            cmd = " ".join(["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"])
-            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-            cdb = wexpect.spawn(cmd)
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            cdb.sendline("k")
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=180)
-            stack = cdb.before
-            cdb.sendline("q")
+            cmd = ["cdb", "-z", dump_file, "-y", pdb_dir, "-lines", "-n"]
+            attach(" ".join(cmd), "CDB command", attachment_type=AttachmentType.TEXT)
+            stack = DebuggerTestSuite.run_cdb(cmd, timeout=180)
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
             assert f"{executable}!main" in stack, "Stack must contain real function names."
             assert f"{executable}.cpp" in stack, "Stack must contain real source file names."
@@ -227,14 +225,9 @@ class DebuggerTestSuite(CliStartedTestSuite):
                 pid = starter.all_instances[0].pid
             pdb_dir = str(self.installer.cfg.debug_install_prefix)
             with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-                cmd = " ".join(["cdb", "-pv", "-p", str(pid), "-y", pdb_dir, "-lines", "-n"])
-                attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-                cdb = wexpect.spawn(cmd)
-                cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=300)
-                cdb.sendline("k")
-                cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=300)
-                stack = cdb.before
-                cdb.sendline("q")
+                cmd = ["cdb", "-pv", "-p", str(pid), "-y", pdb_dir, "-lines", "-n"]
+                attach(" ".join(cmd), "CDB command", attachment_type=AttachmentType.TEXT)
+                stack = DebuggerTestSuite.run_cdb(cmd, timeout=300)
                 attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
                 assert "arangod!main" in stack, "Stack must contain real function names."
                 assert "arangod.cpp" in stack, "Stack must contain real source file names."
@@ -251,8 +244,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
         exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == "arangod.exe"][0]
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-            cmd = " ".join(
-                [
+            cmd = [
                     "cdb",
                     "-z",
                     dump_file,
@@ -261,14 +253,8 @@ class DebuggerTestSuite(CliStartedTestSuite):
                     "-lines",
                     "-n",
                 ]
-            )
-            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-            cdb = wexpect.spawn(cmd)
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
-            cdb.sendline("k")
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
-            stack = cdb.before
-            cdb.sendline("q")
+            attach(" ".join(cmd), "CDB command", attachment_type=AttachmentType.TEXT)
+            stack = DebuggerTestSuite.run_cdb(cmd, timeout=900)
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
             assert "arangod!main" in stack, "Stack must contain real function names."
             assert "arangod.cpp" in stack, "Stack must contain real source file names."
@@ -287,8 +273,7 @@ class DebuggerTestSuite(CliStartedTestSuite):
             self.installer, str(DebuggerTestSuite.STARTER_DIR), str(DebuggerTestSuite.DUMP_FILES_DIR)
         )
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
-            cmd = " ".join(
-                [
+            cmd = [
                     "cdb",
                     "-z",
                     dump_file,
@@ -297,14 +282,8 @@ class DebuggerTestSuite(CliStartedTestSuite):
                     "-lines",
                     "-n",
                 ]
-            )
-            attach(cmd, "CDB command", attachment_type=AttachmentType.TEXT)
-            cdb = wexpect.spawn(cmd)
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
-            cdb.sendline("k")
-            cdb.expect(DebuggerTestSuite.CDB_PROMPT, timeout=900)
-            stack = cdb.before
-            cdb.sendline("q")
+            attach(" ".join(cmd), "CDB command", attachment_type=AttachmentType.TEXT)
+            stack = DebuggerTestSuite.run_cdb(cmd, timeout=900)
             attach(stack, "Stacktrace from cdb output", attachment_type=AttachmentType.TEXT)
             assert "arangod!main" in stack, "Stack must contain real function names."
             assert "arangod.cpp" in stack, "Stack must contain real source file names."
