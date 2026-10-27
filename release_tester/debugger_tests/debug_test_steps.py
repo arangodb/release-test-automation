@@ -19,6 +19,17 @@ from tools.clihelper import run_cmd_and_log_stdout_async
 from tools.killall import kill_all_processes
 
 
+def procdump_output(raw: bytes) -> str:
+    """decode procdump's redirected output: procdump 12.2 writes UTF-16LE (without BOM) to a pipe,
+    older versions wrote 8-bit text; lines are CRLF-terminated either way"""
+    if raw.startswith(b"\xff\xfe") or b"\x00" in raw[:256]:
+        text = raw.decode("utf-16-le", errors="replace")
+    else:
+        text = raw.decode("utf-8", errors="replace")
+    return text.replace("\ufeff", "").replace("\x00", "").replace("\r", "")
+
+
+
 @step
 def create_arangod_dump(installer, starter_dir: str, dump_file_dir: str):
     """create arangod memory dump file"""
@@ -44,7 +55,7 @@ def create_arangod_dump(installer, starter_dir: str, dump_file_dir: str):
             lh.log_cmd(cmd)
             with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
                 (procdump_out, procdump_err) = proc.communicate()
-                procdump_str = str(procdump_out, "UTF-8")
+                procdump_str = procdump_output(procdump_out)
                 attach(procdump_str, "procdump sdtout")
                 attach(str(procdump_err), "procdump stderr")
                 success_string = "Dump 1 complete"
@@ -75,7 +86,7 @@ def create_arangosh_dump(installer, dump_file_dir: str):
         lh.log_cmd(cmd)
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             (procdump_out, procdump_err) = proc.communicate()
-            procdump_str = str(procdump_out, "UTF-8")
+            procdump_str = procdump_output(procdump_out)
             attach(procdump_str, "procdump sdtout")
             attach(str(procdump_err), "procdump stderr")
             success_string = "Dump 1 complete"
@@ -101,7 +112,7 @@ def create_dump_for_exe(exe_file: str, dump_file_dir: str):
         lh.log_cmd(cmd)
         with psutil.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             (procdump_out, procdump_err) = proc.communicate()
-            procdump_str = str(procdump_out, "UTF-8")
+            procdump_str = procdump_output(procdump_out)
             attach(procdump_str, "procdump sdtout")
             attach(str(procdump_err), "procdump stderr")
             success_string = "Dump 1 complete"
