@@ -166,9 +166,10 @@ class DebuggerTestSuite(CliStartedTestSuite):
 
     def test_debug_symbols_windows(self, executable):
         """Check that debug symbols can be used to debug arango executable using a memory dump file (Windows)"""
-        exe_file = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"][
-            0
-        ]
+        exe_files = [str(file.path) for file in self.installer.arango_binaries if file.path.name == executable + ".exe"]
+        # arangobench ships in the package but is not registered in arango_binaries (QA-111 skips it
+        # in the binary checks), so take it straight from the installed bin directory.
+        exe_file = exe_files[0] if exe_files else str(self.installer.cfg.real_bin_dir / (executable + ".exe"))
         dump_file = create_dump_for_exe(exe_file, DebuggerTestSuite.DUMP_FILES_DIR)
         pdb_dir = str(self.installer.cfg.debug_install_prefix)
         with step("Check that stack trace with function names and line numbers can be acquired from cdb"):
