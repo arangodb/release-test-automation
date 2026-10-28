@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 import re
 import time
+import secrets
 
 import semver
 
@@ -24,6 +25,11 @@ from arangodb.starter.deployments.runner import Runner
 from api_tests.test_suites.api_test_suite import APITestSuite
 
 from operator_integration_tests.helpers.rbac_helper import RBAC_SERVICE_GATEWAY
+from operator_integration_tests.helpers.rbac_helper import RBACHelper
+
+JWT_DIR = "jwt"
+OPERATOR_DIR = "operator"
+USER_TYPES = ["superuser", "user"]
 
 arangoversions = {
     "370": semver.VersionInfo.parse("3.7.0"),
@@ -94,6 +100,14 @@ class ClusterRBAC(Runner):
                 print("One deployment doesn't support starters with more nodes!")
                 self.props.cluster_nodes = 3
         self.backup_instance_count = self.props.cluster_nodes
+        # create JWT secret and operator binaries folders
+        self.jwt_dir = self.cfg.base_test_dir / JWT_DIR
+        self.create_jwt_folder_and_secret()
+        self.operator_dir = self.cfg.base_test_dir / OPERATOR_DIR
+        self.create_operator_folder()
+        self.rbh = RBACHelper(self.operator_dir, self.jwt_dir)
+        self.provision_operator()
+        self.su_token = self.rbh.generate_token(USER_TYPES[0])
 
     def starter_prepare_env_impl(self, sm=None, more_opts=None):
         # pylint: disable=invalid-name
@@ -699,3 +713,18 @@ class ClusterRBAC(Runner):
         # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
         with step("step 4: delete backups"):
             self.delete_all_backups()
+
+    def create_jwt_folder_and_secret(self):
+        if not Path(self.jwt_dir).exists():
+            self.jwt_dir.mkdir(parents=False, exist_ok=True)
+        jwt_secret_path = self.jwt_dir / "-"
+        if not Path(jwt_secret_path).exists():
+            with open(jwt_secret_path, "w") as f:
+                f.write(secrets.token_hex(32))
+
+    def create_operator_folder(self):
+        if not Path(self.operator_dir).exists():
+            self.operator_dir.mkdir(parents=False, exist_ok=True)
+
+    def provision_operator(self):
+        RBACHelper.download_or_build_operator(self.operator_dir)

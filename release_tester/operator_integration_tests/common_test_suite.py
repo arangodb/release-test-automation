@@ -30,7 +30,6 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
         test_data_json_path = f"{Path(__file__).parent.resolve()}/test_data/test_data.json"
         with open(test_data_json_path, "r", encoding="utf-8") as file:
             self.test_data = json.load(file)
-        self.su_token = self.rbh.generate_token(USER_TYPES[0])
         self.user_name = None
         self.user_token = None
         self.test_setup_ok = True

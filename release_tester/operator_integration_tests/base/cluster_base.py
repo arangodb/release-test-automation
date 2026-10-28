@@ -47,6 +47,8 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
                 ssl=False,
             ),
         )
+        self.rbh = self.runner.rbh
+        self.su_token = self.runner.su_token
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
@@ -55,7 +57,8 @@ class OperatorIntegrationClusterBaseTestSuite(OperatorIntegrationBaseTestSuite):
     @run_before_suite
     def start_operator_services(self):
         """download operator binaries and start operator (RBAC) services"""
-        self.rbh.start_operator_services(self.arangod_url)
+        arangod_url = f"http://{self.publicip}:{self.starter.starter_port + 1}"
+        self.rbh.start_operator_services(arangod_url)
 
     @run_after_suite
     def stop_operator_services(self):

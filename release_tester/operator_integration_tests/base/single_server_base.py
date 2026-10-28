@@ -47,6 +47,8 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
                 ssl=False,
             ),
         )
+        self.rbh = self.runner.rbh
+        self.su_token = self.runner.su_token
         self.runner.starter_prepare_env()
         self.runner.starter_run()
         self.runner.finish_setup()
