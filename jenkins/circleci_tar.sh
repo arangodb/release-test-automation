@@ -60,6 +60,27 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+
+if test -n "FROM_VERSION" -a -n "TO_VERSION"; then
+    IFS=';'
+    read -r -a FROM <<< "FROM_VERSION"
+    read -r -a TO <<< "TO_VERSION"
+    for from_ver in "${FROM[@]}"; do
+        for to_ver in "${TO[@]}"; do
+            if [ -n "${UPGRADE_MATRX}" ]; then
+                UPGRADE_MATRX="${UPGRADE_MATRX};"
+            fi
+            if [ "${from_ver}" == "source" ]; then
+                from_ver="${SRC_VER}"
+            fi
+            if [ "${to_ver}" == "source" ]; then
+                to_ver="${SRC_VER}"
+            fi
+            export UPGRADE_MATRX="${UPGRADE_MATRX}${from_ver}:${to_ver}"
+        done
+    done
+fi
+
 VERSION=$(cat VERSION.json)
 git status
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
