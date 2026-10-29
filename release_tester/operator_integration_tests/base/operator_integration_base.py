@@ -2,9 +2,6 @@
 
 # pylint: disable=import-error
 import semver
-import secrets
-
-from pathlib import Path
 
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set
@@ -15,8 +12,6 @@ from tools.killall import kill_all_processes
 
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
 
-JWT_DIR = "jwt"
-OPERATOR_DIR = "operator"
 V1_API_ARANGO_VERSION = semver.VersionInfo.parse("4.0.0")
 V0_API_VERSION = "v0"
 V1_API_VERSION = "v1"

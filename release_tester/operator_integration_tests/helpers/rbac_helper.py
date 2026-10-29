@@ -9,6 +9,7 @@ import platform
 import subprocess
 import shlex
 import os
+import secrets
 
 from time import sleep
 from pathlib import Path
@@ -36,16 +37,18 @@ INTEGRATION_GRPC = "127.0.0.1:9092"
 
 RBAC_SERVICE_START_DELAY = 5
 
+JWT_DIR = "jwt"
+OPERATOR_DIR = "operator"
 USER_TYPES = ["superuser", "user"]
 
 
 class RBACHelper:
-    def __init__(self, operator_dir_path, jwt_dir_path):
-        self.jwt_dir_path = jwt_dir_path
-        self.jwt_secret_path = f"{jwt_dir_path / '-'}"
-        self.operator_dir_path = operator_dir_path
-        self.sidecar_tool_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
-        self.integration_tool_path = f"{operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
+    def __init__(self, test_dir_path):
+        self.jwt_dir_path = test_dir_path / JWT_DIR
+        self.jwt_secret_path = f"{self.jwt_dir_path / '-'}"
+        self.operator_dir_path = test_dir_path / OPERATOR_DIR
+        self.sidecar_tool_path = f"{self.operator_dir_path}/{OPERATOR_TOOL_NAME}"
+        self.integration_tool_path = f"{self.operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
         self.auth_integration_svc = None
         self.auth_sidecar = None
         self.sidecar_url = f"http://{SIDECAR_GATEWAY}"
@@ -115,11 +118,23 @@ class RBACHelper:
             docker_cp_command_2 = f"docker cp {docker_cp_path}{OPERATOR_INTEGRATION_TOOL_NAME} {operator_dir_path}"
             subprocess.run(docker_cp_command_2, shell=True)
 
-    @staticmethod
-    def download_or_build_operator(operator_dir_path):
-        """downloads and/or builds operator binaries for the current platform"""
-        operator_path = f"{operator_dir_path}/{OPERATOR_TOOL_NAME}"
-        operator_integration_path = f"{operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
+    def create_jwt_folder_and_secret(self):
+        if not Path(self.jwt_dir_path).exists():
+            self.jwt_dir_path.mkdir(parents=False, exist_ok=True)
+        jwt_secret_path = self.jwt_dir_path / "-"
+        if not Path(jwt_secret_path).exists():
+            with open(jwt_secret_path, "w") as f:
+                f.write(secrets.token_hex(32))
+
+    def provision_operator(self):
+        if not Path(self.operator_dir_path).exists():
+            self.operator_dir_path.mkdir(parents=False, exist_ok=True)
+        self.download_or_build_operator()
+
+    def download_or_build_operator(self):
+        """downloads operator platform tool for the current platform"""
+        operator_path = f"{self.operator_dir_path}/{OPERATOR_TOOL_NAME}"
+        operator_integration_path = f"{self.operator_dir_path}/{OPERATOR_INTEGRATION_TOOL_NAME}"
         if not Path(operator_path).exists() and not Path(operator_integration_path).exists():
             print("arangodb operator binaries were not found locally - we need to download and/or build them...")
             latest_release_url = "https://api.github.com/repos/arangodb/kube-arangodb/releases/latest"
@@ -136,11 +151,11 @@ class RBACHelper:
                 ]
                 if len(download_url) > 0:
                     response = requests.get(download_url[0], stream=True, timeout=REQUEST_TIMEOUT)
-                    with open(f"{operator_dir_path}/{operator_tool}", "wb") as f:
+                    with open(f"{self.operator_dir_path}/{operator_tool}", "wb") as f:
                         for chunk in response.iter_content(chunk_size=1024):
                             f.write(chunk)
                     # ensure operator binary is executable
-                    command = f"chmod +x {operator_dir_path}/{operator_tool}"
+                    command = f"chmod +x {self.operator_dir_path}/{operator_tool}"
                     RBACHelper.run_command(command)
             # if arangodb_operator wasn't downloaded we need to build it
             if not Path(operator_path).exists():
@@ -155,9 +170,9 @@ class RBACHelper:
                     capture_output=True,
                     text=True,
                 )
-                print(f"copying the operator binary from container to '{operator_dir_path}' dir...")
+                print(f"copying the operator binary from container to '{self.operator_dir_path}' dir...")
                 docker_cp_path = "$(docker ps -alq):/usr/bin/arangodb_operator"
-                docker_cp_command = f"docker cp {docker_cp_path} {operator_dir_path}"
+                docker_cp_command = f"docker cp {docker_cp_path} {self.operator_dir_path}"
                 subprocess.run(docker_cp_command, shell=True)
 
     @step
@@ -191,7 +206,7 @@ class RBACHelper:
         self.auth_integration_svc = RBACHelper.run_command(start_integration_svc_command)
         RBACHelper.delay_execution()
 
-    def generate_token(self, user_type, user_name=""):
+    def _generate_token(self, user_type, user_name=""):
         header = {"alg": "HS256", "typ": "JWT"}
         if user_type == USER_TYPES[0]:
             payload = {"iss": "arangodb", "server_id": "test"}
@@ -199,6 +214,12 @@ class RBACHelper:
             payload = {"iss": "arangodb", "preferred_username": user_name}
         with open(self.jwt_secret_path, "rb") as secret_file:
             return RBACHelper.sign(secret_file.read(), header, payload)
+
+    def generate_su_token(self):
+        return self._generate_token(USER_TYPES[0])
+
+    def generate_user_token(self, user_name):
+        return self._generate_token(USER_TYPES[1], user_name)
 
     def stop_operator_services(self):
         self.auth_sidecar.terminate()

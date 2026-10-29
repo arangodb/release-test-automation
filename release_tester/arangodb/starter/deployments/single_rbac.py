@@ -3,7 +3,6 @@
 import logging
 from pathlib import Path
 import time
-import secrets
 
 import requests
 
@@ -21,10 +20,6 @@ from api_tests.test_suites.api_test_suite import APITestSuite
 
 from operator_integration_tests.helpers.rbac_helper import RBAC_SERVICE_GATEWAY
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
-
-JWT_DIR = "jwt"
-OPERATOR_DIR = "operator"
-USER_TYPES = ["superuser", "user"]
 
 
 class SingleRBAC(Runner):
@@ -54,14 +49,16 @@ class SingleRBAC(Runner):
         self.starter_instance = None
         self.backup_instance_count = 1
         self.success = False
-        # create JWT secret and operator binaries folders
-        self.jwt_dir = self.cfg.base_test_dir / JWT_DIR
-        self.create_jwt_folder_and_secret()
-        self.operator_dir = self.cfg.base_test_dir / OPERATOR_DIR
-        self.create_operator_folder()
-        self.rbh = RBACHelper(self.operator_dir, self.jwt_dir)
-        self.provision_operator()
-        self.su_token = self.rbh.generate_token(USER_TYPES[0])
+        # instantiate RBACHelper and do RBAC related setup
+        # self.jwt_dir = self.cfg.base_test_dir / JWT_DIR
+        # self.create_jwt_folder_and_secret()
+        # self.operator_dir = self.cfg.base_test_dir / OPERATOR_DIR
+        # self.create_operator_folder()
+        # self.rbh = RBACHelper(self.operator_dir, self.jwt_dir)
+        self.rbh = RBACHelper(self.cfg.base_test_dir)
+        self.rbh.create_jwt_folder_and_secret()
+        self.rbh.provision_operator()
+        self.su_token = self.rbh.generate_su_token()
 
     def starter_prepare_env_impl(self, more_opts=None):
         if more_opts is None:
@@ -117,8 +114,8 @@ class SingleRBAC(Runner):
     def finish_setup_impl(self):
         # finish setup by starting the replications
         self.set_frontend_instances()
-
         self.makedata_instances.append(self.starter_instance)
+        self.rbh.start_operator_services(self.get_fe_url())
 
     @step
     def test_setup_impl(self):
@@ -182,6 +179,8 @@ class SingleRBAC(Runner):
 
     @step
     def shutdown_impl(self):
+        print("stopping the operator services...")
+        self.rbh.stop_operator_services()
         ret = self.starter_instance.terminate_instance()
         pslist = get_all_processes(False)
         if len(pslist) > 0:
@@ -227,17 +226,6 @@ class SingleRBAC(Runner):
     def run_api_tests_impl(self):
         self.api_tests_failed = not APITestSuite(self.starter_instance).run_api_tests()
 
-    def create_jwt_folder_and_secret(self):
-        if not Path(self.jwt_dir).exists():
-            self.jwt_dir.mkdir(parents=False, exist_ok=True)
-        jwt_secret_path = self.jwt_dir / "-"
-        if not Path(jwt_secret_path).exists():
-            with open(jwt_secret_path, "w") as f:
-                f.write(secrets.token_hex(32))
-
-    def create_operator_folder(self):
-        if not Path(self.operator_dir).exists():
-            self.operator_dir.mkdir(parents=False, exist_ok=True)
-
-    def provision_operator(self):
-        RBACHelper.download_or_build_operator(self.operator_dir)
+    def get_fe_url(self):
+        fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
+        return self.starter_instance.get_http_protocol() + "://" + fe_instance.get_public_plain_url()

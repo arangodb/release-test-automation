@@ -1,12 +1,6 @@
 # pylint: disable=duplicate-code
 """Operator integration tests: single server (base)"""
 
-import shlex
-import subprocess
-from time import sleep
-
-import operator_integration_tests.helpers.general_helper as gh
-
 # pylint: disable=import-error
 from arangodb.installers import RunProperties
 from arangodb.instance import InstanceType
@@ -18,8 +12,6 @@ from test_suites_core.base_test_suite import run_before_suite, run_after_suite
 
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
 from operator_integration_tests.helpers.rbac_helper import RBAC_SERVICE_GATEWAY
-
-STARTER_LAUNCH_DELAY = 15
 
 
 class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSuite):
@@ -54,33 +46,3 @@ class OperatorIntegrationSingleServerBaseTestSuite(OperatorIntegrationBaseTestSu
         self.runner.finish_setup()
         self.runner.starter_instance.detect_arangosh_instances(self.runner.starter_instance, self.runner.cfg.version)
         self.starter = self.runner.starter_instance
-
-    @run_before_suite
-    def start_operator_services(self):
-        """start operator (RBAC) services"""
-        arangod_url = f"http://{self.publicip}:{self.starter.starter_port + 1}"
-        self.rbh.start_operator_services(arangod_url)
-
-    @run_after_suite
-    def stop_operator_services(self):
-        """stop operator (RBAC) services"""
-        self.rbh.stop_operator_services()
-
-    def start_single_server_via_starter(self):
-        print("starting single server...")
-        starter_args = [
-            "--starter.mode single",
-            f"--starter.data-dir {self.starter.basedir}",
-            f"--auth.jwt-secret {self.jwt_dir / '-'}",
-            "--starter.host 127.0.0.1",
-            "--args.all.server.rest-server true",
-            "--args.all.server.harden true",
-            f"--args.all.server.external-rbac-service {RBAC_SERVICE_GATEWAY}",
-            f"--args.all.server.jwt-secret-folder {self.jwt_dir}",
-        ]
-        command = f"{self.starter.cfg.bin_dir / 'arangodb'} {' '.join(starter_args)}"
-        self.starter.instance = subprocess.Popen(
-            shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-        print(f"starter instance PID: << {self.starter.instance.pid} >>")
-        gh.delay_execution(STARTER_LAUNCH_DELAY)
