@@ -39,7 +39,7 @@ class VersionedAPITestSuite(APITestSuite):
         assert {"apiVersions", "deprecatedApiVersions", "requestedApiVersion"}.issubset(request_result.keys())
         # verify correct supported and requested API versions are returned depending on Arango version
         expected_api_version = V0_API_VERSION if self.current_version < V1_API_ARANGO_VERSION else V1_API_VERSION
-        assert request_result["apiVersions"] == [expected_api_version]
+        assert request_result["apiVersions"][0].split(".")[0] == expected_api_version
         assert request_result["requestedApiVersion"] == expected_api_version
 
     @testcase("2.2 Versioned API - API paths with and without API prefix are supported")
@@ -48,7 +48,7 @@ class VersionedAPITestSuite(APITestSuite):
 
         request1_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
         request2_data = rh.clone_request_data(request1_data)
-        supported_api_version = self.get_supported_api_versions()[0]
+        supported_api_version = self.get_supported_api_versions()
         request1_data = rh.update_request_data(
             request1_data, VersionedAPITestSuite.get_api_version_prefix(supported_api_version)
         )
@@ -90,7 +90,7 @@ class VersionedAPITestSuite(APITestSuite):
         """OpenAPI documentation"""
 
         request_data = self.requests_data[str(inspect.currentframe().f_code.co_name)]
-        supported_api_version = self.get_supported_api_versions()[0]
+        supported_api_version = self.get_supported_api_versions()
         request_data = rh.update_request_data(
             request_data, VersionedAPITestSuite.get_api_version_prefix(supported_api_version)
         )
@@ -122,7 +122,7 @@ class VersionedAPITestSuite(APITestSuite):
     def get_supported_api_versions(self):
         """get supported API versions"""
         request_data = self.requests_data["get_api_version"]
-        return self.execute_request(request_data)["json"]["apiVersions"]
+        return self.execute_request(request_data)["json"]["apiVersions"][0].split(".")[0]
 
     @staticmethod
     def get_api_version_prefix(api_version):
