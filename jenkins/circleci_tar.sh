@@ -26,6 +26,61 @@ if test -z "${WORK}"; then
     WORK="/work"
 fi
 
+RTA_ARGS=()   # defaults derived from the environment
+CLI_ARGS=()   # caller-supplied arguments - passed last, so they override the defaults
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --old-version)
+            shift
+            OLD_VERSION="$1"
+            shift
+            ;;
+        --new-version)
+            shift
+            NEW_VERSION="$1"
+            shift
+            ;;
+        --checkdata|--run-upgrade|--no-*)
+            CLI_ARGS+=("$1")
+            shift
+            ;;
+        --*)
+            # option with value(s): consume everything up to the next --option
+            CLI_ARGS+=("$1")
+            shift
+            while [[ $# -gt 0 && $1 != --* ]]; do
+                CLI_ARGS+=("$1")
+                shift
+            done
+            ;;
+        *)
+            echo "Unknown option $1"
+            exit 1
+            ;;
+    esac
+done
+
+
+if test -n "FROM_VERSION" -a -n "TO_VERSION"; then
+    IFS=';'
+    read -r -a FROM <<< "FROM_VERSION"
+    read -r -a TO <<< "TO_VERSION"
+    for from_ver in "${FROM[@]}"; do
+        for to_ver in "${TO[@]}"; do
+            if [ -n "${UPGRADE_MATRX}" ]; then
+                UPGRADE_MATRX="${UPGRADE_MATRX};"
+            fi
+            if [ "${from_ver}" == "source" ]; then
+                from_ver="${SRC_VER}"
+            fi
+            if [ "${to_ver}" == "source" ]; then
+                to_ver="${SRC_VER}"
+            fi
+            export UPGRADE_MATRX="${UPGRADE_MATRX}${from_ver}:${to_ver}"
+        done
+    done
+fi
+
 VERSION=$(cat VERSION.json)
 git status
 GIT_VERSION=$(git rev-parse --verify HEAD |sed ':a;N;$!ba;s/\n/ /g')
@@ -42,7 +97,6 @@ if test -z "${PACKAGE_CACHE}"; then
     PACKAGE_CACHE="$(pwd)/package_cache/"
 fi
 
-RTA_ARGS=()
 if test -n "$FORCE" -o "$TEST_BRANCH" != 'main'; then
   RTA_ARGS+=(--force)
 fi
@@ -56,14 +110,14 @@ if test -n "$SOURCE"; then
 else
     RTA_ARGS+=(--remote-host 172.17.4.0)
 fi
-if test "RUN_TEST"; then
+if test "${RUN_TEST:-true}" != "false"; then
     RTA_ARGS+=(--run-test)
-else    
+else
     RTA_ARGS+=(--no-run-test)
 fi
-if test "RUN_UPGRADE"; then
+if test "${RUN_UPGRADE:-true}" != "false"; then
     RTA_ARGS+=(--run-upgrade)
-else    
+else
     RTA_ARGS+=(--no-run-upgrade)
 fi
 if test -z "${RTA_EDITION}"; then
@@ -114,7 +168,7 @@ $DOCKER run \
        --new-version "${NEW_VERSION}" \
        --do-not-run-test-suites \
        "${RTA_ARGS[@]}" \
-       "${@}"
+       "${CLI_ARGS[@]}"
 result=$?
 
 # don't need docker stop $DOCKER_TAR_NAME

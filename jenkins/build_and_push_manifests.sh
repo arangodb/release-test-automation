@@ -1,39 +1,16 @@
 #!/bin/bash
 . ./jenkins/common/detect_podman.sh
 
-DOCKER_DEB_TAG=arangodb/release-test-automation-deb:$(cat containers/this_version.txt)
-DOCKER_RPM_TAG=arangodb/release-test-automation-rpm:$(cat containers/this_version.txt)
-DOCKER_TAR_TAG=arangodb/release-test-automation-tar:$(cat containers/this_version.txt)
-DOCKER_TAR_OSKAR_TAG=arangodb/release-test-automation-tar-oskar:$(cat containers/this_version.txt)
-DOCKER_TAR_OSKARNEW_TAG=arangodb/release-test-automation-tar-oskarnew:$(cat containers/this_version.txt)
+VERSION=$(cat containers/this_version.txt)
 
-$DOCKER manifest rm $DOCKER_DEB_TAG
-$DOCKER manifest create $DOCKER_DEB_TAG \
---amend $DOCKER_DEB_TAG-amd64 \
---amend $DOCKER_DEB_TAG-arm64v8
-$DOCKER manifest push --purge $DOCKER_DEB_TAG
-
-$DOCKER manifest rm $DOCKER_RPM_TAG
-$DOCKER manifest create $DOCKER_RPM_TAG \
---amend $DOCKER_RPM_TAG-amd64 \
---amend $DOCKER_RPM_TAG-arm64v8
-$DOCKER manifest push --purge $DOCKER_RPM_TAG
-
-$DOCKER manifest rm $DOCKER_TAR_TAG
-$DOCKER manifest create $DOCKER_TAR_TAG \
---amend $DOCKER_TAR_TAG-amd64 \
---amend $DOCKER_TAR_TAG-arm64v8
-$DOCKER manifest push --purge $DOCKER_TAR_TAG
-
-
-$DOCKER manifest rm $DOCKER_TAR_OSKAR_TAG
-$DOCKER manifest create $DOCKER_TAR_OSKAR_TAG \
---amend $DOCKER_TAR_OSKAR_TAG-amd64 \
---amend $DOCKER_TAR_OSKAR_TAG-arm64v8
-$DOCKER manifest push --purge $DOCKER_TAR_OSKAR_TAG
-
-$DOCKER manifest rm $DOCKER_TAR_OSKARNEW_TAG
-$DOCKER manifest create $DOCKER_TAR_OSKARNEW_TAG \
---amend $DOCKER_TAR_OSKARNEW_TAG-amd64 \
---amend $DOCKER_TAR_OSKARNEW_TAG-arm64v8
-$DOCKER manifest push --purge $DOCKER_TAR_OSKARNEW_TAG
+# The per-architecture tags that build_and_push_containers.sh pushes are OCI image
+# indexes when built with BuildKit (image + provenance attestation), and
+# "docker manifest create" refuses those ("... is a manifest list").
+# "buildx imagetools create" merges indexes and plain manifests alike into the
+# multi-arch tag, so it works for both the old and the new per-arch tags.
+for NAME in deb rpm tar tar-oskar tar-oskarnew; do
+  TAG=arangodb/release-test-automation-${NAME}:${VERSION}
+  echo "=== ${TAG}"
+  $DOCKER buildx imagetools create -t "${TAG}" "${TAG}-amd64" "${TAG}-arm64v8" || exit 1
+  $DOCKER buildx imagetools inspect "${TAG}" | grep -E "^Name:|Platform:" || exit 1
+done

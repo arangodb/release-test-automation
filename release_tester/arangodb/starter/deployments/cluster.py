@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import time
 
+import requests
 import semver
 
 from reporting.reporting_utils import step
@@ -224,6 +225,54 @@ class Cluster(Runner):
             raise Exception("Failed to ensure the cluster is in sync: %s" % (retval))
         print("all in sync.")
 
+    def _get_short_name(self, uuid):
+        """ use cluster health to get the shortname from one server """
+        reply = self.get_running_starters()[0].send_request(
+            InstanceType.COORDINATOR,
+            requests.get,
+            '/_admin/cluster/health')
+        if reply[0].status_code != 200:
+            raise Exception(f"failed to get the UUID for {uuid}: {reply[0].content}")
+        body_json = json.loads(reply[0].content)
+        if not uuid in body_json['Health'].keys():
+            raise Exception(f"failed to find the UUID for {uuid} in the health state: {reply[0].content}")
+        return body_json['Health'][uuid]['ShortName']
+
+    def _wait_for_agency_job(self, job_id, timeout, job_message, expect_state='Finished'):
+        """ wait for an agency job """
+        count = 0
+        while True:
+            if count > timeout:
+                raise Exception(f"agency job {job_id} didn't reach state {expect_state} in time {job_message}")
+            reply = self.get_running_starters()[0].send_request(
+                InstanceType.COORDINATOR,
+                requests.get,
+                f'/_admin/cluster/queryAgencyJob?id={job_id}')
+            body_json = json.loads(reply[0].content)
+            if expect_state != body_json['status'] == 'Failed':
+                return False
+            if body_json['status'] == expect_state:
+                return True
+            time.sleep(1)
+            count += 1
+
+    def _resign_leadership(self, uuid):
+        """ resign a dbserver from shard leaderships """
+        while True:
+            while True:
+                reply = self.get_running_starters()[0].send_request(
+                    InstanceType.COORDINATOR,
+                    requests.post,
+                    '/_admin/cluster/resignLeadership',
+                    f'{{ "server": "{uuid}", "undoMoves": false }}')
+                if reply[0].status_code != 202 :
+                    print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].content}")
+                    break
+                body_json = json.loads(reply[0].content)
+                if self._wait_for_agency_job(body_json['id'], 1000,
+                                             f"resign ${uuid} from leadership"):
+                    return
+
     def test_setup_impl(self):
         if self.selenium:
             self.selenium.test_setup()
@@ -411,8 +460,11 @@ class Cluster(Runner):
         if len(instances) == 0:
             terminate_instance = 3
             instances = self.starter_instances[terminate_instance].get_dbservers()
+
         logging.info("stopping instance %d" % terminate_instance)
         uuid = instances[0].get_uuid()
+        self._resign_leadership(uuid) # self._get_short_name(uuid))
+        self._check_for_shards_in_sync()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
         self.starter_instances[terminate_instance].manually_launch_instances([InstanceType.AGENT], [], False, False)
@@ -621,8 +673,8 @@ class Cluster(Runner):
             backups = self.list_backup()
             if backup_step_1 not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_step_1)
-            self.tcp_ping_all_nodes()
+            if self.restore_backup([backup_step_1], 0):
+                self.tcp_ping_all_nodes()
 
         with step("step 8: check data"):
             self.check_data_impl()
@@ -646,8 +698,8 @@ class Cluster(Runner):
             backups = self.list_backup()
             if backup_step_3 not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_step_3)
-            self.tcp_ping_all_nodes()
+            if self.restore_backup([backup_step_3], 0):
+                self.tcp_ping_all_nodes()
 
         with step("step 12: check data"):
             self.check_data_impl()
@@ -684,8 +736,8 @@ class Cluster(Runner):
             if latest_backup not in backups:
                 raise Exception("downloaded backup has different name? " + str(backups))
         with step("step 3: restore backup"):
-            self.restore_backup(latest_backup)
-            self.tcp_ping_all_nodes()
+            if self.restore_backup([latest_backup], 0):
+                self.tcp_ping_all_nodes()
         # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
         with step("step 4: delete backups"):
             self.delete_all_backups()
