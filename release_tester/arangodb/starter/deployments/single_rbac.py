@@ -1,0 +1,231 @@
+#!/usr/bin/env python
+""" launch and manage an arango deployment using the starter"""
+import logging
+from pathlib import Path
+import time
+
+import requests
+
+from tools.interact import prompt_user
+from tools.killall import get_all_processes
+from arangodb.instance import InstanceType
+from arangodb.installers import RunProperties
+from arangodb.installers.depvar import RunnerProperties
+from arangodb.starter.manager import StarterManager
+from arangodb.starter.deployments.runner import Runner
+import tools.loghelper as lh
+
+from reporting.reporting_utils import step
+from api_tests.test_suites.api_test_suite import APITestSuite
+
+from operator_integration_tests.helpers.rbac_helper import RBAC_SERVICE_GATEWAY
+from operator_integration_tests.helpers.rbac_helper import RBACHelper
+
+
+class SingleRBAC(Runner):
+    """this runs a single server RBAC setup"""
+
+    # pylint: disable=too-many-arguments disable=too-many-instance-attributes disable=unused-argument
+    def __init__(
+        self,
+        runner_type,
+        abort_on_error,
+        installer_set,
+        selenium,
+        selenium_driver_args,
+        selenium_include_suites,
+        rp: RunProperties,
+    ):
+        super().__init__(
+            runner_type,
+            abort_on_error,
+            installer_set,
+            RunnerProperties(rp, "Single_RBAC", 400, 500, True, 1),
+            selenium,
+            selenium_driver_args,
+            selenium_include_suites,
+        )
+
+        self.starter_instance = None
+        self.backup_instance_count = 1
+        self.success = False
+        # instantiate RBACHelper and do RBAC related setup
+        # self.jwt_dir = self.cfg.base_test_dir / JWT_DIR
+        # self.create_jwt_folder_and_secret()
+        # self.operator_dir = self.cfg.base_test_dir / OPERATOR_DIR
+        # self.create_operator_folder()
+        # self.rbh = RBACHelper(self.operator_dir, self.jwt_dir)
+        self.rbh = RBACHelper(self.cfg.base_test_dir)
+        self.rbh.create_jwt_folder_and_secret()
+        self.rbh.provision_operator()
+        self.su_token = self.rbh.generate_su_token()
+
+    def starter_prepare_env_impl(self, more_opts=None):
+        if more_opts is None:
+            more_opts = []
+        rbac_options = [
+            "--args.all.server.rest-server=true",
+            "--args.all.server.harden=true",
+            f"--args.all.server.external-rbac-service={RBAC_SERVICE_GATEWAY}",
+        ]
+        if self.cfg.ssl and not self.cfg.use_auto_certs:
+            self.create_tls_ca_cert()
+            tls_keyfile = self.cert_dir / Path("single") / "tls.keyfile"
+            self.cert_op(
+                [
+                    "tls",
+                    "keyfile",
+                    "--cacert=" + str(self.certificate_auth["cert"]),
+                    "--cakey=" + str(self.certificate_auth["key"]),
+                    "--keyfile=" + str(tls_keyfile),
+                    "--host=" + self.cfg.publicip,
+                    "--host=localhost",
+                ]
+            )
+            more_opts.append(f"--ssl.keyfile={tls_keyfile}")
+        more_opts.extend(rbac_options)
+        self.starter_instance = StarterManager(
+            self.cfg,
+            self.is_foxx_supported,
+            self.basedir,
+            "single",
+            mode="single",
+            port=8528,
+            expect_instances=[InstanceType.SINGLE],
+            jwt_str="single_rbac",
+            moreopts=more_opts,
+        )
+        self.starter_instance.is_leader = True
+
+    def starter_run_impl(self):
+        self.starter_instance.run_starter()
+
+        self.starter_instance.detect_instances()
+
+        self.starter_instance.detect_instance_pids()
+
+        self.passvoid = "single"
+        # self.starter_instance.set_passvoid(self.passvoid)
+
+        self.starter_instances = [
+            self.starter_instance,
+        ]
+
+    def finish_setup_impl(self):
+        # finish setup by starting the replications
+        self.set_frontend_instances()
+        self.makedata_instances.append(self.starter_instance)
+        self.rbh.start_operator_services(self.get_fe_url())
+
+    @step
+    def test_setup_impl(self):
+        logging.info("testing the single server setup")
+        lh.subsection("single server - check test data", "-")
+
+        if self.selenium:
+            self.selenium.test_after_install()
+        # self.make_data()
+        if self.selenium:
+            self.selenium.test_setup()
+        logging.info("Single setup successfully finished!")
+
+    @step
+    def upgrade_arangod_version_impl(self):
+        """rolling upgrade this installation"""
+        self.starter_instance.replace_binary_for_upgrade(self.new_installer.cfg)
+        self.starter_instance.command_upgrade()
+        self.starter_instance.wait_for_upgrade()
+        self.starter_instance.wait_for_upgrade_done_in_starter_log()
+
+        self.starter_instance.detect_instances()
+        self.starter_instance.wait_for_version_reply()
+        if self.selenium:
+            self.selenium.test_after_install()
+
+    def wait_for_restore_impl(self, backup_starter):
+        print("wait start")
+        super().wait_for_restore_impl(backup_starter)
+        time.sleep(1)
+        print("ping")
+        self.starter_instance.tcp_ping_nodes(timeout=60.0)
+
+    @step
+    def upgrade_arangod_version_manual_impl(self):
+        """manual upgrade this installation"""
+        self.progress(True, "step 1 - shut down instances")
+        self.starter_instance.replace_binary_setup_for_upgrade(self.new_installer.cfg)
+        self.starter_instance.terminate_instance(True)
+        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        print("launch")
+        self.starter_instance.manually_launch_instances(
+            [InstanceType.SINGLE],
+            ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
+        )
+        self.progress(True, "step 3 - launch instances again")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
+        self.starter_instance.respawn_instance(version)
+        self.progress(True, "step 4 - detect system state")
+        self.starter_instance.detect_instances()
+        self.starter_instance.wait_for_version_reply()
+        if self.selenium:
+            self.selenium.test_after_install()
+
+    @step
+    def jam_attempt_impl(self):
+        """run the replication fuzzing test"""
+        prompt_user(self.cfg, "please test the installation.")
+        if self.selenium:
+            self.selenium.test_jam_attempt()
+
+    @step
+    def shutdown_impl(self):
+        print("stopping the operator services...")
+        self.rbh.stop_operator_services()
+        ret = self.starter_instance.terminate_instance()
+        pslist = get_all_processes(False)
+        if len(pslist) > 0:
+            raise Exception("Not all processes terminated! [%s]" % str(pslist))
+        logging.info("test ended")
+        return ret
+
+    def before_backup_create_impl(self):
+        pass
+
+    def after_backup_create_impl(self):
+        pass
+
+    def before_backup_impl(self):
+        """nothing to see here"""
+
+    def after_backup_impl(self):
+        """nothing to see here"""
+        time.sleep(1)
+        count = 0
+        while True:
+            try:
+                reply = self.starter_instance.send_request(InstanceType.SINGLE, requests.get, "/_api/collection", None)
+                if reply[0].status_code == 200:
+                    break
+            # pylint: disable=broad-except
+            except Exception:
+                print("waiting")
+            count += 1
+            if count > 50:
+                raise Exception("system doesn't become responsive after restore")
+            time.sleep(1)
+
+    def set_selenium_instances(self):
+        """set instances in selenium runner"""
+        self.selenium.set_instances(
+            self.cfg,
+            self.starter_instance.arango_importer,
+            self.starter_instance.arango_restore,
+            self.starter_instance.all_instances[0],
+        )
+
+    def run_api_tests_impl(self):
+        self.api_tests_failed = not APITestSuite(self.starter_instance).run_api_tests()
+
+    def get_fe_url(self):
+        fe_instance = [instance for instance in self.starter_instance.all_instances if instance.is_frontend()][0]
+        return self.starter_instance.get_http_protocol() + "://" + fe_instance.get_public_plain_url()

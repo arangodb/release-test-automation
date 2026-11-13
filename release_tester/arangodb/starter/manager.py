@@ -45,7 +45,7 @@ from reporting.reporting_utils import attach_table, step, attach_http_request_to
 
 IS_WINDOWS = sys.platform == "win32"
 
-DEFAULT_ENCRYPTION_AT_REST_KEY="defaultencatrestkey_32chars_xxxx"
+DEFAULT_ENCRYPTION_AT_REST_KEY = "defaultencatrestkey_32chars_xxxx"
 
 # pylint: disable=too-many-lines disable=logging-fstring-interpolation
 class StarterManager:
@@ -75,7 +75,7 @@ class StarterManager:
             self.moreopts = moreopts
         # if self.cfg.verbose:
         self.moreopts += ["--log.verbose=true"]
-        self.moreopts += ['--all.log', 'startup=trace']
+        self.moreopts += ["--all.log", "startup=trace"]
         # self.moreopts += ["--args.coordinators.query.memory-limit=123456" ]
         # self.moreopts += ["--all.query.memory-limit=123456" ]
         # self.moreopts += ["--args.all.log.level=arangosearch=trace"]
@@ -134,8 +134,11 @@ class StarterManager:
         self.jwt_header = None
         self.jwt_tokens = {}
         if jwt_str:
-            self.jwtfile = Path(str(self.basedir) + "_jwt")
-            self.jwtfile.write_text(jwt_str, encoding="utf-8")
+            if jwt_str.endswith("_rbac"):
+                self.jwtfile = self.cfg.base_test_dir / "jwt/-"
+            else:
+                self.jwtfile = Path(str(self.basedir) + "_jwt")
+                self.jwtfile.write_text(jwt_str, encoding="utf-8")
             self.moreopts += ["--auth.jwt-secret", str(self.jwtfile)]
             self.get_jwt_header()
 
@@ -212,7 +215,7 @@ class StarterManager:
                 "--args.all.javascript.endpoints-allowlist=.*",
                 "--args.all.javascript.environment-variables-allowlist=.*",
                 "--args.all.javascript.startup-options-allowlist=.*",
-                "--args.all.javascript.files-allowlist=.*"
+                "--args.all.javascript.files-allowlist=.*",
             ]
 
     def _get_arguments(self):
@@ -728,7 +731,9 @@ class StarterManager:
         with step("revalidate that the old arangods are still running and alive"):
             self.detect_instance_pids_still_alive()
         if relaunch:
-            with step(f"replace the starter binary with a new one, (port {self.starter_port})this has not yet spawned any children"):
+            with step(
+                f"replace the starter binary with a new one, (port {self.starter_port})this has not yet spawned any children"
+            ):
                 self.respawn_instance(new_install_cfg.version)
                 logging.info("StarterManager: respawned instance as [%s]", str(self.instance.pid))
         self.cfg = new_install_cfg
@@ -1151,11 +1156,7 @@ class StarterManager:
             self.arango_dump = ArangoDumpExecutor(config, self.get_frontend())
             if config.hot_backup_supported:
                 self.hb_instance = HotBackupManager(
-                    config,
-                    self.raw_basedir,
-                    config.base_test_dir / self.raw_basedir,
-                    self.get_frontend(),
-                    self.cfg
+                    config, self.raw_basedir, config.base_test_dir / self.raw_basedir, self.get_frontend(), self.cfg
                 )
                 self.hb_config = HotBackupConfig(
                     config,
@@ -1340,8 +1341,8 @@ class StarterManager:
         self.kill_instance()
         dbserver.terminate_instance()
         dbserver.move_directory_to(
-            self.cfg.base_test_dir /
-            f"{self.raw_basedir}_{self.instance_prefix}_{dbserver.instance_string}")
+            self.cfg.base_test_dir / f"{self.raw_basedir}_{self.instance_prefix}_{dbserver.instance_string}"
+        )
         self.all_instances.remove(dbserver)
         self.moreopts.append("--cluster.start-dbserver=false")
         self.run_starter()
