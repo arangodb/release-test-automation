@@ -41,6 +41,8 @@ JWT_DIR = "jwt"
 OPERATOR_DIR = "operator"
 USER_TYPES = ["superuser", "user"]
 
+HTTP_OK_CODES = [200, 201, 202]
+
 
 class RBACHelper:
     def __init__(self, test_dir_path):
@@ -220,6 +222,39 @@ class RBACHelper:
 
     def generate_user_token(self, user_name):
         return self._generate_token(USER_TYPES[1], user_name)
+
+    @staticmethod
+    def create_rbac_admin_user(user_name, password, arangod_url, su_token):
+        print("creating rbac admin user...")
+        response_codes = []
+        resp = requests.post(
+            f"{arangod_url}/_api/user",
+            headers={"Authorization": f"Bearer {su_token}", "Content-Type": "application/json"},
+            data='{"user":"' + user_name + '", "passwd":"' + password + '"}',
+        )
+        response_codes.append(resp.status_code)
+        resp = requests.post(
+            f"http://{SIDECAR_GATEWAY}/_management/permissions/policy/admin",
+            headers={"Authorization": f"Bearer {su_token}"},
+            json={"item": {"statements": [{"effect": "Allow", "actions": ["*"], "resources": ["*"]}]}},
+        )
+        response_codes.append(resp.status_code)
+        resp = requests.post(
+            f"http://{SIDECAR_GATEWAY}/_management/permissions/role/admin",
+            headers={"Authorization": f"Bearer {su_token}"},
+            json={"item": {"policies": ["admin"]}},
+        )
+        response_codes.append(resp.status_code)
+        resp = requests.post(
+            f"http://{SIDECAR_GATEWAY}/_management/permissions/user/{user_name}/role/admin",
+            headers={"Authorization": f"Bearer {su_token}"},
+            json={"scope": {"statements": [{"effect": "Allow", "actions": ["*"], "resources": ["*"]}]}},
+        )
+        response_codes.append(resp.status_code)
+        rbac_admin_user_creation_ok = all([code in HTTP_OK_CODES for code in response_codes])
+        print(
+            f"{'rbac admin user created successfully...' if rbac_admin_user_creation_ok else 'error creating rbac admin user !!!'}"
+        )
 
     def stop_operator_services(self):
         self.auth_sidecar.terminate()

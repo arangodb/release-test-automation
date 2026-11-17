@@ -33,7 +33,7 @@ LOG_BLACKLIST = [
     "d72fb",  # -> license is going to expire...
     "1afb1",  # -> unlicensed enterprise instance
     "9afd3",  # -> Warning while instantiation of icu::Collator
-#     "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
+    #     "32781",  # -> BTS-1263 - starter launches instances before the agency is ready
     "7e050",  # -> heartbeat could not connect to agency endpoints
     "3e342",  # -> option has been renamed
     "2c0c6",  # -> extended names
@@ -48,7 +48,7 @@ LOG_MAINTAINER_BLACKLIST = [  # if we use the 'source'-Distribution, these are e
 FATAL_BLACKLIST = [
     # Next line is disabled to collect more data about the issue:
     # "11ca3",  # -> SIGTERM received during shutdown sequence GT-541
-    "d8a5c", # -> Wintendos: exiting prematurely as we failed terminating the maintenance thread BTS-1773
+    "d8a5c",  # -> Wintendos: exiting prematurely as we failed terminating the maintenance thread BTS-1773
 ]
 # log tokens we ignore in system ugprades...
 LOG_SYSTEM_BLACKLIST = ["40e37"]  # -> upgrade required
@@ -79,6 +79,7 @@ INSTANCE_TYPE_STRING_MAP = {
 
 # keep a history of any instance ever created...
 INSTANCE_REGISTRY = []
+
 
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
@@ -191,7 +192,7 @@ class Instance(ABC):
         return self.passvoid
 
     def detect_san_files(self):
-        """ check whether we have a SAN report from an instrumented run """
+        """check whether we have a SAN report from an instrumented run"""
         filename = detect_san_file(self.name, self.pid)
         print(f"detected filename: {filename}")
         if filename:
@@ -203,7 +204,6 @@ class Instance(ABC):
                 AttachmentType.TEXT,
             )
             raise Exception("SAN report found in " + str(filename))
-
 
     def detect_gone(self):
         """revalidate that the managed process is actualy dead"""
@@ -300,7 +300,7 @@ class Instance(ABC):
             command.append(cache_val)
 
         print("Manually launching: " + str(command))
-        os.environ["ARANGODB_SERVER_DIR"] =  str(self.basedir)
+        os.environ["ARANGODB_SERVER_DIR"] = str(self.basedir)
         self.instance = psutil.Popen(command)
         del os.environ["ARANGODB_SERVER_DIR"]
         self.pid = self.instance.pid
@@ -415,16 +415,16 @@ class Instance(ABC):
                 except Exception as ex:
                     print(f"skipping {self.instance.pid} {str(ex)}")
                     return
-                #gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
-                #print("generating core with PID:" + str(gcore.pid))
-                #gcore.wait()
-                #print(
+                # gcore = psutil.Popen(["gcore", str(self.instance.pid)], cwd=self.basedir)
+                # print("generating core with PID:" + str(gcore.pid))
+                # gcore.wait()
+                # print(
                 #    "Killing {0} instance PID:[{1}] {3}".format(
                 #        self.type_str, self.instance.pid, self.instance.cmdline()
                 #    )
-                #)
-                #self.instance.send_signal(signal.SIGSEGV)
-                #self.instance.kill()
+                # )
+                # self.instance.send_signal(signal.SIGSEGV)
+                # self.instance.kill()
                 self.instance.wait()
                 self.add_logfile_to_report()
             else:
@@ -541,13 +541,14 @@ class Instance(ABC):
         )
 
     def clean_hotbackup(self):
-        """ find and clear hotbackups """
+        """find and clear hotbackups"""
         # pylint: disable=unnecessary-pass
         pass
 
     def clone_to_registry(self):
-        """ persist a self copy to the history of ever launched arangods """
+        """persist a self copy to the history of ever launched arangods"""
         INSTANCE_REGISTRY.append(self.get_essentials())
+
 
 class ArangodInstance(Instance):
     """represent one arangodb instance"""
@@ -600,7 +601,8 @@ class ArangodInstance(Instance):
 
     def get_public_login_url(self):
         """our public url with passvoid"""
-        return "{protocol}://root:{passvoid}@{publicip}:{port}".format(
+        return "{protocol}://{username}:{passvoid}@{publicip}:{port}".format(
+            username=os.environ["RBAC_ADMIN_USER"] if "RBAC_ADMIN_USER" in os.environ else "root",
             protocol=self.get_http_protocol(),
             passvoid=self.passvoid,
             publicip=self.publicip,
@@ -651,9 +653,7 @@ class ArangodInstance(Instance):
     def clean_hotbackup(self):
         if self.instance_type == InstanceType.COORDINATOR and self.have_js:
             shutil.rmtree(self.basedir / "data" / "js")
-        elif self.instance_type in [
-                InstanceType.DBSERVER, InstanceType.SINGLE ,InstanceType.RESILIENT_SINGLE
-        ]:
+        elif self.instance_type in [InstanceType.DBSERVER, InstanceType.SINGLE, InstanceType.RESILIENT_SINGLE]:
             backup_dir = self.basedir / "data" / "backups"
             if backup_dir.exists():
                 for path in backup_dir.iterdir():
@@ -674,12 +674,19 @@ class ArangodInstance(Instance):
                 reply = {}
                 if self.is_frontend():
                     print("fetch frontend version")
-                    reply = requests.get(
-                        self.get_local_url("") + "/_api/version",
-                        auth=HTTPBasicAuth("root", self.passvoid),
-                        headers=request_headers,
-                        timeout=20,
-                    )
+                    if "RBAC_ADMIN_USER" in os.environ:
+                        reply = requests.get(
+                            self.get_local_url("") + "/_api/version",
+                            headers=request_headers,
+                            timeout=20,
+                        )
+                    else:
+                        reply = requests.get(
+                            self.get_local_url("") + "/_api/version",
+                            auth=HTTPBasicAuth("root", self.passvoid),
+                            headers=request_headers,
+                            timeout=20,
+                        )
                 else:
                     print("fetch backend version")
                     reply = requests.get(self.get_local_url("") + "/_api/version", headers=request_headers, timeout=20)
@@ -787,7 +794,7 @@ class ArangodInstance(Instance):
             print(str(logfile))
             with open(logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
-                    if "] FATAL [" in line or '{crash}' in line:
+                    if "] FATAL [" in line or "{crash}" in line:
                         if fatal_line is not None:
                             fatal_line += "\n" + line
                         else:
@@ -818,7 +825,7 @@ class ArangodInstance(Instance):
 
             messages = ""
             fs = self.logfile.stat().st_size / 1024 / 1024
-            if (fs > 5):
+            if fs > 5:
                 print(f"large logfile: {str(self.logfile)} - {fs}MB")
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
@@ -826,11 +833,9 @@ class ArangodInstance(Instance):
                     if line == "":
                         time.sleep(1)
                         continue
-                    if (("] FATAL [" in line
-                         or "{crash}" in line)
-                        and not self.is_suppressed_log_line(line)):
+                    if ("] FATAL [" in line or "{crash}" in line) and not self.is_suppressed_log_line(line):
                         print("Error: ", line)
-                        messages += '\n' +line
+                        messages += "\n" + line
                     # save last line and append to string
                     # (why not slurp the whole file?)
                     last_line = line
@@ -931,9 +936,10 @@ class ArangodInstance(Instance):
         return structure
 
     def move_directory_to(self, target_dir):
-        """ move all database related directories out of the way """
+        """move all database related directories out of the way"""
         print(f"moving my instance directory {self.basedir} to {target_dir}")
         self.basedir.rename(target_dir)
+
 
 class ArangodRemoteInstance(ArangodInstance):
     """represent one arangodb instance"""
@@ -1098,12 +1104,12 @@ def get_instances_table(instances, version=False):
     for one_instance in instances:
         print(one_instance)
         row = [
-                one_instance["name"],
-                one_instance["pid"],
-                one_instance["type"],
-                one_instance["log"],
-                # one_instance["is_frontend"],
-                one_instance["url"],
+            one_instance["name"],
+            one_instance["pid"],
+            one_instance["type"],
+            one_instance["log"],
+            # one_instance["is_frontend"],
+            one_instance["url"],
         ]
         if version:
             row.append(one_instance["version"])
@@ -1130,7 +1136,8 @@ def print_instances_table(instances, print_table=True, version=False):
     attach_table(table, "Instances table")
     return str(table)
 
+
 def dump_instance_registry(filename):
-    """ print the table of instances """
+    """print the table of instances"""
     tablestr = print_instances_table(INSTANCE_REGISTRY, True, True)
-    Path(filename).write_text(tablestr + '\n', encoding="utf8")
+    Path(filename).write_text(tablestr + "\n", encoding="utf8")

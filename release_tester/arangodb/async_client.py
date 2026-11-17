@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timedelta
 from subprocess import PIPE
 from threading import Thread
+
 import psutil
 from allure_commons._allure import attach
 import tools.loghelper as lh
@@ -183,16 +184,14 @@ def expect_failure(expect_to_fail, ret, params):
         detail = "deadline" if ret["have_deadline"] else "progressive timeout"
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         raise CliExecutionException(
-            f"Execution failed by {detail}.", res,
-            ret["progressive_timeout"] or ret["have_deadline"])
+            f"Execution failed by {detail}.", res, ret["progressive_timeout"] or ret["have_deadline"]
+        )
     if ret["rc_exit"] != 0:
         res = (False, convert_result(params["output"]), 0, ret["line_filter"])
         if expect_to_fail:
             return res
-        raise CliExecutionException(
-            f"Execution failed by unexpected exit code.{ret['rc_exit']}",
-            res,
-            False)
+        print(f'return code - {ret["rc_exit"]}')
+        raise CliExecutionException(f"Execution failed by unexpected exit code.{ret['rc_exit']}", res, False)
 
     if not expect_to_fail:
         if len(params["output"]) == 0:
@@ -208,7 +207,7 @@ def expect_failure(expect_to_fail, ret, params):
     raise CliExecutionException(
         f"{params['identifier']} Execution was expected to fail, but exited successfully.",
         res,
-        ret["progressive_timeout"]
+        ret["progressive_timeout"],
     )
 
 
@@ -279,10 +278,17 @@ deadline_signal: {0.deadline_signal}""".format(
             "--log.force-direct", "true",
         ]
         if self.connect_instance:
-            run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
-            if use_default_auth:
-                run_cmd += ["--server.username", str(self.cfg.username)]
+            print("instance endpoint: " + self.connect_instance.get_endpoint())
+            print("instance public url: " + self.connect_instance.get_public_url())
+            if 'RBAC_ADMIN_USER' in os.environ:
+                run_cmd += ["--server.endpoint", "http://127.0.0.1:8529"]
+                run_cmd += ["--server.username", os.environ['RBAC_ADMIN_USER']]
                 run_cmd += ["--server.password", passvoid]
+            else:
+                run_cmd += ["--server.endpoint", self.connect_instance.get_endpoint()]
+                if use_default_auth:
+                    run_cmd += ["--server.username", str(self.cfg.username)]
+                    run_cmd += ["--server.password", passvoid]
 
         run_cmd += more_args
         ret = self.run_monitored(executeable,
@@ -334,10 +340,9 @@ deadline_signal: {0.deadline_signal}""".format(
             else:
                 deadline = datetime.now() + timedelta(seconds=deadline)
         final_deadline = deadline + timedelta(seconds=deadline_grace_period)
-        lh.log_cmd(run_cmd,
-                   progressive_timeout=progressive_timeout,
-                   deadline=deadline,
-                   cwd=self.cfg.sublaunch_pwd.resolve())
+        lh.log_cmd(
+            run_cmd, progressive_timeout=progressive_timeout, deadline=deadline, cwd=self.cfg.sublaunch_pwd.resolve()
+        )
         with psutil.Popen(
             run_cmd,
             stdout=PIPE,
@@ -363,7 +368,7 @@ deadline_signal: {0.deadline_signal}""".format(
                 # pylint: disable=line-too-long
                 print(
                     f"{identifier} my PID:{str(os.getpid())} launched PID:{str(process.pid)} {str(process.name())} with LWPID:{str(thread1.native_id)} and LWPID:{str(thread2.native_id)}"
-                    )
+                )
             except AttributeError:
                 print(
                     "{0} me PID:{1} launched PID:{2} with LWPID:N/A and LWPID:N/A".format(

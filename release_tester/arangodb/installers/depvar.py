@@ -29,11 +29,17 @@ STARTER_MODES = {
     "all": [
         RunnerType.SINGLE,
         RunnerType.CLUSTER,
+        RunnerType.SINGLE_RBAC,
+        RunnerType.CLUSTER_RBAC,
     ],
     "SG": [RunnerType.SINGLE],
     "CL": [RunnerType.CLUSTER],
     "SG_RBAC": [RunnerType.SINGLE_RBAC],
     "CL_RBAC": [RunnerType.CLUSTER_RBAC],
+    "all_RBAC": [
+        RunnerType.SINGLE_RBAC,
+        RunnerType.CLUSTER_RBAC,
+    ],
     "none": [RunnerType.NONE],
 }
 

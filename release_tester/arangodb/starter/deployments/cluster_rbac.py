@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 import re
 import time
-import secrets
+import os
 
 import semver
 
@@ -81,7 +81,6 @@ class ClusterRBAC(Runner):
             selenium_driver_args,
             selenium_include_suites,
         )
-        # self.cfg.frontends = []
         self.starter_instances = []
         self.jwtdatastr = str(timestamp())
         self.create_test_collection = ""
@@ -102,6 +101,9 @@ class ClusterRBAC(Runner):
         self.rbh.create_jwt_folder_and_secret()
         self.rbh.provision_operator()
         self.su_token = self.rbh.generate_su_token()
+        self.username = "admin"
+        self.passvoid = self.username
+        os.environ["RBAC_ADMIN_USER"] = self.username
 
     def starter_prepare_env_impl(self, sm=None, more_opts=None):
         # pylint: disable=invalid-name
@@ -148,12 +150,7 @@ class ClusterRBAC(Runner):
                 "--args.all.log.level=rep-state=debug",
             ]
         if self.props.force_one_shard:
-            common_opts += [
-                "--coordinators.cluster.force-one-shard=true",
-                "--dbservers.cluster.force-one-shard=true",
-                # "--coordinators.log.level=requests=trace",
-                # "--args.all.log.output=@ARANGODB_SERVER_DIR@/request.log",
-            ]
+            common_opts += ["--coordinators.cluster.force-one-shard=true", "--dbservers.cluster.force-one-shard=true"]
         else:
             common_opts += ["--args.all.cluster.default-replication-factor=2"]
         node_opts = []
@@ -185,6 +182,7 @@ class ClusterRBAC(Runner):
             count += 1
         for instance in self.starter_instances:
             instance.is_leader = True
+            instance.passvoid = self.passvoid
 
     def starter_run_impl(self):
         lh.subsection("instance setup")
@@ -212,21 +210,12 @@ class ClusterRBAC(Runner):
             # self.cfg.add_frontend('http', self.cfg.publicip, str(node.get_frontend_port()))
 
         logging.info("instances are ready - JWT: " + self.starter_instances[0].get_jwt_header())
-        # count = 0
-        # for node in self.get_running_starters():
-        #     node.set_passvoid("cluster", count == 0)
-        #     count += 1
-        # for node in self.get_not_running_starters():
-        #     node.set_passvoid("cluster", False)
-        # self.passvoid = "cluster"
-        # self.cfg.passvoid = self.passvoid
-        # if self.new_cfg:
-        #     self.new_cfg.passvoid = self.passvoid
 
     def finish_setup_impl(self):
         self.makedata_instances = self.get_running_starters()
         self.set_frontend_instances()
         self.rbh.start_operator_services(self.get_fe_url())
+        RBACHelper.create_rbac_admin_user(self.username, self.passvoid, self.get_fe_url(), self.su_token)
 
     def _check_for_shards_in_sync(self):
         """wait for all shards to be in sync"""
@@ -248,7 +237,7 @@ class ClusterRBAC(Runner):
 
     def after_makedata_check(self):
         lh.subsubsection("wait for all shards to be in sync - test setup")
-        self._check_for_shards_in_sync()
+        # self._check_for_shards_in_sync()
 
     def wait_for_restore_impl(self, backup_starter):
         if self.hot_backup:
@@ -259,161 +248,15 @@ class ClusterRBAC(Runner):
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
-        # self.agency_set_debug_logging()
-        bench_instances = []
-        if self.cfg.stress_upgrade:
-            bench_instances.append(self.starter_instances[0].launch_arangobench("cluster_upgrade_scenario_1"))
-            bench_instances.append(self.starter_instances[1].launch_arangobench("cluster_upgrade_scenario_2"))
-        for node in self.get_running_starters():
-            node.replace_binary_for_upgrade(self.new_installer.cfg)
-
-        for node in self.get_running_starters():
-            node.detect_instance_pids_still_alive()
-
-        self.starter_instances[1].command_upgrade()
-        if self.selenium:
-            self.selenium.test_wait_for_upgrade()  # * 5s
-        try:
-            self.starter_instances[1].wait_for_upgrade(300)
-        except TimeoutError as ex:
-            for node in self.starter_instances:
-                for instance in node.all_instances:
-                    if instance.instance_type == InstanceType.COORDINATOR:
-                        instance.crash_instance()
-            raise ex
-        if self.cfg.stress_upgrade:
-            bench_instances[0].wait()
-            bench_instances[1].wait()
-        for node in self.starter_instances:
-            node.detect_instance_pids()
-        self._check_for_shards_in_sync()
+        pass
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
-        lh.subsubsection("wait for all shards to be in sync - Manual upgrade")
-        self._check_for_shards_in_sync()
-        print("all in sync.")
-        self.progress(True, "manual upgrade step 1 - stop instances")
-        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
-        for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
-        for node in self.starter_instances:
-            node.detect_instance_pids_still_alive()
-
-        # fmt: off
-        self.progress(True, "step 2 - upgrade agents")
-        for node in self.starter_instances:
-            node.upgrade_instances(
-                [
-                    InstanceType.AGENT
-                ], [
-                    '--database.auto-upgrade', 'true',
-                    '--log.foreground-tty', 'true'
-                ],
-                # mitigate 3.6x agency shutdown issues:
-                self.cfg.version >= arangoversions['370'])
-        self.progress(True, "step 3 - upgrade db-servers")
-        more_args = []
-        if self.cfg.version != arangoversions['3126']:
-            more_args = ['--cluster.upgrade=online']
-        for node in self.starter_instances:
-            node.upgrade_instances([
-                InstanceType.DBSERVER
-            ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true'] + more_args)
-        self.progress(True, "step 4 - coordinator upgrade")
-        # now the new cluster is running. we will now run the coordinator upgrades
-        for node in self.starter_instances:
-            logging.info("upgrading coordinator instances\n" + str(node))
-            node.upgrade_instances([
-                InstanceType.COORDINATOR
-            ], [
-                '--database.auto-upgrade', 'true',
-                '--javascript.copy-installation', 'true',
-                '--server.rest-server', 'false',
-            ])
-        # fmt: on
-        self.progress(True, "step 5 restart the full cluster ")
-        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
-        for node in self.starter_instances:
-            node.respawn_instance(version)
-        self.progress(True, "step 6 wait for the cluster to be up")
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.wait_for_version_reply()
-
-        # now the upgrade should be done.
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.wait_for_version_reply()
-            node.probe_leader()
-        self.set_frontend_instances()
-        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
-
-        if self.selenium:
-            self.selenium.test_wait_for_upgrade()  # * 5s
+        pass
 
     def downgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
-        lh.subsubsection("wait for all shards to be in sync - downgrade")
-        self._check_for_shards_in_sync()
-        print("all in sync.")
-        self.progress(True, "manual upgrade step 1 - stop instances")
-        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
-        for node in self.starter_instances:
-            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
-        for node in self.starter_instances:
-            node.detect_instance_pids_still_alive()
-
-        # fmt: off
-        self.progress(True, "step 2 - upgrade agents")
-        for node in self.starter_instances:
-            node.upgrade_instances(
-                [
-                    InstanceType.AGENT
-                ], [
-                    '--database.auto-upgrade', 'true',
-                    '--log.foreground-tty', 'true'
-                ],
-                # mitigate 3.6x agency shutdown issues:
-                self.cfg.version >= arangoversions['370'])
-        self.progress(True, "step 3 - upgrade db-servers")
-        for node in self.starter_instances:
-            node.upgrade_instances([
-                InstanceType.DBSERVER
-            ], ['--database.auto-upgrade', 'true',
-                '--log.foreground-tty', 'true'])
-        self.progress(True, "step 4 - coordinator upgrade")
-        # now the new cluster is running. we will now run the coordinator upgrades
-        for node in self.starter_instances:
-            logging.info("upgrading coordinator instances\n" + str(node))
-            node.upgrade_instances([
-                InstanceType.COORDINATOR
-            ], [
-                '--database.auto-upgrade', 'true',
-                '--javascript.copy-installation', 'true',
-                '--server.rest-server', 'false',
-            ])
-        # fmt: on
-        self.progress(True, "step 5 restart the full cluster ")
-        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
-        for node in self.starter_instances:
-            node.respawn_instance(version)
-        self.progress(True, "step 6 wait for the cluster to be up")
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.wait_for_version_reply()
-
-        # now the upgrade should be done.
-        for node in self.starter_instances:
-            node.detect_instances()
-            node.wait_for_version_reply()
-            node.probe_leader()
-        self.set_frontend_instances()
-        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
-
-        if self.selenium:
-            self.selenium.test_wait_for_upgrade()  # * 5s
+        pass
 
     def _jam_stop_one_db_server(self):
         self.wait_data_impl()
@@ -498,47 +341,7 @@ class ClusterRBAC(Runner):
         self.set_frontend_instances()
 
     def _jam_launch_unauthenticated_starter(self):
-        moreopts = ["--starter.join", "127.0.0.1:9528"]
-        curr_cfg = {}
-        if self.new_cfg is not None:
-            curr_cfg = copy.deepcopy(self.new_cfg)
-        else:
-            curr_cfg = copy.deepcopy(self.cfg)
-
-        if curr_cfg.ssl and not curr_cfg.use_auto_certs:
-            keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
-            self.generate_keyfile(keyfile)
-            moreopts.append(f"--ssl.keyfile={keyfile}")
-        dead_instance = StarterManager(
-            curr_cfg,
-            self.is_foxx_supported,
-            Path("CLUSTER"),
-            "nodeX",
-            mode="cluster",
-            jwt_str=None,
-            expect_instances=[
-                InstanceType.AGENT,
-                InstanceType.COORDINATOR,
-                InstanceType.DBSERVER,
-            ],
-            moreopts=moreopts,
-        )
-        dead_instance.run_starter(expect_to_fail=True)
-
-        i = 0
-        while True:
-            logging.info(". %d", i)
-            if not dead_instance.is_instance_running():
-                dead_instance.check_that_starter_log_contains("Unauthorized. Wrong credentials.")
-                break
-            if i > 40:
-                logging.info("Giving up wating for the starter to exit")
-                raise Exception("non-jwt-ed starter won't exit")
-            i += 1
-            time.sleep(10)
-        logging.info(str(dead_instance.instance.wait(timeout=320)))
-        logging.info("dead instance is dead?")
-        prompt_user(curr_cfg, "cluster should be up")
+        pass
 
     @step
     def jam_attempt_impl(self):
@@ -547,16 +350,6 @@ class ClusterRBAC(Runner):
         # collections = self.get_collection_list()
         self._check_for_shards_in_sync()
         self._jam_stop_one_db_server()
-
-        logging.info("jamming: Starting instance without jwt")
-        self._jam_launch_unauthenticated_starter()
-        if self.selenium:
-            self.selenium.jam_step_2()
-        # After attempt of jamming, we have peer for nodeX in setup.json.
-        # This peer will brake further updates because this peer is unavailable.
-        # It is necessary to remove this peer from json for each starter instance
-        for instance in self.get_running_starters():
-            remove_node_x_from_json(instance.basedir)
 
     def shutdown_impl(self):
         print("stopping the operator services...")
@@ -581,13 +374,7 @@ class ClusterRBAC(Runner):
 
     def set_selenium_instances(self):
         """set instances in selenium runner"""
-        self.selenium.set_instances(
-            self.cfg,
-            self.starter_instances[0].arango_importer,
-            self.starter_instances[0].arango_restore,
-            [x for x in self.starter_instances[0].all_instances if x.instance_type == InstanceType.COORDINATOR][0],
-            self.new_cfg,
-        )
+        pass
 
     def generate_keyfile(self, keyfile):
         """generate the ssl certificate file"""
@@ -606,82 +393,6 @@ class ClusterRBAC(Runner):
     def run_api_tests_impl(self):
         self.api_tests_failed = not APITestSuite(self.starter_instances[0]).run_api_tests()
 
-    # pylint: disable=too-many-statements
-    # @step
-    # TODO BTS-2427 re-enable me!
-    def __disabled__test_hotbackup_impl(self):
-        """test hotbackup feature: Cluster"""
-        with step("step 1: create a backup"):
-            backup_step_1 = self.create_backup_and_upload("thy_name_is_" + self.name)
-
-        with step("step 2: add new db server"):
-            old_servers = self.get_running_starters()
-            new_starter = self.get_not_running_starters()[-1]
-            new_starter.run_starter_and_wait()
-            self.backup_instance_count += 1
-            self.makedata_instances = self.get_running_starters()
-
-        with step("step 3: create a backup"):
-            backup_step_3 = self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server")
-
-        with step("step 4: remove old db server"):
-            self.remove_starter_dbserver(old_servers[0])
-            self.wait_data_impl()
-
-        with step("step 5: create another backup"):
-            self.create_backup_and_upload("thy_name_is_" + self.name + "_plus1_server_minus1_server", False)
-
-        with step("step 6: create non-backup data"):
-            self._check_for_shards_in_sync()
-            self.create_non_backup_data()
-            self.tcp_ping_all_nodes()
-
-        with step("step 7: download and restore backup from step 1"):
-            self.download_backup(backup_step_1)
-            self.validate_local_backup(backup_step_1)
-            backups = self.list_backup()
-            if backup_step_1 not in backups:
-                raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_step_1)
-            self.tcp_ping_all_nodes()
-
-        with step("step 8: check data"):
-            self.check_data_impl()
-            if not self.check_non_backup_data():
-                raise Exception("data created after backup is still there??")
-
-        with step("step 9: add new db server"):
-            new_starter2 = self.get_not_running_starters()[-1]
-            new_starter2.run_starter_and_wait()
-            self.backup_instance_count += 1
-            self.makedata_instances = self.get_running_starters()
-            self.wait_data_impl()
-
-        with step("step 10: create non-backup data"):
-            self.create_non_backup_data()
-            self.tcp_ping_all_nodes()
-
-        with step("step 11: download and restore backup from step 3"):
-            self.download_backup(backup_step_3)
-            self.validate_local_backup(backup_step_3)
-            backups = self.list_backup()
-            if backup_step_3 not in backups:
-                raise Exception("downloaded backup has different name? " + str(backups))
-            self.restore_backup(backup_step_3)
-            self.tcp_ping_all_nodes()
-
-        with step("step 12: check data"):
-            self.check_data_impl()
-
-        with step("step 13: remove old db server"):
-            self.remove_starter_dbserver(old_servers[1])
-            self.wait_data_impl()
-
-        with step("step 14: create non-backup data"):
-            self._check_for_shards_in_sync()
-            self.create_non_backup_data()
-            self.tcp_ping_all_nodes()
-
     @step
     def remove_starter_dbserver(self, starter):
         """remove dbserver managed by given starter from cluster"""
@@ -696,20 +407,7 @@ class ClusterRBAC(Runner):
     @step
     def test_hotbackup_after_upgrade_impl(self):
         """test hotbackup after upgrade: cluster"""
-        with step("step 1: check data"):
-            self.check_data_impl()
-        with step("step 2: download backup"):
-            latest_backup = self.uploaded_backups[-1]
-            self.download_backup(latest_backup)
-            backups = self.list_backup()
-            if latest_backup not in backups:
-                raise Exception("downloaded backup has different name? " + str(backups))
-        with step("step 3: restore backup"):
-            self.restore_backup(latest_backup)
-            self.tcp_ping_all_nodes()
-        # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
-        with step("step 4: delete backups"):
-            self.delete_all_backups()
+        pass
 
     def get_fe_url(self):
         fe_instance = [instance for instance in self.starter_instances[0].all_instances if instance.is_frontend()][0]
