@@ -275,8 +275,7 @@ class Runner(ABC):
                 self.custom_databases.append(["system_oneshard_makedata", True, 1])
             if self.hot_backup:
                 self.progress(False, "TESTING empty HOTBACKUP")
-                self.empty_backup_name = self.create_backup(
-                    "empty_" + self.name + "X" + self.cfg.version + "X")
+                self.empty_backup_name = self.create_backup("empty_" + self.name + "X" + self.cfg.version + "X")
 
             self.make_data()
             self.wait_data_impl()
@@ -354,7 +353,7 @@ class Runner(ABC):
                 if is_uninstall_now:
                     self.uninstall(self.old_installer if not self.new_installer else self.new_installer)
             finally:
-                if self.selenium:
+                if self.selenium and not "RBAC_ADMIN_USER" in os.environ:
                     ui_test_results_table = BeautifulTable(maxwidth=160)
                     for result in self.selenium.test_results:
                         ui_test_results_table.rows.append(
@@ -384,8 +383,7 @@ class Runner(ABC):
     @step
     def test_hotbackup_impl(self):
         """test hotbackup feature: general implementation"""
-        self.backup_name = self.create_backup(
-            "thy_name_is_" + self.name + "X" + self.cfg.version + "X")
+        self.backup_name = self.create_backup("thy_name_is_" + self.name + "X" + self.cfg.version + "X")
         self.validate_local_backup(self.backup_name)
         self.tcp_ping_all_nodes()
         self.create_non_backup_data()
@@ -780,7 +778,7 @@ class Runner(ABC):
                     except CliExecutionException as exc:
                         if self.cfg.verbose:
                             print(exc.execution_result[1])
-                        #for starter in self.makedata_instances:
+                        # for starter in self.makedata_instances:
                         #    for arangod in starter.all_instances:
                         #        arangod.crash_instance()
 
@@ -795,9 +793,7 @@ class Runner(ABC):
             raise Exception("didn't find makedata instances, no data created!")
 
     @step
-    def check_data_impl_sh(self, arangosh,
-                           supports_foxx_tests,
-                           supports_vector_index):
+    def check_data_impl_sh(self, arangosh, supports_foxx_tests, supports_vector_index):
         """check for data on the installation"""
         deadline = 1800 if self.cfg.is_instrumented else 900
         progressive_timeout = 1000 if self.cfg.is_instrumented else 25
@@ -839,16 +835,12 @@ class Runner(ABC):
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             frontend_found = True
             arangosh = starter.arangosh
-            self.check_data_impl_sh(arangosh,
-                                    starter.supports_foxx_tests,
-                                    starter.supports_vector_index)
+            self.check_data_impl_sh(arangosh, starter.supports_foxx_tests, starter.supports_vector_index)
         if not frontend_found:
             raise Exception("no frontend found.")
 
     @step
-    def wait_data_impl_sh(self, arangosh,
-                          supports_foxx_tests,
-                          supports_vector_index):
+    def wait_data_impl_sh(self, arangosh, supports_foxx_tests, supports_vector_index):
         """wait for data on the installation"""
         deadline = 1800 if self.cfg.is_instrumented else 900
         progressive_timeout = 1000 if self.cfg.is_instrumented else 25
@@ -890,9 +882,7 @@ class Runner(ABC):
             assert starter.arangosh, "check: this starter doesn't have an arangosh!"
             frontend_found = True
             arangosh = starter.arangosh
-            self.wait_data_impl_sh(arangosh,
-                                   starter.supports_foxx_tests,
-                                   starter.supports_vector_index)
+            self.wait_data_impl_sh(arangosh, starter.supports_foxx_tests, starter.supports_vector_index)
         if not frontend_found:
             raise Exception("no frontend found.")
 
@@ -907,28 +897,27 @@ class Runner(ABC):
             assert starter.arango_dump, "dump everything: this starter doesn't have an dump instance!"
             self.backup_name = self.cfg.base_test_dir.resolve() / self.basedir / name
             args = [
-                '--include-system-collections',
-                'true',
-                '--overwrite',
-                'true',
-                '--use-experimental-dump',
-                'true',
-                '--all-databases',
-                'true',
-                '--local-writer-threads',
-                '5',
-                '--local-network-threads',
-                '10',
-                '--dbserver-prefetch-batches',
-                '20',
-                '--split-files',
-                'true'
+                "--include-system-collections",
+                "true",
+                "--overwrite",
+                "true",
+                "--use-experimental-dump",
+                "true",
+                "--all-databases",
+                "true",
+                "--local-writer-threads",
+                "5",
+                "--local-network-threads",
+                "10",
+                "--dbserver-prefetch-batches",
+                "20",
+                "--split-files",
+                "true",
             ]
             ret = starter.arango_dump.run_dump_monitored(
-                self.backup_name,
-                args,
-                progressive_timeout=progressive_timeout)
-            #self.after_backup_create_impl()
+                self.backup_name, args, progressive_timeout=progressive_timeout
+            )
+            # self.after_backup_create_impl()
             return ret
         raise Exception("no frontend found.")
 
@@ -954,7 +943,9 @@ class Runner(ABC):
       }
       throw new Error("foxx routeing not ready on time!");
     }; waitForSelfHeal();
-                """))
+                """,
+            )
+        )
 
     def restore_everything_from_dump(self, starter, path):
         """do a full restore from a dump"""
@@ -1445,24 +1436,23 @@ class Runner(ABC):
         os.environ["INSTANCEINFO"] = json.dumps(struct)
 
     def wait_for_agency_job(self, job_id, timeout, job_message):
-        """ wait for the agency to finish a job """
+        """wait for the agency to finish a job"""
         count = 0
-        while (True):
+        while True:
             if count > timeout:
                 raise Exception(f"FAILED to ${job_message} TIMEOUT")
             time.sleep(0.1)
             reply = self.get_running_starters()[0].send_request(
-                InstanceType.COORDINATOR,
-                requests.get,
-                f"/_admin/cluster/queryAgencyJob?id={job_id}")
+                InstanceType.COORDINATOR, requests.get, f"/_admin/cluster/queryAgencyJob?id={job_id}"
+            )
             print(reply[0].content)
             if reply[0].status_code in (200, 404):
                 body_json = json.loads(reply[0].content)
-                if body_json['status'] == 'Failed':
+                if body_json["status"] == "Failed":
                     msg = f"FAILED {job_message} - {body_json}"
                     print(f"{msg} - {body_json}")
                     return False
-                if body_json['status'] == 'Finished':
+                if body_json["status"] == "Finished":
                     print(f"DONE ${job_message} {body_json}")
                     return True
             count += 1
@@ -1486,10 +1476,10 @@ class Runner(ABC):
             # print(reply[0].status_code)
             # print('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
             if reply[0].status_code in (200, 404):
-                #body_json = json.loads(reply[0].content)
-                #print(body_json)
-                #print(body_json['id'])
-                #self.wait_for_agency_job(body_json['id'],
+                # body_json = json.loads(reply[0].content)
+                # print(body_json)
+                # print(body_json['id'])
+                # self.wait_for_agency_job(body_json['id'],
                 #                         100,
                 #                         f"remove {server_uuid} from the agency!")
                 return

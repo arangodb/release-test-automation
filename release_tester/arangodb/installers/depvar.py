@@ -4,6 +4,7 @@ from enum import Enum
 
 from arangodb.installers import RunProperties
 
+
 class RunnerType(Enum):
     """dial which runner instance you want"""
 
@@ -11,6 +12,8 @@ class RunnerType(Enum):
     SINGLE = 1
     CLUSTER = 4
     TESTING = 7
+    SINGLE_RBAC = 11
+    CLUSTER_RBAC = 12
 
 
 runner_strings = {
@@ -18,17 +21,28 @@ runner_strings = {
     RunnerType.SINGLE: "Single Server",
     RunnerType.CLUSTER: "Cluster",
     RunnerType.TESTING: "Testing",
+    RunnerType.SINGLE_RBAC: "Single Server RBAC",
+    RunnerType.CLUSTER_RBAC: "Cluster RBAC",
 }
 
 STARTER_MODES = {
     "all": [
         RunnerType.SINGLE,
         RunnerType.CLUSTER,
+        RunnerType.SINGLE_RBAC,
+        RunnerType.CLUSTER_RBAC,
     ],
     "SG": [RunnerType.SINGLE],
     "CL": [RunnerType.CLUSTER],
+    "SG_RBAC": [RunnerType.SINGLE_RBAC],
+    "CL_RBAC": [RunnerType.CLUSTER_RBAC],
+    "all_RBAC": [
+        RunnerType.SINGLE_RBAC,
+        RunnerType.CLUSTER_RBAC,
+    ],
     "none": [RunnerType.NONE],
 }
+
 
 class RunnerProperties:
     """runner properties management class"""
