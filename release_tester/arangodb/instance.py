@@ -819,7 +819,7 @@ class ArangodInstance(Instance):
             messages = ""
             fs = self.logfile.stat().st_size / 1024 / 1024
             if (fs > 5):
-                print(f"large logfile: {str(self.logfile)} - {fs}MB")
+                print(f"large logfile: {str(self.logfile)} - {fs}MB", flush=True)
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
                     # skip empty lines
@@ -847,36 +847,24 @@ class ArangodInstance(Instance):
                 time.sleep(1)
                 continue
 
-            # pid found now find the position of the pid in
-            # the logfile and check it is followed by a
-            # ready for business.
+            # pid found now locate the 'ready for business' line
+            # of exactly this pid and grab its timestamp.
+            # Anchor the match to the line start and the pid field,
+            # a plain substring search may match any digits in an
+            # older run's log lines, and an unanchored '(.*)' backtracks
+            # quadratically on long lines - which once took hours.
             pid = match.groups()[0]
-            start = log_file_content.find(pid, offset)
             ready_for_business = "is ready for business."
-            pos = log_file_content.find(ready_for_business, start)
-            if pos < 0:
+            match = re.compile(
+                r"^(\S+)Z \[" + pid + r"(?:\]|-\d*\]).*" + re.escape(ready_for_business),
+                re.MULTILINE,
+            ).search(log_file_content, offset)
+            if match is None:
                 tries -= 1
                 progress(".")
                 time.sleep(1)
                 continue
             self.pid = int(pid)
-            # locate the timestamp of our 'ready for business' line:
-            match = re.search(r"Z \[(\d*)((\])|(-\d*\]))", last_line)
-            match = re.search(
-                r"(.*)Z \[" + pid + r"((\])|(-\d*\])).*" + ready_for_business,
-                log_file_content[pos - 140 :],
-            )
-            if match is None:
-                tries -= 1
-                self.pid = 0
-                print("ny" * 40)
-                print(log_file_content[pos - 140 :])
-                print(log_file_content)
-                print(pos)
-                time.sleep(1)
-                progress(".")
-                continue
-
             t_start = match.group(1)
             logging.debug(
                 "found pid {0} for instance with logfile {1} at {2}.".format(self.pid, str(self.logfile), t_start)
@@ -1096,7 +1084,6 @@ def get_instances_table(instances, version=False):
     """print all instances provided in tabular format"""
     table = BeautifulTable(maxwidth=160)
     for one_instance in instances:
-        print(one_instance)
         row = [
                 one_instance["name"],
                 one_instance["pid"],
