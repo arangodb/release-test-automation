@@ -79,6 +79,8 @@ INSTANCE_TYPE_STRING_MAP = {
 
 # keep a history of any instance ever created...
 INSTANCE_REGISTRY = []
+# abort detect_pid() if it takes longer than this many seconds
+DETECT_PID_DEADLINE = 600
 
 def log_line_get_date(line):
     """parse the date out of an arangod logfile line"""
@@ -804,7 +806,22 @@ class ArangodInstance(Instance):
         self.ppid = ppid
         tries = 40
         t_start = ""
+        passes = 0
+        start_time = time.monotonic()
+
+        def check_deadline(phase):
+            elapsed = time.monotonic() - start_time
+            if elapsed > DETECT_PID_DEADLINE:
+                size = self.logfile.stat().st_size / 1024 / 1024 if self.logfile.exists() else 0
+                raise TimeoutError(
+                    f"detecting the pid of {self.type_str} instance with logfile '{self.logfile}' "
+                    f"({size:.2f}MB) exceeded the deadline of {DETECT_PID_DEADLINE}s: "
+                    f"{elapsed:.1f}s elapsed after {passes} passes, {tries} tries left, while {phase}"
+                )
+
         while self.pid == 0 and tries:
+            check_deadline("starting a new pass")
+            passes += 1
 
             log_file_content = ""
             last_line = ""
@@ -812,6 +829,7 @@ class ArangodInstance(Instance):
             for _ in range(120):
                 if self.logfile.exists():
                     break
+                check_deadline("waiting for the logfile to show up")
                 time.sleep(1)
             else:
                 raise TimeoutError("instance logfile '" + str(self.logfile) + "' didn't show up in 120 seconds")
@@ -822,6 +840,7 @@ class ArangodInstance(Instance):
                 print(f"large logfile: {str(self.logfile)} - {fs}MB", flush=True)
             with open(self.logfile, errors="backslashreplace", encoding="utf8") as log_fh:
                 for line in log_fh:
+                    check_deadline("reading the logfile")
                     # skip empty lines
                     if line == "":
                         time.sleep(1)
@@ -859,6 +878,7 @@ class ArangodInstance(Instance):
                 r"^(\S+)Z \[" + pid + r"(?:\]|-\d*\]).*" + re.escape(ready_for_business),
                 re.MULTILINE,
             ).search(log_file_content, offset)
+            check_deadline("searching the 'ready for business' line")
             if match is None:
                 tries -= 1
                 progress(".")
@@ -887,7 +907,9 @@ class ArangodInstance(Instance):
             raise TimeoutError("could not get pid for instance: " + repr(self))
         logging.info(
             "found process for pid {0} for "
-            "instance with logfile {1} at {2}.".format(self.pid, str(self.logfile), t_start)
+            "instance with logfile {1} at {2} - took {3:.1f}s in {4} passes.".format(
+                self.pid, str(self.logfile), t_start, time.monotonic() - start_time, passes
+            )
         )
 
     def search_for_agent_serving(self):
