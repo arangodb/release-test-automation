@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ launch and manage an arango deployment using the starter"""
 import logging
+import os
 from pathlib import Path
 import time
 
@@ -37,9 +38,7 @@ class Single(Runner):
             runner_type,
             abort_on_error,
             installer_set,
-            RunnerProperties(
-                rp, "Single", 400, 500, True, 1
-            ),
+            RunnerProperties(rp, "Single", 400, 500, True, 1),
             selenium,
             selenium_driver_args,
             selenium_include_suites,
@@ -48,6 +47,7 @@ class Single(Runner):
         self.starter_instance = None
         self.backup_instance_count = 1
         self.success = False
+        os.environ.pop("RBAC_ADMIN_USER", None)
 
     def starter_prepare_env_impl(self, more_opts=None):
         if more_opts is None:

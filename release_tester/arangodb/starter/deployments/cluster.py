@@ -3,6 +3,7 @@
 import copy
 import json
 import logging
+import os
 from pathlib import Path
 import re
 import time
@@ -93,6 +94,7 @@ class Cluster(Runner):
                 print("One deployment doesn't support starters with more nodes!")
                 self.props.cluster_nodes = 3
         self.backup_instance_count = self.props.cluster_nodes
+        os.environ.pop("RBAC_ADMIN_USER", None)
 
     def starter_prepare_env_impl(self, sm=None, more_opts=None):
         # pylint: disable=invalid-name
@@ -226,51 +228,49 @@ class Cluster(Runner):
         print("all in sync.")
 
     def _get_short_name(self, uuid):
-        """ use cluster health to get the shortname from one server """
+        """use cluster health to get the shortname from one server"""
         reply = self.get_running_starters()[0].send_request(
-            InstanceType.COORDINATOR,
-            requests.get,
-            '/_admin/cluster/health')
+            InstanceType.COORDINATOR, requests.get, "/_admin/cluster/health"
+        )
         if reply[0].status_code != 200:
             raise Exception(f"failed to get the UUID for {uuid}: {reply[0].content}")
         body_json = json.loads(reply[0].content)
-        if not uuid in body_json['Health'].keys():
+        if not uuid in body_json["Health"].keys():
             raise Exception(f"failed to find the UUID for {uuid} in the health state: {reply[0].content}")
-        return body_json['Health'][uuid]['ShortName']
+        return body_json["Health"][uuid]["ShortName"]
 
-    def _wait_for_agency_job(self, job_id, timeout, job_message, expect_state='Finished'):
-        """ wait for an agency job """
+    def _wait_for_agency_job(self, job_id, timeout, job_message, expect_state="Finished"):
+        """wait for an agency job"""
         count = 0
         while True:
             if count > timeout:
                 raise Exception(f"agency job {job_id} didn't reach state {expect_state} in time {job_message}")
             reply = self.get_running_starters()[0].send_request(
-                InstanceType.COORDINATOR,
-                requests.get,
-                f'/_admin/cluster/queryAgencyJob?id={job_id}')
+                InstanceType.COORDINATOR, requests.get, f"/_admin/cluster/queryAgencyJob?id={job_id}"
+            )
             body_json = json.loads(reply[0].content)
-            if expect_state != body_json['status'] == 'Failed':
+            if expect_state != body_json["status"] == "Failed":
                 return False
-            if body_json['status'] == expect_state:
+            if body_json["status"] == expect_state:
                 return True
             time.sleep(1)
             count += 1
 
     def _resign_leadership(self, uuid):
-        """ resign a dbserver from shard leaderships """
+        """resign a dbserver from shard leaderships"""
         while True:
             while True:
                 reply = self.get_running_starters()[0].send_request(
                     InstanceType.COORDINATOR,
                     requests.post,
-                    '/_admin/cluster/resignLeadership',
-                    f'{{ "server": "{uuid}", "undoMoves": false }}')
-                if reply[0].status_code != 202 :
+                    "/_admin/cluster/resignLeadership",
+                    f'{{ "server": "{uuid}", "undoMoves": false }}',
+                )
+                if reply[0].status_code != 202:
                     print(f"retrying resign leadership - {reply[0].status_code} - {reply[0].content}")
                     break
                 body_json = json.loads(reply[0].content)
-                if self._wait_for_agency_job(body_json['id'], 1000,
-                                             f"resign ${uuid} from leadership"):
+                if self._wait_for_agency_job(body_json["id"], 1000, f"resign ${uuid} from leadership"):
                     return
 
     def test_setup_impl(self):
@@ -463,7 +463,7 @@ class Cluster(Runner):
 
         logging.info("stopping instance %d" % terminate_instance)
         uuid = instances[0].get_uuid()
-        self._resign_leadership(uuid) # self._get_short_name(uuid))
+        self._resign_leadership(uuid)  # self._get_short_name(uuid))
         self._check_for_shards_in_sync()
         self.starter_instances[terminate_instance].terminate_instance(keep_instances=True)
         logging.info("relaunching agent!")
@@ -634,6 +634,7 @@ class Cluster(Runner):
                 "--host=localhost",
             ]
         )
+
     def run_api_tests_impl(self):
         self.api_tests_failed = not APITestSuite(self.starter_instances[0]).run_api_tests()
 

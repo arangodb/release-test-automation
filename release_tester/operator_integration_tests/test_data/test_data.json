@@ -14,6 +14,11 @@
       "effect": "Allow",
       "actions": ["db:Write"],
       "resources": ["db:*"]
+    },
+    "admin" : {
+      "effect": "Allow",
+      "actions": ["*"],
+      "resources": ["*"]
     }
   },
   "roles": {
@@ -22,6 +27,9 @@
     },
     "db-writer": {
       "policies": ["write-db", "use-api"]
+    },
+    "admin": {
+      "policies": ["admin"]
     }
   },
   "role bindings": {
