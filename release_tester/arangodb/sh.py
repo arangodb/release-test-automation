@@ -396,7 +396,6 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             test_filter = ["--test", self.cfg.test]
         if self.cfg.skip != "":
             test_filter += ["--skip", self.cfg.skip]
-        print("password from cfg:" + str(self.cfg.passvoid))
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
