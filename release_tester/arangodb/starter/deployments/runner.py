@@ -294,7 +294,7 @@ class Runner(ABC):
                 self.dump_everything("dump_this_" + self.name)
                 print(self.backup_name)
                 self.restore_everything(self.backup_name)
-                self.reload_routing()
+                # self.reload_routing()
                 self.check_data_impl()
 
             if self.new_installer:
