@@ -710,12 +710,19 @@ class ArangodInstance(Instance):
         """is this a leader or follower?"""
         reply = None
         try:
-            reply = requests.get(
-                self.get_local_url("") + "/_api/version",
-                auth=HTTPBasicAuth("root", self.passvoid),
-                verify=False,
-                timeout=20,
-            )
+            if "RBAC_ADMIN_USER" in os.environ:
+                reply = requests.get(
+                    self.get_local_url("") + "/_api/version",
+                    headers={"Authorization": "Bearer " + str(self.jwt)},
+                    timeout=20,
+                )
+            else:
+                reply = requests.get(
+                    self.get_local_url("") + "/_api/version",
+                    auth=HTTPBasicAuth("root", self.passvoid),
+                    verify=False,
+                    timeout=20,
+                )
         except requests.exceptions.ConnectionError:
             return AfoServerState.NOT_CONNECTED
 

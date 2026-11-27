@@ -124,7 +124,13 @@ class SingleRBAC(Runner):
     @step
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
-        pass
+        self.starter_instance.replace_binary_for_upgrade(self.new_installer.cfg)
+        self.starter_instance.command_upgrade()
+        self.starter_instance.wait_for_upgrade()
+        self.starter_instance.wait_for_upgrade_done_in_starter_log()
+
+        self.starter_instance.detect_instances()
+        self.starter_instance.wait_for_version_reply()
 
     def wait_for_restore_impl(self, backup_starter):
         print("wait start")
@@ -136,12 +142,26 @@ class SingleRBAC(Runner):
     @step
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
-        pass
+        self.progress(True, "step 1 - shut down instances")
+        self.starter_instance.replace_binary_setup_for_upgrade(self.new_installer.cfg)
+        self.starter_instance.terminate_instance(True)
+        self.progress(True, "step 2 - launch instances with the upgrade options set")
+        print("launch")
+        self.starter_instance.manually_launch_instances(
+            [InstanceType.SINGLE],
+            ["--database.auto-upgrade", "true", "--javascript.copy-installation", "true"],
+        )
+        self.progress(True, "step 3 - launch instances again")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
+        self.starter_instance.respawn_instance(version)
+        self.progress(True, "step 4 - detect system state")
+        self.starter_instance.detect_instances()
+        self.starter_instance.wait_for_version_reply()
 
     @step
     def jam_attempt_impl(self):
         """run the replication fuzzing test"""
-        prompt_user(self.cfg, "please test the installation.")
+        print("please test the installation...")
 
     @step
     def shutdown_impl(self):

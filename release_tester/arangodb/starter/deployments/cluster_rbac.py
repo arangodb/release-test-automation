@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """ launch and manage an RBAC-enabled arango cluster deployment using the starter"""
+import copy
 import json
 import logging
 from pathlib import Path
@@ -247,11 +248,88 @@ class ClusterRBAC(Runner):
 
     def upgrade_arangod_version_impl(self):
         """rolling upgrade this installation"""
-        pass
+        for node in self.get_running_starters():
+            node.replace_binary_for_upgrade(self.new_installer.cfg)
+
+        for node in self.get_running_starters():
+            node.detect_instance_pids_still_alive()
+
+        self.starter_instances[1].command_upgrade()
+        if self.selenium:
+            self.selenium.test_wait_for_upgrade()  # * 5s
+        try:
+            self.starter_instances[1].wait_for_upgrade(300)
+        except TimeoutError as ex:
+            for node in self.starter_instances:
+                for instance in node.all_instances:
+                    if instance.instance_type == InstanceType.COORDINATOR:
+                        instance.crash_instance()
+            raise ex
+        for node in self.starter_instances:
+            node.detect_instance_pids()
+        self._check_for_shards_in_sync()
 
     def upgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
-        pass
+        lh.subsubsection("wait for all shards to be in sync - Manual upgrade")
+        self._check_for_shards_in_sync()
+        print("all in sync.")
+        self.progress(True, "manual upgrade step 1 - stop instances")
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
+        for node in self.starter_instances:
+            node.replace_binary_for_upgrade(self.new_installer.cfg, False)
+        for node in self.starter_instances:
+            node.detect_instance_pids_still_alive()
+
+        # fmt: off
+        self.progress(True, "step 2 - upgrade agents")
+        for node in self.starter_instances:
+            node.upgrade_instances(
+                [
+                    InstanceType.AGENT
+                ], [
+                    '--database.auto-upgrade', 'true',
+                    '--log.foreground-tty', 'true'
+                ],
+                # mitigate 3.6x agency shutdown issues:
+                self.cfg.version >= arangoversions['370'])
+        self.progress(True, "step 3 - upgrade db-servers")
+        more_args = []
+        if self.cfg.version != arangoversions['3126']:
+            more_args = ['--cluster.upgrade=online']
+        for node in self.starter_instances:
+            node.upgrade_instances([
+                InstanceType.DBSERVER
+            ], ['--database.auto-upgrade', 'true',
+                '--log.foreground-tty', 'true'] + more_args)
+        self.progress(True, "step 4 - coordinator upgrade")
+        # now the new cluster is running. we will now run the coordinator upgrades
+        for node in self.starter_instances:
+            logging.info("upgrading coordinator instances\n" + str(node))
+            node.upgrade_instances([
+                InstanceType.COORDINATOR
+            ], [
+                '--database.auto-upgrade', 'true',
+                '--javascript.copy-installation', 'true',
+                '--server.rest-server', 'false',
+            ])
+        # fmt: on
+        self.progress(True, "step 5 restart the full cluster ")
+        version = self.new_cfg.version if self.new_cfg is not None else self.cfg.version
+        for node in self.starter_instances:
+            node.respawn_instance(version)
+        self.progress(True, "step 6 wait for the cluster to be up")
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+
+        # now the upgrade should be done.
+        for node in self.starter_instances:
+            node.detect_instances()
+            node.wait_for_version_reply()
+            node.probe_leader()
+        self.set_frontend_instances()
+        self.starter_instances[0].maintainance(False, InstanceType.COORDINATOR)
 
     def downgrade_arangod_version_manual_impl(self):
         """manual upgrade this installation"""
@@ -340,15 +418,46 @@ class ClusterRBAC(Runner):
         self.set_frontend_instances()
 
     def _jam_launch_unauthenticated_starter(self):
-        pass
+        moreopts = ["--starter.join", "127.0.0.1:8528"]
+        curr_cfg = {}
+        if self.new_cfg is not None:
+            curr_cfg = copy.deepcopy(self.new_cfg)
+        else:
+            curr_cfg = copy.deepcopy(self.cfg)
+
+        if curr_cfg.ssl and not curr_cfg.use_auto_certs:
+            keyfile = self.cert_dir / Path("nodeX") / "tls.keyfile"
+            self.generate_keyfile(keyfile)
+            moreopts.append(f"--ssl.keyfile={keyfile}")
+        dead_instance = StarterManager(
+            curr_cfg,
+            self.is_foxx_supported,
+            Path("CLUSTER"),
+            "nodeX",
+            mode="cluster",
+            jwt_str=None,
+            expect_instances=[
+                InstanceType.AGENT,
+                InstanceType.COORDINATOR,
+                InstanceType.DBSERVER,
+            ],
+            moreopts=moreopts,
+        )
+        dead_instance.run_starter(expect_to_fail=True)
 
     @step
     def jam_attempt_impl(self):
         # pylint: disable=too-many-statements disable=too-many-branches
-        # this is simply to slow to be worth wile:
-        # collections = self.get_collection_list()
         self._check_for_shards_in_sync()
         self._jam_stop_one_db_server()
+
+        logging.info("jamming: Starting instance without jwt")
+        self._jam_launch_unauthenticated_starter()
+        # After attempt of jamming, we have peer for nodeX in setup.json.
+        # This peer will brake further updates because this peer is unavailable.
+        # It is necessary to remove this peer from json for each starter instance
+        for instance in self.get_running_starters():
+            remove_node_x_from_json(instance.basedir)
 
     def shutdown_impl(self):
         print("stopping the operator services...")
@@ -407,7 +516,20 @@ class ClusterRBAC(Runner):
     @step
     def test_hotbackup_after_upgrade_impl(self):
         """test hotbackup after upgrade: cluster"""
-        pass
+        with step("step 1: check data"):
+            self.check_data_impl()
+        with step("step 2: download backup"):
+            latest_backup = self.uploaded_backups[-1]
+            self.download_backup(latest_backup)
+            backups = self.list_backup()
+            if latest_backup not in backups:
+                raise Exception("downloaded backup has different name? " + str(backups))
+        with step("step 3: restore backup"):
+            if self.restore_backup([latest_backup], 0):
+                self.tcp_ping_all_nodes()
+        # we don't run checkdata after restore in this function, because it is ran afterwards by in runner.py
+        with step("step 4: delete backups"):
+            self.delete_all_backups()
 
     def get_fe_url(self):
         fe_instance = [instance for instance in self.starter_instances[0].all_instances if instance.is_frontend()][0]
