@@ -2,7 +2,6 @@
 
 # pylint: disable=import-error
 import semver
-import secrets
 
 from arangodb.async_client import CliExecutionException
 from arangodb.installers import create_config_installer_set
@@ -13,8 +12,6 @@ from tools.killall import kill_all_processes
 
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
 
-JWT_DIR = "jwt"
-OPERATOR_DIR = "operator"
 V1_API_ARANGO_VERSION = semver.VersionInfo.parse("4.0.0")
 V0_API_VERSION = "v0"
 V1_API_VERSION = "v1"
@@ -51,14 +48,9 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
             f"Operator integration test suite: ArangoDB v. {str(self.new_version)} ({self.installer.installer_type})"
         )
         self.api_version = V1_API_VERSION if self.current_version >= V1_API_ARANGO_VERSION else V0_API_VERSION
-        # create JWT secret and operator binaries folders
-        self.jwt_dir = self.base_cfg.test_data_dir / JWT_DIR
-        self.jwt_dir.mkdir(parents=False, exist_ok=True)
-        self.create_jwt_secret()
-        self.operator_dir = self.base_cfg.test_data_dir / OPERATOR_DIR
-        self.operator_dir.mkdir(parents=False, exist_ok=True)
-        self.rbh = RBACHelper(self.operator_dir, self.jwt_dir)
-        self.build_operator()
+        # RBACHelper instance and SU token come from RBAC runner
+        self.rbh = None
+        self.su_token = None
 
     def _check_versions_eligible(self):
         """Check that test suite is compatible with ArangoDB versions that are being tested.
@@ -72,13 +64,6 @@ class OperatorIntegrationBaseTestSuite(CliStartedTestSuite):
     def init_child_class(self, child_class):
         """initialize the child class"""
         return child_class(self.params)
-
-    def create_jwt_secret(self):
-        with open(f"{self.jwt_dir}/-", "w") as f:
-            f.write(secrets.token_hex(32))
-
-    def build_operator(self):
-        RBACHelper.build_operator(self.operator_dir)
 
     @run_after_suite
     def teardown_suite(self):

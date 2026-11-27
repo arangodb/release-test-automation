@@ -7,13 +7,15 @@ import sys
 from pathlib import Path
 
 import semver
+import os
 
 import tools.errorhelper as eh
 from arangodb.async_client import (
     ArangoCLIprogressiveTimeoutExecutor,
     default_line_result,
     make_default_params,
-    CliExecutionException)
+    CliExecutionException,
+)
 from reporting.reporting_utils import step
 
 ON_POSIX = "posix" in sys.builtin_module_names
@@ -136,7 +138,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
             process_control = []
         # fmt: off
         jwt_command = []
-        if use_jwt:
+        if use_jwt and not "RBAC_ADMIN_USER" in os.environ:
             jwt_command = [ '--server.jwt-token', self.jwt ]
         run_cmd = self.cfg.default_arangosh_args + jwt_command + [
             "--log.level", "v8=debug",
@@ -260,7 +262,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                {{"this": "document will be gone"}});
         """
         logging.debug("script to be executed: " + str(js_script_string) + str(self.connect_instance))
-        res = self.run_command(["create volatile data", js_script_string], True, progressive_timeout=900)  # self.cfg.verbose)
+        res = self.run_command(
+            ["create volatile data", js_script_string], True, progressive_timeout=900
+        )  # self.cfg.verbose)
         logging.debug("data create result: " + str(res))
 
         if not res:
@@ -391,19 +395,28 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         if self.cfg.test != "":
             test_filter = ["--test", self.cfg.test]
         if self.cfg.skip != "":
-            test_filter+= ["--skip", self.cfg.skip]
+            test_filter += ["--skip", self.cfg.skip]
         ret = self.run_script_monitored(
             cmd=[
                 "setting up test data",
                 self.cfg.test_data_dir.resolve() / "makedata.js",
             ],
-            args=args + ["--progress",
-                         "true",
-                         "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
-                         "--passvoid", self.cfg.passvoid,
-                         '--testFoxx', 'true' if supports_foxx_tests else 'false',
-                         '--testVector', 'true' if supports_vector_index else 'false',
-                         ] + test_filter,
+            args=args
+            + [
+                "--progress",
+                "true",
+                "--isInstrumented",
+                "true" if self.cfg.is_instrumented else "false",
+                "--passvoid",
+                os.environ["RBAC_ADMIN_USER"] if "RBAC_ADMIN_USER" in os.environ else self.cfg.passvoid,
+                "--testFoxx",
+                "true" if supports_foxx_tests else "false",
+                "--testVector",
+                "true" if supports_vector_index else "false",
+                "--rbac",
+                "true" if "RBAC_ADMIN_USER" in os.environ else "false",
+            ]
+            + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
             deadline=deadline,
@@ -424,7 +437,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         result_line_handler=default_line_result,
         log_debug=False,
         deadline=900,
-        progressive_timeout=25
+        progressive_timeout=25,
     ):
         """check back the testdata in the instance"""
         if args is None:
@@ -451,8 +464,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
                 '--testVector', 'true' if supports_vector_index else 'false',
                 "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
-                '--passvoid', self.cfg.passvoid,
-                '--mixed', 'true' if mixed else 'false'
+                "--passvoid", os.environ['RBAC_ADMIN_USER'] if 'RBAC_ADMIN_USER' in os.environ else self.cfg.passvoid,
+                '--mixed', 'true' if mixed else 'false',
+                '--rbac', 'true' if 'RBAC_ADMIN_USER' in os.environ else 'false'
             ] + test_filter,
             # fmt: on
             progressive_timeout=progressive_timeout,
@@ -476,7 +490,7 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
         result_line_handler=default_line_result,
         log_debug=False,
         deadline=900,
-        progressive_timeout=25
+        progressive_timeout=25,
     ):
         """wait for back the instance to become completed again"""
         if args is None:
@@ -503,8 +517,9 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 '--testFoxx', 'true' if supports_foxx_tests else 'false',
                 '--testVector', 'true' if supports_vector_index else 'false',
                 "--isInstrumented", 'true' if self.cfg.is_instrumented else 'false',
-                '--passvoid', self.cfg.passvoid,
+                "--passvoid", os.environ['RBAC_ADMIN_USER'] if 'RBAC_ADMIN_USER' in os.environ else self.cfg.passvoid,
                 '--mixed', 'true' if mixed else 'false',
+                '--rbac', 'true' if 'RBAC_ADMIN_USER' in os.environ else 'false'
             ] + test_filter,
             # fmt: on
             progressive_timeout=progressive_timeout,
@@ -518,16 +533,16 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
 
     @step
     def clear_test_data(
-            self,
-            testname,
-            supports_foxx_tests,
-            args=None,
-            one_shard: bool = False,
-            database_name: str = "_system",
-            result_line_handler=default_line_result,
-            log_debug=False,
-            deadline=900,
-            progressive_timeout=25
+        self,
+        testname,
+        supports_foxx_tests,
+        args=None,
+        one_shard: bool = False,
+        database_name: str = "_system",
+        result_line_handler=default_line_result,
+        log_debug=False,
+        deadline=900,
+        progressive_timeout=25,
     ):
         """flush the testdata from the instance again"""
         if args is None:
@@ -550,10 +565,14 @@ class ArangoshExecutor(ArangoCLIprogressiveTimeoutExecutor):
                 "cleaning up test data",
                 self.cfg.test_data_dir.resolve() / "cleardata.js",
             ],
-            args=args + [
-                "--progress", "true",
-                '--testFoxx', 'true' if supports_foxx_tests else 'false',
-            ] + test_filter,
+            args=args
+            + [
+                "--progress",
+                "true",
+                "--testFoxx",
+                "true" if supports_foxx_tests else "false",
+            ]
+            + test_filter,
             progressive_timeout=progressive_timeout,
             result_line_handler=result_line_handler,
             verbose=self.cfg.verbose or log_debug,

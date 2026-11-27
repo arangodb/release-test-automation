@@ -13,9 +13,7 @@ from reporting.reporting_utils import step
 # pylint: disable=import-error
 from test_suites_core.cli_test_suite import CliTestSuiteParameters
 from operator_integration_tests.helpers.rbac_helper import RBACHelper
-
-USER_TYPES = ["superuser", "user"]
-HTTP_OK_CODES = [200, 201, 202]
+from operator_integration_tests.helpers.rbac_helper import HTTP_OK_CODES
 
 
 class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
@@ -30,7 +28,6 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
         test_data_json_path = f"{Path(__file__).parent.resolve()}/test_data/test_data.json"
         with open(test_data_json_path, "r", encoding="utf-8") as file:
             self.test_data = json.load(file)
-        self.su_token = self.rbh.generate_token(USER_TYPES[0])
         self.user_name = None
         self.user_token = None
         self.test_setup_ok = True
@@ -48,7 +45,7 @@ class OperatorIntegrationCommonTestSuite(OperatorIntegrationBaseTestSuite):
             )
             rh.execute_request(request_data, self.arangod_url)
             # create user token
-            self.user_token = self.rbh.generate_token(USER_TYPES[1], user_name=self.user_name)
+            self.user_token = self.rbh.generate_user_token(self.user_name)
             # create test data
             print("creating test data...")
             response_codes = []
